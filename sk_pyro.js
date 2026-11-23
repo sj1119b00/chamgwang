@@ -91,36 +91,67 @@ const SKILL={
       inCircle(pl.x,pl.gy,R,o=>{ dmg(o,d,{kb:2.2,big:true,launch:900}); hitFx(o,C1,1.5); }); }); }},
 };
 
-// ---- ultimates (top-down)
-function ultStorm(id){ ultStart(id); const {hw,hh}=view(), Dm=60000*A.mul(id); ov.dimT=.45; ov.redT=1; V.zk=.95; raise(); SFX.fire(2.4,.6);
-  after(.3,()=>stamp('파이어',{x:.5,y:.18,size:.12,life:.8,c:C1}));
-  const M=VFX.fx_pyro_tornado, tor=[];
-  for(let k=0;k<6;k++){ const a=k/6*TAU, z={a,r:hw*.55,x:0,y:0,v:{x:0,y:0}}; tor.push(z); }
-  let t=0; V.ultTick=dt=>{ t+=dt; for(const z of tor){ z.a+=dt*1.1; const R=lerp(120,Math.max(hw,hh)*.65,Math.min(1,t/1.2)); z.x=pl.x+Math.cos(z.a)*R; z.y=pl.gy+Math.sin(z.a)*R*.8; z.v.x=z.x; z.v.y=z.y;
-      if(Math.random()<.25){ inCircle(z.x,z.y,200,o=>ultHit(o,Dm*.12,z.x,z.y)); } } };
-  for(const z of tor) z.fx=M&&M.f[0].ok?vfx('fx_pyro_tornado',z.v.x,z.v.y,{follow:z.v,loop:true,life:3.2,px:M.ix??.5,py:M.iy??.88,sc:720/M.h,a:.95}):null;
-  for(let i=0;i<22;i++) after(.5+i*.11,()=>{ const x=pl.x+rand(-hw,hw)*.9, y=pl.gy+rand(-hh,hh)*.85; blast(x,y,1.2); sfx('boom',.8,.4); inCircle(x,y,200,o=>ultHit(o,Dm*.3,x,y)); });
-  after(3.1,()=>{ const N=VFX.fx_pyro_nova; if(N&&N.f[0].ok) vfx('fx_pyro_nova',pl.x,pl.gy-BODY*.4,{sc:Math.max(hw,hh)*2.2/N.w}); setInv(.1,'inv'); stamp('스톰',{x:.5,y:.18,size:.14,life:1,c:C2});
-    post.flash=.6; trauma=1.4; hitstop=.08; shock(pl.x,pl.gy-BODY*.5,1.6,1.1); fring(pl.x,pl.gy,4000,C1,.8,14); fireBurst(pl.x,pl.gy-BODY*.5,2.6,0);
-    for(const e of onScreen(300)) ultHit(e,Dm,pl.x,pl.gy); SFX.boom(2.4,1); buzz([200,40,300]); });
-  after(4.1,()=>{ ov.redT=0; ultStop(); }); }
-function ultDragon(id){ ultStart(id); const {hw,hh}=view(), Dm=70000*A.mul(id), b=V.boss&&!V.boss.dead?V.boss:null, t0=b||densest(1600), [cx,cy]=X.inView(t0?t0.x:pl.x,t0?t0.y:pl.gy-hh*.3);
-  ov.dimT=.5; V.zk=.9; SFX.fire(2.6,.6); SFX.roar(1.4,1);
-  S([['gy01',.1],['gy02',.15],['gy03',.3,{kick:[-.8,.6]}],['gy04',.5],['gy05',.08],['gy06',.08],['gy07',.1,{kick:[-1.4,1]}],['gy08',.5],['gy09',.6],['gy10',.6],['gy11',.1,{kick:[1.8,-1.4]}],['gy12',.5],['gy13',.6],['gy14',.4]]);
-  after(.4,()=>stamp('드래곤',{x:.5,y:.18,size:.12,life:.8,c:C1}));
-  const M=VFX.fx_pyro_dragon, dv={x:pl.x,y:pl.gy-BODY*2}, f=M&&M.f[0].ok?vfx('fx_pyro_dragon',dv.x,dv.y,{follow:dv,loop:true,life:3.4,sc:hw*2.2/M.w,px:M.ix??.7,py:M.iy??.5}):null;
-  let t=0, px=dv.x, py=dv.y;
-  V.ultTick=dt=>{ t+=dt; if(t<2.6){ const a=t*2.6, R=Math.min(hw,hh)*.62; dv.x=pl.x+Math.cos(a)*R; dv.y=pl.gy-BODY+Math.sin(a)*R*.75; }
-    else { const k=Math.min(1,(t-2.6)/.4); dv.x=lerp(px,cx,k*k); dv.y=lerp(py,cy-80,k*k); }
-    if(f) f.rot=Math.atan2(dv.y-py,dv.x-px); const mx=dv.x-px, my=dv.y-py; if(f&&Math.abs(mx)+Math.abs(my)>.1) f.sy=mx<0?-1:1; px=dv.x; py=dv.y;
-    if(Math.random()<.8) fire({x:dv.x,y:dv.y,r:40,i:1,type:0,life:.6,fin:.05,fade:.5,vy:-60}); if(t<2.6&&Math.random()<.35){ const gx=dv.x+rand(-60,60), gy=dv.y+BODY+rand(-30,30); fire({x:gx,y:gy,x2:gx,y2:gy-50,r:30,r2:20,i:1,type:0,life:1.8,fin:.2,fade:.6}); }
-    if(t<2.6&&Math.random()<.3) inCircle(dv.x,dv.y+BODY,260,o=>ultHit(o,Dm*.15,dv.x,dv.y)); };
-  if(!f) for(let i=0;i<60;i++) after(i*.05,()=>gl0(dv.x,dv.y,90,C1,.4,{a:.8}));
-  after(2.6,()=>{ V.shadow={x:cx,y:cy,t0:RT,dur:.4,r:500,c:C1}; });
-  after(3.05,()=>{ V.shadow=null; if(f) f.life=0; const N=VFX.fx_pyro_nova; if(N&&N.f[0].ok) vfx('fx_pyro_nova',cx,cy-60,{sc:1700/N.w}); blast(cx,cy,3);
-    setInv(.12,'inv'); stamp('블레이즈',{x:.5,y:.18,size:.13,life:1,c:C2}); post.flash=.6; trauma=1.4; hitstop=.08; shock(cx,cy-60,1.6,1.1); fring(cx,cy,3800,C1,.8,14);
-    for(const e of onScreen(300)) ultHit(e,Dm,cx,cy); SFX.boom(2.4,1); SFX.roar(1.6,1); buzz([200,40,300]); });
-  after(4.1,ultStop); }
+/// ---- ultimates. Each is one staged sequence: omen -> release -> climax -> afterglow (director: cine.js)
+const FLM='#ff7a2a';
+const flame=(x,y,r,life,i=1)=>fire({x,y,x2:x,y2:y-r*1.6,r,r2:r*.5,i,type:0,life,fin:.15,fade:.5});
+// FIRE STORM: six whirlwinds walk out from his hands, graze the whole field, then come home and become one.
+function ultStorm(id){ ultStart(id); const Cn=X.cine, {hw,hh}=view(), Dm=60000*A.mul(id), x0=pl.x, y0=pl.gy, RM=Math.max(hw,hh)*.68;
+  S([['gx01',.1],['gx03',1.5,{kick:[-.8,.6]}],['gx06',.14,{kick:[2,-1.6]}],['gx07',1.9],['gx09',.4],['gx12',.14,{kick:[2,-1.6]}],['gx14',9]]);
+  Cn.setDark(.74,{c:'20,5,0',spot:{x:x0,y:y0-BODY*.5,r:900,a:.25}}); Cn.zoom(1.3); Cn.cam(x0,y0-BODY,5); SFX.fire(5,.6); Cn.drone(44,.3);
+  // omen: sparks wind in around him in a spiral
+  let t=0, sp=0; const M=VFX.fx_pyro_tornado, tor=[]; let out=false, home=0;
+  V.ultTick=dt=>{ t+=dt; if(t<1.8){ sp+=dt; while(sp>.02){ sp-=.02; const a=t*9+rand(0,.6), r=lerp(620,60,t/1.8)*rand(.8,1.1); gl0(x0+Math.cos(a)*r,y0-BODY*.5+Math.sin(a)*r*.7,rand(5,11),pick([FLM,'#ffd28a','#ff3a10']),.35,{a:.9,vy:-90}); } }
+    if(!out) return;
+    for(const z of tor){ z.a+=dt*(home?2.6:1.25); const R=home?lerp(z.R0,0,Math.min(1,(t-home)/.5)**2):lerp(110,RM,easeOut(Math.min(1,(t-1.9)/1.1))); if(!home) z.R0=R; z.x=x0+Math.cos(z.a)*R; z.y=y0+Math.sin(z.a)*R*.8; z.v.x=z.x; z.v.y=z.y;
+      if(Math.random()<.3) inCircle(z.x,z.y,210,o=>ultHit(o,Dm*.12,z.x,z.y));
+      if((z.sc=(z.sc||0)+dt)>.34&&!home){ z.sc=0; Cn.scar({kind:'burn',x:z.x,y:z.y,r:170,c:FLM,life:5,heat:1.8}); } } };
+  Cn.gather(x0,y0-BODY*.6,{c:FLM,dur:.9,r:860,n:30,cs:[FLM,'#ffd28a'],streaks:12});
+  after(.85,()=>Cn.cutin(0,{style:'diag',dir:-1,title:SK[id].name,sub:'FIRE STORM',c:FLM,ang:.13,y:.38,h:.31,dur:.95,fy:.38,fx:.42}));
+  // release
+  after(1.82,()=>{ Cn.release(x0,y0,FLM); { out=true; Cn.zoom(.84); Cn.cam(null); Cn.setDark(.8,{spot:null}); Cn.speed(1.9,{c:'#ffb070',a:.2,n:16});
+      for(let k=0;k<6;k++){ const z={a:k/6*TAU,x:x0,y:y0,v:{x:x0,y:y0},R0:110}; z.fx=M&&M.f[0].ok?vfx('fx_pyro_tornado',x0,y0,{follow:z.v,loop:true,life:2.45,px:M.ix??.5,py:M.iy??.88,sc:rand(760,1080)/M.h,a:.95}):null; tor.push(z); } } });
+  for(let i=0;i<16;i++) after(2.1+i*.1,()=>{ const x=x0+rand(-hw,hw)*.9, y=y0+rand(-hh,hh)*.85; blast(x,y,1.25); sfx('boom',.8,.4); Cn.shake(.3); inCircle(x,y,200,o=>ultHit(o,Dm*.3,x,y)); });
+  // climax: they come home
+  after(3.75,()=>{ home=t; Cn.zoom(1.05); Cn.SND.inhale(.5,.7); Cn.setDark(.9,{spot:{x:x0,y:y0,r:800,a:.3}}); });
+  after(4.2,()=>{ const P=VFX.fx_pyro_pillar; if(P&&P.f[0].ok) vfx('fx_pyro_pillar',x0,y0,{px:P.ix,py:P.iy,sc:1900/P.h}); });
+  after(4.32,()=>Cn.impact(x0,y0-BODY,{style:'ember',c:FLM,n:3,r:.15,then:()=>{ out=false; Cn.zoom(.82); const N=VFX.fx_pyro_nova; if(N&&N.f[0].ok) vfx('fx_pyro_nova',x0,y0-BODY*.4,{sc:RM*3.4/N.w}); fireBurst(x0,y0-BODY*.5,2.6,0);
+      Cn.waves(x0,y0,FLM,{n:4,s:1.25,dc:'66,34,20'}); Cn.scar({kind:'swirl',x:x0,y:y0,r:900,c:FLM,life:10,heat:4.5}); Cn.scar({kind:'burn',x:x0,y:y0,r:640,c:FLM,life:10,heat:4}); Cn.wash('255,214,160',.3,0,x0,y0);
+      Cn.sweep(x0,y0,Dm,{speed:3200,push:1.3}); Cn.setDark(.4,{spot:null}); Cn.ashFall(3.2,'#8a6a5a',54);
+      // what is left burns where it fell
+      for(let i=0;i<7;i++){ const a=rand(0,TAU), r=rand(200,700); flame(x0+Math.cos(a)*r,y0+Math.sin(a)*r*.75,rand(40,70),rand(1.6,2.4),.9); } }}));
+  after(4.9,()=>{ Cn.smokeRise(x0,y0,520,{n:12,dur:1.2,c:'40,26,20',a:.4}); Cn.embers(x0,y0,700,FLM,{n:46,dur:1.8}); });
+  after(5.3,()=>{ Cn.setDark(0); Cn.zoom(1); });
+  after(5.95,ultStop); }
+
+// DRAGON BLAZE: it climbs out of the circle under his feet, takes one burning lap of the field so everyone gets a look, and then it chooses.
+function ultDragon(id){ ultStart(id); const Cn=X.cine, {hw,hh}=view(), Dm=70000*A.mul(id), b=V.boss&&!V.boss.dead?V.boss:null, t0=b||densest(1600), [cx,cy]=X.inView(t0?t0.x:pl.x,t0?t0.y:pl.gy-hh*.3,.42), x0=pl.x, y0=pl.gy;
+  S([['gy01',.12],['gy02',.2],['gy03',.4,{kick:[-.8,.6]}],['gy04',1.1],['gy05',.1],['gy06',.1],['gy07',.12,{kick:[-1.4,1]}],['gy08',.8],['gy09',.8],['gy10',.8],['gy11',.12,{kick:[1.8,-1.4]}],['gy12',.6],['gy13',.7],['gy14',9]]);
+  Cn.setDark(.82,{c:'16,3,0',spot:{x:x0,y:y0-BODY*.5,r:860,a:.22}}); Cn.zoom(1.28); Cn.cam(x0,y0-BODY,5); SFX.fire(5,.6); const dr=Cn.drone(41,.4); SFX.rumble(1.7);
+  const circ=Cn.floorTex('fx_circle_seal',x0,y0,30,{c:FLM,spin:-.8,a:.95,life:3}); circ.core=.2;
+  const M=VFX.fx_pyro_dragon, dv={x:x0,y:y0-BODY}, RR=Math.min(hw,hh)*.66; let f=null, t=0, px=x0, py=y0, sc=0, dive=0;
+  V.ultTick=dt=>{ t+=dt; circ.r=lerp(30,330,easeOut(Math.min(1,t/1)))*(t>2.2?Math.max(0,1-(t-2.2)/.4):1); Cn.shake(t<1.8?.1+t*.1:0);
+    if(t<1.9){ if(Math.random()<.7) flame(x0+rand(-240,240),y0+rand(-90,90),rand(20,44),.5,.8); return; }
+    const lt=t-1.9;
+    if(!dive){ const a=-Math.PI/2+lt*3.0, R=RR*Math.min(1,lt/.45); dv.x=x0+Math.cos(a)*R; dv.y=y0-BODY+Math.sin(a)*R*.75; }
+    else { const k=Math.min(1,(t-dive)/.42); dv.x=lerp(dv.sx,cx,k*k); dv.y=lerp(dv.sy,cy-80,k*k); }
+    if(f){ f.rot=Math.atan2(dv.y-py,dv.x-px); if(Math.abs(dv.x-px)>.1) f.sy=dv.x<px?-1:1; } px=dv.x; py=dv.y;
+    if(Math.random()<.85) fire({x:dv.x,y:dv.y,r:46,i:1,type:0,life:.6,fin:.05,fade:.5,vy:-60});
+    if(!dive){ if((sc+=dt)>.11){ sc=0; const gx=dv.x+rand(-40,40), gy=dv.y+BODY+rand(-20,20); flame(gx,gy,rand(26,40),2.2,.9); Cn.scar({kind:'burn',x:gx,y:gy,r:150,c:FLM,life:6,heat:2.6}); }
+      if(Math.random()<.35){ V.blast={x:dv.x,y:dv.y+BODY,p:.8}; inCircle(dv.x,dv.y+BODY,270,o=>ultHit(o,Dm*.15,dv.x,dv.y)); } } };
+  Cn.gather(x0,y0-BODY*.4,{c:FLM,dur:.9,r:860,n:36,cs:[FLM,'#ffd28a','#ff3a10']});
+  after(.85,()=>Cn.cutin(1,{style:'punch',title:SK[id].name,sub:'DRAGON BLAZE',c:FLM,ang:-.1,y:.38,h:.33,dur:1,fy:.4,fx:.55}));
+  // release: the roar
+  after(1.87,()=>Cn.impact(x0,y0-BODY,{c:FLM,n:2,v:.6,r:.12,then:()=>{ dr.stop(.1); SFX.roar(1.8,1); post.blur=.14; Cn.zoom(.82); Cn.cam(null); Cn.setDark(.84,{spot:null}); Cn.speed(2.1,{c:'#ffb070',a:.2,n:16});
+      f=M&&M.f[0].ok?vfx('fx_pyro_dragon',dv.x,dv.y,{follow:dv,loop:true,life:2.75,sc:hw*3.6/M.w,px:M.ix??.7,py:M.iy??.5}):null; fring(x0,y0,2600,FLM,.5,10); fireBurst(x0,y0-BODY*.5,1.6,0); }}));
+  // climax: the dive
+  after(4.1,()=>{ dive=t; dv.sx=dv.x; dv.sy=dv.y; Cn.omen(cx,cy,600,FLM,.43); Cn.cam(cx,cy-BODY,9); Cn.zoom(.9); Cn.setDark(.92,{spot:{x:cx,y:cy,r:800,a:.3}}); SFX.roar(1.2,1); Cn.SND.inhale(.42,.7); });
+  after(4.53,()=>{ V.shadow=null; Cn.impact(cx,cy-80,{style:'ember',c:FLM,n:3,r:.15,then:()=>{ if(f) f.life=0; const N=VFX.fx_pyro_nova; if(N&&N.f[0].ok) vfx('fx_pyro_nova',cx,cy-60,{sc:2100/N.w}); blast(cx,cy,3); fireBurst(cx,cy-80,2.6,0);
+      Cn.waves(cx,cy,FLM,{n:4,s:1.25,dc:'66,34,20'}); Cn.scar({x:cx,y:cy,r:880,c:FLM,life:10,heat:4.5}); Cn.scar({kind:'burn',x:cx,y:cy,r:620,c:FLM,life:10,heat:4}); Cn.wash('255,214,160',.38);
+      Cn.wash('255,214,160',.3,0,cx,cy); burst(cx,cy,26,{rock:true,s0:400,s1:1400,size:22}); Cn.sweep(cx,cy,Dm,{speed:3200,push:1.3}); SFX.roar(1.6,.8); Cn.setDark(.4,{spot:null}); Cn.ashFall(3.2,'#8a6a5a',54); }}); });
+  // afterglow: the lap it flew is still burning
+  after(5.1,()=>{ Cn.smokeRise(cx,cy,480,{n:14,dur:1.2,c:'40,26,20',a:.42}); Cn.embers(cx,cy,680,FLM,{n:46,dur:1.8}); });
+  after(5.5,()=>{ Cn.setDark(0); Cn.zoom(1); Cn.cam(null); });
+  after(6.15,ultStop); }
 
 X.reg('pyro',{sk,order,basic:{fn:basic,cd:()=>.9*(1-.05*(L('py_basic')-1))},skills:SKILL,ults:{py_ult1:ultStorm,py_ult2:ultDragon}});
 })();

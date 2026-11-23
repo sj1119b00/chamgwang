@@ -337,8 +337,8 @@ function glFrame(){
   P=G.pFin; gl.bindFramebuffer(gl.FRAMEBUFFER,null); gl.viewport(0,0,W,H); common(P);
   [G.tScene,G.bg.t,G.fire.t,G.b1a.t,G.b2b.t,G.b3b.t].forEach((t,i)=>bindTex(i,t));
   ['tex','bgT','fireT','b1','b2','b3'].forEach((n,i)=>gl.uniform1i(U_(P,n),i));
-  gl.uniform1f(U_(P,'ca'),Math.min(.003,post.ca)); gl.uniform1f(U_(P,'inv'),post.inv); gl.uniform1f(U_(P,'flash'),Math.min(1,post.flash)); gl.uniform1f(U_(P,'blur'),post.blur*.5);
-  gl.uniform1f(U_(P,'gray'),post.gray); gl.uniform1f(U_(P,'vig'),.5+ov.dim*.3); gl.uniform1f(U_(P,'grain'),.028); gl.uniform1f(U_(P,'bloomK'),window.BLOOMK??1); { const L0=LIGHTS[0]; if(L0){ const [rx,ry]=w2s(L0[0],L0[1]); gl.uniform3f(U_(P,'ray'),rx/W,1-ry/H,clamp(L0[3]-.4,0,1)*.9); } else gl.uniform3f(U_(P,'ray'),.5,.5,0); } gl.uniform1f(U_(P,'lbox'),ov.lb>.01?.11*ov.lb:0); gl.uniform2f(U_(P,'bc'),post.bc[0],post.bc[1]);
+  gl.uniform1f(U_(P,'ca'),Math.min(post.caMax||.003,post.ca)); gl.uniform1f(U_(P,'inv'),post.inv); gl.uniform1f(U_(P,'flash'),Math.min(1,post.flash)); gl.uniform1f(U_(P,'blur'),post.blur*.5);
+  gl.uniform1f(U_(P,'gray'),post.gray); gl.uniform1f(U_(P,'vig'),.5+ov.dim*.3); gl.uniform1f(U_(P,'grain'),.028); gl.uniform1f(U_(P,'bloomK'),window.BLOOMK??1); { const L0=LIGHTS[0]; if(L0){ const [rx,ry]=w2s(L0[0],L0[1]); gl.uniform3f(U_(P,'ray'),rx/W,1-ry/H,clamp(L0[3]-.4,0,1)*.9); } else gl.uniform3f(U_(P,'ray'),.5,.5,0); } gl.uniform1f(U_(P,'lbox'),ov.lb>.01?(window.LBK??.11)*ov.lb:0); gl.uniform2f(U_(P,'bc'),post.bc[0],post.bc[1]);
   gl.uniform3fv(U_(P,'inkA'),post.inkA); gl.uniform3fv(U_(P,'inkB'),post.inkB);
   const shk=new Float32Array(16); shocks.forEach((s,i)=>{ const [x,y]=w2s(s.x,s.y); shk[i*4]=x/W; shk[i*4+1]=1-y/H; shk[i*4+2]=s.r; shk[i*4+3]=s.s*(s.life/s.max); });
   gl.uniform4fv(U_(P,'sh'),shk);
@@ -606,7 +606,7 @@ function fireBurst(x,y,s=1,pal=0){ const sq=Math.sqrt(s);
   for(let k=0;k<4;k++){ const a=rand(0,TAU); fire({x:x+Math.cos(a)*60*s,y:y+Math.sin(a)*40*s,r:34*s,gr:230*s,drag:.15,i:.95,type:pal?2:0,pal,life:rand(1,1.5)*sq,fin:.06,fade:.9*sq,vx:Math.cos(a)*160*s,vy:-rand(140,280)*s,vd:.5}); } }
 
 // ============================================================ image assets — painted sprites replace the procedural shapes; anything whose file is missing keeps its procedural fallback
-const SPR={}, ASSET_V='g10';   // bump when sprite files are regenerated, so a cached old image is never drawn with new frame numbers
+const SPR={}, ASSET_V='g11';   // bump when sprite files are regenerated, so a cached old image is never drawn with new frame numbers
 function loadSpr(name,o){ const im=new Image(), s=SPR[name]=Object.assign({im,ok:false},o); im.onload=()=>{ s.ok=true; s.w=im.naturalWidth; s.h=im.naturalHeight; }; im.src='assets/'+name+'.webp?v='+ASSET_V; return s; }
 const spr=n=>SPR[n]&&SPR[n].ok?SPR[n]:null;
 // grey stone variant of the meteor painting, used for the falling boulders
@@ -3207,6 +3207,6 @@ function begin(cls){
 }
 initGL(); addEventListener('resize',resize); resize(); requestAnimationFrame(frame);
 </script>
-<script src="rpg.js?v=33"></script>
+<script src="rpg.js?v=42"></script>
 </body>
 </html>
