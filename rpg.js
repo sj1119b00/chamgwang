@@ -547,6 +547,8 @@ function hudTick(){
 function isTouch(){ return document.body.classList.contains('touch'); }
 function enableTouch(){ if(isTouch()) return; document.body.classList.add('touch'); if(G.mode==='play') buildBar(); }
 const tcss=document.createElement('style'); tcss.textContent=`
+html,body{touch-action:none;-webkit-tap-highlight-color:transparent}
+#rmenu{touch-action:pan-y}
 body.touch .rp{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 #rpad{left:max(16px,env(safe-area-inset-left));bottom:16px;width:200px;height:112px;border-radius:56px;background:rgba(10,6,20,.45);border:1px solid rgba(255,255,255,.25);align-items:center;justify-content:center;touch-action:none}
 #rpad i{width:72px;height:72px;border-radius:50%;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.55);pointer-events:none}
@@ -589,6 +591,11 @@ pauseBt.addEventListener('pointerdown',e=>{ e.preventDefault(); e.stopPropagatio
 // phones: go fullscreen and landscape when a stage starts (browsers that refuse just keep the page as it is)
 menuEl.addEventListener('click',e=>{ if(!isTouch()||!e.target.closest('[data-s]')) return; const d=document.documentElement;
   if(!document.fullscreenElement&&d.requestFullscreen) d.requestFullscreen().then(()=>screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(()=>{})).catch(()=>{}); },true);
+// iOS Safari ignores user-scalable=no: rapid taps zoom and pinches zoom, so swallow those gestures (menu scrolling still works)
+let lastTap=0;
+document.addEventListener('touchend',e=>{ const n=performance.now(); if(n-lastTap<350&&!e.target.closest('#rmenu')) e.preventDefault(); lastTap=n; },{passive:false});
+document.addEventListener('touchstart',e=>{ if(e.touches.length>1&&!e.target.closest('[data-a],#rpad')) e.preventDefault(); },{passive:false});
+['gesturestart','gesturechange','dblclick'].forEach(t=>document.addEventListener(t,e=>e.preventDefault(),{passive:false}));
 if(matchMedia('(pointer:coarse)').matches) enableTouch();
 addEventListener('touchstart',enableTouch,{passive:true});
 
