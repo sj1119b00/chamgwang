@@ -60,8 +60,7 @@ const STAGES=[
   {name:'2-3 별이 지는 곳',waves:[[['shard',10],['archer',4]],[['brute',4],['archer',3]],[['shard',12],['brute',3],['archer',4]]]},
   {name:'2-4 거신 재림',boss:{hp:900000,name:'공허 거신 · 재림'},waves:[[['shard',6],['archer',2]]]},
 ];
-// on phones the right-hand button cluster covers the screen edge, so the player stops short of it
-const AL=()=>80, AR=()=>isTouch()?VW*.56:VW-80;
+const AL=()=>80, AR=()=>VW-80;
 const alive=()=>G.en.filter(e=>!e.dead);
 function ecy(e){ return e.boss?E.y+E.ky:GROUND-e.h*.5-e.z; }
 function ex_(e){ return e.boss?E.x+E.kx:e.x; }
@@ -239,9 +238,19 @@ function hurtAnim(){ if(anim.seq||!spr('sword_gh02')) return;
   plSeq([['gh02',.05],['gh03',.08],['gh04',.06],['gh05',.06],['gh06',.05],['gh07',.05],['gh08',.04,{on:done}]]); }
 
 // ============================================================ actions
-function useBasic(){ if(lock||G.mode!=='play'||(anim.seq&&!anim.seq.slash)) return; G.mul=mul('sw_basic'); SK.sw_basic.fn(); }
+const inputDir=()=>(G.keys.r?1:0)-(G.keys.l?1:0);
+function useBasic(){ if(lock||G.mode!=='play') return; const q=anim.seq;
+  if(G.jz>0){ if(!q&&!G.airAtk) airSlash(); return; }
+  if(q&&!q.slash) return;
+  if(!q||q.i>=(q.commit??8)){ const mv=inputDir(); if(mv) pl.f=mv; }   // a new cut (not one still committed) faces the held direction
+  G.mul=mul('sw_basic'); SK.sw_basic.fn(); }
+// jump attack: one diagonal cut per jump, landing on whoever is in front below; a short hang so it reads in the air
+function airSlash(){ G.airAtk=true; const mv=inputDir(); if(mv) pl.f=mv; G.mul=mul('sw_basic'); const d=1500*G.mul; G.jv=Math.max(G.jv,200);
+  startSeq([['gs05',.04],['gs06',.05],['gs07',.04,{tr:1,on:()=>{ SFX.whoosh(1.2,.7); swingArcs(['gs06','gs07'],'#ff6a85',{dir:1}); SFX.slash(1,.9);
+      after(.025,()=>{ for(const e of inBox(pl.x+pl.f*170,190)){ dmgEnemy(e,d,{kb:.8}); fxHit(e,'#ff6a85',1); } }); }}],
+    ['gs08',.08,{tr:1}],['gs09',.06,{on:done}]]); }
 function useSlot(i){ const id=SV.slots[i]; if(!id||lock||G.mode!=='play'||!unlocked(id)) return; if((G.cd[id]||0)>0) return; if(G.jz>0) return;
-  anim.seq=null; G.cd[id]=cdOf(id); G.mul=mul(id); SK[id].fn(); }
+  const mv=inputDir(); if(mv) pl.f=mv; anim.seq=null; G.cd[id]=cdOf(id); G.mul=mul(id); SK[id].fn(); }
 function useUlt(){ const id=SV.ult; if(!id||lock||G.mode!=='play'||!unlocked(id)||G.ug<100) return;
   anim.seq=null; G.jz=G.jv=0; pl.air=pl.airT=0; G.ug=0; G.mul=mul(id);
   pl.f=1; if(!G.boss){ const t=alive(); const cx=t.length?t.reduce((a,e)=>a+e.x,0)/t.length:pl.x+520; E.x=clamp(Math.max(cx,pl.x+420),VW*.55,VW-170); E.by=GROUND-280; }
@@ -264,7 +273,7 @@ addEventListener('keydown',e=>{ e.stopImmediatePropagation();
   else if(e.code==='KeyO') useUlt(); },true);
 addEventListener('keyup',e=>{ const k=KMAP[e.code]; if(k) G.keys[k]=false; },true);
 addEventListener('blur',()=>{ G.keys={}; });
-addEventListener('resize',()=>{ if(G.mode!=='menu') pl.x=clamp(G.lastX,AL(),AR()); else pl.x=pl.home=VW*.62; });
+addEventListener('resize',()=>{ touchCam(); if(G.mode!=='menu') pl.x=clamp(G.lastX,AL(),AR()); else pl.x=pl.home=VW*.62; });
 
 // ============================================================ per-frame
 function preStep(rdt){
@@ -277,7 +286,7 @@ function preStep(rdt){
     if(mv&&!seq){ pl.f=mv; pl.x+=mv*430*dt; }
     G.pose=locoPose(rdt,mv&&!seq);
     if(G.keys.basic) useBasic();
-    if(G.jz>0||G.jv>0){ G.jv-=3600*dt; G.jz+=G.jv*dt; if(G.jz<=0){ G.jz=0; G.jv=0; G.landT=.1; for(let i=0;i<5;i++) smoke(pl.x+rand(-30,30),GROUND-6,rand(10,20),{vy:rand(-50,-10),a:.3,life:.7}); } }
+    if(G.jz>0||G.jv>0){ G.jv-=3600*dt; G.jz+=G.jv*dt; if(G.jz<=0){ G.jz=0; G.jv=0; G.landT=.1; G.airAtk=false; for(let i=0;i<5;i++) smoke(pl.x+rand(-30,30),GROUND-6,rand(10,20),{vy:rand(-50,-10),a:.3,life:.7}); } }
     const seqAir=seq&&seq.steps.some(s=>s[2]&&s[2].air);
     if(!seqAir) pl.air=pl.airT=G.jz;
     pl.x=clamp(pl.x,AL(),AR());
@@ -531,11 +540,12 @@ function buildBar(){
 }
 let hudLv=-1;
 function hudTick(){
-  const tp=isTouch()&&G.mode==='play'; padEl.classList.toggle('on',tp); pauseBt.classList.toggle('on',tp&&!G.paused);
+  const tp=isTouch()&&G.mode==='play'&&!lock; padEl.classList.toggle('on',tp); pauseBt.classList.toggle('on',tp&&!G.paused);
+  document.body.classList.toggle('cine',lock);
   if(G.mode!=='play'){ barEl.classList.remove('on'); return; }
   barEl.classList.add('on');
   if(hudLv!==SV.lv){ hudLv=SV.lv; hudR.querySelector('.nm').textContent=`검사 · Lv ${SV.lv}`; buildBar(); }
-  hudR.querySelector('.hb i').style.width=(G.hp/maxHp()*100)+'%';
+  hudR.querySelector('.hb i').style.width=Math.min(100,G.hp/maxHp()*100)+'%';
   hudR.querySelector('.xb i').style.width=(SV.exp/needExp(SV.lv)*100)+'%';
   hudR.querySelector('.ub i').style.width=G.ug+'%'; hudR.querySelector('.ub').classList.toggle('full',G.ug>=100);
   for(const s of barSlots){ if(!s.id||!unlocked(s.id)) continue;
@@ -545,7 +555,8 @@ function hudTick(){
 
 // ============================================================ touch (phones): move pad on the left, the skill bar turns into buttons on the right
 function isTouch(){ return document.body.classList.contains('touch'); }
-function enableTouch(){ if(isTouch()) return; document.body.classList.add('touch'); if(G.mode==='play') buildBar(); }
+function enableTouch(){ if(isTouch()) return; document.body.classList.add('touch'); touchCam(); if(G.mode==='play') buildBar(); }
+function touchCam(){ if(!isTouch()||PORTRAIT) return; CY=VH/2+190; if(!lock&&cam.ft<=0){ cam.y=cam.fy=CY; } }
 const tcss=document.createElement('style'); tcss.textContent=`
 html,body{touch-action:none;-webkit-tap-highlight-color:transparent}
 #rmenu{touch-action:pan-y}
@@ -559,7 +570,7 @@ body.touch .rp{-webkit-user-select:none;user-select:none;-webkit-touch-callout:n
 @media (orientation:portrait){ body.touch #rrot{display:flex} }
 body.touch #rbar{left:auto;right:max(12px,env(safe-area-inset-right));bottom:12px;transform:none;pointer-events:auto;touch-action:none;display:none;gap:7px;
   grid-template-columns:repeat(4,60px) 84px;grid-template-rows:60px 60px;grid-template-areas:"s0 s1 ult jump basic" "s2 s3 . dodge basic"}
-body.touch #rbar.on{display:grid}
+body.touch #rbar.on{display:grid} body.touch.cine #rbar{display:none}
 body.touch .sl{width:auto;height:auto;font-size:11px;border-radius:50%;background:rgba(10,6,20,.38)}
 body.touch .sl kbd{display:none}
 body.touch .sl.press{background:rgba(255,60,90,.45)}
@@ -568,6 +579,7 @@ body.touch .sl[data-a=ult]{grid-area:ult} body.touch .sl[data-a=jump]{grid-area:
 body.touch .sl[data-a=basic]{grid-area:basic;height:84px;align-self:center;font-size:16px;border-color:#ff6a85}
 body.touch .sl.tb{background:rgba(40,30,70,.42)}
 body.touch #rmenu .help{display:none}
+body.touch #rhud{width:min(280px,32vw);gap:4px} body.touch #rhud .hb{height:9px} body.touch #rhud .nm{font-size:14px} body.touch #rhud .lb{display:none}
 @media (max-height:520px){ #rmenu{padding:3vh 3vw} #rmenu h1{font-size:38px} #rmenu .sub{margin:2px 0 8px} #rmenu .chars{margin-bottom:8px} #rmenu .ch{padding:5px 10px;font-size:12px}
   #rmenu .bar{margin:4px 0 8px} #rmenu .me{margin-bottom:6px} #rmenu .stages{grid-template-columns:repeat(4,minmax(120px,180px))} #rmenu .stages button{padding:9px 10px;font-size:13px}
   #rmenu .skills{max-width:min(760px,92vw)} #rmenu .sk{grid-template-columns:110px 1fr auto;padding:6px 8px} #rmenu .sk .bt button{padding:8px 10px}

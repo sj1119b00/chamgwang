@@ -109,7 +109,7 @@ const fxc=document.createElement('canvas'), fx=fxc.getContext('2d');
 const blc=document.createElement('canvas'), bl=blc.getContext('2d');
 const blc2=document.createElement('canvas'), bl2=blc2.getContext('2d');
 let W=0,H=0,S=1,VW=1600,CY=450,PORTRAIT=false,lastVW=0; const VH=900; let GROUND=770;
-const COARSE=matchMedia('(pointer:coarse)').matches||(navigator.maxTouchPoints>0&&Math.min(screen.width,screen.height)<900); if(COARSE) document.documentElement.classList.add('touch'); let RS=2;
+const COARSE=matchMedia('(pointer:coarse)').matches||(navigator.maxTouchPoints>0&&Math.min(screen.width,screen.height)<900); if(COARSE) document.documentElement.classList.add('touch'); let RS=COARSE?1.5:2;   // phones start at 1.5x render scale (their screens are 3x): same effects, fewer pixels
 let lastBuzz=0; function buzz(v){ if(!navigator.vibrate||(navigator.userActivation&&!navigator.userActivation.hasBeenActive)) return; if(!Array.isArray(v)){ if(RT-lastBuzz<.06) return; lastBuzz=RT; } try{navigator.vibrate(v);}catch(e){} }
 function skyTop(){ return Math.min(-260, cam.y-H/S/2/cam.z-80); }
 let gl=null, ctxOut=null;
@@ -3073,7 +3073,7 @@ function resize(){
 let last=performance.now();
 let perfT=0, perfN=0;
 function frame(now){ const raw=(now-last)/1000, rdt=clamp(raw,0,.05); last=now; requestAnimationFrame(frame); update(rdt); render();
-  if(started&&!document.hidden){ perfT+=raw; perfN++; if(perfT>2.5){ if(perfT/perfN>1/42&&RS>1.25){ const r0=Math.min(devicePixelRatio||1,RS); RS=Math.max(1.25,RS-.25); if(Math.min(devicePixelRatio||1,RS)!==r0) resize(); } perfT=0; perfN=0; } } }
+  if(started&&!document.hidden){ perfT+=raw; perfN++; if(perfT>2.5){ if(perfT/perfN>1/42&&RS>(COARSE?1:1.25)){ const r0=Math.min(devicePixelRatio||1,RS); RS=Math.max(COARSE?1:1.25,RS-.25); if(Math.min(devicePixelRatio||1,RS)!==r0) resize(); } perfT=0; perfN=0; } } }
 const DEMO=[]; for(const c of ['sword','mage','fist','shaman','pyro']) DEMO.push(['cls',c,1.2],['basic',0,.3],['basic',0,.3],['basic',0,1],['u',0,1.4],['u',1,1.6]);
 function runDemo(){ const [a,v,w]=DEMO[demoI%DEMO.length]; demoI++; demoT=w;
   if(a==='cls') setClass(v); else if(a==='basic') CLASSES[pl.cls].basicFn(); else CLASSES[pl.cls].ults[v].fn(); }
@@ -3107,6 +3107,6 @@ function begin(cls){
 }
 initGL(); addEventListener('resize',resize); resize(); requestAnimationFrame(frame);
 </script>
-<script src="rpg.js?v=12"></script>
+<script src="rpg.js?v=14"></script>
 </body>
 </html>
