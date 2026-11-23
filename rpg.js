@@ -14,6 +14,10 @@ function freshSave(){ return {v:1,cls:'sword',lv:1,exp:0,sp:0,sl:{},slots:['sw_d
 let SV=(()=>{ try{ const s=JSON.parse(localStorage.getItem(SAVE_KEY)); if(s&&s.v===1) return s; }catch(e){} return freshSave(); })();
 function save(){ try{ localStorage.setItem(SAVE_KEY,JSON.stringify(SV)); }catch(e){} }
 G.save=()=>SV;
+const CH_KEYS=['lv','exp','sp','sl','slots','ult'];
+function swapClass(c){ if(SV.cls===c) return; SV.chars=SV.chars||{}; const o={}; for(const k of CH_KEYS) o[k]=SV[k]; SV.chars[SV.cls]=o;
+  const n=SV.chars[c]||{lv:1,exp:0,sp:0,sl:{},slots:[null,null,null,null],ult:null}; for(const k of CH_KEYS) SV[k]=n[k]; SV.cls=c;
+  if(G.firstSkills&&!SV.slots.some(Boolean)) G.firstSkills(c); save(); }
 G.reset=()=>{ SV=freshSave(); save(); menuRender(); };
 
 // ============================================================ skill table (one row per skill; 200 skills later = more rows, not more engine code)
@@ -227,7 +231,7 @@ function counterHit(src){ const d=D('sw_counter'); G.counter=0; G.inv=1.1; slow(
 // run sword_gr02-11 loop · jump sword_gj03 rise, 04-08 airborne loop, 09-10 fall, 11 landing · hurt sword_gh02-08
 const fr2=n=>String(n).padStart(2,'0');
 const plFrame0=plFrame;
-plFrame=function(){ if(G.mode==='play'&&!anim.seq&&G.pose){ const s=spr(pl.cls+'_'+G.pose); if(s) return s; } return plFrame0(); };
+plFrame=function(){ if((G.mode==='play'||G.mode==='surv')&&!anim.seq&&G.pose){ const s=spr(pl.cls+'_'+G.pose); if(s) return s; } return plFrame0(); };
 function locoPose(rdt,moving){
   if(G.landT>0){ G.landT-=rdt; return 'gj11'; }
   if(G.jz>0){ if(G.jv>350) return 'gj03'; if(G.jv>-350) return 'gj'+fr2(4+Math.floor(RT/.08)%5); return G.jv>-900?'gj09':'gj10'; }
@@ -236,7 +240,7 @@ function locoPose(rdt,moving){
 }
 // ============================================================ stickman mode (the showcase's original skeleton figure instead of the painted frames)
 // The painted sequences still run (same timing, hits and effects); each step maps its frame to a skeleton pose: wind-up, strike (trail/forward kick steps), recovery.
-const STK=()=>G.mode==='surv'||SV.stick!==false;   // survival is always the stickman
+const STK=()=>G.mode!=='surv'&&SV.stick!==false;   // survival draws the painted class characters
 const STICK={gs:'slash1',gm:'slash2',gw:'slash3',gu:'slash3',gt:'slashU',gp:'slash2',gk:'slash3',gc:'iaiDone'};
 const plSprites0=plSprites; plSprites=function(){ return STK()?null:plSprites0(); };
 const plSeqNext0=plSeqNext; plSeqNext=function(){ plSeqNext0(); if(!STK()) return; const q=anim.seq;
@@ -254,7 +258,7 @@ function stickLoco(rdt,moving){ if(anim.seq) return;
   if(!moving){ pl.target=IDLE(); pl.ps=12; return; }
   const W=POSES.stWalk, a=.55*Math.sin(G.runT*11); W.t=.16; W.rl=[a,a*.4+.1]; W.ll=[-a,-a*.4+.1]; W.ra=[.35-a*.5,1.1]; W.la=[-.25+a*.5,.25];
   pl.target='stWalk'; pl.ps=22; }
-function hurtAnim(){ if(anim.seq||!spr('sword_gh02')) return;
+function hurtAnim(){ if(anim.seq||!spr(pl.cls+'_gh02')) return;
   plSeq([['gh02',.05],['gh03',.08],['gh04',.06],['gh05',.06],['gh06',.05],['gh07',.05],['gh08',.04,{on:done}]]); }
 
 // ============================================================ actions
@@ -533,7 +537,7 @@ pauseEl.querySelector('[data-p=quit]').onclick=()=>toMenu();
 function toast(t){ const d=document.createElement('div'); d.textContent=t; toastEl.appendChild(d); setTimeout(()=>d.remove(),2700); }
 
 let tab='stage';
-function menuRender(){
+function menuRender(){ if(G.menuOverride) return G.menuOverride(menuEl);
   const need=needExp(SV.lv), ids=ORDER[SV.cls];
   let h=`<h1>참광</h1><div class="sub">CHAMGWANG · RPG</div>
   <button data-stick style="margin-bottom:10px;align-self:flex-start">졸라맨 모드: ${STK()?'켜짐':'꺼짐'}</button>
@@ -643,8 +647,8 @@ addEventListener('touchstart',enableTouch,{passive:true});
 
 // ============================================================ boot
 // survival mode (surv.js) works on the same save, levels and skill table
-G.api={get SV(){ return SV; },SK,ORDER,SLOT_KEYS,save,mul,cdOf,maxHp,needExp,gainExp,unlocked,sLv,stickLoco,toMenu,menuRender,setPause,toast,floatTxt,EFR,ET,menuEl,isTouch,fr2};
-{ const s=document.createElement('script'); s.src='surv.js?v=2'; document.body.appendChild(s); }
-started=true; setClass('sword',true); E.dead=true; E.respawn=1e9; pl.x=pl.home=VW*.62;
+G.api={get SV(){ return SV; },SK,ORDER,SLOT_KEYS,save,mul,cdOf,maxHp,needExp,gainExp,unlocked,sLv,stickLoco,toMenu,menuRender,setPause,toast,floatTxt,EFR,ET,menuEl,isTouch,fr2,swapClass,locoPose,hurtAnim};
+{ const s=document.createElement('script'); s.src='surv.js?v=14'; document.body.appendChild(s); }
+started=true; setClass(SV.cls||'sword',true); E.dead=true; E.respawn=1e9; pl.x=pl.home=VW*.62;
 menuRender(); menuEl.classList.add('on');
 })();

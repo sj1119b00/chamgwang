@@ -338,7 +338,7 @@ function glFrame(){
   [G.tScene,G.bg.t,G.fire.t,G.b1a.t,G.b2b.t,G.b3b.t].forEach((t,i)=>bindTex(i,t));
   ['tex','bgT','fireT','b1','b2','b3'].forEach((n,i)=>gl.uniform1i(U_(P,n),i));
   gl.uniform1f(U_(P,'ca'),Math.min(.003,post.ca)); gl.uniform1f(U_(P,'inv'),post.inv); gl.uniform1f(U_(P,'flash'),Math.min(1,post.flash)); gl.uniform1f(U_(P,'blur'),post.blur*.5);
-  gl.uniform1f(U_(P,'gray'),post.gray); gl.uniform1f(U_(P,'vig'),.5+ov.dim*.3); gl.uniform1f(U_(P,'grain'),.028); gl.uniform1f(U_(P,'bloomK'),1); { const L0=LIGHTS[0]; if(L0){ const [rx,ry]=w2s(L0[0],L0[1]); gl.uniform3f(U_(P,'ray'),rx/W,1-ry/H,clamp(L0[3]-.4,0,1)*.9); } else gl.uniform3f(U_(P,'ray'),.5,.5,0); } gl.uniform1f(U_(P,'lbox'),ov.lb>.01?.11*ov.lb:0); gl.uniform2f(U_(P,'bc'),post.bc[0],post.bc[1]);
+  gl.uniform1f(U_(P,'gray'),post.gray); gl.uniform1f(U_(P,'vig'),.5+ov.dim*.3); gl.uniform1f(U_(P,'grain'),.028); gl.uniform1f(U_(P,'bloomK'),window.BLOOMK??1); { const L0=LIGHTS[0]; if(L0){ const [rx,ry]=w2s(L0[0],L0[1]); gl.uniform3f(U_(P,'ray'),rx/W,1-ry/H,clamp(L0[3]-.4,0,1)*.9); } else gl.uniform3f(U_(P,'ray'),.5,.5,0); } gl.uniform1f(U_(P,'lbox'),ov.lb>.01?.11*ov.lb:0); gl.uniform2f(U_(P,'bc'),post.bc[0],post.bc[1]);
   gl.uniform3fv(U_(P,'inkA'),post.inkA); gl.uniform3fv(U_(P,'inkB'),post.inkB);
   const shk=new Float32Array(16); shocks.forEach((s,i)=>{ const [x,y]=w2s(s.x,s.y); shk[i*4]=x/W; shk[i*4+1]=1-y/H; shk[i*4+2]=s.r; shk[i*4+3]=s.s*(s.life/s.max); });
   gl.uniform4fv(U_(P,'sh'),shk);
@@ -606,7 +606,7 @@ function fireBurst(x,y,s=1,pal=0){ const sq=Math.sqrt(s);
   for(let k=0;k<4;k++){ const a=rand(0,TAU); fire({x:x+Math.cos(a)*60*s,y:y+Math.sin(a)*40*s,r:34*s,gr:230*s,drag:.15,i:.95,type:pal?2:0,pal,life:rand(1,1.5)*sq,fin:.06,fade:.9*sq,vx:Math.cos(a)*160*s,vy:-rand(140,280)*s,vd:.5}); } }
 
 // ============================================================ image assets — painted sprites replace the procedural shapes; anything whose file is missing keeps its procedural fallback
-const SPR={}, ASSET_V='g8';   // bump when sprite files are regenerated, so a cached old image is never drawn with new frame numbers
+const SPR={}, ASSET_V='g10';   // bump when sprite files are regenerated, so a cached old image is never drawn with new frame numbers
 function loadSpr(name,o){ const im=new Image(), s=SPR[name]=Object.assign({im,ok:false},o); im.onload=()=>{ s.ok=true; s.w=im.naturalWidth; s.h=im.naturalHeight; }; im.src='assets/'+name+'.webp?v='+ASSET_V; return s; }
 const spr=n=>SPR[n]&&SPR[n].ok?SPR[n]:null;
 // grey stone variant of the meteor painting, used for the falling boulders
@@ -1134,6 +1134,106 @@ Object.assign(FRAME_CFG,{
   sword_gh07:{"wh":338.1,"ax":0.7,"ox":0,"oy":6},
   sword_gh08:{"wh":337.3,"ax":0.661,"ox":0,"oy":6}});
 for(let i=1;i<=8;i++){ const n='sword_gh'+String(i).padStart(2,'0'); loadSpr(n,FRAME_CFG[n]); }
+// mage_gr set (mage_gr01..11), same pipeline
+Object.assign(FRAME_CFG,{
+  mage_gr01:{"wh":407.3,"ax":0.445,"ox":0,"oy":6},
+  mage_gr02:{"wh":395.6,"ax":0.482,"ox":0,"oy":6},
+  mage_gr03:{"wh":381.6,"ax":0.469,"ox":0,"oy":6},
+  mage_gr04:{"wh":382.8,"ax":0.462,"ox":0,"oy":6},
+  mage_gr05:{"wh":381.6,"ax":0.45,"ox":0,"oy":6},
+  mage_gr06:{"wh":357.0,"ax":0.457,"ox":0,"oy":6},
+  mage_gr07:{"wh":333.6,"ax":0.432,"ox":0,"oy":6},
+  mage_gr08:{"wh":393.3,"ax":0.43,"ox":0,"oy":6},
+  mage_gr09:{"wh":391.0,"ax":0.45,"ox":0,"oy":6},
+  mage_gr10:{"wh":388.6,"ax":0.463,"ox":0,"oy":6},
+  mage_gr11:{"wh":401.5,"ax":0.482,"ox":0,"oy":6}});
+for(let i=1;i<=11;i++){ const n='mage_gr'+String(i).padStart(2,'0'); loadSpr(n,FRAME_CFG[n]); }
+// mage_gh set (mage_gh01..08), same pipeline
+Object.assign(FRAME_CFG,{
+  mage_gh01:{"wh":406.9,"ax":0.45,"ox":0,"oy":6},
+  mage_gh02:{"wh":398.2,"ax":0.462,"ox":0,"oy":6},
+  mage_gh03:{"wh":401.1,"ax":0.536,"ox":0,"oy":6},
+  mage_gh04:{"wh":396.3,"ax":0.585,"ox":0,"oy":6},
+  mage_gh05:{"wh":407.9,"ax":0.532,"ox":0,"oy":6},
+  mage_gh06:{"wh":411.8,"ax":0.543,"ox":0,"oy":6},
+  mage_gh07:{"wh":408.9,"ax":0.486,"ox":0,"oy":6},
+  mage_gh08:{"wh":408.9,"ax":0.44,"ox":0,"oy":6}});
+for(let i=1;i<=8;i++){ const n='mage_gh'+String(i).padStart(2,'0'); loadSpr(n,FRAME_CFG[n]); }
+// fist_gr set (fist_gr01..11), same pipeline
+Object.assign(FRAME_CFG,{
+  fist_gr01:{"wh":301.9,"ax":0.651,"ox":0,"oy":6},
+  fist_gr02:{"wh":300.0,"ax":0.717,"ox":0,"oy":6},
+  fist_gr03:{"wh":297.2,"ax":0.68,"ox":0,"oy":6},
+  fist_gr04:{"wh":302.8,"ax":0.699,"ox":0,"oy":6},
+  fist_gr05:{"wh":310.4,"ax":0.668,"ox":0,"oy":6},
+  fist_gr06:{"wh":295.3,"ax":0.695,"ox":0,"oy":6},
+  fist_gr07:{"wh":300.9,"ax":0.71,"ox":0,"oy":6},
+  fist_gr08:{"wh":293.4,"ax":0.675,"ox":0,"oy":6},
+  fist_gr09:{"wh":297.2,"ax":0.704,"ox":0,"oy":6},
+  fist_gr10:{"wh":302.8,"ax":0.668,"ox":0,"oy":6},
+  fist_gr11:{"wh":307.6,"ax":0.691,"ox":0,"oy":6}});
+for(let i=1;i<=11;i++){ const n='fist_gr'+String(i).padStart(2,'0'); loadSpr(n,FRAME_CFG[n]); }
+// fist_gh set (fist_gh01..08), same pipeline
+Object.assign(FRAME_CFG,{
+  fist_gh01:{"wh":301.5,"ax":0.628,"ox":0,"oy":6},
+  fist_gh02:{"wh":296.9,"ax":0.629,"ox":0,"oy":6},
+  fist_gh03:{"wh":298.5,"ax":0.631,"ox":0,"oy":6},
+  fist_gh04:{"wh":293.8,"ax":0.631,"ox":0,"oy":6},
+  fist_gh05:{"wh":300.8,"ax":0.629,"ox":0,"oy":6},
+  fist_gh06:{"wh":300.0,"ax":0.625,"ox":0,"oy":6},
+  fist_gh07:{"wh":300.0,"ax":0.626,"ox":0,"oy":6},
+  fist_gh08:{"wh":300.0,"ax":0.626,"ox":0,"oy":6}});
+for(let i=1;i<=8;i++){ const n='fist_gh'+String(i).padStart(2,'0'); loadSpr(n,FRAME_CFG[n]); }
+// shaman_gr set (shaman_gr01..11), same pipeline
+Object.assign(FRAME_CFG,{
+  shaman_gr01:{"wh":374.2,"ax":0.495,"ox":0,"oy":6},
+  shaman_gr02:{"wh":366.6,"ax":0.504,"ox":0,"oy":6},
+  shaman_gr03:{"wh":360.2,"ax":0.519,"ox":0,"oy":6},
+  shaman_gr04:{"wh":354.8,"ax":0.484,"ox":0,"oy":6},
+  shaman_gr05:{"wh":340.8,"ax":0.462,"ox":0,"oy":6},
+  shaman_gr06:{"wh":327.9,"ax":0.485,"ox":0,"oy":6},
+  shaman_gr07:{"wh":355.9,"ax":0.496,"ox":0,"oy":6},
+  shaman_gr08:{"wh":353.7,"ax":0.496,"ox":0,"oy":6},
+  shaman_gr09:{"wh":362.3,"ax":0.496,"ox":0,"oy":6},
+  shaman_gr10:{"wh":365.5,"ax":0.517,"ox":0,"oy":6},
+  shaman_gr11:{"wh":368.8,"ax":0.525,"ox":0,"oy":6}});
+for(let i=1;i<=11;i++){ const n='shaman_gr'+String(i).padStart(2,'0'); loadSpr(n,FRAME_CFG[n]); }
+// shaman_gh set (shaman_gh01..08), same pipeline
+Object.assign(FRAME_CFG,{
+  shaman_gh01:{"wh":373.8,"ax":0.5,"ox":0,"oy":6},
+  shaman_gh02:{"wh":370.2,"ax":0.472,"ox":0,"oy":6},
+  shaman_gh03:{"wh":354.4,"ax":0.484,"ox":0,"oy":6},
+  shaman_gh04:{"wh":358.8,"ax":0.477,"ox":0,"oy":6},
+  shaman_gh05:{"wh":365.8,"ax":0.487,"ox":0,"oy":6},
+  shaman_gh06:{"wh":368.5,"ax":0.519,"ox":0,"oy":6},
+  shaman_gh07:{"wh":374.6,"ax":0.531,"ox":0,"oy":6},
+  shaman_gh08:{"wh":374.6,"ax":0.495,"ox":0,"oy":6}});
+for(let i=1;i<=8;i++){ const n='shaman_gh'+String(i).padStart(2,'0'); loadSpr(n,FRAME_CFG[n]); }
+// pyro_gr set (pyro_gr01..11), same pipeline
+Object.assign(FRAME_CFG,{
+  pyro_gr01:{"wh":354.1,"ax":0.455,"ox":0,"oy":6},
+  pyro_gr02:{"wh":345.8,"ax":0.56,"ox":0,"oy":6},
+  pyro_gr03:{"wh":331.2,"ax":0.575,"ox":0,"oy":6},
+  pyro_gr04:{"wh":329.1,"ax":0.498,"ox":0,"oy":6},
+  pyro_gr05:{"wh":329.1,"ax":0.484,"ox":0,"oy":6},
+  pyro_gr06:{"wh":324.9,"ax":0.502,"ox":0,"oy":6},
+  pyro_gr07:{"wh":284.3,"ax":0.494,"ox":0,"oy":6},
+  pyro_gr08:{"wh":345.8,"ax":0.529,"ox":0,"oy":6},
+  pyro_gr09:{"wh":339.5,"ax":0.548,"ox":0,"oy":6},
+  pyro_gr10:{"wh":343.7,"ax":0.512,"ox":0,"oy":6},
+  pyro_gr11:{"wh":344.7,"ax":0.547,"ox":0,"oy":6}});
+for(let i=1;i<=11;i++){ const n='pyro_gr'+String(i).padStart(2,'0'); loadSpr(n,FRAME_CFG[n]); }
+// pyro_gh set (pyro_gh01..08), same pipeline
+Object.assign(FRAME_CFG,{
+  pyro_gh01:{"wh":353.7,"ax":0.465,"ox":0,"oy":6},
+  pyro_gh02:{"wh":347.0,"ax":0.474,"ox":0,"oy":6},
+  pyro_gh03:{"wh":336.3,"ax":0.512,"ox":0,"oy":6},
+  pyro_gh04:{"wh":347.0,"ax":0.517,"ox":0,"oy":6},
+  pyro_gh05:{"wh":350.3,"ax":0.554,"ox":0,"oy":6},
+  pyro_gh06:{"wh":352.0,"ax":0.547,"ox":0,"oy":6},
+  pyro_gh07:{"wh":352.8,"ax":0.484,"ox":0,"oy":6},
+  pyro_gh08:{"wh":354.5,"ax":0.46,"ox":0,"oy":6}});
+for(let i=1;i<=8;i++){ const n='pyro_gh'+String(i).padStart(2,'0'); loadSpr(n,FRAME_CFG[n]); }
 for(const c of ['sword','mage','fist','shaman','pyro']) for(const k of 'cde') loadSpr(c+'_'+k,(typeof FRAME_CFG!=='undefined'&&FRAME_CFG[c+'_'+k])||{});
 
 // ============================================================ combat helpers
@@ -3107,6 +3207,6 @@ function begin(cls){
 }
 initGL(); addEventListener('resize',resize); resize(); requestAnimationFrame(frame);
 </script>
-<script src="rpg.js?v=21"></script>
+<script src="rpg.js?v=33"></script>
 </body>
 </html>
