@@ -236,7 +236,7 @@ function locoPose(rdt,moving){
 }
 // ============================================================ stickman mode (the showcase's original skeleton figure instead of the painted frames)
 // The painted sequences still run (same timing, hits and effects); each step maps its frame to a skeleton pose: wind-up, strike (trail/forward kick steps), recovery.
-const STK=()=>SV.stick!==false;
+const STK=()=>G.mode==='surv'||SV.stick!==false;   // survival is always the stickman
 const STICK={gs:'slash1',gm:'slash2',gw:'slash3',gu:'slash3',gt:'slashU',gp:'slash2',gk:'slash3',gc:'iaiDone'};
 const plSprites0=plSprites; plSprites=function(){ return STK()?null:plSprites0(); };
 const plSeqNext0=plSeqNext; plSeqNext=function(){ plSeqNext0(); if(!STK()) return; const q=anim.seq;
@@ -283,6 +283,7 @@ act=function(a){ if(G.mode!=='play'||G.paused) return; if(a==='basic') useBasic(
 // ============================================================ input
 const KMAP={ArrowLeft:'l',KeyA:'l',ArrowRight:'r',KeyD:'r',KeyJ:'basic'};
 addEventListener('keydown',e=>{ e.stopImmediatePropagation();
+  if(G.mode==='surv'){ if(G.survKey) G.survKey(e,true); return; }
   if(e.code==='Escape'){ if(G.mode==='play') setPause(!G.paused); return; }
   if(G.mode!=='play'||G.paused) return;
   const k=KMAP[e.code]; if(k){ G.keys[k]=true; e.preventDefault(); if(k==='basic'&&!e.repeat) useBasic(); return; }
@@ -291,9 +292,9 @@ addEventListener('keydown',e=>{ e.stopImmediatePropagation();
   else if(e.code==='ShiftLeft'||e.code==='ShiftRight') dodge();
   else if(e.code==='KeyK') useSlot(0); else if(e.code==='KeyL') useSlot(1); else if(e.code==='KeyU') useSlot(2); else if(e.code==='KeyI') useSlot(3);
   else if(e.code==='KeyO') useUlt(); },true);
-addEventListener('keyup',e=>{ const k=KMAP[e.code]; if(k) G.keys[k]=false; },true);
+addEventListener('keyup',e=>{ if(G.mode==='surv'){ if(G.survKey) G.survKey(e,false); return; } const k=KMAP[e.code]; if(k) G.keys[k]=false; },true);
 addEventListener('blur',()=>{ G.keys={}; });
-addEventListener('resize',()=>{ touchCam(); if(G.mode!=='menu') pl.x=clamp(G.lastX,AL(),AR()); else pl.x=pl.home=VW*.62; });
+addEventListener('resize',()=>{ if(G.mode==='surv') return; touchCam(); if(G.mode!=='menu') pl.x=clamp(G.lastX,AL(),AR()); else pl.x=pl.home=VW*.62; });
 
 // ============================================================ per-frame
 function preStep(rdt){
@@ -457,7 +458,7 @@ function finish(win){ if(G.mode!=='play') return; G.mode='result'; G.paused=fals
   setTimeout(()=>resEl.classList.add('on'),win?1200:300);
   resEl.querySelectorAll('button').forEach(b=>b.onclick=()=>{ const r=b.dataset.r; if(r==='next') startStage(G.si+1); else if(r==='retry') startStage(G.si); else toMenu(); });
 }
-function toMenu(){ G.mode='menu'; G.paused=false; G.en=[]; G.proj=[]; G.mk=[]; lock=false; E.dead=true; anim.seq=null; done(); pl.x=VW*.3; pl.f=1;
+function toMenu(){ if(G.mode==='surv'&&G.survEnd) G.survEnd(); G.mode='menu'; G.paused=false; G.en=[]; G.proj=[]; G.mk=[]; lock=false; E.dead=true; anim.seq=null; done(); pl.x=VW*.3; pl.f=1;
   pl.x=pl.home=VW*.62; hudR.classList.remove('on'); resEl.classList.remove('on'); pauseEl.classList.remove('on'); menuRender(); menuEl.classList.add('on'); }
 function setPause(p){ G.paused=p; pauseEl.classList.toggle('on',p); }
 
@@ -548,7 +549,7 @@ function menuRender(){
       const tag=s.type==='ult'?'<span class="t u">궁극기 · O</span>':s.type==='basic'?'<span class="t">평타 · J</span>':`<span class="t">스킬 · 쿨 ${cdOf(id).toFixed(1)}초</span>`;
       return `<div class="sk ${un?'':'lock'}"><div><b>${s.name}</b>${tag}</div><p>${un?s.desc:'Lv '+s.lv+'에 해금'}${s.tmp?' <span class="tmp">(임시 동작 그림)</span>':''}</p><div class="bt">${bt}</div></div>`; }).join('')+'</div>'; }
   h+=`<div class="help"><kbd>A</kbd><kbd>D</kbd> 또는 방향키 이동 · <kbd>Space</kbd> 점프 · <kbd>Shift</kbd> 회피 · <kbd>J</kbd> 평타 · <kbd>K</kbd><kbd>L</kbd><kbd>U</kbd><kbd>I</kbd> 스킬 · <kbd>O</kbd> 궁극기 · <kbd>Esc</kbd> 일시정지</div>`;
-  menuEl.innerHTML=h;
+  menuEl.innerHTML=h; if(G.survMenu) G.survMenu(menuEl,tab);
   menuEl.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{ tab=b.dataset.t; menuRender(); });
   menuEl.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>startStage(+b.dataset.s));
   menuEl.querySelector('[data-stick]').onclick=()=>{ SV.stick=!STK(); save(); pl.target=IDLE(); menuRender(); };
@@ -641,6 +642,9 @@ if(matchMedia('(pointer:coarse)').matches) enableTouch();
 addEventListener('touchstart',enableTouch,{passive:true});
 
 // ============================================================ boot
+// survival mode (surv.js) works on the same save, levels and skill table
+G.api={get SV(){ return SV; },SK,ORDER,SLOT_KEYS,save,mul,cdOf,maxHp,needExp,gainExp,unlocked,sLv,stickLoco,toMenu,menuRender,setPause,toast,floatTxt,EFR,ET,menuEl,isTouch,fr2};
+{ const s=document.createElement('script'); s.src='surv.js?v=1'; document.body.appendChild(s); }
 started=true; setClass('sword',true); E.dead=true; E.respawn=1e9; pl.x=pl.home=VW*.62;
 menuRender(); menuEl.classList.add('on');
 })();

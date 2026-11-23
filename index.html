@@ -2324,7 +2324,7 @@ function update(rdt){
   if(demo&&!lock){ demoT-=rdt; if(demoT<=0) runDemo(); }
   // player
   const k=1-Math.exp(-pl.ps*dt); lerpPose(pl.pose,POSES[pl.target],k);
-  pl.air=lerp(pl.air,pl.airT,1-Math.exp(-7*dt)); pl.y=GROUND; pl.aura=lerp(pl.aura,pl.auraT,1-Math.exp(-5*rdt));
+  pl.air=lerp(pl.air,pl.airT,1-Math.exp(-7*dt)); pl.y=pl.gy??GROUND; pl.aura=lerp(pl.aura,pl.auraT,1-Math.exp(-5*rdt));
   plSeqStep(rdt); pl.j=joints(pl); plAnim(dt); plSprAnchors(); const J=pl.j;
   if(pl.cls==='fist') updChain(pl.scarf,J.hd[0]-14*pl.f,J.hd[1]-4,10,dt,-pl.f*(700+pl.aura*900),200-pl.aura*500,900+pl.aura*1600); else updChain(pl.scarf,J.nk[0]-4*pl.f,J.nk[1]+6,10,dt,-pl.f*(700+pl.aura*900),260-pl.aura*500,900+pl.aura*1600);
   updChain(pl.coat,J.hip[0]-6*pl.f,J.hip[1]-6,11,dt,-pl.f*(260+pl.aura*700),700-pl.aura*900,300+pl.aura*900);
@@ -2634,7 +2634,7 @@ function rimPass(L){ const J=pl.j, [ax,ay]=w2s(J.hip[0]-260,J.hd[1]-220), [bx,by
     fx.save(); fx.setTransform(1,0,0,1,0,0); fx.globalAlpha=Math.min(.6,L.a*.6); fx.drawImage(rimC,x0,y0,w,h,x0,y0,w,h); fx.restore(); } }
 function drawPlayer(){
   if(!pl.visible) return; const J=pl.j, f=pl.f, C=pl.cls, scarfC=SCARF[C];
-  ctx.globalAlpha=.7; ctx.drawImage(shadowSpr(),J.hip[0]-85,GROUND-12,170,26); ctx.globalAlpha=1;
+  ctx.globalAlpha=.7; ctx.drawImage(shadowSpr(),J.hip[0]-85,pl.y-12,170,26); ctx.globalAlpha=1;
   drawPlayerBody(ctx); const SP=plSprites(); if(SP){ fx.globalCompositeOperation='destination-out'; drawPlSpr(fx); fx.globalCompositeOperation='lighter'; }
   if(gl){ rimPass(moonL); if(keyL.c!=='#aab8ff') rimPass(keyL); }
   // ---- FX layer: rim + aura + weapon + eyes
@@ -3107,6 +3107,6 @@ function begin(cls){
 }
 initGL(); addEventListener('resize',resize); resize(); requestAnimationFrame(frame);
 </script>
-<script src="rpg.js?v=19"></script>
+<script src="rpg.js?v=20"></script>
 </body>
 </html>
