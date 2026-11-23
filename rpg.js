@@ -60,7 +60,8 @@ const STAGES=[
   {name:'2-3 별이 지는 곳',waves:[[['shard',10],['archer',4]],[['brute',4],['archer',3]],[['shard',12],['brute',3],['archer',4]]]},
   {name:'2-4 거신 재림',boss:{hp:900000,name:'공허 거신 · 재림'},waves:[[['shard',6],['archer',2]]]},
 ];
-const AL=()=>80, AR=()=>VW-80;
+// on phones the right-hand button cluster covers the screen edge, so the player stops short of it
+const AL=()=>80, AR=()=>isTouch()?VW*.56:VW-80;
 const alive=()=>G.en.filter(e=>!e.dead);
 function ecy(e){ return e.boss?E.y+E.ky:GROUND-e.h*.5-e.z; }
 function ex_(e){ return e.boss?E.x+E.kx:e.x; }
@@ -522,13 +523,15 @@ function menuRender(){
 }
 let barSlots=[];
 function buildBar(){
-  const cells=[['J','sw_basic',''],...SV.slots.map((id,i)=>[SLOT_KEYS[i],id,'']),['O',SV.ult,'ult']];
-  barEl.innerHTML=cells.map(([k,id,c])=>`<div class="sl ${c} ${id&&unlocked(id)?'':'empty'}"><kbd>${k}</kbd>${id&&unlocked(id)?SK[id].name:'—'}<div class="cd" style="display:none"></div></div>`).join('');
+  const cells=[['J','sw_basic','','basic'],...SV.slots.map((id,i)=>[SLOT_KEYS[i],id,'',String(i)]),['O',SV.ult,'ult','ult']];
+  barEl.innerHTML=cells.map(([k,id,c,a])=>`<div class="sl ${c} ${id&&unlocked(id)?'':'empty'}" data-a="${a}"><kbd>${k}</kbd>${id&&unlocked(id)?SK[id].name:'—'}<div class="cd" style="display:none"></div></div>`).join('');
   barSlots=[...barEl.querySelectorAll('.sl')].map((el,i)=>({el,cd:el.querySelector('.cd'),id:cells[i][1],ult:cells[i][2]==='ult'}));
+  if(isTouch()) barEl.insertAdjacentHTML('beforeend','<div class="sl tb" data-a="jump">점프</div><div class="sl tb" data-a="dodge">회피</div>');
   barEl.classList.add('on');
 }
 let hudLv=-1;
 function hudTick(){
+  const tp=isTouch()&&G.mode==='play'; padEl.classList.toggle('on',tp); pauseBt.classList.toggle('on',tp&&!G.paused);
   if(G.mode!=='play'){ barEl.classList.remove('on'); return; }
   barEl.classList.add('on');
   if(hudLv!==SV.lv){ hudLv=SV.lv; hudR.querySelector('.nm').textContent=`검사 · Lv ${SV.lv}`; buildBar(); }
@@ -539,6 +542,55 @@ function hudTick(){
     if(s.ult){ s.el.classList.toggle('ready',G.ug>=100); s.cd.style.display=G.ug>=100?'none':'flex'; s.cd.style.transform=`scaleY(${1-G.ug/100})`; s.cd.textContent=''; continue; }
     const c=G.cd[s.id]||0; if(c>0&&SK[s.id].cd){ s.cd.style.display='flex'; s.cd.style.transform=`scaleY(${c/cdOf(s.id)})`; s.cd.textContent=Math.ceil(c); } else s.cd.style.display='none'; }
 }
+
+// ============================================================ touch (phones): move pad on the left, the skill bar turns into buttons on the right
+function isTouch(){ return document.body.classList.contains('touch'); }
+function enableTouch(){ if(isTouch()) return; document.body.classList.add('touch'); if(G.mode==='play') buildBar(); }
+const tcss=document.createElement('style'); tcss.textContent=`
+body.touch .rp{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+#rpad{left:max(16px,env(safe-area-inset-left));bottom:16px;width:200px;height:112px;border-radius:56px;background:rgba(10,6,20,.45);border:1px solid rgba(255,255,255,.25);align-items:center;justify-content:center;touch-action:none}
+#rpad i{width:72px;height:72px;border-radius:50%;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.55);pointer-events:none}
+#rpad i::before,#rpad i::after{content:'◀';position:absolute;left:-46px;top:50%;transform:translateY(-50%);color:rgba(255,255,255,.45);font-size:18px}
+#rpad i{position:relative} #rpad i::after{content:'▶';left:auto;right:-46px}
+#rpbt{right:max(14px,env(safe-area-inset-right));top:12px;width:46px;height:46px;border-radius:50%;background:rgba(10,6,20,.6);border:1px solid rgba(255,255,255,.35);align-items:center;justify-content:center;font-size:15px;touch-action:none}
+#rrot{inset:0;z-index:60;background:#05030a;align-items:center;justify-content:center;font:800 18px "Malgun Gothic",sans-serif;text-align:center;padding:20px}
+@media (orientation:portrait){ body.touch #rrot{display:flex} }
+body.touch #rbar{left:auto;right:max(12px,env(safe-area-inset-right));bottom:12px;transform:none;pointer-events:auto;touch-action:none;display:none;gap:7px;
+  grid-template-columns:repeat(4,60px) 84px;grid-template-rows:60px 60px;grid-template-areas:"s0 s1 ult jump basic" "s2 s3 . dodge basic"}
+body.touch #rbar.on{display:grid}
+body.touch .sl{width:auto;height:auto;font-size:11px;border-radius:50%;background:rgba(10,6,20,.38)}
+body.touch .sl kbd{display:none}
+body.touch .sl.press{background:rgba(255,60,90,.45)}
+body.touch .sl[data-a="0"]{grid-area:s0} body.touch .sl[data-a="1"]{grid-area:s1} body.touch .sl[data-a="2"]{grid-area:s2} body.touch .sl[data-a="3"]{grid-area:s3}
+body.touch .sl[data-a=ult]{grid-area:ult} body.touch .sl[data-a=jump]{grid-area:jump} body.touch .sl[data-a=dodge]{grid-area:dodge}
+body.touch .sl[data-a=basic]{grid-area:basic;height:84px;align-self:center;font-size:16px;border-color:#ff6a85}
+body.touch .sl.tb{background:rgba(40,30,70,.42)}
+body.touch #rmenu .help{display:none}
+@media (max-height:520px){ #rmenu{padding:3vh 3vw} #rmenu h1{font-size:38px} #rmenu .sub{margin:2px 0 8px} #rmenu .chars{margin-bottom:8px} #rmenu .ch{padding:5px 10px;font-size:12px}
+  #rmenu .bar{margin:4px 0 8px} #rmenu .me{margin-bottom:6px} #rmenu .stages{grid-template-columns:repeat(4,minmax(120px,180px))} #rmenu .stages button{padding:9px 10px;font-size:13px}
+  #rmenu .skills{max-width:min(760px,92vw)} #rmenu .sk{grid-template-columns:110px 1fr auto;padding:6px 8px} #rmenu .sk .bt button{padding:8px 10px}
+  #rhud{top:10px;left:14px} #rres .box,#rpause .box{padding:16px 22px} #rres h2{font-size:38px} }`;
+document.head.appendChild(tcss);
+const padEl=mk('rpad'), pauseBt=mk('rpbt'), rotEl=mk('rrot');
+padEl.innerHTML='<i></i>'; pauseBt.textContent='❚❚'; rotEl.textContent='휴대폰을 가로로 돌려 주세요';
+let padId=null;
+function padMove(e){ const r=padEl.getBoundingClientRect(), dx=e.clientX-(r.left+r.width/2);
+  padEl.firstChild.style.transform=`translateX(${clamp(dx,-50,50)}px)`; G.keys.l=dx<-12; G.keys.r=dx>12; }
+function padUp(e){ if(e.pointerId!==padId) return; padId=null; G.keys.l=G.keys.r=false; padEl.firstChild.style.transform=''; }
+padEl.addEventListener('pointerdown',e=>{ e.preventDefault(); e.stopPropagation(); padId=e.pointerId; try{ padEl.setPointerCapture(e.pointerId); }catch(_){} padMove(e); });
+padEl.addEventListener('pointermove',e=>{ if(e.pointerId===padId) padMove(e); });
+padEl.addEventListener('pointerup',padUp); padEl.addEventListener('pointercancel',padUp);
+barEl.addEventListener('pointerdown',e=>{ const el=e.target.closest('[data-a]'); if(!el) return; e.preventDefault(); e.stopPropagation();
+  try{ el.setPointerCapture(e.pointerId); }catch(_){} el.classList.add('press'); if(G.mode!=='play'||G.paused) return;
+  const a=el.dataset.a; if(a==='basic'){ G.keys.basic=true; useBasic(); } else if(a==='jump') jump(); else if(a==='dodge') dodge(); else if(a==='ult') useUlt(); else useSlot(+a); });
+function barUp(e){ const el=e.target.closest&&e.target.closest('[data-a]'); if(!el) return; el.classList.remove('press'); if(el.dataset.a==='basic') G.keys.basic=false; }
+barEl.addEventListener('pointerup',barUp); barEl.addEventListener('pointercancel',barUp);
+pauseBt.addEventListener('pointerdown',e=>{ e.preventDefault(); e.stopPropagation(); if(G.mode==='play') setPause(true); });
+// phones: go fullscreen and landscape when a stage starts (browsers that refuse just keep the page as it is)
+menuEl.addEventListener('click',e=>{ if(!isTouch()||!e.target.closest('[data-s]')) return; const d=document.documentElement;
+  if(!document.fullscreenElement&&d.requestFullscreen) d.requestFullscreen().then(()=>screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(()=>{})).catch(()=>{}); },true);
+if(matchMedia('(pointer:coarse)').matches) enableTouch();
+addEventListener('touchstart',enableTouch,{passive:true});
 
 // ============================================================ boot
 started=true; setClass('sword',true); E.dead=true; E.respawn=1e9; pl.x=pl.home=VW*.62;
