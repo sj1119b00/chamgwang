@@ -76,7 +76,7 @@ function dmgEnemy(e,d,o={}){
   if(!lock) G.ug=Math.min(100,G.ug+1.3);
   if(e.boss){ hit0(d,o.x??ex_(e),o.y??ecy(e),{kb:(o.kb??1)*.4,kby:0,crack:o.crack}); e.hp=E.hp; if(E.hp<=0) bossDown(e); return; }
   const crit=o.crit||Math.random()<.14; if(crit&&!o.crit) d*=1.9; d=Math.round(d*rand(.92,1.08));
-  e.hp-=d; e.flash=1; e.hurtT=.42; combo++; comboT=2.4; comboPop=1; totalDmg+=d; G.stats.dmg+=d;
+  e.hp-=d; e.hitT=RT; e.flash=1; e.hurtT=.42; combo++; comboT=2.4; comboPop=1; totalDmg+=d; G.stats.dmg+=d;
   dmgText(e.x,ecy(e)-30,d,crit);
   const s=Math.sign(e.x-pl.x)||pl.f;
   e.kvx+=s*(o.kb??1)*(e.heavy?80:320);
@@ -280,6 +280,8 @@ function preStep(rdt){
   const dt=hitstop>0?0:rdt*timeScale;
   G.inv=Math.max(0,G.inv-rdt); G.dodgeCd-=rdt; G.counter=Math.max(0,G.counter-rdt); G.hurtF=Math.max(0,G.hurtF-rdt*3);
   for(const k in G.cd) G.cd[k]=Math.max(0,G.cd[k]-rdt);
+  if(G.hp<G.hpPrev) G.hpHitT=RT; G.hpPrev=G.hp;
+  if(!(G.hpLag>G.hp)) G.hpLag=G.hp; else if(RT-G.hpHitT>.5) G.hpLag=Math.max(G.hp,G.hpLag-maxHp()*.5*rdt);
   if(lock) G.pose=null;
   if(!lock){
     const seq=anim.seq, mv=(G.keys.r?1:0)-(G.keys.l?1:0);
@@ -314,6 +316,7 @@ function stepEnemies(dt){
   for(const e of G.en){ if(e.dead) continue;
     if(e.boss){ bossAI(e,dt); continue; }
     e.hurtT=(e.hurtT||0)-dt;
+    if(!(e.lag>e.hp)) e.lag=e.hp; else if(RT-e.hitT>.45) e.lag=Math.max(e.hp,e.lag-e.max*.8*dt);
     e.x+=e.kvx*dt; e.kvx*=Math.exp(-dt*7);
     if(e.z>0||e.vz>0){ e.vz-=3000*dt; e.z+=e.vz*dt; if(e.z<=0){ e.z=0; e.vz=0; } }
     if(e.stun>0){ e.stun-=dt; continue; }
@@ -377,7 +380,7 @@ drawEnemy=function(){
     if(!fr&&e.heavy){ fx.strokeStyle=hexA('#b06bff',.35); fx.lineWidth=2; fx.beginPath(); fx.ellipse(x,y,w*.9,h*.18,0,0,TAU); fx.stroke(); }
     if(!fr) glow(fx,x+e.f*w*.12,y-h*.18,e.heavy?22:12,'#ff3355',.9);
     if(e.flash>0) glow(fx,x,y,h*.55,'#ffffff',e.flash*.7);
-    if(e.hp<e.max){ const bw=Math.max(70,e.w*.9), by=y-h*.5-22; ctx.fillStyle='rgba(0,0,0,.6)'; ctx.fillRect(x-bw/2-2,by-2,bw+4,9); ctx.fillStyle='#ff3d5a'; ctx.fillRect(x-bw/2,by,bw*e.hp/e.max,5); }
+    if(e.hp<e.max){ const bw=Math.max(70,e.w*.9), by=y-h*.5-22; ctx.fillStyle='rgba(0,0,0,.6)'; ctx.fillRect(x-bw/2-2,by-2,bw+4,9); ctx.fillStyle='#fff2b8'; ctx.fillRect(x-bw/2,by,bw*Math.max(0,e.lag)/e.max,5); ctx.fillStyle='#ff3d5a'; ctx.fillRect(x-bw/2,by,bw*e.hp/e.max,5); }
   }
   for(const p of G.proj) if(p.k==='orb'){ glow(fx,p.x,p.y,46,'#b06bff',.85); glow(fx,p.x,p.y,16,'#ffffff',1); ctx.fillStyle='#2a0a3a'; ctx.beginPath(); ctx.arc(p.x,p.y,9,0,TAU); ctx.fill(); }
   for(const m of G.mk){ if(m.t<0) continue; const k=m.t/m.dur; ctx.strokeStyle=`rgba(255,40,80,${.35+.5*k})`; ctx.lineWidth=4; ctx.beginPath(); ctx.ellipse(m.x,GROUND+2,m.r,m.r*.18,0,0,TAU); ctx.stroke();
@@ -478,7 +481,9 @@ const css=document.createElement('style'); css.textContent=`
 #rhud .hb,#rhud .xb,#rhud .ub{height:12px;background:rgba(0,0,0,.6);border:1px solid rgba(255,255,255,.3)}
 #rhud .xb{height:5px} #rhud .ub{height:8px}
 #rhud .hb i,#rhud .xb i,#rhud .ub i{display:block;height:100%}
-#rhud .hb i{background:linear-gradient(90deg,#ff1d3d,#ff6a85)} #rhud .xb i{background:#55ddff} #rhud .ub i{background:linear-gradient(90deg,#ffb21d,#fff3a0)}
+#rhud .hb{position:relative} #rhud .hb b{position:absolute;left:0;top:0;height:100%;background:#fff2b8} #rhud .hb i{position:relative;background:linear-gradient(90deg,#ff1d3d,#ff6a85)}
+#rhud.low .hb{animation:lowb .7s infinite} @keyframes lowb{50%{box-shadow:0 0 12px #ff1d3d;border-color:#ff1d3d}}
+#rlow{inset:0;z-index:15;pointer-events:none;box-shadow:inset 0 0 120px 30px rgba(255,0,30,.55);animation:lowp 1s infinite} @keyframes lowp{50%{opacity:.35}} #rhud .xb i{background:#55ddff} #rhud .ub i{background:linear-gradient(90deg,#ffb21d,#fff3a0)}
 #rhud .ub.full{box-shadow:0 0 14px #ffcf4a}
 #rhud .lb{font-size:11px;color:#cfc8e8}
 #rbar{left:50%;bottom:18px;transform:translateX(-50%);gap:8px;pointer-events:none}
@@ -499,8 +504,8 @@ const css=document.createElement('style'); css.textContent=`
 @keyframes rtf{0%{opacity:0;transform:translateY(8px)}10%,80%{opacity:1;transform:none}100%{opacity:0}}`;
 document.head.appendChild(css);
 const mk=(id)=>{ const d=document.createElement('div'); d.id=id; d.className='rp'; document.body.appendChild(d); return d; };
-const menuEl=mk('rmenu'), hudR=mk('rhud'), barEl=mk('rbar'), resEl=mk('rres'), pauseEl=mk('rpause'), toastEl=mk('rtoast'); toastEl.classList.add('on');
-hudR.innerHTML='<div class="nm"></div><div class="hb"><i></i></div><div class="xb"><i></i></div><div class="lb">궁극기 게이지</div><div class="ub"><i></i></div>';
+const lowEl=mk('rlow'), menuEl=mk('rmenu'), hudR=mk('rhud'), barEl=mk('rbar'), resEl=mk('rres'), pauseEl=mk('rpause'), toastEl=mk('rtoast'); toastEl.classList.add('on');
+hudR.innerHTML='<div class="nm"></div><div class="hb"><b></b><i></i></div><div class="xb"><i></i></div><div class="lb">궁극기 게이지</div><div class="ub"><i></i></div>';
 pauseEl.innerHTML='<div class="box"><h2 style="margin:0 0 16px;font:900 36px '+FONT_K+'">일시정지</h2><div class="row"><button data-p="go">계속</button><button data-p="quit">포기하고 메뉴로</button></div></div>';
 pauseEl.querySelector('[data-p=go]').onclick=()=>setPause(false);
 pauseEl.querySelector('[data-p=quit]').onclick=()=>toMenu();
@@ -542,10 +547,12 @@ let hudLv=-1;
 function hudTick(){
   const tp=isTouch()&&G.mode==='play'&&!lock; padEl.classList.toggle('on',tp); pauseBt.classList.toggle('on',tp&&!G.paused);
   document.body.classList.toggle('cine',lock);
-  if(G.mode!=='play'){ barEl.classList.remove('on'); return; }
+  if(G.mode!=='play'){ barEl.classList.remove('on'); lowEl.classList.remove('on'); return; }
   barEl.classList.add('on');
   if(hudLv!==SV.lv){ hudLv=SV.lv; hudR.querySelector('.nm').textContent=`검사 · Lv ${SV.lv}`; buildBar(); }
   hudR.querySelector('.hb i').style.width=Math.min(100,G.hp/maxHp()*100)+'%';
+  hudR.querySelector('.hb b').style.width=Math.min(100,G.hpLag/maxHp()*100)+'%';
+  const low=G.hp>0&&G.hp<maxHp()*.3; hudR.classList.toggle('low',low); lowEl.classList.toggle('on',low&&!lock);
   hudR.querySelector('.xb i').style.width=(SV.exp/needExp(SV.lv)*100)+'%';
   hudR.querySelector('.ub i').style.width=G.ug+'%'; hudR.querySelector('.ub').classList.toggle('full',G.ug>=100);
   for(const s of barSlots){ if(!s.id||!unlocked(s.id)) continue;
