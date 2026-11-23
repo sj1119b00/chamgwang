@@ -234,6 +234,25 @@ function locoPose(rdt,moving){
   if(moving){ G.runT+=rdt; return 'gr'+fr2(2+Math.floor(G.runT/.08)%10); }
   G.runT=0; return null;
 }
+// ============================================================ stickman mode (the showcase's original skeleton figure instead of the painted frames)
+// The painted sequences still run (same timing, hits and effects); each step maps its frame to a skeleton pose: wind-up, strike (trail/forward kick steps), recovery.
+const STICK={gs:'slash1',gm:'slash2',gw:'slash3',gu:'slash3',gt:'slashU',gp:'slash2',gk:'slash3',gc:'iaiDone'};
+const plSprites0=plSprites; plSprites=function(){ return SV.stick?null:plSprites0(); };
+const plSeqNext0=plSeqNext; plSeqNext=function(){ plSeqNext0(); if(!SV.stick) return; const q=anim.seq;
+  if(!q){ pl.target=IDLE(); pl.ps=12; return; }
+  const st=q.steps[q.i], o=st[2]||{}, k=String(st[0]).replace(/\d+$/,''), p=q.i/Math.max(1,q.steps.length-1);
+  if(k==='gh'){ pl.target=p<.5?'charge':IDLE(); pl.ps=30; return; }
+  if(o.tr||(o.kick&&o.kick[0]>1)){ pl.target=STICK[k]||'slash3'; pl.ps=60; q.struck=true; }
+  else if(!q.struck){ pl.target='iaiReady'; pl.ps=30; }
+  else if(p>.7){ pl.target='sheath'; pl.ps=14; } };
+// painted-pose afterimages (ultimates) become skeleton afterimages at the same spot
+const add0=add; add=function(p){ if(SV.stick&&p&&p.k==='ghost'&&p.fr&&pl.j) return add0({k:'ghost',j:shiftJ(pl.j,(p.x??pl.x)-pl.x,0),life:p.life,c:p.c}); return add0(p); };
+POSES.stWalk=clonePose(POSES.idle);
+function stickLoco(rdt,moving){ if(anim.seq) return;
+  if(G.jz>0){ pl.target='air'; pl.ps=20; return; }
+  if(!moving){ pl.target=IDLE(); pl.ps=12; return; }
+  const W=POSES.stWalk, a=.55*Math.sin(G.runT*11); W.t=.16; W.rl=[a,a*.4+.1]; W.ll=[-a,-a*.4+.1]; W.ra=[.35-a*.5,1.1]; W.la=[-.25+a*.5,.25];
+  pl.target='stWalk'; pl.ps=22; }
 function hurtAnim(){ if(anim.seq||!spr('sword_gh02')) return;
   plSeq([['gh02',.05],['gh03',.08],['gh04',.06],['gh05',.06],['gh06',.05],['gh07',.05],['gh08',.04,{on:done}]]); }
 
@@ -286,7 +305,7 @@ function preStep(rdt){
   if(!lock){
     const seq=anim.seq, mv=(G.keys.r?1:0)-(G.keys.l?1:0);
     if(mv&&!seq){ pl.f=mv; pl.x+=mv*430*dt; }
-    G.pose=locoPose(rdt,mv&&!seq);
+    G.pose=locoPose(rdt,mv&&!seq); if(SV.stick) stickLoco(rdt,mv&&!seq);
     if(G.keys.basic) useBasic();
     if(G.jz>0||G.jv>0){ G.jv-=3600*dt; G.jz+=G.jv*dt; if(G.jz<=0){ G.jz=0; G.jv=0; G.landT=.1; G.airAtk=false; for(let i=0;i<5;i++) smoke(pl.x+rand(-30,30),GROUND-6,rand(10,20),{vy:rand(-50,-10),a:.3,life:.7}); } }
     const seqAir=seq&&seq.steps.some(s=>s[2]&&s[2].air);
@@ -515,6 +534,7 @@ let tab='stage';
 function menuRender(){
   const need=needExp(SV.lv), ids=ORDER[SV.cls];
   let h=`<h1>참광</h1><div class="sub">CHAMGWANG · RPG</div>
+  <button data-stick style="margin-bottom:10px">졸라맨 모드: ${SV.stick?'켜짐':'꺼짐'}</button>
   <div class="chars"><span class="ch on">검사</span><span class="ch">마법사 · 준비 중</span><span class="ch">권사 · 준비 중</span><span class="ch">도사 · 준비 중</span><span class="ch">화염술사 · 준비 중</span></div>
   <div class="me">검사 · Lv ${SV.lv} · 스킬 포인트 ${SV.sp} · HP ${maxHp()}</div><div class="bar"><i style="width:${SV.exp/need*100}%"></i></div>
   <div class="tabs"><button data-t="stage" class="${tab==='stage'?'on':''}">스테이지</button><button data-t="skill" class="${tab==='skill'?'on':''}">스킬 · 장착</button></div>`;
@@ -530,6 +550,7 @@ function menuRender(){
   menuEl.innerHTML=h;
   menuEl.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{ tab=b.dataset.t; menuRender(); });
   menuEl.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>startStage(+b.dataset.s));
+  menuEl.querySelector('[data-stick]').onclick=()=>{ SV.stick=!SV.stick; save(); pl.target=IDLE(); menuRender(); };
   menuEl.querySelectorAll('[data-eq]').forEach(b=>b.onclick=()=>{ const id=b.dataset.eq, i=+b.dataset.i, j=SV.slots.indexOf(id);
     if(SV.slots[i]===id) SV.slots[i]=null; else { if(j>=0) SV.slots[j]=SV.slots[i]; SV.slots[i]=id; } save(); menuRender(); });
   menuEl.querySelectorAll('[data-ult]').forEach(b=>b.onclick=()=>{ SV.ult=b.dataset.ult; save(); menuRender(); });
