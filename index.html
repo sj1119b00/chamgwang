@@ -1351,7 +1351,7 @@ function ultBegin(col){
   if(Math.abs(pl.x-pl.home)>30) dashTo(pl.home,col);
   pl.auraC=col; pl.visible=true; return true;
 }
-function opening(){ ov.lbT=1; ov.dimT=.72; ov.focusT=.6; SFX.rise(1.5,.45); duck(.85,.1); stamp('오의',{x:.24,y:.24,size:.15,life:1.3,c:'#ffcf4a'}); }
+function opening(){ ov.lbT=1; ov.dimT=.72; ov.focusT=.6; SFX.rise(1.5,.45); duck(.85,.1); stamp('얼티밋',{x:.24,y:.24,size:.1,life:1.3,c:'#ffcf4a'}); }
 function tension(){ const c=pl.auraC, J=pl.j; SFX.heart(1); after(.75,()=>SFX.heart(.8)); cam.rollT=(Math.random()<.5?-1:1)*.045;
   for(let i=0;i<22;i++) debris(pl.x+rand(-380,380),GROUND-4,{vx:rand(-20,20),vy:rand(-260,-90),g:-90,s:rand(3,11),life:rand(1.4,2.4)});
   for(let i=0;i<5;i++) after(i*.14,()=>{ const x=pl.x+rand(-260,260); add({k:'bolt',lines:genBolt(pl.x+rand(-30,30),GROUND-rand(20,200),x,GROUND,36,2.5,[],2),life:.22,c}); });
@@ -1423,7 +1423,7 @@ function ultMetten(){
     post.ca=Math.min(.05,post.ca+.008); post.blur=Math.max(post.blur,.05);
   });
   // phase 2 - heaven cleave from above
-  after(3.6+D,()=>{ setInv(.14,'red'); stamp('천',{x:.72,y:.36,size:.42,life:.8}); slow(.05,.35); duck(.1,.4); ov.focusT=1; });
+  after(3.6+D,()=>{ setInv(.14,'red'); stamp('제로',{x:.72,y:.36,size:.3,life:.8}); slow(.05,.35); duck(.1,.4); ov.focusT=1; });
   const reappear=()=>{
     pl.visible=true; pl.x=E.x-METTEN_REACH-80; pl.air=pl.airT=300; pl.target='slashU'; pl.ps=30; resetChains();
     camCut(E.x-110,CY-130,.9,99); SFX.rise(.55,.5);
@@ -1445,7 +1445,7 @@ function ultMetten(){
     fissure(ex,900,'#ff4a6a'); ring(ex,GROUND,2000,'#ff3355',.6,{w:8,sy:.14}); slow(.25,.4); trauma=1.1;
   };
   const dashHome=()=>{ pl.airT=pl.air=0; dashTo(pl.home,'#ff3355'); pl.target='sheath'; pl.ps=12; resetChains(); camCut(VW/2,CY,1.05,0); ov.dimT=.8; post.grayT=.6; };
-  const click=()=>{ SFX.click(); duck(.15,.35); stamp('멸',{x:.5,y:.45,size:.6,life:1}); };
+  const click=()=>{ SFX.click(); duck(.15,.35); stamp('슬래시',{x:.5,y:.45,size:.3,life:1}); };
   after(6.15+D,()=>{
     const [ex,ey]=enemyPt(0,0); E.split={ang:.42,t:0}; post.grayT=0;
     hit(999999,ex,ey,{crit:true,noKill:true,kb:0}); setInv(.06,'red'); SFX.slash(.55,1.3); SFX.boom(2,.9); shock(ex,ey,1.1); trauma+=.6; slow(.25,.45); cutScreen(ex,ey,.42,.06,.5);
@@ -1531,7 +1531,7 @@ function ultSwords(){
     add({k:'glyph',x:ex,y:ey-640,r:380,life:2,c:'#ffe58a'}); light(ex,ey-700,1400,'#ffe58a',1,.5); ring(ex,ey-700,1600,'#ffffff',.5,{w:6,sy:.3}); });
   after(6.6,()=>{ if(!big) return; big.mode='fly'; big.v=3800; big.acc=12000; SFX.whoosh(.4,1.2);
     big.onHit=p=>{ const [ex,ey]=enemyPt(0,0); E.split={ang:Math.PI/2,t:0};
-      vfx('impact',ex,ey,{sc:1.6}); hit(999999,ex,ey,{crit:true,noKill:true,kb:0}); setInv(.1,'red'); stamp('검',{x:.5,y:.45,size:.6,life:1});
+      vfx('impact',ex,ey,{sc:1.6}); hit(999999,ex,ey,{crit:true,noKill:true,kb:0}); setInv(.1,'red'); stamp('레인',{x:.5,y:.45,size:.4,life:1});
       cutScreen(ex,ey,Math.PI/2,.06,.45); add({k:'pillar',x:ex,w:260,life:1.6,c:'#ffcf4a'}); fissure(ex,1500,'#ffcf4a');
       after(.35,()=>{ megaFinish(ex,ey,'#ffe58a','#ff8a1d',2.4); kill(true); }); after(1,()=>{ banner(1); embers('#ffcf4a'); }); }; });
   // the blade calls and commands the swords: a light column rises from the raised hand while they form, a flash runs off the tip when they fly
@@ -2217,8 +2217,8 @@ function drawDragon(){ const D=dragon; if(!D||!D.fr) return; const P=D.pts, Fr=D
 }
 // ---------- classes
 const CLASSES={
-  sword:{name:'검사',en:'SWORDMASTER',aura:'#ff3355',eye:'#bff6ff',idle:'idle',basic:'베기',basicFn:moveSlash,
-    ults:[{name:'멸천일섬',en:'MYEOLCHEON · ILSEOM',fn:ultMetten},{name:'천검난무',en:'CHEONGEOM · NANMU',fn:ultSwords}],
+  sword:{name:'소드맨',en:'SWORDMAN',aura:'#ff3355',eye:'#bff6ff',idle:'idle',basic:'베기',basicFn:moveSlash,
+    ults:[{name:'제로 슬래시',en:'ZERO SLASH',fn:ultMetten},{name:'소드 레인',en:'SWORD RAIN',fn:ultSwords}],
     cut:{bg:'#3a0010',box:'#d0102a',iris:['#fff6b0','#ffb21d','#c0300a'],subc:'#ffcf4a'}},
   mage:{name:'마법사',en:'ARCHMAGE',aura:'#b48cff',eye:'#e6d4ff',idle:'mIdle',basic:'마탄',basicFn:moveMissile,
     ults:[{name:'성멸뇌제',en:'SEONGMYEOL · NOEJE',fn:ultThunder},{name:'천붕운석',en:'CHEONBUNG · UNSEOK',fn:ultMeteor}],
@@ -3007,7 +3007,7 @@ function drawWarn(){
   ctx.globalAlpha=al*blink; ctx.textAlign='center'; ctx.textBaseline='middle';
   ctx.font=`900 ${fsz}px ${FONT_K}`; ctx.lineJoin='round'; ctx.lineWidth=fsz*.08; ctx.strokeStyle='#000'; ctx.strokeText('경 고',W/2,H*.5);
   ctx.fillStyle='#ff1d3d'; ctx.fillText('경 고',W/2,H*.5);
-  ctx.globalAlpha=al; ctx.font=`900 ${Math.min(fsz*.16,W/30)}px ${FONT_K}`; ctx.fillStyle='#ffd0d8'; ctx.fillText('공허 거신 출현 · HOLLOW COLOSSUS APPROACHING',W/2,H*.5+fsz*.62);
+  ctx.globalAlpha=al; ctx.font=`900 ${Math.min(fsz*.16,W/30)}px ${FONT_K}`; ctx.fillStyle='#ffd0d8'; ctx.fillText('보이드 타이탄 출현 · VOID TITAN APPROACHING',W/2,H*.5+fsz*.62);
   ctx.globalAlpha=1;
 }
 function drawHUD(){
@@ -3017,7 +3017,7 @@ function drawHUD(){
   if(ov.lb>.01){ ctx.fillStyle='#000'; const b=H*.11*ov.lb; ctx.fillRect(0,0,W,b); ctx.fillRect(0,H-b,W,b); }
   // HP bar
   const bw=Math.min(W*(PORTRAIT?.86:.42),620*u), bx=PORTRAIT?(W-bw)/2:W-bw-40*u, by=(PORTRAIT&&COARSE?96:34)*u, bh=14*u;
-  ctx.font=`900 ${15*u}px ${FONT_K}`; ctx.textAlign='right'; ctx.fillStyle='#e8d8ff'; ctx.fillText('공허 거신 · HOLLOW COLOSSUS',bx+bw,by-8*u);
+  ctx.font=`900 ${15*u}px ${FONT_K}`; ctx.textAlign='right'; ctx.fillStyle='#e8d8ff'; ctx.fillText('보이드 타이탄 · VOID TITAN',bx+bw,by-8*u);
   ctx.fillStyle='rgba(0,0,0,.6)'; ctx.fillRect(bx-3,by-3,bw+6,bh+6);
   ctx.fillStyle='#ffffff'; ctx.fillRect(bx,by,bw*(E.lag/E.max),bh);
   const hg=ctx.createLinearGradient(bx,0,bx+bw,0); hg.addColorStop(0,'#ff1d3d'); hg.addColorStop(1,'#b06bff'); ctx.fillStyle=hg; ctx.fillRect(bx,by,bw*(E.hp/E.max),bh);
@@ -3107,6 +3107,6 @@ function begin(cls){
 }
 initGL(); addEventListener('resize',resize); resize(); requestAnimationFrame(frame);
 </script>
-<script src="rpg.js?v=17"></script>
+<script src="rpg.js?v=19"></script>
 </body>
 </html>

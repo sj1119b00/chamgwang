@@ -19,17 +19,17 @@ G.reset=()=>{ SV=freshSave(); save(); menuRender(); };
 // ============================================================ skill table (one row per skill; 200 skills later = more rows, not more engine code)
 // type: basic (J) · skill (K L U I slots, cooldown) · ult (O, one equipped, needs the full gauge). tmp: painted frames are stand-ins until its own GIF arrives.
 const SK={
-  sw_basic:{cls:'sword',type:'basic',name:'베기',lv:1,desc:'칼집에서 뽑아 베는 3연타. 누르고 있으면 계속 이어진다.',fn:()=>moveSlash()},
-  sw_dash:{cls:'sword',type:'skill',name:'섬보',lv:1,cd:4,dmg:2200,desc:'앞으로 순간 돌진해 지나간 자리의 적을 모두 벤다. 멸천일섬의 첫걸음.',fn:skDash},
-  sw_rise:{cls:'sword',type:'skill',name:'올려베기',lv:1,cd:5,dmg:1800,desc:'앞의 적을 베어 공중으로 띄운다. 띄운 적은 잠시 반격하지 못한다.',fn:skRise},
-  sw_wave:{cls:'sword',type:'skill',name:'검기',lv:2,cd:6,dmg:2000,desc:'초승달 검기를 날려 일직선 위의 적을 모두 관통한다.',fn:skWave},
-  sw_spin:{cls:'sword',type:'skill',name:'회전베기',lv:3,cd:8,dmg:2600,desc:'허리를 틀어 크게 휘둘러 주변의 적을 모두 밀어낸다.',fn:skSpin},
-  sw_fly:{cls:'sword',type:'skill',name:'비검',lv:5,cd:7,dmg:3400,desc:'빛의 검 한 자루를 띄워 가장 가까운 적에게 꽂는다. 천검난무의 바탕.',fn:skFly},
-  sw_plunge:{cls:'sword',type:'skill',name:'낙검',lv:6,cd:9,dmg:3600,desc:'뛰어올라 땅을 내려찍어 주변에 충격파를 일으킨다.',fn:skPlunge},
-  sw_thrust:{cls:'sword',type:'skill',name:'연속 찌르기',lv:8,cd:7,dmg:750,desc:'앞을 빠르게 여섯 번 찌른다. 맞은 적은 계속 움찔한다.',fn:skThrust},
-  sw_counter:{cls:'sword',type:'skill',name:'반격 자세',lv:10,cd:10,dmg:5200,desc:'0.8초 동안 자세를 잡는다. 그 사이 공격받으면 막아 내고 큰 반격을 넣는다.',fn:skCounter},
-  sw_ult1:{cls:'sword',type:'ult',name:'멸천일섬',lv:3,desc:'궁극기. 하늘을 가르는 일섬.',fn:()=>ultMetten()},
-  sw_ult2:{cls:'sword',type:'ult',name:'천검난무',lv:12,desc:'궁극기. 천 자루의 검을 부채꼴로 쏟아붓는다.',fn:()=>ultSwords()},
+  sw_basic:{cls:'sword',type:'basic',name:'슬래시',lv:1,desc:'칼집에서 뽑아 베는 3연타. 누르고 있으면 계속 이어진다.',fn:()=>moveSlash()},
+  sw_dash:{cls:'sword',type:'skill',name:'대시',lv:1,cd:4,dmg:2200,desc:'앞으로 순간 돌진해 지나간 자리의 적을 모두 벤다. 제로 슬래시의 첫걸음.',fn:skDash},
+  sw_rise:{cls:'sword',type:'skill',name:'어퍼',lv:1,cd:5,dmg:1800,desc:'앞의 적을 베어 공중으로 띄운다. 띄운 적은 잠시 반격하지 못한다.',fn:skRise},
+  sw_wave:{cls:'sword',type:'skill',name:'웨이브',lv:2,cd:6,dmg:2000,desc:'초승달 모양 참격을 날려 일직선 위의 적을 모두 관통한다.',fn:skWave},
+  sw_spin:{cls:'sword',type:'skill',name:'스핀',lv:3,cd:8,dmg:2600,desc:'허리를 틀어 크게 휘둘러 주변의 적을 모두 밀어낸다.',fn:skSpin},
+  sw_fly:{cls:'sword',type:'skill',name:'플라잉 소드',lv:5,cd:7,dmg:3400,desc:'빛의 검 한 자루를 띄워 가장 가까운 적에게 꽂는다. 소드 레인의 바탕.',fn:skFly},
+  sw_plunge:{cls:'sword',type:'skill',name:'크래쉬',lv:6,cd:9,dmg:3600,desc:'뛰어올라 땅을 내려찍어 주변에 충격파를 일으킨다.',fn:skPlunge},
+  sw_thrust:{cls:'sword',type:'skill',name:'러시',lv:8,cd:7,dmg:750,desc:'앞을 빠르게 여섯 번 찌른다. 맞은 적은 계속 움찔한다.',fn:skThrust},
+  sw_counter:{cls:'sword',type:'skill',name:'카운터',lv:10,cd:10,dmg:5200,desc:'0.8초 동안 자세를 잡는다. 그 사이 공격받으면 막아 내고 큰 반격을 넣는다.',fn:skCounter},
+  sw_ult1:{cls:'sword',type:'ult',name:'제로 슬래시',lv:3,desc:'궁극기. 하늘까지 가르는 단 한 번의 베기.',fn:()=>ultMetten()},
+  sw_ult2:{cls:'sword',type:'ult',name:'소드 레인',lv:12,desc:'궁극기. 천 자루의 검을 부채꼴로 쏟아붓는다.',fn:()=>ultSwords()},
 };
 const ORDER={sword:['sw_basic','sw_dash','sw_rise','sw_wave','sw_spin','sw_fly','sw_plunge','sw_thrust','sw_counter','sw_ult1','sw_ult2']};
 const SLOT_KEYS=['K','L','U','I'];
@@ -43,22 +43,22 @@ const needExp=lv=>30+lv*25;
 
 // ============================================================ enemies & stages
 const ET={
-  shard:{name:'수정 파편병',hp:3200,spd:125,range:150,wind:.55,dmg:9,exp:10,h:300,w:110},
-  archer:{name:'수정 사수',hp:2400,spd:110,range:640,wind:.8,dmg:10,exp:14,h:290,w:100,ranged:true},
-  brute:{name:'거대 파편',hp:12000,spd:62,range:230,wind:1.05,dmg:22,exp:40,h:440,w:230,heavy:true},
+  shard:{name:'크리스탈 솔저',hp:3200,spd:125,range:150,wind:.55,dmg:9,exp:10,h:300,w:110},
+  archer:{name:'크리스탈 캐스터',hp:2400,spd:110,range:640,wind:.8,dmg:10,exp:14,h:290,w:100,ranged:true},
+  brute:{name:'크리스탈 골렘',hp:12000,spd:62,range:230,wind:1.05,dmg:22,exp:40,h:440,w:230,heavy:true},
 };
 // enemy animation frames: [game w, game h, anchor x fraction] per frame; this line is rewritten by _gen/enemy_export.py
 const EFR={"archer":{"attack":[[205.3,292.4,0.46],[183.7,291.6,0.492],[189.3,292.4,0.494],[194.1,291.6,0.499],[223.7,291.6,0.483],[254.8,294.0,0.49],[262.0,293.2,0.494],[213.3,293.2,0.488],[192.5,293.2,0.499],[204.5,293.2,0.458]],"hurt":[[210.2,291.8,0.442],[224.2,282.1,0.512],[244.3,296.1,0.52],[236.4,286.3,0.489],[217.5,284.5,0.517],[209.6,291.8,0.443]],"walk":[[214.3,291.5,0.449],[213.6,290.0,0.45],[229.3,287.0,0.462],[239.8,284.8,0.464],[249.5,283.3,0.455],[257.8,283.3,0.42],[252.5,284.0,0.431],[237.5,289.3,0.443],[219.6,290.7,0.448]]},"brute":{"attack":[[432.7,443.7,0.464],[432.7,436.3,0.489],[421.7,436.3,0.534],[381.5,460.7,0.533],[351.0,460.7,0.607],[401.0,449.8,0.422],[374.2,425.4,0.409],[387.6,421.7,0.436],[410.7,440.0,0.471],[433.9,446.1,0.474]],"hurt":[[430.0,441.8,0.453],[419.1,437.3,0.456],[430.0,430.9,0.463],[420.9,431.8,0.452],[415.5,440.9,0.458],[418.2,440.9,0.461]],"walk":[[446.2,442.5,0.48],[445.0,440.0,0.478],[500.0,440.0,0.473],[507.5,447.5,0.486],[473.8,447.5,0.52],[490.0,443.8,0.518],[487.5,443.8,0.5],[481.2,437.5,0.504],[451.2,445.0,0.471]]},"shard":{"attack":[[186.5,301.4,0.505],[193.0,335.4,0.465],[193.0,347.0,0.473],[177.1,326.7,0.466],[196.6,308.0,0.483],[212.5,266.0,0.47],[208.9,246.5,0.475],[200.2,276.9,0.467],[187.2,296.4,0.503],[186.5,300.7,0.505]],"hurt":[[197.0,301.3,0.529],[247.2,294.1,0.541],[271.3,286.3,0.524],[269.3,296.7,0.528],[236.1,303.9,0.519],[195.0,302.0,0.525]],"walk":[[179.2,302.0,0.519],[180.5,301.3,0.53],[195.0,294.1,0.514],[198.2,296.1,0.506],[201.5,291.5,0.501],[198.2,289.5,0.463],[196.9,299.3,0.443],[191.0,301.3,0.463],[183.8,302.0,0.478]]}};
 for(const [t,A] of Object.entries(EFR)) for(const [a,L] of Object.entries(A)) L.forEach((_,i)=>loadSpr(`enemy_${t}_${a}${String(i+1).padStart(2,'0')}`));
 const STAGES=[
-  {name:'1-1 수정 들판',waves:[[['shard',3]],[['shard',5]],[['shard',4],['archer',1]]]},
-  {name:'1-2 갈라진 언덕',waves:[[['shard',4],['archer',2]],[['brute',1],['shard',3]],[['shard',6],['archer',2]]]},
-  {name:'1-3 공허의 문턱',waves:[[['shard',6],['archer',2]],[['brute',2],['archer',2]],[['shard',8],['brute',1],['archer',2]]]},
-  {name:'1-4 공허 거신',boss:{hp:320000,name:'공허 거신'},waves:[[['shard',4]]]},
-  {name:'2-1 붉은 달 아래',waves:[[['shard',8],['archer',3]],[['brute',3]],[['shard',8],['brute',2],['archer',3]]]},
-  {name:'2-2 부서진 성채',waves:[[['archer',6]],[['brute',3],['shard',6]],[['shard',10],['brute',2],['archer',4]]]},
-  {name:'2-3 별이 지는 곳',waves:[[['shard',10],['archer',4]],[['brute',4],['archer',3]],[['shard',12],['brute',3],['archer',4]]]},
-  {name:'2-4 거신 재림',boss:{hp:900000,name:'공허 거신 · 재림'},waves:[[['shard',6],['archer',2]]]},
+  {name:'1-1 크리스탈 필드',waves:[[['shard',3]],[['shard',5]],[['shard',4],['archer',1]]]},
+  {name:'1-2 브로큰 힐',waves:[[['shard',4],['archer',2]],[['brute',1],['shard',3]],[['shard',6],['archer',2]]]},
+  {name:'1-3 보이드 게이트',waves:[[['shard',6],['archer',2]],[['brute',2],['archer',2]],[['shard',8],['brute',1],['archer',2]]]},
+  {name:'1-4 보이드 타이탄',boss:{hp:320000,name:'보이드 타이탄'},waves:[[['shard',4]]]},
+  {name:'2-1 블러드 문',waves:[[['shard',8],['archer',3]],[['brute',3]],[['shard',8],['brute',2],['archer',3]]]},
+  {name:'2-2 루인 포트리스',waves:[[['archer',6]],[['brute',3],['shard',6]],[['shard',10],['brute',2],['archer',4]]]},
+  {name:'2-3 스타폴',waves:[[['shard',10],['archer',4]],[['brute',4],['archer',3]],[['shard',12],['brute',3],['archer',4]]]},
+  {name:'2-4 타이탄 리턴즈',boss:{hp:900000,name:'보이드 타이탄 리턴즈'},waves:[[['shard',6],['archer',2]]]},
 ];
 const AL=()=>80, AR=()=>VW-80;
 const alive=()=>G.en.filter(e=>!e.dead);
@@ -236,9 +236,10 @@ function locoPose(rdt,moving){
 }
 // ============================================================ stickman mode (the showcase's original skeleton figure instead of the painted frames)
 // The painted sequences still run (same timing, hits and effects); each step maps its frame to a skeleton pose: wind-up, strike (trail/forward kick steps), recovery.
+const STK=()=>SV.stick!==false;
 const STICK={gs:'slash1',gm:'slash2',gw:'slash3',gu:'slash3',gt:'slashU',gp:'slash2',gk:'slash3',gc:'iaiDone'};
-const plSprites0=plSprites; plSprites=function(){ return SV.stick?null:plSprites0(); };
-const plSeqNext0=plSeqNext; plSeqNext=function(){ plSeqNext0(); if(!SV.stick) return; const q=anim.seq;
+const plSprites0=plSprites; plSprites=function(){ return STK()?null:plSprites0(); };
+const plSeqNext0=plSeqNext; plSeqNext=function(){ plSeqNext0(); if(!STK()) return; const q=anim.seq;
   if(!q){ pl.target=IDLE(); pl.ps=12; return; }
   const st=q.steps[q.i], o=st[2]||{}, k=String(st[0]).replace(/\d+$/,''), p=q.i/Math.max(1,q.steps.length-1);
   if(k==='gh'){ pl.target=p<.5?'charge':IDLE(); pl.ps=30; return; }
@@ -246,7 +247,7 @@ const plSeqNext0=plSeqNext; plSeqNext=function(){ plSeqNext0(); if(!SV.stick) re
   else if(!q.struck){ pl.target='iaiReady'; pl.ps=30; }
   else if(p>.7){ pl.target='sheath'; pl.ps=14; } };
 // painted-pose afterimages (ultimates) become skeleton afterimages at the same spot
-const add0=add; add=function(p){ if(SV.stick&&p&&p.k==='ghost'&&p.fr&&pl.j) return add0({k:'ghost',j:shiftJ(pl.j,(p.x??pl.x)-pl.x,0),life:p.life,c:p.c}); return add0(p); };
+const add0=add; add=function(p){ if(STK()&&p&&p.k==='ghost'&&p.fr&&pl.j) return add0({k:'ghost',j:shiftJ(pl.j,(p.x??pl.x)-pl.x,0),life:p.life,c:p.c}); return add0(p); };
 POSES.stWalk=clonePose(POSES.idle);
 function stickLoco(rdt,moving){ if(anim.seq) return;
   if(G.jz>0){ pl.target='air'; pl.ps=20; return; }
@@ -305,7 +306,7 @@ function preStep(rdt){
   if(!lock){
     const seq=anim.seq, mv=(G.keys.r?1:0)-(G.keys.l?1:0);
     if(mv&&!seq){ pl.f=mv; pl.x+=mv*430*dt; }
-    G.pose=locoPose(rdt,mv&&!seq); if(SV.stick) stickLoco(rdt,mv&&!seq);
+    G.pose=locoPose(rdt,mv&&!seq); if(STK()) stickLoco(rdt,mv&&!seq);
     if(G.keys.basic) useBasic();
     if(G.jz>0||G.jv>0){ G.jv-=3600*dt; G.jz+=G.jv*dt; if(G.jz<=0){ G.jz=0; G.jv=0; G.landT=.1; G.airAtk=false; for(let i=0;i<5;i++) smoke(pl.x+rand(-30,30),GROUND-6,rand(10,20),{vy:rand(-50,-10),a:.3,life:.7}); } }
     const seqAir=seq&&seq.steps.some(s=>s[2]&&s[2].air);
@@ -469,8 +470,8 @@ const css=document.createElement('style'); css.textContent=`
 .rp button:hover{background:rgba(255,60,90,.35)}
 .rp button:disabled{opacity:.35;cursor:default;background:rgba(20,14,34,.6)}
 #rmenu{inset:0;background:linear-gradient(90deg,rgba(5,3,10,.92) 0%,rgba(5,3,10,.75) 46%,rgba(5,3,10,0) 70%);flex-direction:column;padding:4vh 4vw;box-sizing:border-box;overflow:auto}
-#rmenu h1{margin:0;font:900 64px ${FONT_K};letter-spacing:.06em;background:linear-gradient(180deg,#fff 30%,#ff9aa8 60%,#ff1f45);-webkit-background-clip:text;background-clip:text;color:transparent}
-#rmenu .sub{color:#ffb3c0;letter-spacing:.5em;font-size:11px;margin:4px 0 18px}
+#rmenu h1{margin:0;font:900 64px ${FONT_K};letter-spacing:.06em;color:#fff}
+#rmenu .sub{color:#8f88a8;letter-spacing:.5em;font-size:11px;margin:4px 0 18px}
 #rmenu .chars{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
 #rmenu .ch{padding:8px 14px;border:1px solid rgba(255,255,255,.2);border-radius:4px;font-size:13px;color:#8f88a8}
 #rmenu .ch.on{border-color:#ff3355;color:#fff;background:rgba(255,51,85,.18)}
@@ -502,15 +503,15 @@ const css=document.createElement('style'); css.textContent=`
 #rhud .hb i,#rhud .xb i,#rhud .ub i{display:block;height:100%}
 #rhud .hb{position:relative} #rhud .hb b{position:absolute;left:0;top:0;height:100%;background:#fff2b8} #rhud .hb i{position:relative;background:linear-gradient(90deg,#ff1d3d,#ff6a85)}
 #rhud.low .hb{animation:lowb .7s infinite} @keyframes lowb{50%{box-shadow:0 0 12px #ff1d3d;border-color:#ff1d3d}}
-#rlow{inset:0;z-index:15;pointer-events:none;box-shadow:inset 0 0 120px 30px rgba(255,0,30,.55);animation:lowp 1s infinite} @keyframes lowp{50%{opacity:.35}} #rhud .xb i{background:#55ddff} #rhud .ub i{background:linear-gradient(90deg,#ffb21d,#fff3a0)}
-#rhud .ub.full{box-shadow:0 0 14px #ffcf4a}
+#rlow{inset:0;z-index:15;pointer-events:none;box-shadow:inset 0 0 120px 30px rgba(255,0,30,.55);animation:lowp 1s infinite} @keyframes lowp{50%{opacity:.35}} #rhud .xb i{background:#55ddff} #rhud .ub i{background:#fff}
+#rhud .ub.full{box-shadow:0 0 0 2px #fff}
 #rhud .lb{font-size:11px;color:#cfc8e8}
 #rbar{left:50%;bottom:18px;transform:translateX(-50%);gap:8px;pointer-events:none}
 #rbar.on{display:flex}
 .sl{position:relative;width:74px;height:74px;border:1px solid rgba(255,255,255,.3);border-radius:6px;background:rgba(10,6,20,.75);display:flex;align-items:center;justify-content:center;text-align:center;font:800 12px "Malgun Gothic",sans-serif;overflow:hidden;word-break:keep-all;line-height:1.15;padding:4px;box-sizing:border-box}
 .sl kbd{position:absolute;left:4px;top:3px;font-size:10px;color:#000;background:#fff;border-radius:2px;padding:0 4px;font-weight:900}
 .sl .cd{position:absolute;inset:0;background:rgba(0,0,0,.65);transform-origin:bottom;display:flex;align-items:center;justify-content:center;font-size:18px;color:#fff}
-.sl.ult{border-color:#ffcf4a} .sl.ult.ready{box-shadow:0 0 18px #ffcf4a;animation:ultp 1.2s infinite;--uc:#ffcf4a}
+.sl.ult{border-color:rgba(255,255,255,.55)} .sl.ult.ready{border-color:#fff;box-shadow:0 0 0 2px #fff;--uc:#fff}
 .sl.empty{opacity:.3}
 #rres{inset:0;align-items:center;justify-content:center;background:rgba(0,0,0,.55)}
 #rres .box,#rpause .box{background:rgba(12,8,22,.92);border:1px solid rgba(255,255,255,.2);padding:26px 34px;border-radius:6px;text-align:center;min-width:320px}
@@ -534,9 +535,9 @@ let tab='stage';
 function menuRender(){
   const need=needExp(SV.lv), ids=ORDER[SV.cls];
   let h=`<h1>참광</h1><div class="sub">CHAMGWANG · RPG</div>
-  <button data-stick style="margin-bottom:10px">졸라맨 모드: ${SV.stick?'켜짐':'꺼짐'}</button>
-  <div class="chars"><span class="ch on">검사</span><span class="ch">마법사 · 준비 중</span><span class="ch">권사 · 준비 중</span><span class="ch">도사 · 준비 중</span><span class="ch">화염술사 · 준비 중</span></div>
-  <div class="me">검사 · Lv ${SV.lv} · 스킬 포인트 ${SV.sp} · HP ${maxHp()}</div><div class="bar"><i style="width:${SV.exp/need*100}%"></i></div>
+  <button data-stick style="margin-bottom:10px;align-self:flex-start">졸라맨 모드: ${STK()?'켜짐':'꺼짐'}</button>
+  <div class="chars"><span class="ch on">소드맨</span><span class="ch">메이지 · 준비 중</span><span class="ch">파이터 · 준비 중</span><span class="ch">샤먼 · 준비 중</span><span class="ch">파이로 · 준비 중</span></div>
+  <div class="me">소드맨 · Lv ${SV.lv} · 스킬 포인트 ${SV.sp} · HP ${maxHp()}</div><div class="bar"><i style="width:${SV.exp/need*100}%"></i></div>
   <div class="tabs"><button data-t="stage" class="${tab==='stage'?'on':''}">스테이지</button><button data-t="skill" class="${tab==='skill'?'on':''}">스킬 · 장착</button></div>`;
   if(tab==='stage'){ h+='<div class="stages">'+STAGES.map((s,i)=>`<button data-s="${i}" ${i>SV.clear?'disabled':''}>${s.name}<small>${i<SV.clear?'클리어':i===SV.clear?'도전 가능':'잠김'}${s.boss?' · 보스':''}</small></button>`).join('')+'</div>'; }
   else { h+='<div class="skills">'+ids.map(id=>{ const s=SK[id], un=unlocked(id), lvl=sLv(id);
@@ -550,7 +551,7 @@ function menuRender(){
   menuEl.innerHTML=h;
   menuEl.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{ tab=b.dataset.t; menuRender(); });
   menuEl.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>startStage(+b.dataset.s));
-  menuEl.querySelector('[data-stick]').onclick=()=>{ SV.stick=!SV.stick; save(); pl.target=IDLE(); menuRender(); };
+  menuEl.querySelector('[data-stick]').onclick=()=>{ SV.stick=!STK(); save(); pl.target=IDLE(); menuRender(); };
   menuEl.querySelectorAll('[data-eq]').forEach(b=>b.onclick=()=>{ const id=b.dataset.eq, i=+b.dataset.i, j=SV.slots.indexOf(id);
     if(SV.slots[i]===id) SV.slots[i]=null; else { if(j>=0) SV.slots[j]=SV.slots[i]; SV.slots[i]=id; } save(); menuRender(); });
   menuEl.querySelectorAll('[data-ult]').forEach(b=>b.onclick=()=>{ SV.ult=b.dataset.ult; save(); menuRender(); });
@@ -570,7 +571,7 @@ function hudTick(){
   document.body.classList.toggle('cine',lock);
   if(G.mode!=='play'){ barEl.classList.remove('on'); lowEl.classList.remove('on'); return; }
   barEl.classList.add('on');
-  if(hudLv!==SV.lv){ hudLv=SV.lv; hudR.querySelector('.nm').textContent=`검사 · Lv ${SV.lv}`; buildBar(); }
+  if(hudLv!==SV.lv){ hudLv=SV.lv; hudR.querySelector('.nm').textContent=`소드맨 · Lv ${SV.lv}`; buildBar(); }
   hudR.querySelector('.hb i').style.width=Math.min(100,G.hp/maxHp()*100)+'%';
   hudR.querySelector('.hb b').style.width=Math.min(100,G.hpLag/maxHp()*100)+'%';
   const low=G.hp>0&&G.hp<maxHp()*.3; hudR.classList.toggle('low',low); lowEl.classList.toggle('on',low&&!lock);
@@ -593,18 +594,18 @@ body.touch .rp{-webkit-user-select:none;user-select:none;-webkit-touch-callout:n
 #rpad i{width:72px;height:72px;border-radius:50%;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.55);pointer-events:none}
 #rpad i::before,#rpad i::after{content:'◀';position:absolute;left:-46px;top:50%;transform:translateY(-50%);color:rgba(255,255,255,.45);font-size:18px}
 #rpad i{position:relative} #rpad i::after{content:'▶';left:auto;right:-46px}
-#rpbt{right:max(14px,env(safe-area-inset-right));top:12px;width:46px;height:46px;border-radius:50%;background:rgba(10,6,20,.6);border:1px solid rgba(255,255,255,.35);align-items:center;justify-content:center;font-size:15px;touch-action:none}
+#rpbt{right:max(14px,env(safe-area-inset-right));top:12px;width:46px;height:46px;border-radius:12px;background:rgba(10,6,20,.6);border:1px solid rgba(255,255,255,.35);align-items:center;justify-content:center;font-size:15px;touch-action:none}
 #rrot{inset:0;z-index:60;background:#05030a;align-items:center;justify-content:center;font:800 18px "Malgun Gothic",sans-serif;text-align:center;padding:20px}
 @media (orientation:portrait){ body.touch #rrot{display:flex} }
 body.touch #rbar{left:auto;right:max(12px,env(safe-area-inset-right));bottom:12px;transform:none;pointer-events:auto;touch-action:none;display:none;gap:7px;
   grid-template-columns:repeat(4,60px) 84px;grid-template-rows:60px 60px;grid-template-areas:"s0 s1 ult jump basic" "s2 s3 . dodge basic"}
 body.touch #rbar.on{display:grid} body.touch.cine #rbar{display:none}
-body.touch .sl{width:auto;height:auto;font-size:11px;border-radius:50%;background:rgba(10,6,20,.38)}
+body.touch .sl{width:auto;height:auto;font-size:11px;border-radius:12px;background:rgba(10,6,20,.38)}
 body.touch .sl kbd{display:none}
 body.touch .sl.press{background:rgba(255,60,90,.45)}
 body.touch .sl[data-a="0"]{grid-area:s0} body.touch .sl[data-a="1"]{grid-area:s1} body.touch .sl[data-a="2"]{grid-area:s2} body.touch .sl[data-a="3"]{grid-area:s3}
 body.touch .sl[data-a=ult]{grid-area:ult} body.touch .sl[data-a=jump]{grid-area:jump} body.touch .sl[data-a=dodge]{grid-area:dodge}
-body.touch .sl[data-a=basic]{grid-area:basic;height:84px;align-self:center;font-size:16px;border-color:#ff6a85}
+body.touch .sl[data-a=basic]{grid-area:basic;height:84px;align-self:center;font-size:15px;border-color:rgba(255,255,255,.6)}
 body.touch .sl.tb{background:rgba(40,30,70,.42)}
 body.touch #rmenu .help{display:none}
 body.touch #rhud{width:min(280px,32vw);gap:4px} body.touch #rhud .hb{height:9px} body.touch #rhud .nm{font-size:14px} body.touch #rhud .lb{display:none}
