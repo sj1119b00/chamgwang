@@ -13,7 +13,7 @@ const EN={
   boss:{name:'골렘 킹',img:'brute',hp:260000,spd:135,r:150,dmg:24,gem:120,sc:1.35,h:440,heavy:true,boss:true},
 };
 const V={t:0,en:[],pj:[],gems:[],items:[],nums:[],shards:[],mk:[],orbs:[],kills:0,run:0,acc:0,accT:0,ug:0,cd:{},gcd:0,bcd:0,chain:0,
-  dash:null,boss:null,spawn:0,horde:0,over:false,joy:null,keys:{},wasLock:false,ox:0,oy:0,fxB:0,lv:0,id:0};
+  dash:null,boss:null,spawn:0,horde:0,over:false,joy:null,keys:{},ox:0,oy:0,fxB:0,lv:0,id:0};
 G.surv=V;
 
 // ============================================================ small helpers
@@ -64,14 +64,6 @@ function hurt(d,src){
   V.nums.push({x:pl.x,y:pl.gy-BODY*1.8,t:0,txt:'-'+d,hurt:true}); sfx('boom',.5,.5); buzz(40);
   if(G.hp<=0) finish(false);
 }
-// the engine's ultimates call hit(): during one, everything near the hero takes it
-const hit1=hit;
-hit=function(d,x,y,o={}){
-  if(G.mode!=='surv') return hit1(d,x,y,o);
-  const R=lock?2600:(o.r||190), cx=lock?pl.x:x, cy=lock?pl.y:y+BODY; let any=false;
-  inCircle(cx,cy,R,e=>{ dmg(e,d*G.mul,{kb:lock?.3:(o.kb??1),ult:lock,sx:cx,sy:cy}); any=true; });
-  return any;
-};
 
 // ============================================================ skills (the RPG's sword set, re-done for a top-down field; all fire on their own)
 const SKILL={
@@ -137,19 +129,68 @@ function basic(){ const e=nearest(430); if(!e) return false; const a=angTo(e), n
   return true; }
 const basicCd=()=>.8*(1-.05*(A.sLv('sw_basic')-1));
 
-// the equipped ultimate fires itself once the gauge is full. Both are side-view set pieces, so for its duration the field is
-// shifted to put the hero on the engine's ground line, and everything near him takes the blows.
-function shiftWorld(dx,dy){
-  const mv=o=>{ if(o.x!=null){ o.x+=dx; o.y+=dy; } };
-  pl.x+=dx; if(pl.gy!=null) pl.gy+=dy; cam.x+=dx; cam.fx+=dx; cam.y+=dy; cam.fy+=dy; V.ox+=dx; V.oy+=dy;
-  for(const L of [V.en,V.pj,V.gems,V.items,V.nums,V.shards,V.mk]) L.forEach(mv); V.orbs.forEach(o=>mv(o.v)); V.pj.forEach(p=>p.v&&mv(p.v));
-  for(const p of [...pl.scarf,...pl.coat]){ p.x+=dx; p.y+=dy; if(p.px!=null){ p.px+=dx; p.py+=dy; } }
-  for(const p of parts){ if(p.follow) continue; mv(p); if(p.x1!=null){ p.x1+=dx; p.y1+=dy; p.x2+=dx; p.y2+=dy; } if(p.tx!=null){ p.tx+=dx; p.ty+=dy; } if(p.cx!=null){ p.cx+=dx; p.cy+=dy; } }
-  for(const f of fires){ f.x+=dx; f.y+=dy; f.x2+=dx; f.y2+=dy; }
-}
-function ult(){ const id=SV().ult; V.ug=0; anim.seq=null; V.dash=null; V.joy&&joyHide();
-  shiftWorld(VW*.3-pl.x,770-pl.gy); GROUND=770; pl.gy=undefined; pl.air=pl.airT=0; pl.f=1; pl.home=pl.x;
-  E.x=pl.x+560; E.by=GROUND-280; E.dead=false; E.hp=E.max; E.respawn=1e9; G.mul=A.mul(id); SK[id].fn(); }
+// ============================================================ ultimates, staged for the top-down field (they fire themselves once the gauge is full)
+// Zero Slash: time stops, the hero vanishes, red cut lines slice the crowd one by one, he reappears and sheathes - and every line bursts.
+// Sword Rain: a golden circle spreads over the floor, swords rain onto the crowd, then one colossal sword falls.
+// The td_* effects are ChatGPT GIFs (registered below); until their frames load, plain lines and the engine's light swords stand in.
+const tdV=(n,x,y,o)=>VFX[n]&&VFX[n].f[0].ok?vfx(n,x,y,o):null;
+function onScreen(m=0){ const {hw,hh}=view(); return V.en.filter(e=>!e.dead&&Math.abs(e.x-cam.x)<hw+m&&Math.abs(e.y-BODY*.5-cam.y)<hh+m); }
+function ultStart(){ lock=true; V.ug=0; anim.seq=null; V.dash=null; joyHide(); ov.lbT=1; SFX.rise(1.5,.45); duck(.85,.1); stamp('얼티밋',{x:.24,y:.24,size:.1,life:1.2,c:'#ffcf4a'}); }
+function ultStop(){ lock=false; ov.lbT=0; ov.dimT=0; post.grayT=0; V.zk=1; V.ultTick=null; V.cuts=[]; V.shadow=null; G.inv=.8; pl.visible=true; pl.target=IDLE(); pl.ps=12; pl.air=pl.airT=0; }
+function ultHit(e,D,sx,sy){ dmg(e,e.d.boss?D*2:Math.max(D,e.hp*1.05),{crit:true,kb:1.8,big:true,launch:700,sx,sy}); }
+function cutFx(c,thick){ const K=VFX.td_cutline, k=K?c.L/K.w:1;   // stretched along the cut, kept thin across it
+  if(tdV('td_cutline',c.cx,c.cy-BODY*.5,{rot:c.a,sc:k,sy:K?300*thick/(K.h*k):1,a:1})) return;
+  const y=-BODY*.5; add({k:'line',x1:c.x1,y1:c.y1+y,x2:c.x2,y2:c.y2+y,life:.45,c:'#ff3355',w:22*thick,grow:true}); add({k:'line',x1:c.x1,y1:c.y1+y,x2:c.x2,y2:c.y2+y,life:.3,c:'#ffffff',w:5*thick,grow:true}); }
+function ultZero(id){ ultStart(); const D=80000*A.mul(id), x0=pl.x, y0=pl.gy, {hw,hh}=view(), N=8, L=Math.hypot(hw,hh)*2.2;
+  pl.target='iaiReady'; pl.ps=18; ov.dimT=.55; post.grayT=.6; V.zk=1.3; SFX.heart(1);
+  ring(x0,y0-BODY*.6,-1600,'#ff3355',.55,{r0:1100,w:4,dec:1}); light(x0,y0-BODY,900,'#ff3355',.6,.6);
+  for(let i=0;i<26;i++) gl0(x0+rand(-700,700),y0+rand(-500,300),rand(4,9),pick(['#ff3355','#ffffff','#ff9aa8']),.7,{tx:x0,ty:y0-BODY});
+  const T=onScreen(100), cuts=[];
+  for(let i=0;i<N;i++){ const e=T.length?T[(Math.random()*T.length)|0]:null, cx=e?e.x:x0+rand(-hw,hw)*.6, cy=e?e.y:y0+rand(-hh,hh)*.6, a=i*Math.PI/N+rand(-.25,.25);
+    cuts.push({cx,cy,a,L,x1:cx-Math.cos(a)*L/2,y1:cy-Math.sin(a)*L/2,x2:cx+Math.cos(a)*L/2,y2:cy+Math.sin(a)*L/2}); }
+  after(.55,()=>{ pl.visible=false; V.zk=.95; gl0(x0,y0-BODY,300,'#ffffff',.25,{a:.9}); post.flash=.25; SFX.whoosh(.7,1); });
+  cuts.forEach((c,i)=>after(.62+i*.11,()=>{
+    add({k:'ghost',j:shiftJ(pl.j,c.cx-pl.x,c.cy-pl.gy),life:.4,c:'#ff3355'}); cutFx(c,.7); V.cuts.push(c);
+    inLine(c.x1,c.y1,c.x2,c.y2,60,e=>{ e.cut=(e.cut||0)+1; hitFx(e,'#ff3355',1.2); });
+    SFX.slash(1.2+i*.05,.9); trauma=Math.min(.8,trauma+.15); }));
+  const t1=.62+N*.11;
+  after(t1+.12,()=>{ pl.visible=true; pl.target='iaiDone'; pl.ps=30; V.zk=1.15; gl0(x0,y0-BODY,220,'#ff3355',.3,{a:.8}); SFX.whoosh(1.4,.5); });
+  after(t1+.45,()=>{ pl.target='sheath'; pl.ps=14; SFX.click(); duck(.1,.35); stamp('제로',{x:.5,y:.2,size:.11,life:.8}); });
+  after(t1+.95,()=>{ setInv(.12,'red'); stamp('슬래시',{x:.5,y:.2,size:.13,life:1}); post.flash=.5; trauma=1.2; hitstop=.06; shock(x0,y0-BODY*.6,1.4,1.2); V.zk=.9;
+    for(const c of V.cuts) cutFx(c,1.6); V.cuts=[];
+    const zb=VFX.td_zeroburst; tdV('td_zeroburst',x0,y0-BODY*.6,{sc:zb?hw*1.7/zb.w:1});
+    cuts.slice(0,4).forEach(c=>tdV('td_zeroburst',c.cx,c.cy-BODY*.5,{sc:zb?700/zb.w:1,rot:rand(0,TAU),a:.85}));
+    ring(x0,y0,3000,'#ff3355',.6,{w:10,sy:.75}); ring(x0,y0,1800,'#ffffff',.35,{w:4,sy:.75});
+    for(const e of onScreen(300)) ultHit(e,D*(e.cut?1.5:1),x0,y0);
+    SFX.boom(2,1); SFX.shatter(1); buzz([120,40,200]); });
+  after(t1+1.9,ultStop); }
+function swordFall(x,y,d){ const S_=VFX.td_swordfall, v=tdV('td_swordfall',x,y,{px:S_&&S_.ix,py:S_&&S_.iy,sc:S_?650/S_.h:1});
+  const land=()=>{ ring(x,y,700,'#ffcf4a',.3,{w:4,sy:.75}); gl0(x,y-30,90,'#ffcf4a',.18,{a:.8}); for(let i=0;i<5;i++) spark(x,y-20,-Math.PI/2+rand(-1.3,1.3),rand(300,900),{c:pick(['#ffffff','#ffcf4a']),life:rand(.15,.3),w:2,g:900});
+    sfx('boom',.5,.35); sfx('slash',1.6,.35); inCircle(x,y,140,e=>{ dmg(e,d,{kb:.6,stun:.5,sx:x,sy:y}); hitFx(e,'#ffcf4a',1); }); };
+  if(v){ after(S_.hit*S_.ms/1000,land); return; }
+  const s=swordAt(x,y-900,{c:'#ffcf4a',len:130,tx:x,ty:y-10,onHit:land}); s.mode='fly'; s.v=2600; s.acc=9000; }
+function ultRain(id){ ultStart(); const D=9000*A.mul(id), x0=pl.x, y0=pl.gy, {hw,hh}=view(), R=Math.max(hw,hh)*1.05;
+  pl.target='cast'; pl.ps=10; ov.dimT=.5; V.zk=1.2; light(x0,y0-BODY*1.5,1200,'#ffcf4a',3.5,.5); SFX.rise(.6,.5);
+  const C=VFX.td_circle, circ=tdV('td_circle',x0,y0,{loop:true,life:4.2,sc:.1,wy:.75,a:.95}); if(!circ) add({k:'glyph',x:x0,y:y0,r:R*.6,life:4,c:'#ffcf4a'});
+  let t=0; V.ultTick=dt=>{ t+=dt; if(circ){ const k=Math.min(1,t/.7); circ.sc=(.15+.85*(1-(1-k)**3))*R*2/C.w; circ.rot+=dt*.3; circ.a=.8-.5*k; } };
+  const pts=onScreen(100).sort(()=>Math.random()-.5).slice(0,70).map(e=>[e.x,e.y]); while(pts.length<36) pts.push([x0+rand(-hw,hw)*.9,y0+rand(-hh,hh)*.9]);
+  pts.forEach(([x,y],i)=>after(.6+i*(2/pts.length)+rand(0,.05),()=>swordFall(x,y,D)));
+  const b=V.boss&&!V.boss.dead?V.boss:null, cx=b?b.x:x0, cy=b?b.y:y0+hh*.25;   // lands just in front of the hero, so the whole blade is on screen
+  after(2.8,()=>{ V.shadow={x:cx,y:cy,t0:RT}; V.zk=.9; SFX.rise(1.2,.7); pl.target='slashU'; pl.ps=20; });
+  const K=VFX.td_colossal, lead=K&&K.f[0].ok?K.hit*K.ms/1000:0;   // the GIF's own fall plays first, its impact frame lands on the beat
+  after(3.35-lead,()=>{ if(!tdV('td_colossal',cx,cy,{px:K.ix,py:K.iy,sc:1700/K.h})) add({k:'pillar',x:cx,w:220,life:1,c:'#ffcf4a'}); });
+  after(3.35,()=>{ V.shadow=null;
+    setInv(.1,'inv'); stamp('레인',{x:.5,y:.16,size:.13,life:1}); post.flash=.5; trauma=1.3; hitstop=.07; shock(cx,cy-60,1.5,1.1); light(cx,cy,2200,'#ffe58a',1,.6);
+    ring(cx,cy,3200,'#ffcf4a',.7,{w:12,sy:.75}); ring(cx,cy,1800,'#ffffff',.4,{w:5,sy:.75});
+    for(let i=0;i<30;i++){ const a=rand(0,TAU), s=rand(400,1300); V.shards.push({x:cx,y:cy,z:10,vx:Math.cos(a)*s,vy:Math.sin(a)*s*.6,vz:rand(500,1400),s:rand(8,20),rot:rand(0,TAU),vr:rand(-9,9),t:0,life:rand(1,1.6),rock:true}); }
+    for(const e of onScreen(300)) ultHit(e,D*8,cx,cy);
+    SFX.boom(2.2,1); SFX.shatter(1); buzz([150,40,250]); });
+  after(4.3,ultStop); }
+const ULT={sw_ult1:ultZero,sw_ult2:ultRain};
+// ChatGPT effect GIFs for the ultimates (frames from _gen/vfx_export.py); ix/iy = impact point, hit = impact frame
+function addVfx(name,m){ if(VFX[name]) return; const v=VFX[name]={...m,f:[]}; for(let i=1;i<=v.n;i++) v.f.push(loadSpr('vfx_'+name+A.fr2(i),{})); }
+const TD_VFX={"td_cutline":{"n":12,"ms":50,"w":533,"h":182,"cx":0.5,"cy":0.53},"td_zeroburst":{"n":12,"ms":50,"w":354,"h":352,"cx":0.5,"cy":0.5},"td_circle":{"n":16,"ms":70,"w":299,"h":300,"cx":0.5,"cy":0.508},"td_swordfall":{"n":12,"ms":50,"w":367,"h":330,"cx":0.499,"cy":0.5,"ix":0.499,"iy":0.895,"hit":4},"td_colossal":{"n":14,"ms":60,"w":300,"h":301,"cx":0.5,"cy":0.5,"ix":0.5,"iy":0.87,"hit":3}};   // printed by _gen/td_export.py
+for(const [k,m] of Object.entries(TD_VFX)) addVfx(k,m);
 
 // ============================================================ spawning
 function spawnPos(){ const {hw,hh}=view(), mx=hw+130, my=hh+200, p=rand(0,2*(mx+my)); let x,y;
@@ -178,8 +219,8 @@ function input(){ let x=(V.keys.r?1:0)-(V.keys.l?1:0), y=(V.keys.d?1:0)-(V.keys.
   const l=Math.hypot(x,y); return l>1?[x/l,y/l]:[x,y]; }
 function pre(rdt){
   const dt=hitstop>0?0:rdt*timeScale;
-  if(lock||V.over){ if(!lock) pl.gy=pl.gy??pl.y; return; }
-  GROUND=FAR; if(pl.gy==null) pl.gy=pl.y;
+  if(lock||V.over){ if(lock&&V.ultTick) V.ultTick(rdt); return; }
+  GROUND=FAR;
   G.inv=Math.max(0,G.inv-rdt); V.fxB=14;
   for(const k in V.cd) V.cd[k]=Math.max(0,V.cd[k]-rdt); V.gcd-=rdt; V.bcd-=rdt;
   // movement (a dash or leap tweens the hero instead)
@@ -196,15 +237,14 @@ function pre(rdt){
   if(V.gcd<=0&&(!anim.seq||anim.seq.basic)) for(const id of SV().slots){ if(!id||!A.unlocked(id)||(V.cd[id]||0)>0) continue; const s=SKILL[id]; if(!s||s.passive) continue;
     if(s.fn(id)!==false){ V.cd[id]=A.cdOf(id); V.gcd=.3; V.bcd=Math.max(V.bcd,.25); break; } }
   E.dead=false; E.hp=E.max; E.respawn=1e9; E.x=pl.x+FAR;
-  const uid=SV().ult; if(uid&&A.unlocked(uid)&&V.ug>=100&&(countIn(1500)>=8||(V.boss&&!V.boss.dead))) ult();
+  const uid=SV().ult; if(uid&&A.unlocked(uid)&&V.ug>=100&&(countIn(1500)>=8||(V.boss&&!V.boss.dead))&&ULT[uid]) ULT[uid](uid);
 }
 function post(rdt){
   const dt=hitstop>0?0:rdt*timeScale;
-  if(V.wasLock&&!lock){ pl.gy=pl.y; GROUND=FAR; pl.air=pl.airT=0; }
-  V.wasLock=lock; document.body.classList.toggle('cine',lock);
+  document.body.classList.toggle('cine',lock);
   for(let i=V.nums.length-1;i>=0;i--){ const n=V.nums[i]; n.t+=rdt; n.y-=70*rdt; if(n.t>.75) V.nums.splice(i,1); }
   for(let i=V.shards.length-1;i>=0;i--){ const s=V.shards[i]; s.t+=dt; s.x+=s.vx*dt; s.y+=s.vy*dt; s.vz-=2600*dt; s.z+=s.vz*dt; s.rot+=s.vr*dt; if(s.z<0){ s.z=0; s.vz*=-.3; s.vx*=.5; s.vy*=.5; } if(s.t>s.life) V.shards.splice(i,1); }
-  if(lock) return;
+  if(lock){ for(const e of V.en) e.flash=Math.max(0,e.flash-rdt*6); return; }
   if(!V.over){ V.t+=rdt; if(V.t>=DUR) finish(true); spawnTick(rdt); }
   stepEnemies(dt); stepOrbs(dt); if(!V.over) stepPickups(dt);
   for(let i=V.pj.length-1;i>=0;i--){ const p=V.pj[i]; p.life-=dt; p.x+=p.vx*dt; p.y+=p.vy*dt; if(p.v){ p.v.x=p.x; p.v.y=p.y-BODY; }
@@ -272,7 +312,7 @@ function spike(m){ ring(m.x,m.y,800,'#c06bff',.35,{w:6}); gl0(m.x,m.y-80,160,'#b
 const upd1=update;
 update=function(rdt){ if(G.mode!=='surv') return upd1(rdt); if(G.paused) return;
   pre(rdt); upd1(rdt); post(rdt);
-  if(!lock){ const k=1-Math.exp(-rdt*9); cam.ft=99; cam.fx=pl.x; cam.fy=pl.gy-BODY*.6; cam.fz=PORTRAIT?ZP:ZL; cam.x=lerp(cam.x,cam.fx,k); cam.y=lerp(cam.y,cam.fy,k); } };
+  const k=1-Math.exp(-rdt*9); cam.ft=99; cam.fx=pl.x; cam.fy=pl.gy-BODY*.6; cam.fz=(PORTRAIT?ZP:ZL)*(V.zk||1); cam.x=lerp(cam.x,cam.fx,k); cam.y=lerp(cam.y,cam.fy,k); };
 const respawn1=respawn; respawn=function(){ if(G.mode==='surv') return; return respawn1(); };
 const plSprites1=plSprites; plSprites=function(){ return G.mode==='surv'?null:plSprites1(); };
 
@@ -311,7 +351,9 @@ function drawE(e){ const D=e.d, sc=D.sc, x=e.x, y=e.y, fr=eFrame(e);
   if(e.castT>0&&D.ranged) glow(fx,x+e.f*30,y-e.h*.7,40,'#d08cff',.8); }
 const drawEnemy1=drawEnemy;
 drawEnemy=function(){ if(G.mode!=='surv') return drawEnemy1();
-  // floor layer: boss markers, gems, items, shards
+  // floor layer: the colossal sword's shadow, boss markers, gems, items, shards
+  if(V.shadow){ const s=V.shadow, k=Math.min(1,(RT-s.t0)/.55), r=60+400*k*k; ctx.fillStyle=`rgba(0,0,0,${.3+.45*k})`; ctx.beginPath(); ctx.ellipse(s.x,s.y,r,r*.6,0,0,TAU); ctx.fill();
+    fx.strokeStyle=hexA('#ffcf4a',.4+.5*k); fx.lineWidth=6; fx.beginPath(); fx.ellipse(s.x,s.y,r,r*.6,0,0,TAU); fx.stroke(); glow(fx,s.x,s.y,r*1.3,'#ffcf4a',.15+.35*k); }
   for(const m of V.mk){ if(m.t<0) continue; const k=m.t/m.dur; ctx.strokeStyle=`rgba(255,40,80,${.35+.5*k})`; ctx.lineWidth=5; ctx.beginPath(); ctx.ellipse(m.x,m.y,m.r,m.r*.7,0,0,TAU); ctx.stroke();
     ctx.fillStyle=`rgba(255,30,70,${.1+.25*k})`; ctx.beginPath(); ctx.ellipse(m.x,m.y,m.r*k,m.r*.7*k,0,0,TAU); ctx.fill(); glow(fx,m.x,m.y,m.r,'#ff2244',.15+.3*k); }
   for(const g of V.gems){ const c=g.v>=5?'#ffcf4a':g.v>=2?'#ff6a9a':'#55ddff', s=g.v>=5?16:g.v>=2?12:9, y=g.y-10+Math.sin(RT*4+g.ph)*3;
@@ -335,6 +377,7 @@ drawPlayer=function(){ drawPlayer1(); if(G.mode!=='surv') return;
   for(const e of V.sorted||[]) if(e.y>(pl.gy??pl.y)) drawE(e);
   for(const p of V.pj) if(p.orb){ const y=p.y-BODY; glow(fx,p.x,y,50,'#b06bff',.85); glow(fx,p.x,y,16,'#ffffff',1); ctx.fillStyle='#2a0a3a'; ctx.beginPath(); ctx.arc(p.x,y,10,0,TAU); ctx.fill(); }
   if(G.inv>0&&!lock&&!V.dash) glow(fx,pl.x,pl.gy-BODY,180,'#ff2244',G.inv*.5);
+  for(const c of V.cuts||[]){ const y=-BODY*.5, a=.45+.25*Math.sin(RT*40); fx.lineCap='round'; fx.strokeStyle=hexA('#ff3355',a); fx.lineWidth=7; fx.beginPath(); fx.moveTo(c.x1,c.y1+y); fx.lineTo(c.x2,c.y2+y); fx.stroke(); fx.strokeStyle=hexA('#ffffff',a*.8); fx.lineWidth=2; fx.stroke(); }
   if(counterReady()&&!lock) glow(fx,pl.x,pl.gy-BODY,150,'#9ff7ff',.12+.08*Math.sin(RT*6)); };
 // numbers and the hero's own health bar go over everything (after the effect layer is composited)
 const drawHUD1=drawHUD;
@@ -426,7 +469,7 @@ addEventListener('blur',()=>{ V.keys={}; joyHide(); });
 // ============================================================ run flow
 function start(){
   if(!AC) initAudio(); if(AC&&AC.state!=='running') AC.resume();
-  Object.assign(V,{t:0,en:[],pj:[],gems:[],items:[],nums:[],shards:[],mk:[],orbs:[],kills:0,run:0,acc:0,accT:0,ug:0,cd:{},gcd:0,bcd:.5,chain:0,dash:null,boss:null,bossDone:false,spawn:0,horde:0,over:false,keys:{},wasLock:false,mag:0,id:0});
+  Object.assign(V,{t:0,en:[],pj:[],gems:[],items:[],nums:[],shards:[],mk:[],orbs:[],kills:0,run:0,acc:0,accT:0,ug:0,cd:{},gcd:0,bcd:.5,chain:0,dash:null,boss:null,bossDone:false,cuts:[],shadow:null,zk:1,ultTick:null,spawn:0,horde:0,over:false,keys:{},mag:0,id:0});
   joyHide(); G.mode='surv'; G.paused=false; G.hp=A.maxHp(); G.inv=0; G.jz=G.jv=0; G.runT=0; G.stats={kills:0,dmg:0,exp:0,t:RT}; combo=0;
   lock=false; anim.seq=null; parts.length=0; timers.length=0; fires.length=0; cutin=null; warn=null; timeScale=1; slowHold=0; hitstop=0; trauma=0;
   pl.target=IDLE(); pl.ps=12; pl.visible=true; pl.air=pl.airT=0; pl.f=1; pl.x=pl.home=VW/2; pl.gy=770; GROUND=FAR;
@@ -438,7 +481,7 @@ function start(){
 function end(){ // leaving the mode: hand the engine back its ground line and camera
   V.over=true; joyHide(); hudEl.classList.remove('on'); joyEl.classList.remove('on'); resEl.classList.remove('on'); document.body.classList.remove('surv','cine');
   V.en=[]; V.pj=[]; V.gems=[]; V.items=[]; V.nums=[]; V.shards=[]; V.mk=[]; V.orbs=[];
-  parts.length=0; timers.length=0; fires.length=0; cutin=null; warn=null; lock=false; anim.seq=null; timeScale=1; slowHold=0; ov.lbT=0; ov.dimT=0;
+  parts.length=0; timers.length=0; fires.length=0; cutin=null; warn=null; lock=false; anim.seq=null; timeScale=1; slowHold=0; ov.lbT=0; ov.dimT=0; post.grayT=0; V.zk=1; V.ultTick=null; pl.visible=true;
   GROUND=770; pl.gy=undefined; pl.air=pl.airT=0; cam.x=cam.fx=VW/2; cam.y=cam.fy=CY; cam.z=cam.fz=1; cam.ft=0; }
 G.survEnd=end;
 function finish(win){ if(V.over) return; V.over=true; joyHide(); G.keys={};
