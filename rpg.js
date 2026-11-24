@@ -240,7 +240,7 @@ function locoPose(rdt,moving){
 }
 // ============================================================ stickman mode (the showcase's original skeleton figure instead of the painted frames)
 // The painted sequences still run (same timing, hits and effects); each step maps its frame to a skeleton pose: wind-up, strike (trail/forward kick steps), recovery.
-const STK=()=>G.mode!=='surv'&&SV.stick!==false;   // survival draws the painted class characters
+const STK=()=>G.mode==='surv'?!!(SV.opt&&SV.opt.stick):SV.stick!==false;   // survival draws the painted class characters unless its own option asks for the skeleton
 const STICK={gs:'slash1',gm:'slash2',gw:'slash3',gu:'slash3',gt:'slashU',gp:'slash2',gk:'slash3',gc:'iaiDone'};
 const plSprites0=plSprites; plSprites=function(){ return STK()?null:plSprites0(); };
 const plSeqNext0=plSeqNext; plSeqNext=function(){ plSeqNext0(); if(!STK()) return; const q=anim.seq;
@@ -647,8 +647,8 @@ addEventListener('touchstart',enableTouch,{passive:true});
 
 // ============================================================ boot
 // survival mode (surv.js) works on the same save, levels and skill table
-G.api={get SV(){ return SV; },SK,ORDER,SLOT_KEYS,save,mul,cdOf,maxHp,needExp,gainExp,unlocked,sLv,stickLoco,toMenu,menuRender,setPause,toast,floatTxt,EFR,ET,menuEl,isTouch,fr2,swapClass,locoPose,hurtAnim};
-{ const s=document.createElement('script'); s.src='surv.js?v=26'; document.body.appendChild(s); }
+G.api={get SV(){ return SV; },SK,ORDER,SLOT_KEYS,save,mul,cdOf,maxHp,needExp,gainExp,unlocked,sLv,stickLoco,STK,toMenu,menuRender,setPause,toast,floatTxt,EFR,ET,menuEl,isTouch,fr2,swapClass,locoPose,hurtAnim};
+{ const s=document.createElement('script'); s.src='surv.js?v=27'; document.body.appendChild(s); }
 started=true; setClass(SV.cls||'sword',true); E.dead=true; E.respawn=1e9; pl.x=pl.home=VW*.62;
 menuRender(); menuEl.classList.add('on');
 })();

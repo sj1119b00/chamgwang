@@ -236,6 +236,7 @@ X.render=G=>{ if(!X.on) return false; X.build(); FRAME++; if(!G.gVfx||G.gVfx.w!=
 // uniforms for the final pass: ambient and the four strongest lights, in screen uv
 X.finUniforms=(Pf,Uf)=>{ LPA.fill(0); LCA.fill(0); const L=X.lights.map(l=>{ const k=l.t<l.hold?1:Math.max(0,1-(l.t-l.hold)/l.life); return [l,l.a*k*k*(l.flick?1-l.flick*Math.random():1)]; }).filter(e=>e[1]>.01).sort((a,b)=>b[1]*b[0].r-a[1]*a[0].r).slice(0,4);
   L.forEach(([l,a],i)=>{ const [sx,sy]=X.w2s(l.x,l.y,l.z); LPA.set([sx/W,1-sy/H,l.r*S*cam.z/H,a],i*4); LCA.set(l.c,i*3); });
+  { const hv=typeof pl!=='undefined'&&pl.visible&&pl.gy!=null&&X.heroTop!==0, hb=170; if(hv){ const [hx,hy]=X.w2s(pl.x,pl.gy,hb*.5+(pl.air||0)); gl.uniform4f(Uf(Pf,'hero'),hx/W,1-hy/H,hb*.62*S*cam.z/H,hb*.78*S*cam.z/H); } else gl.uniform4f(Uf(Pf,'hero'),0,0,0,1); }
   gl.uniform4fv(Uf(Pf,'glp'),LPA); gl.uniform3fv(Uf(Pf,'glc'),LCA); gl.uniform3fv(Uf(Pf,'amb'),X.amb); gl.uniform1f(Uf(Pf,'vfxK'),X.gain); gl.uniform1f(Uf(Pf,'dstK'),X.dk); };
 init();
 })();

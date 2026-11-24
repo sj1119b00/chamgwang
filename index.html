@@ -229,9 +229,9 @@ void main(){vec2 w=toWorld(v);float qa[16];float ws=0.,rs=0.,sm=0.;
  gl_FragColor=vec4((e+scol*sa)*.5,sa);}`;
 const DOWNFS=`uniform sampler2D a,b,c,d,e;uniform float ck,dk;void main(){vec3 cc=texture2D(c,v).rgb;float cm=max(cc.r,max(cc.g,cc.b));if(cm>1.)cc=cc/cm*min(cm,2.4);vec3 o=texture2D(a,v).rgb+texture2D(b,v).rgb*1.2+cc*ck;if(dk>0.)o+=max(texture2D(d,v).rgb-vec3(.85),0.)*dk*(1.-texture2D(e,v).a);gl_FragColor=vec4(o*.5,1.);}`;
 const BLURFS=`uniform sampler2D a;uniform vec2 dir;void main(){vec3 c=texture2D(a,v).rgb*.227027;c+=(texture2D(a,v+dir*1.384615).rgb+texture2D(a,v-dir*1.384615).rgb)*.316216;c+=(texture2D(a,v+dir*3.230769).rgb+texture2D(a,v-dir*3.230769).rgb)*.07027;gl_FragColor=vec4(c,1.);}`;
-const FINFS=`uniform sampler2D tex,bgT,fireT,b1,b2,b3,vfxT,dstT;uniform vec4 glp[4];uniform vec3 glc[4];uniform vec3 amb;uniform float vfxK,dstK;uniform float gndK;
+const FINFS=`uniform sampler2D tex,bgT,fireT,b1,b2,b3,vfxT,dstT;uniform vec4 glp[4];uniform vec3 glc[4];uniform vec3 amb;uniform float vfxK,dstK;uniform float gndK;uniform vec4 hero;
 uniform float ca,inv,flash,blur,gray,vig,grain,bloomK,lbox,tilt;uniform vec3 ray;uniform vec2 bc;uniform vec4 sh[4];uniform vec4 cut;uniform vec3 inkA,inkB;
-vec3 hup(vec3 c,float cap){float m=max(c.r,max(c.g,c.b));return m>1.?mix(c/m*min(m,cap),vec3(cap),smoothstep(4.5,13.,m)):c;}
+vec3 hup(vec3 c,float cap){float m=max(c.r,max(c.g,c.b));return m>1.?mix(c/m*min(m,cap),vec3(cap),smoothstep(6.,20.,m)):c;}
 void main(){vec2 p=v;float asp=res.x/res.y;
  if(tilt>.001){float tm=(1.+tilt*(1.-2.*p.y))/(1.-tilt);p=vec2(.5+(p.x-.5)/tm,.5+(p.y-.56)/tm+.06*(1.-tilt));}
  vec2 pw=p;
@@ -256,7 +256,7 @@ void main(){vec2 p=v;float asp=res.x/res.y;
  vec4 vx=vec4(0.);vec3 scn=col;
  if(vfxK>0.){col=mix(col*lit,col,gndK)+hzv;
   if(gndK>0.){vec4 c0=texture2D(tex,p);float a0=c0.a*smoothstep(.0,.07,max(c0.r,max(c0.g,c0.b))/max(c0.a,.01));if(a0>.05){for(int i=0;i<2;i++){if(glp[i].w>.001){vec2 d=(glp[i].xy-pw)*vec2(asp,1.);float f=glp[i].w/(1.+dot(d,d)/(glp[i].z*glp[i].z));f*=f;vec2 o=normalize(d*res.y+1e-4)*2.4/res;float rim=max(a0-texture2D(tex,p+o).a,0.);col+=glc[i]*rim*min(f,1.2)*1.1;}}}}
-  scn=col;vx=texture2D(vfxT,p);vx.rgb=hup(vx.rgb,1.3);col=col*(1.-min(vx.a,1.))+vx.rgb*vfxK;}
+  scn=col;vx=texture2D(vfxT,p);vx.rgb=hup(vx.rgb,1.18);if(hero.z>0.){vec2 hd=(pw-hero.xy)*vec2(asp,1.)/hero.zw;float hm=texture2D(tex,p).a*(1.-smoothstep(.5,1.,dot(hd,hd)));vx*=1.-.88*hm;col*=1.+.45*hm*min(1.,vx.a+max(vx.r,max(vx.g,vx.b)));}col=col*(1.-min(vx.a,1.))+vx.rgb*vfxK;}
  vec3 B3=texture2D(b3,p).rgb;
  vec3 bloom=(texture2D(b1,p).rgb*.32+texture2D(b2,p).rgb*.3+B3*.26)*2.*bloomK;
  vec3 st=vec3(0.);for(int i=-2;i<=2;i++){st+=max(texture2D(b3,vec2(p.x+float(i)*.05,p.y)).rgb*2.-.3,0.);}
@@ -353,7 +353,7 @@ function glFrame(){
   ['tex','bgT','fireT','b1','b2','b3'].forEach((n,i)=>gl.uniform1i(U_(P,n),i));
   bindTex(6,gfxLit&&G.gVfx?G.gVfx.t:G.fire.t); bindTex(7,gfxLit&&G.gDist?G.gDist.t:G.fire.t); gl.uniform1i(U_(P,'vfxT'),6); gl.uniform1i(U_(P,'dstT'),7);
   if(gfxLit) GFX.finUniforms(P,U_); else { gl.uniform1f(U_(P,'vfxK'),0); gl.uniform1f(U_(P,'dstK'),0); }
-  gl.uniform1f(U_(P,'ca'),Math.min(post.caMax||.003,post.ca)); gl.uniform1f(U_(P,'inv'),post.inv); gl.uniform1f(U_(P,'flash'),Math.min(1,post.flash)); gl.uniform1f(U_(P,'blur'),post.blur*.5);
+  gl.uniform1f(U_(P,'ca'),Math.min(post.caMax||.0018,post.ca)); gl.uniform1f(U_(P,'inv'),post.inv); gl.uniform1f(U_(P,'flash'),Math.min(1,post.flash)); gl.uniform1f(U_(P,'blur'),post.blur*.5);
   gl.uniform1f(U_(P,'gray'),post.gray); gl.uniform1f(U_(P,'vig'),.5+ov.dim*.3); gl.uniform1f(U_(P,'grain'),.028); gl.uniform1f(U_(P,'bloomK'),window.BLOOMK??1); { const L0=LIGHTS[0]; if(L0){ const [rx,ry]=w2s(L0[0],L0[1]); gl.uniform3f(U_(P,'ray'),rx/W,1-ry/H,clamp(L0[3]-.4,0,1)*.9); } else gl.uniform3f(U_(P,'ray'),.5,.5,0); } gl.uniform1f(U_(P,'lbox'),ov.lb>.01?(window.LBK??.11)*ov.lb:0); gl.uniform2f(U_(P,'bc'),post.bc[0],post.bc[1]);
   gl.uniform3fv(U_(P,'inkA'),post.inkA); gl.uniform3fv(U_(P,'inkB'),post.inkB);
   const shk=new Float32Array(16); shocks.forEach((s,i)=>{ const [x,y]=w2s(s.x,s.y); shk[i*4]=x/W; shk[i*4+1]=1-y/H; shk[i*4+2]=s.r; shk[i*4+3]=s.s*(s.life/s.max); });
@@ -3223,6 +3223,6 @@ function begin(cls){
 }
 initGL(); addEventListener('resize',resize); resize(); requestAnimationFrame(frame);
 </script>
-<script src="rpg.js?v=45"></script>
+<script src="rpg.js?v=46"></script>
 </body>
 </html>

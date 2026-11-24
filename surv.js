@@ -5,7 +5,7 @@
 // World: x/y is the floor plane (y = depth), z is height. The hero's floor position is pl.x / pl.gy (the engine draws him at pl.gy).
 'use strict';
 (()=>{
-const G=RPG, A=G.api, SV=()=>A.SV, SK=A.SK, VER=26;
+const G=RPG, A=G.api, SV=()=>A.SV, SK=A.SK, VER=27;
 const ZL=.42, ZP=.5, DUR=300, BOSS_T=240, CAP=340, SPD=430, BODY=170, FAR=1e5;
 const CLS_ORDER=['sword','mage','fist','shaman','pyro'];
 const NAMES={sword:'소드맨',mage:'메이지',fist:'파이터',shaman:'샤먼',pyro:'파이로'};
@@ -153,7 +153,7 @@ function pre(rdt){
   V.leanHold=(V.leanHold||0)-rdt; if(V.leanHold<=0) V.leanT=moving?my*.05*pl.f:0; V.lean=lerp(V.lean||0,V.leanT||0,1-Math.exp(-rdt*16)); /* stopping: the weight catches up */
   if(V.boss&&!V.boss.dead){ /* the boss is a wall, not a ghost */ const b=V.boss, dx=pl.x-b.x, dy=pl.gy-b.y, l=Math.hypot(dx,dy)||1, m=b.d.r+50; if(l<m){ pl.x=b.x+dx/l*m; pl.gy=b.y+dy/l*m; } }
   if(!(anim.seq&&anim.seq.steps.some(s=>s[2]&&s[2].air))) pl.airT=0;   // only a leap holds him in the air
-  G.jz=0; G.pose=A.locoPose(rdt*(.5+.62*Math.hypot(mx,my)),moving&&!anim.seq);   // painted run cycle (falls back to the idle loop where a class has none)
+  G.jz=0; G.pose=A.locoPose(rdt*(.5+.62*Math.hypot(mx,my)),moving&&!anim.seq); if(A.STK()) A.stickLoco(rdt,moving&&!anim.seq);   // painted run cycle (falls back to the idle loop where a class has none)
   pl.home=pl.x;
   // auto attacks: the basic, then any equipped skill that is ready and has a target
   const C=CLS[pl.cls]; if(!C) return;
@@ -363,6 +363,8 @@ drawEnemy=function(){ if(G.mode!=='surv') return drawEnemy1();
   V.sorted=V.en.filter(e=>!e.dead).sort((a,b)=>a.y-b.y);
   for(const e of V.sorted) if(e.y<=(pl.gy??pl.y)) drawE(e);
 };
+// stickman option: the dark skeleton needs an edge of its class colour to read on the dark floor
+const dpb1=drawPlayerBody; drawPlayerBody=function(g){ if(G.mode==='surv'&&A.STK()&&!plSprites()){ g.save(); g.shadowColor=CCOL[pl.cls]; g.shadowBlur=14; dpb1(g); g.restore(); return; } dpb1(g); };
 const drawPlayer1=drawPlayer;
 drawPlayer=function(){ drawPlayer1(); if(G.mode!=='surv') return;
   for(const e of V.sorted||[]) if(e.y>(pl.gy??pl.y)) drawE(e);
@@ -452,7 +454,7 @@ const css=document.createElement('style'); css.textContent=`
 #rmenu.mob .mm{width:min(480px,100%);height:100%;display:flex;flex-direction:column;padding:0 14px;box-sizing:border-box}
 #rmenu.mob .hd{text-align:center;margin-bottom:10px} #rmenu.mob .hd h1{font:900 44px "Malgun Gothic",sans-serif;letter-spacing:.08em;margin:0}
 #rmenu.mob .hd small{display:block;color:#b9b0d8;letter-spacing:.45em;font-size:12px}
-#rmenu.mob .hd{position:relative} #rmenu.mob .opt.opt2{top:34px} #rmenu.mob .opt{position:absolute;right:0;top:0;padding:6px 9px;border-radius:9px;font:700 11px "Malgun Gothic",sans-serif;color:#b9b0d8;background:rgba(20,14,34,.8);border:1px solid rgba(255,255,255,.2)} #rmenu.mob .opt.on{color:#fff;border-color:#55ddff;background:rgba(85,221,255,.2)}
+#rmenu.mob .hd{position:relative;min-height:98px} #rmenu.mob .opt.opt2{top:34px} #rmenu.mob .opt.opt3{top:68px} #rmenu.mob .opt{position:absolute;right:0;top:0;padding:6px 9px;border-radius:9px;font:700 11px "Malgun Gothic",sans-serif;color:#b9b0d8;background:rgba(20,14,34,.8);border:1px solid rgba(255,255,255,.2)} #rmenu.mob .opt.on{color:#fff;border-color:#55ddff;background:rgba(85,221,255,.2)}
 #rmenu.mob .cl{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:10px}
 #rmenu.mob .cc{position:relative;border:1px solid rgba(255,255,255,.18);border-radius:12px;background:rgba(20,14,34,.75);padding:4px 2px 5px;text-align:center;cursor:pointer;overflow:hidden}
 #rmenu.mob .cc img{width:100%;height:62px;object-fit:contain;display:block}
@@ -538,7 +540,7 @@ function start(ch){ if(window.K3&&K3.tune) K3.tune();
 function end(){ // leaving the mode: hand the engine back its ground line and camera
   V.over=true; joyHide(); hudEl.classList.remove('on'); joyEl.classList.remove('on'); resEl.classList.remove('on'); document.body.classList.remove('surv','cine');
   V.en=[]; V.pj=[]; V.gems=[]; V.items=[]; V.nums=[]; V.shards=[]; V.mk=[]; V.orbs=[]; V.zones=[];
-  parts.length=0; timers.length=0; fires.length=0; cutin=null; warn=null; lock=false; anim.seq=null; timeScale=1; slowHold=0; if(G.sv.cine) G.sv.cine.reset(); window.LBK=undefined; ov.lbT=0; ov.dimT=0; post.grayT=0; V.zk=1; V.ultTick=null; pl.visible=true; G.pose=null;
+  parts.length=0; timers.length=0; fires.length=0; cutin=null; warn=null; lock=false; anim.seq=null; timeScale=1; slowHold=0; if(G.sv.cine) G.sv.cine.reset(); window.LBK=undefined; ov.lbT=0; ov.dimT=0; post.grayT=0; post.tilt=post.tiltT=0; if(window.GFX) GFX.gain=1.25; V.zk=1; V.ultTick=null; pl.visible=true; G.pose=null;
   window.BLOOMK=1; GROUND=770; pl.gy=undefined; pl.air=pl.airT=0; cam.x=cam.fx=VW/2; cam.y=cam.fy=CY; cam.z=cam.fz=1; cam.ft=0; }
 G.survEnd=end;
 function finish(win){ if(V.over) return; V.over=true; joyHide(); G.keys={};
@@ -560,7 +562,7 @@ function goFull(){ if(!A.isTouch()) return; const d=document.documentElement; if
 G.menuOverride=el=>{
   const sv=SV(), cls=pl.cls, ids=A.ORDER[cls]||[], need=A.needExp(sv.lv), open=Math.min(CHAP.length-1,sv.chClear||0); if(sel==null||sel>open) sel=open;
   el.classList.add('mob');
-  let h=`<div class="mm"><div class="hd"><h1>참광</h1><small>SURVIVAL RPG</small><button class="opt ${sv.opt&&sv.opt.calm?'on':''}" data-opt="calm">섬광·흔들림 줄이기 ${sv.opt&&sv.opt.calm?'켜짐':'꺼짐'}</button><button class="opt opt2 ${sv.opt&&sv.opt.lowfx?'on':''}" data-opt="lowfx">이펙트 품질 ${sv.opt&&sv.opt.lowfx?'낮음':'높음'}</button></div>
+  let h=`<div class="mm"><div class="hd"><h1>참광</h1><small>SURVIVAL RPG</small><button class="opt ${sv.opt&&sv.opt.calm?'on':''}" data-opt="calm">섬광·흔들림 줄이기 ${sv.opt&&sv.opt.calm?'켜짐':'꺼짐'}</button><button class="opt opt2 ${sv.opt&&sv.opt.lowfx?'on':''}" data-opt="lowfx">이펙트 품질 ${sv.opt&&sv.opt.lowfx?'낮음':'높음'}</button><button class="opt opt3 ${sv.opt&&sv.opt.stick?'on':''}" data-opt="stick">스틱맨 모드 ${sv.opt&&sv.opt.stick?'켜짐':'꺼짐'}</button></div>
     <div class="cl">${CLS_ORDER.map(c=>{ const d=c===sv.cls?sv:(sv.chars&&sv.chars[c])||{lv:1}; return `<div class="cc ${c===cls?'on':''}" data-c="${c}" style="--c:${CCOL[c]}"><img src="assets/${c}_a.webp" alt=""><b>${NAMES[c]}</b><small>Lv ${d.lv}</small></div>`; }).join('')}</div>
     <div class="pv" style="--c:${CCOL[cls]}"><img src="assets/${cls}_a.webp" alt=""><div><b>${NAMES[cls]}</b><small>${(SK[ids[0]]||{}).name||''} · ${ids.filter(id=>SK[id]&&SK[id].type==='skill').length}개 스킬 · 궁극기 2</small></div></div>
     <div class="st"><b>${NAMES[cls]} · Lv ${sv.lv}</b><span>스킬 포인트 <b style="color:#55ddff">${sv.sp}</b> · HP ${A.maxHp()}</span></div><div class="xp"><i style="width:${sv.exp/need*100}%"></i></div>
