@@ -19,7 +19,7 @@ const EN={
 };
 // chapters: the same crystal army recoloured (hue turns their violet), a floor tint, tougher numbers, a named boss
 const CHAP=[
-  {name:'크리스탈 필드',en:'CRYSTAL FIELD',hue:62,bri:.6,sat:.42,hp:1,dmg:1,floor:[70,68,76],acc:'#b48cff',boss:'골렘 킹',rec:1},
+  {name:'크리스탈 필드',en:'CRYSTAL FIELD',hue:62,bri:.86,sat:.6,hp:1,dmg:1,floor:[70,68,76],acc:'#b48cff',boss:'골렘 킹',rec:1},
   {name:'블러드 문',en:'BLOOD MOON',hue:95,bri:1,hp:1.8,dmg:1.3,floor:[48,26,30],acc:'#ff4a6a',boss:'블러드 골렘',rec:6},
   {name:'프로즌 레이크',en:'FROZEN LAKE',hue:-75,bri:1.1,hp:3,dmg:1.6,floor:[30,40,54],acc:'#7fe0ff',boss:'프로스트 골렘',rec:12},
   {name:'인페르노',en:'INFERNO',hue:130,bri:1.05,hp:4.5,dmg:2,floor:[52,32,22],acc:'#ff8a2a',boss:'인페르노 골렘',rec:18},

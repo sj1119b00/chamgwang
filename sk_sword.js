@@ -11,7 +11,7 @@ const SKILL={
     V.dash={x0,y0,x1,y1,t:0,dur:.1}; G.inv=Math.max(G.inv,.35);
     const K=K3, P='crimson', dx=Math.cos(a), dy=Math.sin(a), f=pl.f, st=GFX.st(0,'add',{c2:[.82,0,0],c3:[1,.2,.3]});
     for(let i=0;i<3;i++){ const k=(i+.4)/3.4; GFX.add(.2+k*.14,q=>GFX.pose(st,'sword','gs07',mix(x0,x1,k),mix(y0,y1,k),f,[1,.16,.26],(1-q)*(1-q)*.4)); }
-    lance(x0-dx*70,y0-dy*70,x1+dx*120,y1+dy*120,{pal:P,draw:.09,hold:.07,fade:.24});
+    lance(x0-dx*70,y0-dy*70,x1+dx*120,y1+dy*120,{pal:P,draw:.09,hold:.07,fade:.24,core:30}); K.shock(x1,y1,{r:290,dur:.32,pal:P,gain:.7,dust:0,light:0,delay:.08});
     K.gash(x0,y0,x1,y1,{pal:P,life:1.3,w:36,gain:.9,grow:.09}); GFX.light(mix(x0,x1,.6),mix(y0,y1,.6),L*.9,'#ff2440',.9,.35,{z:80});
     K.dust(x0,y0,{n:6,dir:a+Math.PI,spread:.7,sp:[200,600],a:.4});
     after(.08,()=>{ K.art(x1+dx*50,y1+dy*50,{tex:'v3_xburst',s:160,z:BODY*.05,dur:.22,pal:P,gain:.9,hold:.2,s0:.5}); K.sparks(x1,y1,BODY*.5,{pal:P,n:12,dir:a,spread:.6,sp:[500,1500],up:400}); K.dust(x1,y1,{n:5,dir:a,spread:.9,sp:[150,400],a:.35}); });
@@ -21,7 +21,7 @@ const SKILL={
   sw_rise:{range:380,fn(id){ const e=nearest(380); if(!e) return false; const a=angTo(e), d=SK[id].dmg*A.mul(id), cx=pl.x+Math.cos(a)*190, cy=pl.gy+Math.sin(a)*190, f=pl.f=Math.cos(a)>=0?1:-1;
     seq('gt',['03','06','08'],{w:.05});
     const K=K3, P='crimson', dx=Math.cos(a), dy=Math.sin(a);
-    K.cres(pl.x,pl.gy,BODY*1.05,{s:250,asp:.8,dir:fa(a),lean:.9,roll:-.12*f,tex:'v3_slash_heavy',pal:P,swing:.08,hold:.07,fade:.3,ccw:f>0,sparks:6});
+    upCres(pl.x+dx*40,pl.gy+dy*40,BODY*1.2,{s:370,dir:fa(a),roll:-.1*f,pal:P,swing:.08,hold:.08,fade:.3,gain:1.15,ccw:f>0,sparks:6});
     K.gash(pl.x+dx*50,pl.gy+dy*50,cx+dx*150,cy+dy*150,{pal:P,life:1.4,w:34,gain:.9,grow:.08}); K.shock(cx,cy,{r:270,dur:.34,pal:P,gain:.75,dust:6});
     K.sparks(cx,cy,20,{pal:P,n:14,sp:[150,600],up:1600,life:[.25,.6]}); K.debris(cx,cy,{n:5,r:60,sp:[100,350],up:1100,size:12});
     sfx('whoosh',1.2,.7); sfx('slash',1.1,.9);
@@ -31,7 +31,7 @@ const SKILL={
     seq('gs',['05','07','09']); sfx('whoosh',1.3,.8); sfx('slash',.9,1.1);
     K3.flare(pl.x+Math.cos(a0)*70,pl.gy+Math.sin(a0)*70,BODY*.55,{pal:'crimson',s:130,dur:.18,gain:2.4}); K3.dust(pl.x,pl.gy,{n:5,dir:a0+Math.PI,spread:.8,sp:[150,450],a:.35});
     for(let k=0;k<n;k++){ const a=a0+(k-(n-1)/2)*.28, p={x:pl.x+Math.cos(a)*70,y:pl.gy+Math.sin(a)*70,vx:Math.cos(a)*1500,vy:Math.sin(a)*1500,life:.85,d,hits:new Set(),v:{x:0,y:0},c:'#ff6a85'};
-      p.v.x=p.x; p.v.y=p.y-BODY; V.pj.push(p); flyCres(p,fa(a),{pal:'crimson',s:150,life:.85}); } }},
+      p.v.x=p.x; p.v.y=p.y-BODY; V.pj.push(p); flyCres(p,fa(a),{pal:'crimson',s:165,asp:.95,life:.85,tex:'v3_slash_heavy',lean:.7}); } }},
   // WHIRL: the painted ring of cuts turns around him for the whole spin; every pulse throws a shock across the floor, the last one gold
   sw_spin:{range:340,fn(id){ if(countIn(360)<3&&!nearest(240)) return false; const d=SK[id].dmg*A.mul(id);
     plSeq([['gu04',.04],['gu06',.06,{tr:1,kick:[2.6,-2.4]}],['gu07',.08,{tr:1}],['gu06',.06,{tr:1}],['gu07',.08,{tr:1}],['gu08',.12],['gu12',.06]]);
@@ -54,7 +54,7 @@ const SKILL={
     V.dash={x0:pl.x,y0:pl.gy,x1:pl.x+Math.cos(a)*L,y1:pl.gy+Math.sin(a)*L,t:0,dur:.42}; G.inv=Math.max(G.inv,.5);
     const land=()=>{ const cx=pl.x, cy=pl.gy, K=K3, P='crimson'; pl.air=pl.airT=0;
       K.burst(cx,cy,{s:205,pal:P,no:['ball','smoke'],scar:3}); K.dust(cx,cy,{n:10,r:70,sp:[300,820],a:.45});
-      K.cres(cx,cy,BODY*1.1,{s:250,asp:.8,dir:fa(a),lean:.9,roll:.1*pl.f,tex:'v3_slash_heavy',pal:P,swing:.05,hold:.05,fade:.26,gain:.9,ccw:pl.f<0,sparks:0,light:0});
+      upCres(cx,cy,BODY*1.3,{s:380,dir:fa(a),roll:.1*pl.f,pal:P,swing:.05,hold:.06,fade:.28,gain:1.15,ccw:pl.f<0,sparks:0,light:0});
       trauma=Math.min(1.1,trauma+.6); hitstop=Math.max(hitstop,.05); sfx('boom',1.3,1);
       inCircle(cx,cy,390,e=>{ dmg(e,d,{kb:1.2,launch:800,stun:.7,big:true,sx:cx,sy:cy}); hitFx(e,'#ff6a85',1.4); }); };
     plSeq([['gt03',.06],['gt08',.18,{air:[0,280],ease:up}],['gs06',.06,{air:[280,300]}],['gs07',.12,{tr:1,air:[300,0],ease:dn}],['gs08',.06,{tr:1,kick:[2.6,-2.6],on:land}],['gs09',.14],['gs12',.08]]); }},
@@ -63,7 +63,7 @@ const SKILL={
     plSeq([['gk03',.06],['gk04',.06,{kick:[1,-.8]}],['gk05',.05],['gk06',.06,{kick:[1,-.8]}],['gk07',.05],['gk08',.06,{kick:[1,-.8]}],['gk09',.16,{tr:1,kick:[2,-1.6]}],['gk12',.06]]);
     for(let i=0;i<6;i++) after(.06+i*.06,()=>{ const b=a+rand(-.12,.12), x0=pl.x+Math.cos(b)*40, y0=pl.gy+Math.sin(b)*40, x1=pl.x+Math.cos(b)*400, y1=pl.gy+Math.sin(b)*400;
       const last=i===5, P=last?'gold':'crimson', ex=last?110:40;
-      lance(x0-Math.cos(b)*30,y0-Math.sin(b)*30,x1+Math.cos(b)*ex,y1+Math.sin(b)*ex,{pal:P,z:BODY*.5+rand(-22,22),w:last?170:120,draw:.04,hold:last?.06:.03,fade:last?.22:.14,gain:last?1.1:1});
+      lance(x0-Math.cos(b)*30,y0-Math.sin(b)*30,x1+Math.cos(b)*ex,y1+Math.sin(b)*ex,{pal:P,z:BODY*.5+rand(-22,22),w:last?200:140,draw:.04,hold:last?.06:.03,fade:last?.22:.14,gain:last?1.1:1,core:last?26:18}); if(last||i===0) ping(last?x1:x0,last?y1:y0,last?280:170,{pal:P,dur:.28});
       GFX.light(x1,y1,last?620:400,K3.pal(P).l,last?1:.7,last?.3:.14,{z:80}); K3.sparks(x1,y1,BODY*.5,{pal:P,n:last?12:4,dir:b,spread:.5,sp:[400,1300],up:300,life:[.12,.3]});
       if(last){ K3.art(x1+Math.cos(b)*30,y1+Math.sin(b)*30,{tex:'v3_xburst',s:150,z:BODY*.05,dur:.22,pal:P,gain:.9,hold:.2,s0:.5}); K3.dust(x1,y1,{n:5,dir:b,spread:.9,sp:[150,420],a:.35}); }
       sfx('slash',1.5,.45);
@@ -100,6 +100,10 @@ const LM={}, lm=(k,fn)=>LM[k]||(LM[k]=fn(K3.mats())), pc=p=>{ const P=K3.pal(p);
 const inView=(x,y,m=300)=>{ const v=view(); return Math.abs(x-cam.x)<v.hw+m&&y-cam.y>-v.hh-m&&y-cam.y<v.hh+m*5; };
 // an angle measured on the screen (the game's squashed floor) as an angle on the true floor, which is what the kit's floor pieces turn by
 const fa=a=>Math.atan2(Math.sin(a)/FSY,Math.cos(a));
+// the clean upright crescent is not in the kit's crescent table yet: describe it there (aspect, pivot of the arc, edge, ramp) the first time it is used
+const upArt=()=>{ if(!K3.ART.v3_cres_up) K3.ART.v3_cres_up={asp:.667,piv:[.8,.5],edge:.11,rk:[.4,1]}; };
+// UPRIGHT CRESCENT: the thin painted edge standing in front of him, with the same stroke a little larger and soaked in colour behind it (so it has body at phone size)
+function upCres(x,y,z,o){ upArt(); K3.cres(x,y,z,{...o,s:o.s*1.06,tex:'v3_cres_up',lean:.9,off:.5,rk:[.07,.6],gain:.75*(o.gain||1),sparks:0,light:0}); K3.cres(x,y,z,{...o,tex:'v3_cres_up',lean:.9,off:.5}); }
 const swMat=()=>lm('sword',()=>FX3.mat({kind:2,tex:'sword',nz:'fbm',n1:[2.5,2.5,0,.1],cB:'#ffffff',cC:'#fff0b0',gain:1,op:1,layer:'o'}));
 // the painted blade floating at (x, y, z), centred, its point turned to rot (0 = up, on the screen)
 function swordC(x,y,z,L,rot,o={}){ FX3.bill(swMat(),x,y,z,L*.197,L/2,rot,{a:o.a??1,ero:o.ero??-1,soft:.08,gain:o.gain??1.1,cB:o.tint||'#ffffff',cC:o.edge||'#fff0b0'}); }
@@ -110,9 +114,11 @@ function orbSword(o){ if(!FX3.on) return; const C=pc('gold'), sd=rand(0,9), GL=G
     for(let q=0;q<9;q++){ const b=o.a-q*.1; ps.push({x:pl.x+Math.cos(b)*R,y:pl.gy+Math.sin(b)*R*.8,z,w:30*(1-q/9)}); }
     FX3.ribbon(K3.mats().trB,ps,{...C,gain:2.2,a:.75*i*(1-f),ero:.12,t0:sd}); GFX.floor(GL,o.x,o.y,95,null,0,gold,.3*i*(1-f));
     swordC(o.x,o.y,z,260*(.6+.4*i),Math.atan2(-Math.sin(o.a),-Math.cos(o.a)*.8),{a:i,ero:f?-1+f*2:-1,gain:1.15+.8*(1-i),tint:'#ffe2a0'}); }); }
-// SWORD: the painted blade standing tip-down on (x, y, z). L = full length, tilt = lean to the right (radians), bury = part of the blade under the ground (cropped away)
-function swordQ(x,y,z,L,tilt,o={}){ const b=o.bury||0, hh=L*(1-b)/2, mt=lm('sword',()=>FX3.mat({kind:2,tex:'sword',nz:'fbm',n1:[2.5,2.5,0,.1],cB:'#ffffff',cC:'#fff0b0',gain:1,op:1,layer:'o'}));
-  FX3.bill(mt,x+Math.sin(tilt)*hh,y,z+Math.cos(tilt)*hh,L*.197,hh,tilt,{uvT:[1,-(1-b),0,1-b],a:o.a??1,ero:o.ero??-1,soft:.08,gain:o.gain??1.1,cB:o.tint||'#ffffff',cC:o.edge||'#fff0b0'}); }
+// GREATSWORD: the grey greatsword mask through a gold ramp (dark edge, gold body, pale gold, white only on the edges and the point), point down on (x,y,z).
+//  L full length, tilt, bury = part under the ground, vis = how much of it (from the point up) has come through: the rest is cropped, a blade passing a gate
+const GSP={d:'#2a1300',b:'#e08c06',m:'#ffd970',h:'#fffdf2'};
+function gsword(x,y,z,L,tilt,o={}){ const b=o.bury||0, v=o.vis??1; if(v-b<=.01) return; const hh=L*(v-b)/2, P=o.pal||GSP, mt=lm('gsw',m=>FX3.mat({...m.art,tex:'v3_greatsword',layer:'o',nz:'fbm',n1:[3,3,0,.2],nk:0,ero:.06,soft:.12,op:.92,rk:[.42,1.2],gain:2,bgain:1.05}));
+  FX3.bill(mt,x+Math.sin(tilt)*hh,y,z+Math.cos(tilt)*hh,L*.25,hh,tilt,{uvT:[1,v-b,0,b],cA:P.d,cB:P.b,cM:P.m,cC:P.h,a:o.a??1,gain:o.gain??2,bgain:o.bgain??1.05,ero:o.ero??.06,nk:o.nk??0}); }
 // RAY: a shaft of light standing on a point (two draws): streaks racing upward, soft at the sides, gone toward the top
 const rayB=()=>lm('rayB',()=>FX3.mat({nz:'wisp',n1:[1.2,.5,0,-1.8],n2:[2,1,0,-.7],dist:.06,nk:.9,ero:.08,soft:.3,fd:[.5,.5,.02,.75],rk:[.45,.9],gain:2.6,bgain:1.1,layer:'o'})),
   rayC=()=>lm('rayC',()=>FX3.mat({nz:'streak',n1:[.6,2,0,-2.6],n2:[2,1,0,-1],dist:.03,nk:.45,ero:.08,soft:.25,fd:[.5,.5,0,.85],rk:[.15,.5],gain:4.5,bgain:2.2,layer:'o'}));
@@ -136,12 +142,13 @@ function skySigil(x,y,z,o={}){ const h={x,y,z,r:o.r||500,a:1,dead:false}; if(!FX
   return h; }
 // LANCE: the painted thrust (its tip is the far end) on a camera-facing ribbon from (x0,y0) to (x1,y1) at height z: the tip leads,
 // the body is revealed behind it, then it burns away from the tail
-function lance(x0,y0,x1,y1,o={}){ if(!FX3.on) return; const C=pc(o.pal||'crimson'), z=o.z??BODY*.55, draw=o.draw??.06, hold=o.hold??.06, fade=o.fade??.2, life=draw+hold+fade, L=Math.hypot(x1-x0,y1-y0), w=o.w||Math.max(80,L/3.7), sd=Math.random()*9, g=o.gain||1,
-    mt=lm('lance',m=>FX3.mat({...m.art,tex:'v3_thrust',layer:'o',nz:'streak',n1:[2,1,-3,0],n2:[2,1,-2,0],dist:.02,mdist:1,pw:.6,rk:[.42,1.05]}));
+function lance(x0,y0,x1,y1,o={}){ if(!FX3.on) return; const C=pc(o.pal||'crimson'), z=o.z??BODY*.55, draw=o.draw??.06, hold=o.hold??.06, fade=o.fade??.2, life=draw+hold+fade, L=Math.hypot(x1-x0,y1-y0), w=o.w||Math.max(100,L/3.7*1.25), sd=Math.random()*9, g=o.gain||1,
+    mt=lm('lance',m=>FX3.mat({...m.art,tex:'v3_thrust',layer:'o',nz:'streak',n1:[2,1,-3,0],n2:[2,1,-2,0],dist:.02,mdist:1,pw:.5,rk:[.4,1.05]}));
+  if(o.core){ const ps=[]; for(let i=0;i<7;i++) ps.push({x:mix(x0,x1,.06+i/6*.9),y:mix(y0,y1,.06+i/6*.9),z}); K3.trail(ps,{pal:o.pal||'crimson',w:o.core,dur:life*.85,draw,hold,gain:.8,delay:o.delay||0}); }
   GFX.add(life,(k,t)=>{ const p=Math.max(.06,eo5(sat(t/draw))), f=sat((t-draw-hold)/fade), n=5, ps=[]; for(let i=0;i<n;i++){ const u=i/(n-1)*p; ps.push({x:mix(x0,x1,u),y:mix(y0,y1,u),z,w:w*(1+f*.2)}); }
     FX3.ribbon(mt,ps,{...C,a:1-f*f,gain:3*g,bgain:1.1,ero:.08+f*.7,nk:.15+f*.7,uvT:[p,1,1-p,0],fd:[.02+f*.6,0,0,0],t0:sd}); },o.delay||0); }
 // FLYING CRESCENT: a painted crescent held open and carried by a projectile p ({x,y,life}), cutting edge first; it burns out when the projectile ends
-function flyCres(p,dir,o={}){ if(!FX3.on) return; const P=K3.pal(o.pal||'crimson'), C=pc(P), tex=o.tex&&FX3.ready(o.tex)?o.tex:'fx3_slash', A_=K3.ART[tex], s=o.s||150, asp=A_.asp, life=o.life||.85, sd=Math.random()*9, z=o.z??BODY*.55, rz=dir+Math.PI,
+function flyCres(p,dir,o={}){ if(!FX3.on) return; const P=K3.pal(o.pal||'crimson'), C=pc(P), tex=o.tex&&FX3.ready(o.tex)?o.tex:'fx3_slash', A_=K3.ART[tex], s=o.s||150, asp=o.asp||A_.asp, life=o.life||.85, sd=Math.random()*9, z=o.z??BODY*.55, rz=dir+Math.PI,
     mt=FX3.mat({...K3.mats().art,tex,layer:'o',nz:'wisp',n1:[1.5,1.5,.9,.1],n2:[1.2,1.2,.4,.1],dist:.03,mdist:1,rk:A_.rk}), L=GFX.light(p.x,p.y,s*3.4,P.l,.8,.18,{hold:life,z});
   let end=-1, acc=0; const e=GFX.add(life+.3,(k,t)=>{ if(end<0&&(p.life<=0||t>=life)){ end=t; L.hold=0; L.life=.15; L.t=0; } const i=sat(t/.07), f=end<0?0:sat((t-end)/.16); if(f>=1){ e.dead=true; return; }
     const ss=s*(.7+.3*eo3(i))*(1+.15*f), off=ss*asp*(A_.piv[0]-.5)*2, cx=p.x+Math.cos(dir)*off*.55, cy=p.y+Math.sin(dir)*off*.55*FSY; L.x=p.x; L.y=p.y;
@@ -244,12 +251,12 @@ function ultZero(id){ ultStart(id); const Cn=X.cine, K=K3, D=80000*A.mul(id), x0
   after(tf+1.9,()=>{ GFX.gain=1.25; ultStop(); }); }
 
 // SWORD RAIN: a blade raised to a sky that answers - rings of falling swords walk outward from him, stay standing in the earth, and the last one is the size of a tower.
-function ultRain(id){ ultStart(id); const Cn=X.cine, K=K3, D=9000*A.mul(id), x0=pl.x, y0=pl.gy, {hw,hh}=view(), P='gold', f0=pl.f, ZS=1350, LS=370, LT=2500, Z0=3300, stuck=[], tipX=x0+f0*18, tipZ=BODY*2.05,
+function ultRain(id){ ultStart(id); const Cn=X.cine, K=K3, D=9000*A.mul(id), x0=pl.x, y0=pl.gy, {hw,hh}=view(), P='gold', f0=pl.f, ZS=1350, LS=450, LT=2500, stuck=[], tipX=x0+f0*18, tipZ=BODY*2.05,
     SH=GFX.st(12,'alpha',{L:0}), GL=GFX.st(8,'add',{L:0}), gold=GFX.rgb('#ffc040');
   // ---- omen: the light goes warm and low, the blade circle writes itself under him, motes climb to the raised tip
   plSeq([['gs03',.1],['gs04',.18],['gs05',3.87],['gs06',.08],['gs07',.12],['gs08',.6],['gs12',9]]); pl.target='cast'; pl.ps=10;
   GFX.ambient(.42,.36,.32,3); const spot=GFX.light(x0,y0,560,'#ffc040',.7,.5,{hold:5.3,z:140});
-  const sig=K.sigil(x0,y0,{r:hw*.5,dur:5.95,in:.9,out:.5,spin:.3,pal:'silver'});
+  const sig=K.sigil(x0,y0,{r:hw*.5,dur:5.95,in:.9,out:.5,spin:.3,pal:'silver',hole:.3});
   Cn.zoom(1.3); Cn.cam(x0,y0-BODY*1.6,5); duck(.3,.7); Cn.SND.inhale(1,.5);
   for(let i=0;i<40;i++) after(rand(0,.95),()=>{ const a=rand(0,TAU), d=rand(200,700); GFX.pt({x:x0+Math.cos(a)*d,y:y0+Math.sin(a)*d*FSY,z:rand(0,200),tx:tipX,ty:y0,tz:tipZ,pull:rand(4,6.5),life:rand(.45,.7),s:rand(2.5,5),m:3,len:.05,vx:-Math.sin(a)*400,vy:Math.cos(a)*240,vz:rand(100,400),c:GFX.rgb(Math.random()<.4?'#ffffff':'#ffe08a'),c2:'#ff9a10',L:3}); });
   K.flare(tipX,y0,tipZ,{pal:P,s:50,dur:.45,gain:3,delay:.6});
@@ -263,10 +270,10 @@ function ultRain(id){ ultStart(id); const Cn=X.cine, K=K3, D=9000*A.mul(id), x0=
   after(1.82,()=>{ Cn.zoom(.84); Cn.cam(x0,y0-hh*.2,3.5); SFX.choir(2.6); Cn.shake(.5); GFX.ambient(.36,.31,.3,3);
     K.shock(x0,y0,{r:hw*1.3,dur:.55,pal:P,gain:.9}); GFX.ripple(x0,y0,hw*1.4,{life:.5,s:.6}); K.dust(x0,y0,{n:12,r:60,sp:[300,800],a:.4}); GFX.add(1.7,k=>{ if(sky) sky.r=hw*mix(.6,.98,eo3(k)); }); });
   let nL=0;
-  const land=(x,y,tilt)=>{ stuck.push({x,y,t0:RT,tilt,ph:rand(0,9),out:0}); nL++;
-    if(inView(x,y)){ K.art(x,y,{tex:'v3_xburst',s:170,z:-50,dur:.22,pal:P,gain:.9,hold:.15,s0:.5}); ray(x,y,{pal:P,w:24,h:560,dur:.3,gain:.7,core:0}); K.sparks(x,y,12,{pal:P,n:5,sp:[300,1000],up:900,life:[.15,.38]}); K.dust(x,y,{n:2,sp:[120,320],a:.34,s:.7});
+  const land=(x,y,tilt)=>{ nL++; if(nL%4) stuck.push({x,y,t0:RT,tilt,ph:rand(0,9),out:0});
+    if(inView(x,y)){ K.art(x,y,{tex:'v3_xburst',s:170,z:-50,dur:.22,pal:P,gain:.9,hold:.15,s0:.5}); if(nL%2) ray(x,y,{pal:P,w:24,h:560,dur:.3,gain:.7,core:0}); K.sparks(x,y,12,{pal:P,n:5,sp:[300,1000],up:900,life:[.15,.38]}); K.dust(x,y,{n:2,sp:[120,320],a:.34,s:.7});
       if(nL%3===0) GFX.light(x,y,440,'#ffc040',.85,.4,{z:40});
-      if(nL%9===2) K.crack(x,y,{r:140,pal:P,life:2.4,grow:.08});
+      if(nL%14===2) K.crack(x,y,{r:150,pal:P,life:2.2,grow:.08});
       if(nL%4===1) K.debris(x,y,{n:3,r:20,sp:[150,450],up:700,size:11}); }
     sfx('boom',.5,.3); sfx('slash',1.6,.3); inCircle(x,y,170,e=>{ dmg(e,D,{kb:.6,stun:.5,sx:x,sy:y}); hitFx(e,GOLD,1); }); };
   // one sword: it burns into being under the sky circle and hangs over its mark while the shadow closes in, then drops
@@ -275,7 +282,7 @@ function ultRain(id){ ultStart(id); const Cn=X.cine, K=K3, D=9000*A.mul(id), x0=
 });
     GFX.add(hang+.2,(k,t)=>{ if(!s.lock&&e){ s.x=e.x; s.y=e.y; } if(!inView(s.x,s.y)) return; const d=sat((t-hang)/.2), i=sat(t/.16), z=(Z-70*sat(t/hang))*(1-d*d);
       GFX.floor(SH,s.x,s.y,mix(140,66,k),null,0,[0,0,0],.15+.5*k); GFX.floor(GL,s.x,s.y,mix(170,80,k),null,0,gold,.06+.2*k*k);
-      swordQ(s.x,s.y,z,LS*(.8+.2*i),tilt*.4,{a:i,gain:1.15+1.2*(1-i)+d*.8,tint:'#ffe6b0'});
+      gsword(s.x,s.y,z,LS*(.8+.2*i),tilt*.4,{a:i,gain:2+1.5*(1-i)+d});
       if(d>0){ const tl=760*Math.sin(Math.PI*Math.min(1,d*1.15)); GFX.floor(GL,s.x,s.y,90,null,0,gold,.25*d); FX3.bill(rayB(),s.x,s.y,z+LS*.8+tl/2,34,tl/2,0,{...pc(P),a:.9,gain:1.5,ero:.05,t0:px}); } }); };
   const T=onScreen(60);
   for(let k=0;k<5;k++){ const n=5+k*3, rr=230+k*(Math.max(hw,hh)*.2);
@@ -284,35 +291,37 @@ function ultRain(id){ ultStart(id); const Cn=X.cine, K=K3, D=9000*A.mul(id), x0=
     after(1.98+k*.3,()=>{ Cn.SND.shing(.8+k*.08,.4); Cn.shake(.3); }); }
   // the swords he has planted: they quiver when they land and wait, glowing, for the last one
   GFX.add(6,()=>{ const now=RT; for(const s of stuck){ const q=now-s.t0, o=s.out?sat((now-s.out)/.2):0; if(o>=1||!inView(s.x,s.y)) continue;
-      swordQ(s.x,s.y,0,LS,s.tilt*(1+.5*Math.exp(-q*9)*Math.cos(q*48)),{bury:.15*sat(q/.05),gain:1+.7*Math.exp(-q*7)+o*2.5,ero:o?-1+o*2:-1,tint:'#ffe0a0'});
+      gsword(s.x,s.y,0,LS,s.tilt*(1+.5*Math.exp(-q*9)*Math.cos(q*48)),{bury:.13*sat(q/.05),gain:1.5+1.6*Math.exp(-q*7)+o*3,bgain:.9+.3*Math.exp(-q*7)+o,ero:.06+o*1.1,nk:o});
       GFX.floor(GL,s.x,s.y,80,null,0,gold,(.2+.07*Math.sin(now*6+s.ph))*(1-o)); } });
   // ---- climax: the tower. The mark darkens under a closing ring, then the sky lets go of the last one
-  let cx=x0+f0*hw*.42, cy=y0+hh*.16;
+  let cx=x0+f0*hw*.42, cy=y0+hh*.16, seal=null;
   after(3.6,()=>{ const dn=V.boss&&!V.boss.dead?V.boss:X.densest(hw*.9,320);
     if(dn){ let dx=dn.x-x0, dy=dn.y-y0, l=Math.hypot(dx,dy); if(l<1){ dx=f0; dy=.3; l=Math.hypot(dx,dy); } const m=Math.max(l,300)/l; cx=clamp(x0+dx*m,x0-hw*.62,x0+hw*.62); cy=clamp(y0+dy*m,y0-hh*.32,y0+hh*.34); }
-    Cn.zoom(.8); Cn.cam(mix(x0,cx,.6),mix(y0,cy,.6)-hh*.16,3); GFX.ambient(.34,.3,.3,3); Cn.SND.inhale(.85,.6); pl.target='slashU'; pl.ps=20; if(sky) sky.a=1.5;
+    Cn.zoom(.8); Cn.cam(mix(x0,cx,.6),mix(y0,cy,.6)-hh*.16,3); GFX.ambient(.34,.3,.3,3); Cn.SND.inhale(.85,.6); pl.target='slashU'; pl.ps=20;
+    if(sky){ const S_=sky, sx=S_.x, sy=S_.y, r0=S_.r; S_.a=1.5; GFX.add(.5,k=>{ const e=eo3(k); S_.x=mix(sx,cx,e); S_.y=mix(sy,cy,e); S_.r=mix(r0,hw*.66,e); if(bm){ bm.x2=S_.x; bm.y2=S_.y; } }); after(.5,()=>{ S_.x=cx; S_.y=cy; if(bm){ bm.x2=cx; bm.y2=cy; } }); }
     K.shock(cx,cy,{r0:680,r:150,dur:.5,pal:P,gain:.6,light:0,dust:0,haze:.4,th:.6}); K.shock(cx,cy,{r0:560,r:150,dur:.45,pal:P,gain:.7,light:0,dust:0,haze:.4,th:.6,delay:.48});
-    K.sigil(cx,cy,{r:430,dur:1.75,in:.3,out:.5,spin:1.4,pal:'silver',tex:'fx_circle_seal'}); GFX.light(cx,cy,620,'#ffc040',.7,.3,{hold:.9,z:60});
+    seal=K.sigil(cx,cy,{r:430,dur:1.3,in:.3,out:.25,spin:1.4,pal:'silver',tex:'fx_circle_seal'}); GFX.light(cx,cy,620,'#ffc040',.7,.3,{hold:.9,z:60});
     GFX.add(1.05,k=>{ const r=mix(820,470,k); FX3.quad(K.mats().dark,cx,cy,r,r,0,{a:.35+.6*k}); }); for(let q=0;q<3;q++) ping(cx,cy,210,{pal:P,r0:660-q*90,dur:.36,gain:.9,delay:.1+q*.3,th:2}); });
-  after(4.15,()=>{ sfx('whoosh',.4,1); spot.hold=0; if(sky){ const a0=sky.a, r0=sky.r, S_=sky; GFX.add(.42,k=>{ S_.a=a0*(1-k*k); S_.r=r0*(1-.35*k); }); after(.42,()=>{ S_.dead=true; }); K.flare(x0,y0,ZS,{pal:P,s:340,dur:.4,gain:2.5}); } if(bm){ GFX.add(.14,k=>{ bm.a=1-k; }); after(.14,()=>{ bm.dead=true; }); }
-    GFX.add(1.75,(k,t)=>{ const d=sat(t/.5), z=Z0*(1-d*d), q=t-.5, o=sat((t-1.3)/.45);
-      swordQ(cx,cy,z,LT,.045,{bury:q>0?.1*sat(q/.04):0,gain:1.05+.45*Math.exp(-Math.max(q,0)*5)+o*2,ero:o?-1+o*2.05:-1,edge:'#ffd060',tint:'#ffd890'}); });
-    ray(cx,cy,{pal:P,w:130,h:3600,dur:.55,gain:.3,rise:.02,core:0}); });
+  after(4.15,()=>{ sfx('whoosh',.4,1); spot.hold=0; if(sky) sky.a=2; K.flare(cx,cy,ZS,{pal:P,s:260,dur:.35,gain:3}); ping(cx,cy,hw*.7,{pal:'silver',z:ZS,dur:.4,gain:1.2}); if(bm){ GFX.add(.14,k=>{ bm.a=1-k; }); after(.14,()=>{ bm.dead=true; }); }
+    GFX.add(1.75,(k,t)=>{ const d=sat((t-.2)/.3), z=t<.2?ZS-340*eo3(t/.2):(ZS-340)*(1-d*d), q=t-.5, o=sat((t-1.3)/.45), vis=q>0?mix(ZS/LT,1,eo3(sat(q/.1))):(ZS-z)/LT;
+      gsword(cx,cy,z,LT,.04,{vis,bury:q>0?.1*sat(q/.04):0,gain:2.2+1.6*Math.exp(-Math.max(q,0)*6)+o*3,bgain:1.05+o,ero:.06+o*1.1,nk:o});
+      if(q<0&&t>.2&&Math.random()<.7) K.sparks(cx+rand(-150,150),cy,z+rand(100,500),{pal:P,n:2,sp:[60,260],up:900,life:[.2,.45]}); }); });
   after(4.5,()=>{ GFX.ambient(.3,.3,.34,26); duck(.15,.3); });
-  after(4.65,()=>{ hitstop=Math.max(hitstop,.12); Cn.shake(1.5); post.ca=.014; Cn.zoom(.88); Cn.roll(-.03);
+  after(4.65,()=>{ if(sky){ const S_=sky, a0=S_.a, r0=S_.r; GFX.add(.3,k=>{ S_.a=a0*(1-k); S_.r=r0*(1+.4*k); }); after(.3,()=>{ S_.dead=true; }); K.flare(cx,cy,ZS,{pal:'silver',s:420,dur:.3,gain:2.2}); ping(cx,cy,hw*1.1,{pal:'silver',z:ZS,dur:.45,gain:1.2}); }
+    hitstop=Math.max(hitstop,.12); Cn.shake(1.5); post.ca=.014; Cn.zoom(.88); Cn.roll(-.03);
     GFX.ambient(.6,.48,.32,40); after(.15,()=>GFX.ambient(.4,.34,.3,3));
     K.art(cx,cy,{tex:'v3_xburst',s:760,z:-200,dur:.3,pal:P,gain:.8,hold:.2,s0:.5});
-    K.dome(cx,cy,{r:hw*.7,dur:.5,pal:P,gain:.8});
-    { const pts=[], n=10, r=520; for(let i=0;i<=n;i++){ const u=i/n, a=Math.PI*(1.12+.76*u); pts.push({x:cx+Math.cos(a)*r,y:cy+Math.sin(a)*r*FSY*.7,h:(380+620*Math.sin(Math.PI*u))}); } K.wall(pts,{pal:P,dur:1,gain:.85,ord:cy-200}); }
-    K.shock(cx,cy,{r:hw*1.6,dur:.6,pal:P,gain:1.2}); K.shock(cx,cy,{r:hw*2.3,dur:.9,pal:P,gain:.7,delay:.1,light:0}); GFX.ripple(cx,cy,hw*2,{life:.6,s:.9});
+    if(seal) seal.dead=true;
+    K.arcwall(cx,cy,{r:330,h:560,hb:1,hf:.22,dur:1,pal:P,gain:.8});
+    K.shock(cx,cy,{r:hw*1.6,dur:.6,pal:P,gain:1.2}); K.shock(cx,cy,{r:hw*2.3,dur:.9,pal:P,gain:.7,delay:.1,light:0,painted:0,dust:0}); GFX.ripple(cx,cy,hw*2,{life:.6,s:.9});
     K.crack(cx,cy,{r:hw*.9,pal:P,life:5,grow:.14,gain:1.2});
-    for(let q=0;q<4;q++){ const a=q*Math.PI/4+.2, l=(1500-q%2*500)/2, dx=Math.cos(a)*l, dy=Math.sin(a)*l*FSY; K.gash(cx-dx,cy-dy,cx+dx,cy+dy,{pal:P,life:5,w:q%2?110:150,gain:1.1,grow:.07,delay:q*.03}); }
+    for(let q=0;q<2;q++){ const a=q*Math.PI/2+.35, l=(1500-q%2*400)/2, dx=Math.cos(a)*l, dy=Math.sin(a)*l*FSY; K.gash(cx-dx,cy-dy,cx+dx,cy+dy,{pal:P,life:5,w:q%2?110:150,gain:1.1,grow:.07,delay:q*.03}); }
     K.debris(cx,cy,{n:26,r:160,sp:[300,1300],up:1800,size:22}); K.dust(cx,cy,{n:20,r:140,sp:[500,1400],a:.5}); K.sparks(cx,cy,40,{pal:P,n:44,sp:[500,2200],up:1900,life:[.3,.9]});
     GFX.light(cx,cy,hw*2.4,'#ffc040',1.4,1.3,{z:260});
     Cn.sweep(cx,cy,D*8,{speed:3400}); SFX.shatter(1); Cn.SND.hit(1); SFX.boom(1.6,1);
     // every planted sword answers with a pillar of light, nearest first
-    for(const s of stuck){ const d=Math.hypot(s.x-cx,s.y-cy); after(Math.min(.6,d/3000),()=>{ s.out=RT; sfx('shatter',.25);
-        if(inView(s.x,s.y)){ ray(s.x,s.y,{pal:P,w:28,h:rand(1300,2100),dur:.45,gain:.8,core:d<620?1:0}); GFX.add(.4,k=>GFX.floor(GL,s.x,s.y,90+160*k,null,0,gold,.7*(1-k))); K.sparks(s.x,s.y,60,{pal:P,n:4,sp:[100,400],up:1300,life:[.3,.6]}); } }); }
+    for(const s of stuck){ const d=Math.hypot(s.x-cx,s.y-cy); after(Math.min(.75,d/2300),()=>{ s.out=RT; sfx('shatter',.25);
+        if(inView(s.x,s.y)){ ray(s.x,s.y,{pal:P,w:28,h:rand(1300,2100),dur:.4,gain:.8,core:d<480?1:0}); GFX.add(.4,k=>GFX.floor(GL,s.x,s.y,90+160*k,null,0,gold,.7*(1-k))); K.sparks(s.x,s.y,60,{pal:P,n:4,sp:[100,400],up:1300,life:[.3,.6]}); } }); }
     K.embers(cx,cy,hw*1.1,{pal:P,n:50,life:2.4,up:420,s:2}); });
   // ---- afterglow: gold comes down through the returning light; the wound in the floor cools
   after(5.05,()=>{ K.petals(cx,cy,hw*1.1,{pal:P,n:50,z0:300,z1:1500,life:2.4,s:2.2}); K.embers(cx,cy,hw,{pal:P,n:40,life:2.2,s:2.2,z:300}); });

@@ -1,7 +1,7 @@
 {
  "updated": "2026-11-24",
  "representative": "sw_ult1",
- "iteration": 29,
+ "iteration": 30,
  "project_complete": false,
  "independent_review": [
   {
@@ -122,34 +122,35 @@
    "status": "rewritten_on_v3_by_agent",
    "verified_run": true,
    "state_restore": true,
-   "sheet": "shaman_u1_final.jpg",
+   "sheet": "shaman_u1_final2.jpg",
    "checked_by_main": true
   },
   "sh_ult2": {
    "status": "rewritten_on_v3_by_agent",
    "verified_run": true,
    "state_restore": true,
-   "sheet": "shaman_u2_final.jpg",
+   "sheet": "shaman_u2_final2.jpg",
    "checked_by_main": true
   },
   "py_ult1": {
-   "status": "old_engine_pending_v3",
-   "iterations": 1,
+   "status": "rewritten_on_v3_by_agent",
    "verified_run": true,
-   "state_restore": true
+   "state_restore": true,
+   "sheet": "pyro_u1_final.jpg",
+   "checked_by_main": true
   },
   "py_ult2": {
-   "status": "old_engine_pending_v3",
-   "iterations": 3,
+   "status": "rewritten_on_v3_by_agent",
    "verified_run": true,
-   "state_restore": true
+   "state_restore": true,
+   "sheet": "pyro_u2_final.jpg",
+   "checked_by_main": true
   }
  },
  "not_verified": [
   "real phone performance and touch feel",
   "audio by ear",
-  "motion in video (sheets only)",
-  "changes after review round 5 not re-scored"
+  "HDR fallback path (RGBA8) on devices without half-float targets"
  ],
  "git": {
   "repo": "_gen/deploy",
@@ -172,12 +173,11 @@
    "sword",
    "mage",
    "fist",
-   "shaman"
-  ],
-  "pending": [
+   "shaman",
    "pyro"
   ],
-  "note": "all normal skills and basics rebuilt on K3 by per-class agents; sheets <cls>_s_*.jpg"
+  "pending": [],
+  "note": "first pass complete for all classes; second pass (new art, self-reported weaknesses) running in per-class agents"
  },
  "independent_review_v3": [
   {
@@ -204,5 +204,23 @@
    "old_same_reviewer": 41,
    "sheet": "z6"
   }
- ]
+ ],
+ "realtime_fps_headless": {
+  "tool": "node _gen/cap/rt.js <cls> <ult>",
+  "sw_ult1": {
+   "during_avg_ms": 7.6,
+   "p95": 12.8,
+   "max": 29.5
+  },
+  "mg_ult2": {
+   "during_avg_ms": 8.5,
+   "p95": 13.8,
+   "max": 21.6
+  },
+  "py_ult1_lowfx": {
+   "during_avg_ms": 8.1,
+   "p95": 12.3,
+   "max": 31.1
+  }
+ }
 }

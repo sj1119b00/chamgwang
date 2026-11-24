@@ -3187,7 +3187,7 @@ function resize(){
 let last=performance.now();
 let perfT=0, perfN=0;
 function frame(now){ const raw=(now-last)/1000, rdt=clamp(raw,0,.05); last=now; requestAnimationFrame(frame); update(rdt); render();
-  if(started&&!document.hidden){ perfT+=raw; perfN++; if(perfT>2.5){ if(perfT/perfN>1/42&&RS>(COARSE?1:1.25)){ const r0=Math.min(devicePixelRatio||1,RS); RS=Math.max(COARSE?1:1.25,RS-.25); if(Math.min(devicePixelRatio||1,RS)!==r0) resize(); } perfT=0; perfN=0; } } }
+  if(started&&!document.hidden){ perfT+=raw; perfN++; if(perfT>2.5){ if(perfT/perfN>1/42&&RS>(COARSE?1:1.25)){ const r0=Math.min(devicePixelRatio||1,RS); RS=Math.max(COARSE?1:1.25,RS-.25); if(Math.min(devicePixelRatio||1,RS)!==r0) resize(); } else if(perfT/perfN>1/38&&window.FX3&&!FX3.auto){ FX3.auto=1; if(window.K3&&K3.tune) K3.tune(); }   /* still slow at the lowest resolution: thin the effect layers too */ perfT=0; perfN=0; } } }
 const DEMO=[]; for(const c of ['sword','mage','fist','shaman','pyro']) DEMO.push(['cls',c,1.2],['basic',0,.3],['basic',0,.3],['basic',0,1],['u',0,1.4],['u',1,1.6]);
 function runDemo(){ const [a,v,w]=DEMO[demoI%DEMO.length]; demoI++; demoT=w;
   if(a==='cls') setClass(v); else if(a==='basic') CLASSES[pl.cls].basicFn(); else CLASSES[pl.cls].ults[v].fn(); }
