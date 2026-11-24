@@ -352,7 +352,7 @@ drawEnemy=function(){ if(G.mode!=='surv') return drawEnemy1();
     if(!s.rock) glow(fx,s.x,s.y-s.z,s.s*1.6,s.c||sc,.4*a); }
   ctx.globalAlpha=1;
   // the hero stands out in the crowd: a ring of his colour on the floor
-  if(pl.visible&&pl.gy!=null){ const c=CCOL[pl.cls]; ctx.fillStyle='rgba(0,0,0,.45)'; ctx.beginPath(); ctx.ellipse(pl.x,pl.gy,88,88*FSY,0,0,TAU); ctx.fill(); ctx.fillStyle=hexA(c,.3+.08*Math.sin(RT*5)); ctx.beginPath(); ctx.ellipse(pl.x,pl.gy,88,88*FSY,0,0,TAU); ctx.fill();
+  if(pl.visible&&pl.gy!=null&&!(lock&&window.MK&&MK.on())){ const c=CCOL[pl.cls]; ctx.fillStyle='rgba(0,0,0,.45)'; ctx.beginPath(); ctx.ellipse(pl.x,pl.gy,88,88*FSY,0,0,TAU); ctx.fill(); ctx.fillStyle=hexA(c,.3+.08*Math.sin(RT*5)); ctx.beginPath(); ctx.ellipse(pl.x,pl.gy,88,88*FSY,0,0,TAU); ctx.fill();
     fx.strokeStyle=hexA(c,1); fx.lineWidth=8; fx.beginPath(); fx.ellipse(pl.x,pl.gy,88+5*Math.sin(RT*5),(88+5*Math.sin(RT*5))*FSY,0,0,TAU); fx.stroke(); fx.strokeStyle=hexA('#ffffff',.6); fx.lineWidth=2.5; fx.stroke(); glow(fx,pl.x,pl.gy,112,c,.3); }
   for(const q of V.dying){ const [fw,fh,fa]=q.fr.d, D=q.e.d, k=q.t/q.life, t=q.t, fly=q.vx!=null; ctx.save(); ctx.globalAlpha=fly?Math.min(1,(1-k)*2.5):1-k; if(fly){ ctx.translate(q.e.x+q.vx*t,q.e.y+q.vy*t-(q.vz*t-1400*t*t)-fh*D.sc*.5); ctx.rotate(q.spin*t); ctx.translate(0,fh*D.sc*.5); } else ctx.translate(q.e.x,q.e.y-q.e.z+4-k*40); ctx.scale(q.e.f*D.sc*(1+k*.25),D.sc*(1+k*.25)); ctx.drawImage(tinted(q.fr.s,D.img==='brute'?55:0),-fa*fw,-fh,fw,fh); ctx.restore();
     if(!lock) glow(fx,q.e.x,q.e.y-D.h*D.sc*.5,D.h*D.sc*.4,'#ffffff',(1-k)*.25); }
@@ -404,7 +404,7 @@ function heroOver(){ const s=plFrame(), b=plSprBox(s); plMesh(s); if(oc.width!==
 
 // ============================================================ DOM: HUD, joystick, results, menu
 const css=document.createElement('style'); css.textContent=`
-#rrot{display:none!important}
+
 .sv{position:fixed;display:none;font-family:"Pretendard","Malgun Gothic",sans-serif;color:#fff;-webkit-user-select:none;user-select:none}
 .sv.on{display:flex}
 #shud{inset:0;z-index:18;pointer-events:none;flex-direction:column;padding:max(10px,env(safe-area-inset-top)) 12px max(12px,env(safe-area-inset-bottom));box-sizing:border-box}
@@ -559,7 +559,7 @@ function finish(win){ if(V.over) return; V.over=true; joyHide(); G.keys={};
 
 // ============================================================ menu (portrait phone): character, chapter or skills, start
 let tab='ch', sel=null;
-function goFull(){ if(!A.isTouch()) return; const d=document.documentElement; if(!document.fullscreenElement&&d.requestFullscreen) d.requestFullscreen().then(()=>screen.orientation&&screen.orientation.lock&&screen.orientation.lock('portrait').catch(()=>{})).catch(()=>{}); }
+function goFull(){ if(!A.isTouch()) return; const d=document.documentElement; if(!document.fullscreenElement&&d.requestFullscreen) d.requestFullscreen().then(()=>screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(()=>{})).catch(()=>{}); }
 G.menuOverride=el=>{
   const sv=SV(), cls=pl.cls, ids=A.ORDER[cls]||[], need=A.needExp(sv.lv), open=Math.min(CHAP.length-1,sv.chClear||0); if(sel==null||sel>open) sel=open;
   el.classList.add('mob');
@@ -596,7 +596,7 @@ G.firstSkills=c=>{ const L=(A.ORDER[c]||[]).filter(id=>SK[id]&&SK[id].type==='sk
 const inView=(x,y,k=.5)=>{ const {hw,hh}=view(); return [clamp(x,cam.x-hw*k,cam.x+hw*k),clamp(y,cam.y-hh*k+BODY*.5,cam.y+hh*k+BODY*.5)]; };
 G.sv={V,A,SK,BODY,CH,CLS,CCOL,NAMES,shock1,inView,FSY,draw:(life,fn,delay=0)=>V.draws.push({t0:RT+delay,life,fn}),nearest,countIn,densest,angTo,face,seq,dmg,hitFx,inCircle,inCircleS,inSector,inLine,sfx,view,onScreen,tdV,dropFx,ultStart,ultStop,ultHit,addVfx,burst,fring,heal,hurt,
   reg(c,def){ CLS[c]=def; if(def.sk) Object.assign(SK,def.sk); if(def.order) A.ORDER[c]=def.order; if(G.mode==='menu') A.menuRender(); if(G.mode==='surv'&&c===pl.cls) buildBar(); }};
-for(const f of ['fx3','gfx','vfx3','cine',...CLS_ORDER.map(c=>'sk_'+c)]){ const s=document.createElement('script'); s.src=`${f}.js?v=${VER}`; s.async=false; document.body.appendChild(s); }
+for(const f of ['fx3','gfx','vfx3','cine',...CLS_ORDER.map(c=>'sk_'+c),'mk','mk_sword']){ const s=document.createElement('script'); s.src=`${f}.js?v=${VER}`; s.async=false; document.body.appendChild(s); }
 if(G.mode==='menu') A.menuRender();
 G.survStart=start;
 })();
