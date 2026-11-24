@@ -230,7 +230,7 @@ void main(){vec2 w=toWorld(v);float qa[16];float ws=0.,rs=0.,sm=0.;
 const DOWNFS=`uniform sampler2D a,b,c,d,e;uniform float ck,dk;void main(){vec3 cc=texture2D(c,v).rgb;float cm=max(cc.r,max(cc.g,cc.b));if(cm>1.)cc=cc/cm*min(cm,2.4);vec3 o=texture2D(a,v).rgb+texture2D(b,v).rgb*1.2+cc*ck;if(dk>0.)o+=max(texture2D(d,v).rgb-vec3(.85),0.)*dk*(1.-texture2D(e,v).a);gl_FragColor=vec4(o*.5,1.);}`;
 const BLURFS=`uniform sampler2D a;uniform vec2 dir;void main(){vec3 c=texture2D(a,v).rgb*.227027;c+=(texture2D(a,v+dir*1.384615).rgb+texture2D(a,v-dir*1.384615).rgb)*.316216;c+=(texture2D(a,v+dir*3.230769).rgb+texture2D(a,v-dir*3.230769).rgb)*.07027;gl_FragColor=vec4(c,1.);}`;
 const FINFS=`uniform sampler2D tex,bgT,fireT,b1,b2,b3,vfxT,dstT;uniform vec4 glp[4];uniform vec3 glc[4];uniform vec3 amb;uniform float vfxK,dstK;uniform float gndK;uniform vec4 hero;
-uniform float ca,inv,flash,blur,gray,vig,grain,bloomK,lbox,tilt;uniform vec3 ray;uniform vec2 bc;uniform vec4 sh[4];uniform vec4 cut;uniform vec3 inkA,inkB;
+uniform float ca,inv,flash,blur,gray,vig,grain,bloomK,lbox,tilt;uniform vec3 ray;uniform vec2 bc;uniform vec4 sh[4];uniform vec4 cut;uniform vec3 inkA,inkB;uniform vec4 tintC;
 vec3 hup(vec3 c,float cap){float m=max(c.r,max(c.g,c.b));return m>1.?mix(c/m*min(m,cap),vec3(cap),smoothstep(6.,20.,m)):c;}
 void main(){vec2 p=v;float asp=res.x/res.y;
  if(tilt>.001){float tm=(1.+tilt*(1.-2.*p.y))/(1.-tilt);p=vec2(.5+(p.x-.5)/tm,.5+(p.y-.56)/tm+.06*(1.-tilt));}
@@ -270,6 +270,7 @@ void main(){vec2 p=v;float asp=res.x/res.y;
  col=mix(col*vec3(.9,.97,1.1),col*vec3(1.06,1.,.92),smoothstep(.08,.6,l));
  col=max(mix(vec3(l),col,1.1),0.);
  col=mix(col,vec3(l)*vec3(1.08,1.,1.12),gray);
+ if(tintC.a>.001){float tl=dot(col,vec3(.299,.587,.114));col=mix(col,tintC.rgb*(tl*1.3+.05)+col*.22,tintC.a);}
  float li=vfxK>0.?dot(scn,vec3(.299,.587,.114)):l;vec3 ifr=mix(inkA,inkB,smoothstep(.14,.24,li));col=mix(col,ifr*(1.-vx.a)+vx.rgb*vfxK,inv);
  col=col*(1.+flash*2.6)+flash*.1;
  col=mix(col,vec3(1.,.93,.96),gap);col+=seam*vec3(1.,.75,.85);
@@ -354,7 +355,7 @@ function glFrame(){
   bindTex(6,gfxLit&&G.gVfx?G.gVfx.t:G.fire.t); bindTex(7,gfxLit&&G.gDist?G.gDist.t:G.fire.t); gl.uniform1i(U_(P,'vfxT'),6); gl.uniform1i(U_(P,'dstT'),7);
   if(gfxLit) GFX.finUniforms(P,U_); else { gl.uniform1f(U_(P,'vfxK'),0); gl.uniform1f(U_(P,'dstK'),0); }
   gl.uniform1f(U_(P,'ca'),Math.min(post.caMax||.0018,post.ca)); gl.uniform1f(U_(P,'inv'),post.inv); gl.uniform1f(U_(P,'flash'),Math.min(1,post.flash)); gl.uniform1f(U_(P,'blur'),post.blur*.5);
-  gl.uniform1f(U_(P,'gray'),post.gray); gl.uniform1f(U_(P,'vig'),.5+ov.dim*.3); gl.uniform1f(U_(P,'grain'),.028); gl.uniform1f(U_(P,'bloomK'),window.BLOOMK??1); { const L0=LIGHTS[0]; if(L0){ const [rx,ry]=w2s(L0[0],L0[1]); gl.uniform3f(U_(P,'ray'),rx/W,1-ry/H,clamp(L0[3]-.4,0,1)*.9); } else gl.uniform3f(U_(P,'ray'),.5,.5,0); } gl.uniform1f(U_(P,'lbox'),ov.lb>.01?(window.LBK??.11)*ov.lb:0); gl.uniform2f(U_(P,'bc'),post.bc[0],post.bc[1]);
+  gl.uniform1f(U_(P,'gray'),post.gray); gl.uniform1f(U_(P,'vig'),.5+ov.dim*.3); gl.uniform1f(U_(P,'grain'),.028); gl.uniform1f(U_(P,'bloomK'),window.BLOOMK??1); { const L0=LIGHTS[0]; if(L0){ const [rx,ry]=w2s(L0[0],L0[1]); gl.uniform3f(U_(P,'ray'),rx/W,1-ry/H,clamp(L0[3]-.4,0,1)*.9); } else gl.uniform3f(U_(P,'ray'),.5,.5,0); } gl.uniform1f(U_(P,'lbox'),ov.lb>.01?(window.LBK??.11)*ov.lb:0); gl.uniform2f(U_(P,'bc'),post.bc[0],post.bc[1]); { const tc=post.tint; gl.uniform4f(U_(P,'tintC'),tc?tc[0]:0,tc?tc[1]:0,tc?tc[2]:0,tc?tc[3]:0); }
   gl.uniform3fv(U_(P,'inkA'),post.inkA); gl.uniform3fv(U_(P,'inkB'),post.inkB);
   const shk=new Float32Array(16); shocks.forEach((s,i)=>{ const [x,y]=w2s(s.x,s.y); shk[i*4]=x/W; shk[i*4+1]=1-y/H; shk[i*4+2]=s.r; shk[i*4+3]=s.s*(s.life/s.max); });
   gl.uniform4fv(U_(P,'sh'),shk);

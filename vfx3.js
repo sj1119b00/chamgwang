@@ -331,9 +331,10 @@ K.pic=(x,y,z,o={})=>{ const h={x,y,z,s:o.s||300,a:1,rot:o.rot||0,dead:false}; if
 // HIT: the small mark of one blow landing on a body: a needle flash in the blow's colour and a few sparks. c is a '#rrggbb'.
 const HP={}; function hpal(c){ let P=HP[c]; if(!P){ const r=GFX.rgb(c), hx=v=>('0'+Math.round(Math.max(0,Math.min(1,v))*255).toString(16)).slice(-2), mk=(k,w)=>'#'+hx(r[0]*k+w)+hx(r[1]*k+w)+hx(r[2]*k+w); P=HP[c]={d:mk(.18,0),b:mk(1,0),m:mk(.6,.4),h:'#ffffff',l:c,s:mk(.7,.3)}; } return P; }
 K.hpal=hpal;
-K.hit=(x,y,z,c,pw=1)=>{ if(!F.on) return; const P=hpal(c||'#ffffff'), m=mats(), mt=m.hitA||(m.hitA=F.mat({...m.art,tex:'v3_xburst',rk:[.5,1]})), C=col(P), rot=R(0,TAU_), s=46*pw;
-  GFX.add(.16,k=>{ const e=eo3(k); F.bill(mt,x,y,z,s*(.5+.7*e),s*(.5+.7*e),rot,{...C,a:1-k*k,gain:2.6,ero:.1+k*.5}); });
-  K.sparks(x,y,z,{pal:P,n:pw>1.1?4:2,sp:[300,900*pw],up:300,life:[.12,.3],s:2}); };
+K.hit=(x,y,z,c,pw=1)=>{ if(!F.on) return; const P=hpal(c||'#ffffff'), m=mats(), mt=m.hitA||(m.hitA=F.mat({...m.art,tex:'v3_xburst',rk:[.5,1]})), C=col(P), rot=R(0,TAU_), s=82*pw;
+  /* sized to read on a body forty pixels tall: the needle star and a white-hot dot at its heart */
+  GFX.add(.16,k=>{ const e=eo3(k); F.bill(mt,x,y,z,s*(.5+.7*e),s*(.5+.7*e),rot,{...C,a:1-k*k,gain:2.6,ero:.1+k*.5}); F.bill(m.glowO,x,y,z,s*.42*(1+e*.6),s*.42*(1+e*.6),0,{cA:P.b,cB:P.m,cM:P.h,cC:'#ffffff',a:(1-k)*(1-k),gain:3.2}); });
+  K.sparks(x,y,z,{pal:P,n:pw>1.1?4:2,sp:[300,900*pw],up:300,life:[.12,.3],s:2.4}); };
 
 // BLADE: a colossal painted blade of light that drops point-first onto a spot, stands there for a breath, and burns away from the ground up.
 //  o: {h (blade length), drop (seconds of fall), hold, dur (after landing), pal, gain, land()}  - land() is called at the moment the point touches

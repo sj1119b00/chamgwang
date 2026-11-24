@@ -5,7 +5,7 @@
 // World: x/y is the floor plane (y = depth), z is height. The hero's floor position is pl.x / pl.gy (the engine draws him at pl.gy).
 'use strict';
 (()=>{
-const G=RPG, A=G.api, SV=()=>A.SV, SK=A.SK, VER=30;
+const G=RPG, A=G.api, SV=()=>A.SV, SK=A.SK, VER=31;
 const ZL=.42, ZP=.5, DUR=300, BOSS_T=240, CAP=340, SPD=430, BODY=170, FAR=1e5;
 const CLS_ORDER=['sword','mage','fist','shaman','pyro'];
 const NAMES={sword:'소드맨',mage:'메이지',fist:'파이터',shaman:'샤먼',pyro:'파이로'};
@@ -68,9 +68,10 @@ const fring=(x,y,v,c,life,w=5)=>ring(x,y,v,c,life,{w,sy:FSY});
 function dmg(e,d,o={}){
   if(e.dead) return; const crit=o.crit||Math.random()<.14; if(crit&&!o.crit) d*=1.9; d=Math.round(d*rand(.92,1.08));
   if(e.d.boss&&o.ult) d=Math.min(d,Math.round(e.max*.2));
-  e.hp-=d; e.flash=1; e.hurtT=.3; combo++; comboT=2.4; comboPop=1; G.stats.dmg+=d; if(lock){ V.ultSum=(V.ultSum||0)+d; } else if(!crit&&!(e.nn&&V.nums.includes(e.nn))&&pl.cls!=='sword'){ e.nnT=RT; } else if(e.nn&&RT-e.nnT<.3&&V.nums.includes(e.nn)){ const n=e.nn; n.v+=d; n.txt=fmtN(n.v); n.crit=n.crit||crit; n.t=Math.min(n.t,.08); } else e.nn=num(e.x,e.y-e.h-e.z,d,crit); e.nnT=RT;
+  e.hp-=d; e.flash=1; e.hurtT=.3; e.hitT=RT; combo++; comboT=2.4; comboPop=1; G.stats.dmg+=d; if(lock){ V.ultSum=(V.ultSum||0)+d; } else if(!crit&&!(e.nn&&V.nums.includes(e.nn))&&pl.cls!=='sword'){ e.nnT=RT; } else if(e.nn&&RT-e.nnT<.3&&V.nums.includes(e.nn)){ const n=e.nn; n.v+=d; n.txt=fmtN(n.v); n.crit=n.crit||crit; n.t=Math.min(n.t,.08); } else e.nn=num(e.x,e.y-e.h-e.z,d,crit); e.nnT=RT;
   const sx=o.sx??pl.x, sy=o.sy??pl.gy, dx=e.x-sx, dy=e.y-sy, l=Math.hypot(dx,dy)||1, kb=(o.kb??1)*(e.d.heavy?50:320);
-  e.kx+=dx/l*kb; e.ky+=dy/l*kb;
+  e.kx+=dx/l*kb; e.ky+=dy/l*kb; e.hdx=dx/l;
+  if((o.push||o.up)&&window.K3&&K3.knock) K3.knock(e,{from:[sx,sy],dist:o.push||0,up:o.up||0});
   if(o.launch&&!e.d.heavy) e.vz=Math.max(e.vz,o.launch);
   if(!e.d.heavy||o.big) e.stun=Math.max(e.stun,o.stun??.16);
   if(o.slow) e.slowT=Math.max(e.slowT||0,o.slow);
@@ -104,7 +105,7 @@ const tdV=(n,x,y,o)=>VFX[n]&&VFX[n].f[0].ok?vfx(n,x,y,o):null;
 function onScreen(m=0){ const {hw,hh}=view(); return V.en.filter(e=>!e.dead&&Math.abs(e.x-cam.x)<hw+m&&Math.abs(e.y-BODY*.5-cam.y)<hh+m); }
 function ultStart(id){ if(window.K3&&K3.tune) K3.tune(); lock=true; V.ug=0; anim.seq=null; V.dash=null; pl.air=pl.airT=0; for(const o of V.orbs.splice(0)) if(o.fx) o.fx.life=0; if(window.GFX){ /* the stage is cleared: what the last skills left burning would muddy the opening */ GFX.fx.length=0; GFX.pts.length=0; GFX.lights.length=0; }   /* the stick stays held through the ultimate: he moves again the moment it ends */ ov.lbT=0; V.ultId=id; V.nums.length=0; if(G.sv.cine) G.sv.cine.begin(); }
 const stamp1=stamp; stamp=function(t,o={}){ if(G.mode==='surv'&&lock&&!o.keep) return null; return stamp1(t,o); };
-function ultStop(){ if(G.sv.cine) G.sv.cine.end(); if(V.ultSum){ V.nums.push({x:pl.x,y:pl.gy-BODY*3.1,t:-.4,txt:fmtN(V.ultSum),big:true}); V.ultSum=0; } lock=false; ov.lbT=0; ov.dimT=0; post.grayT=0; V.zk=1; V.ultTick=null; V.cuts=[]; V.shadow=null; V.ultDraw=null; G.inv=.8; pl.visible=true; pl.target=IDLE(); pl.ps=12; pl.air=pl.airT=0; anim.seq=null; }
+function ultStop(){ if(G.sv.cine) G.sv.cine.end(); if(V.ultSum){ V.nums.push({x:pl.x,y:pl.gy-BODY*3.1,t:-.4,txt:fmtN(V.ultSum),big:true}); V.ultSum=0; } lock=false; ov.lbT=0; ov.dimT=0; post.grayT=0; if(!(G.sv.cine&&G.sv.cine.easeBack)) V.zk=1; V.ultTick=null; V.cuts=[]; V.shadow=null; V.ultDraw=null; G.inv=.8; pl.visible=true; pl.target=IDLE(); pl.ps=12; pl.air=pl.airT=0; anim.seq=null; }
 function ultHit(e,D,sx,sy){ dmg(e,e.d.boss?D*2:Math.max(D,e.hp*1.05),{crit:true,kb:1.8,big:true,launch:700,sx,sy}); }
 // ChatGPT effect GIFs (frames from _gen/td_export.py / fx_export.py); ix/iy = impact point, hit = impact frame
 function addVfx(name,m){ if(VFX[name]) return; const v=VFX[name]={...m,f:[]}; for(let i=1;i<=v.n;i++) v.f.push(loadSpr('vfx_'+name+A.fr2(i),{})); }
@@ -168,6 +169,8 @@ function pre(rdt){
     if(s.fn(id)!==false){ V.cd[id]=A.cdOf(id); V.gcd=.3; V.bcd=Math.max(V.bcd,.25); break; } }
   E.dead=false; E.hp=E.max; E.respawn=1e9; E.x=pl.x+FAR;
   if(V.practice) V.ug=100;
+  /* dev capture (headless, _gen/cap): the ultimate chosen in the save fires by itself when the gauge fills, as the capture helpers expect */
+  if(V.ug>=100&&!V.practice&&(V.autoUlt||navigator.webdriver)&&ULTS().includes(SV().ult)) fireUlt(SV().ult);
 }
 function post(rdt){
   const dt=hitstop>0?0:rdt*timeScale;
@@ -311,6 +314,9 @@ function tinted(s,extra=0){ const c=CH(), hue=c.hue+extra; let m=TINT.get(s); if
     let R=(M[0]*r+M[1]*gg+M[2]*bb)*k, Gg=(M[3]*r+M[4]*gg+M[5]*bb)*k, B=(M[6]*r+M[7]*gg+M[8]*bb)*k; const l=.3*R+.59*Gg+.11*B; p[i]=l+(R-l)*sat; p[i+1]=l+(Gg-l)*sat; p[i+2]=l+(B-l)*sat; }
   g.putImageData(D,0,0);
   TINT.set(s,{ch:V.ch,cv}); return cv; }
+// an enemy frame as a flat silhouette of one colour (white: the hit flash; a status colour: burning, frozen, shocked)
+const WHITE=new Map();
+function whiteOf(s,c='#ffffff'){ let m=WHITE.get(s); if(!m) WHITE.set(s,m={}); let cv=m[c]; if(cv) return cv; cv=m[c]=document.createElement('canvas'); cv.width=s.w; cv.height=s.h; const g=cv.getContext('2d'); g.drawImage(s.im,0,0); g.globalCompositeOperation='source-in'; g.fillStyle=c; g.fillRect(0,0,s.w,s.h); return cv; }
 const RIMC=()=>{ const n=parseInt(CH().acc.slice(1),16), m=v=>Math.round(v+(255-v)*.55); return `rgb(${m(n>>16&255)},${m(n>>8&255)},${m(n&255)})`; };
 function eFrame(e){ const F=A.EFR[e.d.img]; if(!F) return null; let a='walk', i=0;
   if(F.hurt&&(e.z>0||e.stun>0||e.hurtT>0)){ a='hurt'; const n=F.hurt.length; i=e.z>0?2:Math.min(n-1,Math.floor((1-Math.max(0,e.hurtT)/.3)*n)); }
@@ -324,7 +330,13 @@ function drawE(e){ const D=e.d, sc=D.sc, x=e.x, y=e.y, fr=eFrame(e), ac=CH().acc
   // the strongest effect light throws his shadow away from it
   if(V.kl){ const L=V.kl, dx=x-L.x, dy=(y-L.y)/FSY, d=Math.hypot(dx,dy)||1, f=Math.max(0,1-d/(L.r*1.5)); if(f>.05&&d>40){ const k=L.s*f, len=D.r*(1.2+3.2*k), ux=dx/d, uy=dy/d*FSY, ul=Math.hypot(ux,uy)||1;
       ctx.fillStyle=`rgba(0,0,0,${Math.min(.5,.55*k)})`; ctx.beginPath(); ctx.ellipse(x+ux/ul*len*.85,y+2+uy/ul*len*.85,len,D.r*.5,Math.atan2(uy,ux),0,TAU); ctx.fill(); } }
-  if(fr){ const [fw,fh,fa]=fr.d; ctx.save(); ctx.translate(x,y-e.z+4); ctx.scale(e.f*sc*e.sv,sc*e.sv); if(e.z>0){ /* thrown: he tumbles about his middle and comes a little nearer the eye */ e.sp=(e.sp||0)+(e.z>30?.13:0); const up=1+Math.min(.3,e.z/2600); ctx.scale(up,up); ctx.translate(0,-fh*.5); ctx.rotate(-.3-e.sp); ctx.translate(0,fh*.5); } else e.sp=0; ctx.drawImage(tinted(fr.s,D.img==='brute'?55:0),-fa*fw,-fh,fw,fh); ctx.restore(); }
+  if(fr){ const [fw,fh,fa]=fr.d; ctx.save(); ctx.translate(x,y-e.z+4);
+    /* the blow reads on the body: it jumps in size and rocks back from the blow for a few frames */
+    const hp=Math.max(0,1-(RT-(e.hitT??-9))/.16); if(hp>0){ const q=hp*hp; ctx.rotate((e.hdx||0)*.3*q); ctx.scale(1+.3*q,1+.22*q); }
+    ctx.scale(e.f*sc*e.sv,sc*e.sv); if(e.z>0){ /* thrown: he tumbles about his middle and comes a little nearer the eye */ e.sp=(e.sp||0)+(e.z>30?.13:0); const up=1+Math.min(.3,e.z/2600); ctx.scale(up,up); ctx.translate(0,-fh*.5); ctx.rotate(-.3-e.sp); ctx.translate(0,fh*.5); } else e.sp=0; ctx.drawImage(tinted(fr.s,D.img==='brute'?55:0),-fa*fw,-fh,fw,fh);
+    if(e.flash>.35){ ctx.globalAlpha=Math.min(1,(e.flash-.35)*2.2); ctx.drawImage(whiteOf(fr.s),-fa*fw,-fh,fw,fh); ctx.globalAlpha=1; }
+    else if(e.mkC&&e.mkT>RT){ ctx.globalAlpha=.3+.12*Math.sin(RT*7+e.id); ctx.drawImage(whiteOf(fr.s,e.mkC),-fa*fw,-fh,fw,fh); ctx.globalAlpha=1; }
+    ctx.restore(); }
   else { ctx.fillStyle='#3d1458'; ctx.beginPath(); ctx.ellipse(x,y-e.h*.5-e.z,D.r,e.h*.5,0,0,TAU); ctx.fill(); }
   if(e.z>40&&lock) glow(fx,x,y-e.h*.5-e.z,e.h*.5,'#ffd8b0',Math.min(.28,e.z/700));
   if(e.flash>0) glow(fx,x,y-e.h*.5-e.z,e.h*.45,'#ffffff',e.flash*.55);
@@ -643,7 +655,7 @@ G.firstSkills=c=>{ const L=(A.ORDER[c]||[]).filter(id=>SK[id]&&SK[id].type==='sk
 // ============================================================ class skill files
 // keep a point (an ultimate's impact) inside the middle of the screen
 const inView=(x,y,k=.5)=>{ const {hw,hh}=view(); return [clamp(x,cam.x-hw*k,cam.x+hw*k),clamp(y,cam.y-hh*k+BODY*.5,cam.y+hh*k+BODY*.5)]; };
-G.sv={V,A,SK,BODY,CH,CLS,CCOL,NAMES,shock1,inView,FSY,draw:(life,fn,delay=0)=>V.draws.push({t0:RT+delay,life,fn}),nearest,countIn,densest,angTo,face,seq,dmg,hitFx,inCircle,inCircleS,inSector,inLine,sfx,view,onScreen,tdV,dropFx,ultStart,ultStop,ultHit,addVfx,burst,fring,heal,hurt,
+G.sv={V,A,SK,BODY,CH,CLS,CCOL,NAMES,spawn,shock1,inView,FSY,draw:(life,fn,delay=0)=>V.draws.push({t0:RT+delay,life,fn}),nearest,countIn,densest,angTo,face,seq,dmg,hitFx,inCircle,inCircleS,inSector,inLine,sfx,view,onScreen,tdV,dropFx,ultStart,ultStop,ultHit,addVfx,burst,fring,heal,hurt,
   reg(c,def){ CLS[c]=def; if(def.sk) Object.assign(SK,def.sk); if(def.order) A.ORDER[c]=def.order; if(G.mode==='menu') A.menuRender(); if(G.mode==='surv'&&c===pl.cls) buildBar(); }};
 for(const f of ['fx3','vol3','gfx','vfx3','vkit3','cine',...CLS_ORDER.map(c=>'sk_'+c),'mk','mk_sword']){ const s=document.createElement('script'); s.src=`${f}.js?v=${VER}`; s.async=false; document.body.appendChild(s); }
 if(G.mode==='menu') A.menuRender();

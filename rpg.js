@@ -33,8 +33,8 @@ const SK={
   sw_thrust:{cls:'sword',type:'skill',name:'러시',lv:8,cd:7,dmg:750,desc:'앞을 빠르게 여섯 번 찌른다. 맞은 적은 계속 움찔한다.',fn:skThrust},
   sw_counter:{cls:'sword',type:'skill',name:'카운터',lv:10,cd:10,dmg:5200,desc:'0.8초 동안 자세를 잡는다. 그 사이 공격받으면 막아 내고 큰 반격을 넣는다.',fn:skCounter},
   sw_ult1:{cls:'sword',type:'ult',name:'제로 슬래시',lv:3,desc:'궁극기. 하늘까지 가르는 단 한 번의 베기.',fn:()=>ultMetten()},
-  sw_ult2:{cls:'sword',type:'ult',name:'소드 레인',lv:12,desc:'궁극기. 천 자루의 검을 부채꼴로 쏟아붓는다.',fn:()=>ultSwords()},
-  sw_ult3:{cls:'sword',type:'ult',name:'그림자 난무',lv:5,desc:'궁극기. 열두 그림자가 전장 끝에서 끝까지 가로지르고, 납도와 함께 모든 검격이 열린다. (스틱맨 모드 전용 연출)',fn:()=>ultMetten()},
+  sw_ult2:{cls:'sword',type:'ult',name:'천검 낙하',lv:12,desc:'궁극기. 하늘의 검들이 전장 전체에 꽂히고, 탑만 한 대검이 떨어져 화면의 모든 적을 날려 버린다.',fn:()=>ultSwords()},
+  sw_ult3:{cls:'sword',type:'ult',name:'월식 검무',lv:5,desc:'궁극기. 잔상이 화면의 모든 적을 이어 달리며 표식을 새기고, 납도와 함께 거대한 진홍 초승달이 솟으며 모든 표식이 한꺼번에 터진다.',fn:()=>ultMetten()},
 };
 const ORDER={sword:['sw_basic','sw_dash','sw_rise','sw_wave','sw_spin','sw_fly','sw_plunge','sw_thrust','sw_counter','sw_ult1','sw_ult2','sw_ult3']};
 const SLOT_KEYS=['K','L','U','I'];

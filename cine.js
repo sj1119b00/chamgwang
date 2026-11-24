@@ -46,19 +46,35 @@ const C={on:false,t:0,dark:0,darkT:0,dc:'6,4,14',spot:null,cut:null,imp:null,lin
 X.cine=C;
 C.preload=cls=>{ (CUTS[cls]||[]).forEach(img); };
 C.begin=()=>{ C.on=true; C.hscT=1.22; C.t=0; C.cut=null; C.imp=null; C.lines=null; post.caMax=.012; };
-C.end=()=>{ C.on=false; post.tiltT=0; post.tiltK=3; if(C.spotL){ C.spotL.hold=0; C.spotL.life=.3; C.spotL=null; } C.hscT=1; if(C.imp&&C.imp.amb) GFX.amb=C.imp.amb; GFX.ambient(1,1,1,3); if(C.st) C.st.dur=Math.min(C.st.dur,C.st.t+.5); C.darkT=0; C.spot=null; C.lines=null; C.cut=null; C.imp=null; C.veilT=0; V.camT=null; V.camK=0; cam.rollT=0; post.caMax=0; V.blast=null; C.flashCap=.22; for(const d of C.drones) d.stop(); C.drones.length=0; if(beamSnd!==NOP){ beamSnd.stop(); beamSnd=NOP; } };
-C.reset=()=>{ C.end(); V.hsc=1; GFX.reset(); C.st=null; C.dark=0; C.veil=0; C.scars.length=0; C.ash.length=0; C.ashT=0; };
+C.end=()=>{ C.on=false; C.mv=null; C.hs=null; C.zkT=1; C.zkK=8; post.tiltT=0; post.tiltK=3; if(C.spotL){ C.spotL.hold=0; C.spotL.life=.3; C.spotL=null; } C.hscT=1; if(C.imp&&C.imp.amb) GFX.amb=C.imp.amb; GFX.ambient(1,1,1,3); if(C.st) C.st.dur=Math.min(C.st.dur,C.st.t+.5); C.darkT=0; C.spot=null; C.lines=null; C.cut=null; C.imp=null; C.veilT=0; V.camT=null; V.camK=0; cam.rollT=0; post.caMax=0; V.blast=null; C.flashCap=.22; for(const d of C.drones) d.stop(); C.drones.length=0; if(beamSnd!==NOP){ beamSnd.stop(); beamSnd=NOP; } };
+C.reset=()=>{ C.end(); C.zkT=null; V.zk=1; C.pk=null; post.tint=null; V.hsc=1; GFX.reset(); C.st=null; C.dark=0; C.veil=0; C.scars.length=0; C.ash.length=0; C.ashT=0; };
 C.drone=(f,v)=>{ const d=SND.drone(f,v); C.drones.push(d); return d; };
 
 // darkness over the field and the enemies (effects and the hero stay bright); spot = a lit patch of floor
 C.setDark=(a,o={})=>{ C.darkT=Math.min(a,LOW()?.55:.74); if(o.c) C.dc=o.c; C.spot=o.spot===undefined?C.spot:o.spot; };
 // a full-screen colour wash that fades by itself (white-outs, coloured breaths)
 C.wash=(c,a,hold=0,x,y)=>{ a*=.45; C.veilC=c; C.veil=LOW()?a*.4:a; C.veilHold=hold; C.veilP=x==null?null:[x,y]; };
-C.cam=(x,y,k=7)=>{ V.camT=x==null?null:{x,y}; V.camK=k; };
-C.zoom=z=>{ V.zk=z; };
-C.roll=r=>{ cam.rollT=LOW()?r*.3:r; };
+// every camera call eases from where the camera is now (nothing jumps); the latest call for a property wins over a running C.move
+const mvDrop=(...ks)=>{ if(C.mv) for(const k of ks) delete C.mv.to[k]; };
+C.cam=(x,y,k=7)=>{ mvDrop('x','y','home'); V.camT=x==null?null:{x,y}; V.camK=k; };
+// zoom: without k the engine closes the gap in about a tenth of a second; with k (2 slow .. 12 quick) it glides there
+C.zoom=(z,k)=>{ mvDrop('zoom'); if(k){ C.zkT=z; C.zkK=k; } else { C.zkT=null; V.zk=z; } };
+C.roll=r=>{ mvDrop('roll'); cam.rollT=LOW()?r*.3:r; };
 // camera tilt: 0 = the game's top-down view, up to ~.3 = the camera drops toward the floor and the field recedes (k = how fast it gets there)
-C.tilt=(t,k=4)=>{ post.tiltT=LOW()?t*.5:t; post.tiltK=k; };
+C.tilt=(t,k=4)=>{ mvDrop('tilt'); post.tiltT=LOW()?t*.5:t; post.tiltK=k; };
+// a timed move: from wherever the camera is now to `to` in `dur` seconds along an ease ('io' slow-fast-slow, 'out' fast then settling, 'in' gathering speed, 'lin').
+//  to: {x,y (camera centre in the world, like C.cam), zoom, tilt, roll, home:1 (follow the hero again)} - only the listed properties move. It holds there afterwards.
+const EZ={io:k=>k*k*(3-2*k),out:k=>1-(1-k)*(1-k)*(1-k),in:k=>k*k*k,lin:k=>k};
+C.move=(to,dur=.6,ease='io')=>{ C.mv={t:0,dur:Math.max(.001,dur),ez:EZ[ease]||EZ.io,to:{...to},fr:{x:cam.x,y:cam.y,zoom:V.zk||1,tilt:post.tilt||0,roll:cam.roll||0}}; if(to.zoom!=null) C.zkT=null; };
+// glide back to the game camera (the hero, zoom 1, no tilt, no roll)
+C.back=(dur=.8,ease='io')=>C.move({home:1,zoom:1,tilt:0,roll:0},dur,ease);
+C.easeBack=true;
+// the climax on screen: a chromatic split and a radial blur about a world point and a breath of colour over the picture, held for a few frames and eased out.
+//  o: {ca (.02), blur (.1), tint ('#rrggbb'), a (strength of the tint, .3), hold (seconds at full, .05 = 3 frames), out (seconds to ease away, .28)}
+C.peak=(x,y,o={})=>{ const k=LOW()?.35:1; C.pk={t:0,x,y,hold:o.hold??.05,out:o.out??.28,ca:(o.ca??.02)*k,blur:(o.blur??.1)*k,tint:o.tint?GFX.rgb(o.tint):null,ta:(o.a??.3)*k}; };
+// the held breath before the blow: only the floor and the crowd go dark (effects and the hero keep their light), the sound drops, and it all comes back by itself.
+//  o: {a (floor light level, .45), c (tint of what light is left), back (how fast it returns, 14), snd:false to leave the sound alone}
+C.hush=(dur=.2,o={})=>{ const a=o.a??.45, c=o.c?GFX.rgb(o.c):[1,1,1.12], back=(C.hs&&C.hs.back)||GFX.ambT.slice(); GFX.ambient(a*(.6+.4*c[0]),a*(.6+.4*c[1]),a*(.6+.4*c[2]),30); C.hs={t:0,dur,back,ref:GFX.ambT,k:o.back??14}; if(o.snd!==false&&typeof duck==='function') duck(.15,dur); };
 C.shake=s=>{ trauma=Math.min(1.5,Math.max(trauma,LOW()?s*.35:s)); };
 C.release=(x,y,c,v=.5)=>{ K.ripple(x,y,1400,{life:.5,s:.6}); K.light(x,y,1600,c,.9,.5); C.gSparks(x,y,BODY*.6,22,c,{vz:900}); C.gDebris(x,y,8,{s0:250,s1:800,r:120}); C.flash(.2); C.shake(.7); post.ca=.01; fring(x,y,2600,c,.5,9); fring(x,y,1500,'#ffffff',.3,4); gl0(x,y-BODY,360,c,.3,{a:.8}); SFX.boom(1.4,v); SND.shing(.7,.4); };
 C.flash=a=>{ a*=.72; a=LOW()?a*.35:a; C.flashCap=Math.max(C.flashCap,a); post.flash=Math.max(post.flash,a); };
@@ -341,7 +357,19 @@ C.artNow=(name,x,y,z,w,h,c,o={})=>{ const s=C.art(name); if(!s.ok) return false;
     for(let q=0;q<2;q++) C.gArt('fx3_bolt',(x1+x2)/2,(y1+y2)/2,c,{c2:o.c2,c3:o.c3||'#ffffff',add:true,z:(z1+z2)/2,w,h:hh,rot,life:q?life*.7:life,hold:.5,flipX:q?!fl:fl,boil:.01,fps:18,L:o.L??3,delay:(o.delay||0)+q*life*.55,a:q?.8:1}); };
 }
 // ---------------------------------------------------------------- per-frame
-C.step=rdt=>{ C.t+=rdt; GFX.step(rdt); post.tilt=(post.tilt||0)+((post.tiltT||0)-(post.tilt||0))*(1-Math.exp(-rdt*(post.tiltK||4))); V.hsc=lerp(V.hsc||1,C.hscT||1,1-Math.exp(-rdt*5)); if(LOW()){ trauma=Math.min(trauma,.4); post.flash=Math.min(post.flash,.12); } C.dark=lerp(C.dark,C.darkT,1-Math.exp(-rdt*(C.darkT>C.dark?6:3.2)));
+C.step=rdt=>{ C.t+=rdt; GFX.step(rdt);
+  if(C.mv){ const m=C.mv; m.t+=rdt; const k=m.ez(Math.min(1,m.t/m.dur)), T=m.to, F0=m.fr;
+    if(T.home||T.x!=null||T.y!=null){ V.camT={x:lerp(F0.x,T.home?pl.x:(T.x??F0.x),k),y:lerp(F0.y,T.home?pl.gy-BODY*.6:(T.y??F0.y),k)}; V.camK=45; }
+    if(T.zoom!=null) V.zk=lerp(F0.zoom,T.zoom,k);
+    if(T.tilt!=null){ post.tiltT=post.tilt=lerp(F0.tilt,LOW()?T.tilt*.5:T.tilt,k); post.tiltK=4; }
+    if(T.roll!=null) cam.rollT=cam.roll=lerp(F0.roll,LOW()?T.roll*.3:T.roll,k);
+    if(m.t>=m.dur){ if(T.home){ V.camT=null; V.camK=0; } C.mv=null; } }
+  if(C.zkT!=null){ V.zk=lerp(V.zk||1,C.zkT,1-Math.exp(-rdt*(C.zkK||6))); if(Math.abs(V.zk-C.zkT)<.012){ V.zk=C.zkT; C.zkT=null; } }
+  if(C.pk){ const p=C.pk; p.t+=rdt; const u=(p.t-p.hold)/p.out, e=u<=0?1:u>=1?0:(1-u)*(1-u);
+    if(e<=0){ C.pk=null; post.caMax=C.on?.012:0; post.tint=null; }
+    else { post.caMax=Math.max(C.on?.012:.0018,p.ca); post.ca=Math.max(post.ca,p.ca*e); post.blur=Math.max(post.blur,p.blur*e); if(p.x!=null){ const [sx,sy]=w2s(p.x,p.y); post.bc=[sx/W,1-sy/H]; } post.tint=p.tint?[p.tint[0],p.tint[1],p.tint[2],p.ta*e]:null; } }
+  if(C.hs){ const h=C.hs; h.t+=rdt; if(h.t>=h.dur){ if(GFX.ambT===h.ref) GFX.ambient(h.back[0],h.back[1],h.back[2],h.k); C.hs=null; } }
+  post.tilt=(post.tilt||0)+((post.tiltT||0)-(post.tilt||0))*(1-Math.exp(-rdt*(post.tiltK||4))); V.hsc=lerp(V.hsc||1,C.hscT||1,1-Math.exp(-rdt*5)); if(LOW()){ trauma=Math.min(trauma,.4); post.flash=Math.min(post.flash,.12); } C.dark=lerp(C.dark,C.darkT,1-Math.exp(-rdt*(C.darkT>C.dark?6:3.2)));
   if(C.veilHold>0) C.veilHold-=rdt; else C.veil*=Math.exp(-rdt*7);
   C.flashCap=Math.max(.22,C.flashCap-rdt*2.2);
   if(C.cut){ C.cut.t+=rdt; if(C.cut.t>=C.cut.dur) C.cut=null; }

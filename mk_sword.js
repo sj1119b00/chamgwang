@@ -20,6 +20,23 @@ MK.CLIPS.coil=MK.compile({keys:[ [.06,{gr:1,sf:1,sh:0,lw:[0,1,0],hip:[-.06,0,.31
 // he stands out of it: the hand leaves the hilt last
 MK.CLIPS.stand=MK.compile({keys:[ [.5,{hip:[-.02,0,.49],hp:.1,lean:.08,cy:.1,hy:-.25},'io'], [.95,MK.DEF,'io'] ]});
 
+// ---- ordinary skills (sk_sword.js plays these by name)
+// PLUNGE: he sinks, leaves the floor with the blade over his head, hangs, and comes down on it point first (contact at .42)
+{ const cb={gr:1,sf:1,sh:0,lw:[0,1,0],sp:0,kr:.3,kl:.5};
+  MK.CLIPS.swPlunge=MK.compile({keys:[
+    [0,Object.assign({},cb,{tr:0,hip:[0,0,.38],hy:-.1,cy:.1,lean:.3,fr:[.12,.1,0],fl:[-.14,-.09,0],hr:[.14,.16,-.1],sw:MK.dir(1.2,.3),hd:0,hp:.1}),'lin'],
+    [.06,{hip:[0,0,.3],lean:.42},'out'],
+    [.24,{hip:[.02,0,1.5],lean:-.12,fr:[.1,.1,1.08],fl:[-.16,-.09,.98],hr:[.04,.1,.3],sw:MK.dir(2.6,1.1),hp:-.3,cy:.3},'out'],
+    [.33,{hip:[.04,0,1.56],fr:[.14,.1,1.18],fl:[-.2,-.09,1.1],sw:MK.dir(2.8,1.2)},'io'],
+    [.42,{hip:[.1,0,.28],lean:.62,fr:[.34,.1,0],fl:[-.3,-.09,0],hr:[.3,-.02,-.3],sw:MK.dir(-.2,-.9),tr:1,hp:.25,cy:-.2},'in3'],
+    [.5,{hip:[.1,0,.26],tr:0},'spring'],
+    [.76,{hip:[.1,0,.3]},'io'] ]});
+  // FLURRY: six thrusts from a deep lunge (points at .06 + i*.06), the last one driven through with the whole body
+  const ks=[[0,Object.assign({},cb,{tr:0,hip:[.06,0,.38],hy:-.3,cy:.5,lean:.34,fr:[.3,.1,0],fl:[-.3,-.09,0],hr:[.1,.12,-.06],sw:MK.dir(0,.02),hd:-.4,hp:.05}),'lin']];
+  for(let i=0;i<6;i++){ const t=.06+i*.06, v=(i%3-1)*.05; ks.push([t-.025,{hr:[.12,.1+v,-.06+v],tr:0,hip:[.06+.01*i,0,.38]},'out']); ks.push([t,{hr:[.44,.04+v,-.05+v*.6],sw:MK.dir(v,v),tr:1,hip:[.12+.012*i,0,.36]},'in']); }
+  ks.push([.5,{hr:[.46,.04,-.05],hip:[.22,0,.33],lean:.44,tr:0},'out']); ks.push([.72,{hip:[.2,0,.35]},'io']);
+  MK.CLIPS.swStab=MK.compile({keys:ks}); }
+
 function wave(x,y,z,o){ const F=FX3; if(!F.on) return; const K=K3, m=K.mats(), P=K.pal(o.pal), tex=o.tex&&F.ready(o.tex)?o.tex:'fx3_slash', A=K.ART[tex], asp=A.asp, C={cA:P.d,cB:P.b,cC:P.h,cM:P.m}, dir=o.dir, ccw=o.ccw?1:-1, dur=o.dur||.45, g=o.gain||1, sd=Math.random()*9;
   const mt=F.mat({...m.art,tex,layer:'o',nz:'wisp',n1:[1.5,1.5,.4*ccw,.1],n2:[1.2,1.2,.2,.1],dist:.03,mdist:1,rk:A.rk});
   GFX.add(dur,(k,t)=>{ const u=Math.min(1,t/dur), e=1-Math.pow(1-u,2.4), reach=o.r0+(o.r1-o.r0)*e, s=reach/((A.piv[0]-A.edge)*2*asp), d=(o.travel||0)*e, px=x+Math.cos(dir)*d, py=y+Math.sin(dir)*d*FSY, hk=K.eo5(K.sat(t/.05)), f=K.sat((u-.4)/.6);
@@ -228,8 +245,7 @@ MK.ultShade=function(id){ const {V,view,ultStart,ultStop,inLine,hitFx,onScreen}=
 (()=>{ if(!(window.K3&&window.FX3)) return; const K=K3, isS=()=>pl.cls==='sword';
   const flip0=K.flip; K.flip=(x,y,o={})=>{ if(isS()){ const t=o.tex||'v3_flip_blast'; if(t==='v3_flip_blast'&&realOK('blast')) o=Object.assign({},o,{tex:RT_.blast}); else if(t==='v3_flip_smoke'&&realOK('smoke')) o=Object.assign({},o,{tex:RT_.smoke}); } return flip0(x,y,o); };
   const hit0=K.hit; let last=0, n=0; K.hit=(x,y,z,c,pw=1)=>{ hit0(x,y,z,c,pw); if(!isS()||lock) return; if(RT!==last){ last=RT; n=0; } if(n++>5) return;
-    K.sparks(x,y,z,{pal:'crimson',n:Math.round(4+4*pw),sp:[300,1100*pw],up:500,spread:3.14,life:[.15,.45]});
-    if(pw>=1.25&&realOK('blast')) flip0(x,y,{tex:RT_.blast,s:70+50*pw,z:z*.5,dur:.45,pal:'crimson',gain:.85,lift:.5}); };
+    K.sparks(x,y,z,{pal:'crimson',n:Math.round(4+4*pw),sp:[300,1100*pw],up:500,spread:3.14,life:[.15,.45]}); };
   if(K.PAL&&K.PAL.crimson) Object.assign(K.PAL.crimson,{d:'#1a0200',b:'#e6240c',m:'#ffa23a',h:'#fff3cc',l:'#ff3a1a',s:'#ffb890'});
 })();
 })();
