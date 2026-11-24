@@ -12,7 +12,7 @@ window.RPG=G;
 const SAVE_KEY='chamgwang_rpg_v1';
 function freshSave(){ return {v:1,cls:'sword',lv:1,exp:0,sp:0,sl:{},slots:['sw_dash','sw_rise',null,null],ult:null,clear:0}; }
 let SV=(()=>{ try{ const s=JSON.parse(localStorage.getItem(SAVE_KEY)); if(s&&s.v===1) return s; }catch(e){} return freshSave(); })();
-function save(){ try{ localStorage.setItem(SAVE_KEY,JSON.stringify(SV)); }catch(e){} }
+function save(){ if(G.noSave) return; try{ localStorage.setItem(SAVE_KEY,JSON.stringify(SV)); }catch(e){} }
 G.save=()=>SV;
 const CH_KEYS=['lv','exp','sp','sl','slots','ult'];
 function swapClass(c){ if(SV.cls===c) return; SV.chars=SV.chars||{}; const o={}; for(const k of CH_KEYS) o[k]=SV[k]; SV.chars[SV.cls]=o;

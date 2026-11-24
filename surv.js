@@ -5,7 +5,7 @@
 // World: x/y is the floor plane (y = depth), z is height. The hero's floor position is pl.x / pl.gy (the engine draws him at pl.gy).
 'use strict';
 (()=>{
-const G=RPG, A=G.api, SV=()=>A.SV, SK=A.SK, VER=29;
+const G=RPG, A=G.api, SV=()=>A.SV, SK=A.SK, VER=30;
 const ZL=.42, ZP=.5, DUR=300, BOSS_T=240, CAP=340, SPD=430, BODY=170, FAR=1e5;
 const CLS_ORDER=['sword','mage','fist','shaman','pyro'];
 const NAMES={sword:'소드맨',mage:'메이지',fist:'파이터',shaman:'샤먼',pyro:'파이로'};
@@ -39,7 +39,10 @@ const hm=()=>(1+V.t/75)*CH().hp*dif('hp');                // enemy health grows 
 const dm=()=>(1+V.t/150)*CH().dmg*dif('dmg');              // and so does what they hit for
 const alive=()=>V.en.filter(e=>!e.dead);
 const view=()=>({hw:W/(2*S*cam.z),hh:H/(2*S*cam.z)});
-const ACT=()=>(A.ORDER[pl.cls]||[]).filter(id=>SK[id]&&SK[id].type==='skill'&&A.unlocked(id));   // every unlocked skill fires by itself: there are no slots to equip
+const ACT=()=>(A.ORDER[pl.cls]||[]).filter(id=>SK[id]&&SK[id].type==='skill'&&(V.practice||A.unlocked(id)));
+const ULTS=()=>(A.ORDER[pl.cls]||[]).filter(id=>SK[id]&&SK[id].type==='ult'&&(V.practice||A.unlocked(id))&&CLS[pl.cls]&&CLS[pl.cls].ults[id]);
+// the player picks: any unlocked ultimate, when the gauge is full
+function fireUlt(id){ if(G.mode!=='surv'||V.over||lock||G.paused) return false; if(V.ug<100&&!V.practice) return false; const C=CLS[pl.cls]; if(!C||!C.ults[id]||!ULTS().includes(id)) return false; SV().ult=id; C.ults[id](id); return true; }   // every unlocked skill fires by itself: there are no slots to equip
 function nearest(R){ let b=null,bd=R*R; for(const e of V.en){ if(e.dead) continue; const d=(e.x-pl.x)**2+((e.y-pl.gy)/HY)**2; if(d<bd){ bd=d; b=e; } } return b; }
 function countIn(R){ let n=0; for(const e of V.en) if(!e.dead&&(e.x-pl.x)**2+((e.y-pl.gy)/HY)**2<R*R) n++; return n; }
 // the point (an enemy's position) with the most enemies around it, among those within R of the hero
@@ -120,6 +123,7 @@ function spawnPos(){ const {hw,hh}=view(), mx=hw+130, my=hh+200, p=rand(0,2*(mx+
 function spawn(type,x,y){ const d=EN[type]; if(x==null) [x,y]=spawnPos();
   const e={id:V.id++,type,d,x,y,z:0,sv:rand(.9,1.1),vz:0,kx:0,ky:0,hp:d.hp*(d.boss?hm()/dif('hp'):hm()),max:d.hp*(d.boss?hm()/dif('hp'):hm()),h:d.h*d.sc,f:1,walkT:rand(0,1),flash:0,stun:0,hitCd:0,hurtT:0,atk:rand(1,2.5),castT:0,dead:false};
   V.en.push(e); return e; }
+function practiceTick(rdt){ const want=V.pmany?46:14, n=alive().length; V.spawn+=rdt*(V.pmany?14:5); while(V.spawn>=1&&n+0<want){ V.spawn--; if(alive().length>=want) break; const a=rand(0,TAU), r=rand(520,900); spawn(Math.random()<.12?'brute':'shard',pl.x+Math.cos(a)*r,pl.gy+Math.sin(a)*r*.7); } if(V.spawn>2) V.spawn=2; }
 function spawnTick(rdt){
   const t=V.t, n=alive().length, ch=V.ch;
   // they come in packs from just off screen: more packs, and bigger ones, as time goes on
@@ -158,11 +162,12 @@ function pre(rdt){
   pl.home=pl.x;
   // auto attacks: the basic, then any equipped skill that is ready and has a target
   const C=CLS[pl.cls]; if(!C) return;
-  if(V.bcd<=0&&(!anim.seq||anim.seq.basic)&&C.basic.fn()) V.bcd=C.basic.cd();
-  if(V.gcd<=0&&(!anim.seq||anim.seq.basic)) for(const id of ACT()){ if((V.cd[id]||0)>0) continue; const s=C.skills[id]; if(!s||s.passive||(s.moves&&V.steer)) continue; /* a skill that carries the hero off waits while the player is steering */
+  const auto=!V.practice||V.pauto;
+  if(auto&&V.bcd<=0&&(!anim.seq||anim.seq.basic)&&C.basic.fn()) V.bcd=C.basic.cd();
+  if(auto&&V.gcd<=0&&(!anim.seq||anim.seq.basic)) for(const id of ACT()){ if((V.cd[id]||0)>0) continue; const s=C.skills[id]; if(!s||s.passive||(s.moves&&V.steer)) continue; /* a skill that carries the hero off waits while the player is steering */
     if(s.fn(id)!==false){ V.cd[id]=A.cdOf(id); V.gcd=.3; V.bcd=Math.max(V.bcd,.25); break; } }
   E.dead=false; E.hp=E.max; E.respawn=1e9; E.x=pl.x+FAR;
-  const uid=SV().ult; if(uid&&A.unlocked(uid)&&V.ug>=100&&(countIn(1500)>=8||(V.boss&&!V.boss.dead))&&C.ults[uid]) C.ults[uid](uid);
+  if(V.practice) V.ug=100;
 }
 function post(rdt){
   const dt=hitstop>0?0:rdt*timeScale;
@@ -171,11 +176,11 @@ function post(rdt){
   for(let i=V.dying.length-1;i>=0;i--){ V.dying[i].t+=rdt; if(V.dying[i].t>V.dying[i].life) V.dying.splice(i,1); }
   for(let i=V.shards.length-1;i>=0;i--){ const s=V.shards[i]; s.t+=dt; s.x+=s.vx*dt; s.y+=s.vy*dt; s.vz-=2600*dt; s.z+=s.vz*dt; s.rot+=s.vr*dt; if(s.z<0){ s.z=0; s.vz*=-.3; s.vx*=.5; s.vy*=.5; } if(s.t>s.life) V.shards.splice(i,1); }
   if(lock){ const kd=Math.exp(-rdt*8); for(const e of V.en){ if(e.dead) continue; e.flash=Math.max(0,e.flash-rdt*6); e.hurtT-=rdt; e.x+=e.kx*rdt; e.y+=e.ky*rdt; e.kx*=kd; e.ky*=kd; if(e.z>0||e.vz>0){ e.vz-=3000*rdt; e.z+=e.vz*rdt; if(e.z<=0){ e.z=0; e.vz=0; } } } V.en=V.en.filter(e=>!e.dead); return; }
-  if(!V.over){ V.t+=rdt; if(V.t>=DUR) finish(true); spawnTick(rdt); }
+  if(!V.over&&V.practice) practiceTick(rdt); else if(!V.over){ V.t+=rdt; if(V.t>=DUR) finish(true); spawnTick(rdt); }
   stepEnemies(dt); stepOrbs(dt); stepZones(dt); stepProj(dt); if(!V.over) stepPickups(dt);
   for(let i=V.mk.length-1;i>=0;i--){ const m=V.mk[i]; m.t+=dt; if(m.t>=m.dur){ V.mk.splice(i,1); spike(m); } }
   // persistent EXP is banked in batches (each bank saves)
-  V.accT-=rdt; if(V.acc>0&&V.accT<=0){ const lv=SV().lv; A.gainExp(V.acc); V.run+=V.acc; V.acc=0; V.accT=.5;
+  V.accT-=rdt; if(V.practice) V.acc=0; if(V.acc>0&&V.accT<=0){ const lv=SV().lv; A.gainExp(V.acc); V.run+=V.acc; V.acc=0; V.accT=.5;
     if(SV().lv>lv){ fring(pl.x,pl.gy,1400,'#ffcf4a',.6,7); gl0(pl.x,pl.gy-BODY,260,'#ffcf4a',.5,{grow:300,a:.6}); buildBar(); } }
   V.en=V.en.filter(e=>!e.dead);
   hud();
@@ -426,6 +431,21 @@ const css=document.createElement('style'); css.textContent=`
 #shud .bb small{display:block;text-align:center;font:900 13px "Malgun Gothic",sans-serif;margin-bottom:3px}
 #shud .bb div{height:12px;background:rgba(0,0,0,.6);border:1px solid rgba(255,255,255,.4)} #shud .bb i{display:block;height:100%}
 #shud .sk{margin-top:auto;align-self:center;display:flex;gap:5px;justify-content:center}
+#shud .ul{position:absolute;right:max(14px,env(safe-area-inset-right));bottom:max(16px,env(safe-area-inset-bottom));display:flex;flex-direction:column-reverse;gap:8px;pointer-events:auto;align-items:flex-end}
+#shud .ul button{position:relative;width:74px;height:74px;border-radius:50%;border:2px solid rgba(255,255,255,.28);background:rgba(10,6,20,.72);color:#cfc8dc;font:900 12px "Malgun Gothic",sans-serif;line-height:1.1;word-break:keep-all;overflow:hidden;cursor:pointer;padding:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;-webkit-tap-highlight-color:transparent;touch-action:none}
+#shud .ul button img{width:34px;height:34px;object-fit:contain;opacity:.55;pointer-events:none} #shud .ul button span{pointer-events:none;text-shadow:0 1px 2px #000}
+#shud .ul button::before{content:"";position:absolute;inset:0;background:conic-gradient(rgba(0,0,0,0) var(--u,0%),rgba(0,0,0,.62) 0);border-radius:50%;pointer-events:none}
+#shud .ul.rd button{border-color:var(--cc,#ffcf4a);color:#fff;box-shadow:0 0 0 2px rgba(0,0,0,.5),0 0 18px var(--cc,#ffcf4a);animation:ulp 1s ease-in-out infinite} #shud .ul.rd button img{opacity:1} #shud .ul.rd button::before{display:none}
+#shud .ul button:nth-child(2){margin-right:58px} #shud .ul button:nth-child(3){margin-right:20px}
+@keyframes ulp{50%{box-shadow:0 0 0 2px rgba(0,0,0,.5),0 0 30px var(--cc,#ffcf4a)}}
+body.cine #shud .ul,body.cine #shud .pp{opacity:.0;pointer-events:none;transition:opacity .2s}
+#shud .pp{display:none;position:absolute;left:max(10px,env(safe-area-inset-left));top:74px;bottom:8px;width:min(224px,31vw);flex-direction:column;gap:6px;pointer-events:auto;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-right:2px}
+#shud.prac .pp{display:flex} #shud.prac .sk{visibility:hidden} #shud.prac .mid,#shud.prac .xb,#shud.prac .rw:nth-child(3),#shud.prac .rw:nth-child(4){visibility:hidden}
+#shud .pp h4{margin:2px 0 0;font:900 11px "Malgun Gothic",sans-serif;color:#b9aacd;letter-spacing:.06em}
+#shud .pp .row{display:flex;flex-wrap:wrap;gap:4px}
+#shud .pp button{font:800 11.5px "Malgun Gothic",sans-serif;color:#fff;background:rgba(14,9,26,.78);border:1px solid rgba(255,255,255,.26);border-radius:9px;padding:7px 8px;cursor:pointer;line-height:1.1;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+#shud .pp button.on{border-color:var(--cc,#ffcf4a);box-shadow:inset 0 0 0 1px var(--cc,#ffcf4a);color:#fff} #shud .pp button.u{border-color:#ffcf4a;color:#ffe9a8} #shud .pp button.x{border-color:#ff5a6e;color:#ffb3bd}
+#shud .pp .cls button{flex:1 1 30%}
 #shud .c{position:relative;width:52px;height:46px;border-radius:12px;border:1.5px solid var(--cc,rgba(255,255,255,.3));background:rgba(10,6,20,.7);display:flex;align-items:center;justify-content:center;text-align:center;font:800 11px "Malgun Gothic",sans-serif;line-height:1.15;word-break:keep-all;overflow:hidden;padding:3px;box-sizing:border-box}
 #shud .c.off{opacity:.3} #shud .c.u{border-color:rgba(255,255,255,.6)} #shud .c.u.rd{box-shadow:0 0 0 2px #fff}
 #shud .c .cd{position:absolute;inset:0;border-radius:inherit;z-index:2;pointer-events:none}
@@ -488,21 +508,43 @@ document.head.appendChild(css);
 const mk=(id,html)=>{ const d=document.createElement('div'); d.id=id; d.className='sv'; d.innerHTML=html||''; document.body.appendChild(d); return d; };
 const ultEl=mk('sult'); ultEl.className='';
 const joyEl=mk('sjoy','<div class="bs"></div><div class="kn"></div>'), hudEl=mk('shud'), resEl=mk('sres');
-hudEl.innerHTML='<div class="top"><div class="me"><b></b><div class="rw"><em>HP</em><div class="hpb"><i></i><span></span></div></div><div class="rw"><em>EXP</em><div class="xb"><i></i></div></div><div class="rw"><em>궁극</em><div class="ub"><i></i></div></div></div><div class="mid"><div class="tm">0:00</div><div class="kc"></div></div><button class="pz">❚❚</button></div><div class="bb"><small></small><div><i></i></div></div><div class="sk"></div>';
+hudEl.innerHTML='<div class="top"><div class="me"><b></b><div class="rw"><em>HP</em><div class="hpb"><i></i><span></span></div></div><div class="rw"><em>EXP</em><div class="xb"><i></i></div></div><div class="rw"><em>궁극</em><div class="ub"><i></i></div></div></div><div class="mid"><div class="tm">0:00</div><div class="kc"></div></div><button class="pz">❚❚</button></div><div class="bb"><small></small><div><i></i></div></div><div class="pp"></div><div class="ul"></div><div class="sk"></div>';
 hudEl.querySelector('.pz').addEventListener('pointerdown',e=>{ e.preventDefault(); e.stopPropagation(); if(G.mode==='surv'&&!V.over) A.setPause(true); });
 const $=s=>hudEl.querySelector(s);
 const mmss=s=>Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0');
 const ICON={"sw_basic":"slash06","sw_dash":"cleave05","sw_rise":"slash05","sw_wave":"slash07","sw_spin":"impact04","sw_fly":"goldsword03","sw_plunge":"td_colossal07","sw_thrust":"impact03","sw_counter":"td_zeroburst06","sw_ult1":"td_cutline06","sw_ult2":"td_swordfall07","sw_ult3":"td_cutline06","mg_basic":"mage_bolt04","mg_bolt":"mage_lightning04","mg_orb":"fx_mage_orb05","mg_chain":"mage_lightning06","mg_nova":"fx_mage_nova07","mg_vortex":"fx_mage_vortex05","mg_field":"fx_mage_field05","mg_star":"fx_mage_star08","mg_beam":"fist_beam04|80","mg_ult1":"fx_mage_megabolt09","mg_ult2":"fx_mage_meteor09","fs_basic":"fist_impact04","fs_dash":"fist_impact05","fs_upper":"fist_impact03","fs_ki":"fx_fist_kiball05","fs_stomp":"fx_fist_shock07","fs_rush":"fx_fist_barrage07","fs_tornado":"fx_fist_tornado05","fs_aura":"fx_fist_aura05","fs_giga":"fist_beam04","fs_ult1":"fist_beam06","fs_ult2":"fx_fist_sunblast08","sh_basic":"shaman_talisman04","sh_bomb":"shaman_burst04","sh_spike":"fx_shaman_spike07","sh_wisp":"fx_shaman_wisp05","sh_heal":"td_circle05|110","sh_rock":"fx_shaman_rock07","sh_seal":"fx_shaman_seal05","sh_wolf":"fx_shaman_wolf05","sh_palm":"fx_shaman_palm08","sh_ult1":"fx_shaman_rock08","sh_ult2":"fx_shaman_palm06","py_basic":"pyro_fireball04","py_dash":"pyro_explosion03","py_pillar":"fx_pyro_pillar06","py_ring":"fx_pyro_ring05","py_boom":"pyro_explosion05","py_rain":"pyro_fireball06","py_breath":"fx_pyro_breath07","py_tornado":"fx_pyro_tornado05","py_nova":"fx_pyro_nova06","py_ult1":"fx_pyro_tornado08","py_ult2":"fx_pyro_dragon05"};
 const icon=id=>{ const v=ICON[id]; if(!v) return ''; const [n,h]=v.split('|'); return `<img class="ic" src="assets/vfx_${n}.webp?v=${ASSET_V}" alt=""${h?` style="filter:hue-rotate(${h}deg)"`:''}>`; };
 G.sv_icon=icon;
-const SHORT={"체인 라이트닝": "체인", "플라잉 소드": "플라잉", "기가 임팩트": "기가", "스피릿 핸드": "핸드", "스톤 스파이크": "스파이크", "드래곤 블레이즈": "드래곤", "파이어 토네이도": "토네이도", "파이어 스톰": "스톰", "플레임 쓰로워": "화염방사", "플레임 대시": "대시", "파이어 필러": "필러", "파이어 레인": "파이어레인", "플레임 링": "플레임링", "익스플로전": "폭발", "프로스트 노바": "노바", "아케인 오브": "오브", "아케인 레이": "레이", "썬더 필드": "필드", "헤븐 썬더": "썬더", "메테오 폴": "메테오", "매직 볼트": "볼트", "라이트닝": "번개", "그래비티": "중력", "콤보 펀치": "펀치", "대시 펀치": "대시", "라이징 어퍼": "어퍼", "러쉬 펀치": "러쉬", "회오리 킥": "회오리", "아이언 바디": "아이언", "하이퍼 빔": "빔", "솔라 크래쉬": "솔라", "탈리스만": "부적", "카드 봄": "카드봄", "스피릿 오브": "영혼불", "힐링 서클": "힐링", "스피릿 울프": "울프", "스톤 레인": "스톤", "스피릿 킹": "킹", "파이어 볼": "화염구", "제로 슬래시": "제로", "소드 레인": "레인", "슬래시": "슬래시"};
+const SHORT={"그림자 난무": "난무", "체인 라이트닝": "체인", "플라잉 소드": "플라잉", "기가 임팩트": "기가", "스피릿 핸드": "핸드", "스톤 스파이크": "스파이크", "드래곤 블레이즈": "드래곤", "파이어 토네이도": "토네이도", "파이어 스톰": "스톰", "플레임 쓰로워": "화염방사", "플레임 대시": "대시", "파이어 필러": "필러", "파이어 레인": "파이어레인", "플레임 링": "플레임링", "익스플로전": "폭발", "프로스트 노바": "노바", "아케인 오브": "오브", "아케인 레이": "레이", "썬더 필드": "필드", "헤븐 썬더": "썬더", "메테오 폴": "메테오", "매직 볼트": "볼트", "라이트닝": "번개", "그래비티": "중력", "콤보 펀치": "펀치", "대시 펀치": "대시", "라이징 어퍼": "어퍼", "러쉬 펀치": "러쉬", "회오리 킥": "회오리", "아이언 바디": "아이언", "하이퍼 빔": "빔", "솔라 크래쉬": "솔라", "탈리스만": "부적", "카드 봄": "카드봄", "스피릿 오브": "영혼불", "힐링 서클": "힐링", "스피릿 울프": "울프", "스톤 레인": "스톤", "스피릿 킹": "킹", "파이어 볼": "화염구", "제로 슬래시": "제로", "소드 레인": "레인", "슬래시": "슬래시"};
 const short=n=>SHORT[n]||n;
 let cells=[];
-function buildBar(){ const L=[[A.ORDER[pl.cls][0],'basic'],...ACT().map(id=>[id,'s']),[SV().ult,'u']];
+function buildBar(){ const L=[[A.ORDER[pl.cls][0],'basic'],...ACT().map(id=>[id,'s'])]; buildUlts(); buildPractice();
   $('.sk').innerHTML=L.map(([id,k])=>`<div class="c ${k==='u'?'u':''} ${id&&SK[id]&&A.unlocked(id)?'':'off'}" style="--cc:${CCOL[pl.cls]}"><div class="cd"></div>${id&&SK[id]&&A.unlocked(id)?icon(id)+'<span>'+short(SK[id].name)+'</span>':'<span>—</span>'}${k==='u'?'<i class="um"></i>':''}<b class="cs"></b></div>`).join('');
   $('.sk').style.zoom=Math.min(1,(Math.min(innerWidth,520)-16)/(L.length*61)); cells=[...$('.sk').children].map((el,i)=>({el,cd:el.querySelector('.cd'),cs:el.querySelector('.cs'),id:L[i][0],k:L[i][1]})); V.lv=SV().lv; }
+function stopEv(e){ e.preventDefault(); e.stopPropagation(); }
+function buildUlts(){ const el=$('.ul'); el.style.setProperty('--cc',CCOL[pl.cls]); el.innerHTML=ULTS().map(id=>`<button data-u="${id}">${icon(id)}<span>${short(SK[id].name)}</span></button>`).join('');
+  el.querySelectorAll('button').forEach(b=>b.addEventListener('pointerdown',e=>{ stopEv(e); fireUlt(b.dataset.u); })); }
+// the practice room's own panel: who, which skill, and how the room behaves
+function buildPractice(){ const el=$('.pp'); hudEl.classList.toggle('prac',!!V.practice); if(!V.practice){ el.innerHTML=''; return; } el.style.setProperty('--cc',CCOL[pl.cls]);
+  const ids=A.ORDER[pl.cls]||[], sk=ids.filter(id=>SK[id]&&SK[id].type==='skill'&&CLS[pl.cls]&&CLS[pl.cls].skills[id]&&CLS[pl.cls].skills[id].fn), ul=ULTS(), lv5=V.plv===5;
+  el.innerHTML=`<h4>직업</h4><div class="row cls">${CLS_ORDER.map(c=>`<button data-pc="${c}" class="${c===pl.cls?'on':''}">${NAMES[c]}</button>`).join('')}</div>
+    <h4>설정</h4><div class="row"><button data-po="auto" class="${V.pauto?'on':''}">자동 시전 ${V.pauto?'켜짐':'꺼짐'}</button><button data-po="lv" class="${lv5?'on':''}">스킬 ${lv5?'진화(Lv5)':'기본(Lv1)'}</button><button data-po="many" class="${V.pmany?'on':''}">적 ${V.pmany?'많이':'보통'}</button><button data-po="clear">적 지우기</button><button class="x" data-po="exit">나가기</button></div>
+    <h4>스킬 (누르면 바로 시전)</h4><div class="row"><button data-ps="__basic">${short((SK[ids[0]]||{}).name||'평타')}</button>${sk.map(id=>`<button data-ps="${id}">${short(SK[id].name)}</button>`).join('')}</div>
+    <h4>궁극기</h4><div class="row">${ul.map(id=>`<button class="u" data-pu="${id}">${SK[id].name}</button>`).join('')}</div>`;
+  const on=(sel,fn)=>el.querySelectorAll(sel).forEach(b=>{ b.addEventListener('pointerdown',e=>e.stopPropagation()); b.onclick=e=>{ e.stopPropagation(); fn(b); }; });
+  on('[data-pc]',b=>{ const c=b.dataset.pc; if(c===pl.cls||lock) return; A.swapClass(c); setClass(c,true); practiceLevels(); start(V.ch,{practice:true,keep:true}); });
+  on('[data-ps]',b=>{ if(lock||V.over) return; const C=CLS[pl.cls], id=b.dataset.ps; if(!C) return; anim.seq=null; if(id==='__basic'){ C.basic.fn(); V.bcd=C.basic.cd(); return; } const sk_=C.skills[id]; if(sk_&&sk_.fn){ V.cd[id]=0; if(sk_.fn(id)!==false) V.cd[id]=A.cdOf(id); else A.toast&&A.toast('대상이 범위 안에 없습니다'); } });
+  on('[data-pu]',b=>fireUlt(b.dataset.pu));
+  on('[data-po]',b=>{ const k=b.dataset.po; if(k==='exit'){ if(!lock) A.toMenu(); return; } if(k==='clear'){ for(const e of V.en) if(!e.dead&&!e.d.boss){ e.dead=true; } V.en=V.en.filter(e=>!e.dead); return; }
+    if(k==='auto') V.pauto=!V.pauto; else if(k==='many') V.pmany=!V.pmany; else if(k==='lv'){ V.plv=V.plv===5?1:5; practiceLevels(); } buildBar(); }); }
+// practice works on a copy of the save: every skill at the chosen level, nothing written back
+function practiceLevels(){ const sv=SV(); sv.sl=sv.sl||{}; for(const id of (A.ORDER[pl.cls]||[])) if(SK[id]&&SK[id].type!=='ult') sv.sl[id]=V.plv===5?5:1; }
+let PSNAP=null;
+function practiceEnter(){ if(!PSNAP) PSNAP=JSON.stringify(SV()); G.noSave=true; V.plv=V.plv||5; practiceLevels(); }
+function practiceLeave(){ if(!PSNAP) return; const sv=SV(), o=JSON.parse(PSNAP); PSNAP=null; for(const k of Object.keys(sv)) if(!(k in o)) delete sv[k]; Object.assign(sv,o); G.noSave=false; if(pl.cls!==sv.cls) setClass(sv.cls,true); A.save(); }
 function hud(){
   if(V.lv!==SV().lv) buildBar();
+  { const u=$('.ul'); u.classList.toggle('rd',V.ug>=100); u.style.setProperty('--u',V.ug+'%'); }
   $('.me b').textContent=`${NAMES[pl.cls]} · Lv ${SV().lv}`; $('.xb i').style.width=(SV().exp/A.needExp(SV().lv)*100)+'%';
   $('.hpb i').style.width=clamp(G.hp/A.maxHp(),0,1)*100+'%'; $('.hpb span').textContent=`${Math.max(0,Math.round(G.hp))} / ${A.maxHp()}`;
   $('.ub i').style.width=V.ug+'%'; $('.ub').classList.toggle('full',V.ug>=100);
@@ -525,22 +567,26 @@ joyEl.addEventListener('pointerup',joyUp); joyEl.addEventListener('pointercancel
 // keyboard (rpg.js hands key events over while in this mode)
 const KM={KeyA:'l',ArrowLeft:'l',KeyD:'r',ArrowRight:'r',KeyW:'u',ArrowUp:'u',KeyS:'d',ArrowDown:'d'};
 G.survKey=(e,down)=>{ const k=KM[e.code]; if(k){ V.keys[k]=down; e.preventDefault(); return; }
+  if(down&&/^Digit[1-3]$/.test(e.code)){ const id=ULTS()[+e.code.slice(5)-1]; if(id) fireUlt(id); return; }
   if(down&&e.code==='Escape'&&!V.over) A.setPause(!G.paused); };
 addEventListener('blur',()=>{ V.keys={}; joyHide(); });
 
 // ============================================================ run flow
-function start(ch){ if(window.K3&&K3.tune) K3.tune();
+function start(ch,o={}){ if(window.K3&&K3.tune) K3.tune(); const prac=!!o.practice, keep=prac&&o.keep?{pauto:V.pauto,pmany:V.pmany,plv:V.plv}:{pauto:false,pmany:false,plv:5};
   if(!AC) initAudio(); if(AC&&AC.state!=='running') AC.resume();
-  Object.assign(V,{t:0,ch:ch??V.ch,en:[],pj:[],gems:[],items:[],nums:[],shards:[],mk:[],orbs:[],zones:[],kills:0,run:0,acc:0,accT:0,ug:0,cd:{},gcd:0,bcd:.5,chain:0,dash:null,boss:null,bossDone:false,cuts:[],shadow:null,shads:[],ultDraw:null,dying:[],draws:[],zk:1,ultTick:null,spawn:0,horde:0,over:false,keys:{},mag:0,armor:0,id:0});
+  Object.assign(V,{t:0,ch:ch??V.ch,en:[],pj:[],gems:[],items:[],nums:[],shards:[],mk:[],orbs:[],zones:[],kills:0,run:0,acc:0,accT:0,ug:0,cd:{},gcd:0,bcd:.5,chain:0,dash:null,boss:null,bossDone:false,cuts:[],shadow:null,shads:[],ultDraw:null,dying:[],draws:[],zk:1,ultTick:null,spawn:0,horde:0,over:false,keys:{},mag:0,armor:0,id:0,practice:prac,god:prac,...keep,lv:-1});
+  if(prac) practiceEnter();
   joyHide(); G.mode='surv'; G.paused=false; G.hp=A.maxHp(); G.inv=0; G.jz=G.jv=0; G.runT=0; G.landT=0; G.stats={kills:0,dmg:0,exp:0,t:RT}; combo=0;
   lock=false; anim.seq=null; parts.length=0; timers.length=0; fires.length=0; cutin=null; warn=null; timeScale=1; slowHold=0; hitstop=0; trauma=0; if(G.sv.cine){ G.sv.cine.reset(); G.sv.cine.preload(pl.cls); } window.LBK=.05;
   pl.target=IDLE(); pl.ps=12; pl.visible=true; pl.air=pl.airT=0; pl.f=1; pl.x=pl.home=VW/2; pl.gy=770; GROUND=FAR;
   E.dead=false; E.respawn=1e9; cam.x=cam.fx=pl.x; cam.y=cam.fy=pl.gy-BODY*.6; cam.z=cam.fz=PORTRAIT?ZP:ZL; cam.ft=99;
   A.menuEl.classList.remove('on'); resEl.classList.remove('on'); document.body.classList.add('surv'); hudEl.classList.add('on'); joyEl.classList.add('on'); buildBar(); hud();
+  if(prac){ V.ug=100; for(let i=0;i<12;i++){ const a=i/12*TAU, r=rand(480,760); spawn(i%6===5?'brute':'shard',pl.x+Math.cos(a)*r,pl.gy+Math.sin(a)*r*.7); } if(!o.keep) add({k:'banner',name:'연습장',en:'PRACTICE · 모든 스킬을 자유롭게',c:'#ffcf4a',life:2}); return; }
   for(let i=0;i<10;i++) spawn('shard');
   add({k:'banner',name:CH().name,en:'CHAPTER '+(V.ch+1)+' · SURVIVE 5:00',c:CH().acc,life:2.4});
 }
 function end(){ // leaving the mode: hand the engine back its ground line and camera
+  if(V.practice){ V.practice=false; V.god=false; practiceLeave(); hudEl.classList.remove('prac'); }
   V.over=true; joyHide(); hudEl.classList.remove('on'); joyEl.classList.remove('on'); resEl.classList.remove('on'); document.body.classList.remove('surv','cine');
   V.en=[]; V.pj=[]; V.gems=[]; V.items=[]; V.nums=[]; V.shards=[]; V.mk=[]; V.orbs=[]; V.zones=[];
   parts.length=0; timers.length=0; fires.length=0; cutin=null; warn=null; lock=false; anim.seq=null; timeScale=1; slowHold=0; if(G.sv.cine) G.sv.cine.reset(); window.LBK=undefined; ov.lbT=0; ov.dimT=0; post.grayT=0; post.tilt=post.tiltT=0; if(window.GFX) GFX.gain=1.25; V.zk=1; V.ultTick=null; pl.visible=true; G.pose=null;
@@ -573,11 +619,11 @@ G.menuOverride=el=>{
   if(tab==='ch') h+=CHAP.map((c,i)=>{ const b=(sv.best||{})[cls+i]; return `<button class="chp ${i===sel?'on':''}" data-ch="${i}" style="--c:${c.acc}" ${i>open?'disabled':''}><i></i><div><b>${i+1}. ${c.name}</b><small>${c.en} · 보스 ${c.boss} · 권장 Lv ${c.rec}</small></div><em>${i<(sv.chClear||0)?'클리어':i===open?'도전':'잠김'}${b?'<br>'+mmss(b):''}</em></button>`; }).join('');
   else h+=ids.map(id=>{ const s=SK[id]; if(!s) return ''; const un=A.unlocked(id), lv=A.sLv(id), ev=lv>=5;
     let bt='';
-    if(un&&s.type==='ult') bt+=`<button data-ult="${id}" class="${sv.ult===id?'on':''}">${sv.ult===id?'장착 중':'장착'}</button>`;
+    if(un&&s.type==='ult') bt+=`<span style="font:800 11px 'Malgun Gothic',sans-serif;color:#ffcf4a">전투 중 버튼으로 발동</span>`;
     if(un&&s.type!=='ult') bt+=`<button class="up" data-up="${id}" ${sv.sp<1||lv>=5?'disabled':''}>${lv>=5?'진화 완료':lv===4?'진화 (SP 1)':'강화 (SP 1)'}</button>`;
     const tag=s.type==='ult'?'<span class="t u">궁극기</span>':s.type==='basic'?'<span class="t">기본 공격</span>':`<span class="t">쿨 ${A.cdOf(id).toFixed(1)}초 · 자동 사용</span>`;
     return `<div class="sr ${un?'':'lock'}"><div><b>${s.name}</b>${tag}</div><div class="lv ${ev?'ev':''}">${s.type==='ult'?'':ev?'★ 진화':'Lv '+lv+'/5'}</div><p>${un?s.desc+(s.evo&&s.type!=='ult'?'<br><span style="color:#ffcf4a">진화: '+s.evo+'</span>':''):'Lv '+s.lv+'에 해금'}</p>${bt?'<div class="bt">'+bt+'</div>':''}</div>`; }).join('');
-  h+=`</div><button class="go">챕터 ${sel+1} 시작 · ${CHAP[sel].name}</button></div>`;
+  h+=`</div><div style="display:flex;gap:8px"><button class="go" style="flex:1 1 auto">챕터 ${sel+1} 시작 · ${CHAP[sel].name}</button><button class="go pr" style="flex:0 0 auto;background:rgba(20,14,34,.9);border:1.5px solid #ffcf4a;color:#ffe9a8;padding-left:18px;padding-right:18px">연습장</button></div></div>`;
   el.innerHTML=h;
   const R=()=>A.menuRender();
   el.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{ const c=b.dataset.c; if(c===pl.cls) return; A.swapClass(c); setClass(c,true); R(); });
@@ -589,6 +635,7 @@ G.menuOverride=el=>{
   el.querySelectorAll('[data-up]').forEach(b=>b.onclick=()=>{ const id=b.dataset.up; if(sv.sp<1||A.sLv(id)>=5) return; sv.sp--; sv.sl[id]=A.sLv(id)+1; A.save(); R(); });
   el.querySelectorAll('[data-opt]').forEach(b=>b.onclick=()=>{ sv.opt=sv.opt||{}; sv.opt[b.dataset.opt]=!sv.opt[b.dataset.opt]; A.save(); R(); });
   el.querySelector('.go').onclick=()=>{ goFull(); start(sel); };
+  el.querySelector('.pr').onclick=()=>{ goFull(); start(sel,{practice:true}); };
 };
 // a new character starts with its first two skills equipped
 G.firstSkills=c=>{ const L=(A.ORDER[c]||[]).filter(id=>SK[id]&&SK[id].type==='skill'&&SK[id].lv<=1); const sv=SV(); sv.slots=[L[0]||null,L[1]||null,null,null]; };
