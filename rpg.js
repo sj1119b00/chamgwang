@@ -36,7 +36,7 @@ const SK={
   sw_ult2:{cls:'sword',type:'ult',name:'소드 레인',lv:12,desc:'궁극기. 천 자루의 검을 부채꼴로 쏟아붓는다.',fn:()=>ultSwords()},
   sw_ult3:{cls:'sword',type:'ult',name:'그림자 난무',lv:5,desc:'궁극기. 열두 그림자가 전장 끝에서 끝까지 가로지르고, 납도와 함께 모든 검격이 열린다. (스틱맨 모드 전용 연출)',fn:()=>ultMetten()},
 };
-const ORDER={sword:['sw_basic','sw_dash','sw_rise','sw_wave','sw_spin','sw_fly','sw_plunge','sw_thrust','sw_counter','sw_ult1','sw_ult2']};
+const ORDER={sword:['sw_basic','sw_dash','sw_rise','sw_wave','sw_spin','sw_fly','sw_plunge','sw_thrust','sw_counter','sw_ult1','sw_ult2','sw_ult3']};
 const SLOT_KEYS=['K','L','U','I'];
 const MAXSL=5;
 const unlocked=id=>SV.lv>=SK[id].lv;
