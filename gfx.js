@@ -188,7 +188,7 @@ function drawPts(){ for(const p of X.pts){ const k=p.t/p.life, a=p.a*(p.fade==='
 // X.light(x,y,r,c,a,life): a coloured light on the floor and everything standing on it (up to 4 strongest are used)
 X.light=(x,y,r,c,a=1,life=.5,o={})=>{ const L={x,y,z:o.z||0,r,c:rgb(c),a,t:0,life,hold:o.hold||0,flick:o.flick||0}; X.lights.push(L); return L; };
 // ambient: the scene's own light level and tint during a sequence; eases toward the target
-X.ambient=(r,g,b,k=6)=>{ X.ambT=[r,g,b]; X.ambK=k; };
+X.ambient=(r,g,b,k=6)=>{ X.ambT=[Math.max(.4,r),Math.max(.4,g),Math.max(.44,b)]; X.ambK=k; };
 // one-shot refraction ring growing over the floor
 X.ripple=(x,y,R,o={})=>{ if(!X.on||(X.calm&&X.calm())) return; const life=o.life||.6, st=X.st(9,'mix',{rt:'dist'}), s=o.s??.6; X.add(life,k=>{ const e=1-(1-k)*(1-k); X.floor(st,x,y,R,null,0,[0,0,0],(1-k)*(1-k),e*.92,0,o.w||.09,s,o.z||0); },o.delay||0); };
 

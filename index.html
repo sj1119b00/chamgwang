@@ -248,7 +248,7 @@ void main(){vec2 p=v;float asp=res.x/res.y;
   col+=c*(1.-fr.a)+fr.rgb*2.;nn+=1.;}
  col/=nn;
  vec4 vx=vec4(0.);vec3 scn=col;
- if(vfxK>0.){vec3 lit=amb;vec3 hz=vec3(0.);for(int i=0;i<4;i++){if(glp[i].w>.001){vec2 d=(v-glp[i].xy)*vec2(asp,1.);float f=glp[i].w/(1.+dot(d,d)/(glp[i].z*glp[i].z));f*=f;lit+=glc[i]*f*1.6;hz+=glc[i]*f*.035;}}
+ if(vfxK>0.){vec3 lit=amb;vec3 hz=vec3(0.);for(int i=0;i<4;i++){if(glp[i].w>.001){vec2 d=(v-glp[i].xy)*vec2(asp,1.);float f=glp[i].w/(1.+dot(d,d)/(glp[i].z*glp[i].z));f*=f;lit+=glc[i]*min(f,.9)*.75;hz+=glc[i]*f*.02;}}
   col=col*lit+hz;scn=col;vx=texture2D(vfxT,p);col=col*(1.-vx.a)+vx.rgb*vfxK;}
  vec3 B3=texture2D(b3,p).rgb;
  vec3 bloom=(texture2D(b1,p).rgb*.32+texture2D(b2,p).rgb*.3+B3*.26)*2.*bloomK;

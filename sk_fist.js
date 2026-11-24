@@ -141,8 +141,7 @@ function ultSun(id){ ultStart(id); ov.lbT=0; const Cn=X.cine, K=GFX, {hw,hh}=vie
     const r=sun.r; Ls.x=sun.x; Ls.y=sun.y; Ls.a=Math.min(.75,r/400); Ls.r=1100+r*3; Ls.t=0;
     K.bill(stG,sun.x,sun.y,sun.z,r*3,r*3,0,TSu.c,.22); K.bill(stG,sun.x,sun.y,sun.z,r*1.5,r*1.5,0,K.rgb('#ff5a08'),.5);
     for(let i=0;i<7;i++){ const a=i/7*TAU+RT*.5; K.bill(stFl,sun.x+Math.cos(a)*r*.82,sun.y,sun.z+Math.sin(a)*r*.82,r*.6,r*.6,a,TSu.c,.9,.25+.2*Math.sin(RT*3+i),K.tq(12,i),1.1,1.3); }   // the corona: drawn flame round the rim
-    K.bill(stSun,sun.x,sun.y,sun.z,r*1.5,r*1.5,RT*.35,[1,.62,.22],.8,0,0,1,0); K.bill(stSun,sun.x,sun.y,sun.z,r*1.72,r*1.72,-RT*.22,[1,.4,.12],.4,0,0,1,0);
-    K.bill(stG,sun.x,sun.y,sun.z,r*.5,r*.5,0,[1,.95,.8],.5);
+    Cn.artNow('fx2_burst',sun.x,sun.y,sun.z,r*1.5,r*1.4,SUN,{c2:'#a02800',c3:'#fff6c8',rot:RT*.5,ph:K.tq(10,1),boil:.03,L:3}); Cn.artNow('fx2_burst',sun.x,sun.y,sun.z,-r*1.05,r*1.0,'#ffd24a',{c2:'#ff7a10',c3:'#ffffff',rot:-RT*.8,ph:K.tq(10,5),boil:.03,L:3});
     K.floor(K.st(8,'add',{L:0}),sun.x,sun.y,r*3.2,null,0,TSu.c,.2);                // its pool of light on the floor
     if(fly) Cn.gPuff(sun.x,sun.y,sun.z,r*.7,{c:SUN,c2:'#7a1c00',c3:'#fffbe0',add:true,vz:200,life:.4,a:.8,L:2}); });
   // everything on the field throws a long shadow away from it (2D floor layer)

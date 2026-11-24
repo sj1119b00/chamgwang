@@ -117,7 +117,7 @@ function ultThunder(id){ ultStart(id); ov.lbT=0; const Cn=X.cine, K=GFX, x0=pl.x
     K.add(.62,k=>K.floor(K.st(12,'alpha',{L:0}),bx,by,300+500*k,null,0,[0,0,0],.3+.45*k)); Cn.gRing(bx,by,700,ICE,{c2:VIO,inward:true,life:.6,w:.06,jag:.04}); Cn.gSpeed(.6,ICE,{c2:VIO,a:.22,x:bx,y:by,r:.5,n:60,w:.1}); });
   after(4.37,()=>Cn.impact(bx,by-80,{style:'bolt',c:VIO,n:2,r:.14,soft:true,flash:.1,blur:.06,then:()=>{ K.ambient(.5,.46,.7,10); after(.6,()=>K.ambient(1,1,1,2)); for(const d of Cn.drones) d.stop(.05);
       // the pillar: a solid core, three strokes wound round it, re-struck twice
-      const stC=Cn.gst(3,'add',Cn.tone(ICE,{c2:VIO,c3:'#ffffff'}),3); K.add(.75,k=>{ K.line(stC,bx,by,0,bx,by,ZC+600,(190+40*Math.sin(RT*60))*(1-k*k),K.rgb(ICE),1-k*k,k*.4,RT*6,-2,.3); });
+      for(let i=0;i<4;i++) Cn.gArt('fx2_bolt',bx+rand(-50,50),by,VIO,{c2:'#1c0a5a',c3:'#ffffff',add:true,z:(ZC+500)/2,w:(ZC+500)*.3,h:(ZC+500)/2,life:.3,hold:.5,flipX:i%2===0,delay:i*.14,L:3,boil:.012,fps:18});
       for(let i=0;i<5;i++) Cn.gBolt(bx+rand(-380,380),by+rand(-60,60),ZC,bx+rand(-60,60),by,0,VIO,{c2:'#1c0a5a',c3:'#efe6ff',w:40,life:.5,forks:3,delay:i*.07,jag:.1});
       for(let i=0;i<14;i++){ const a=i/14*TAU+rand(-.15,.15), r=hw*rand(.9,1.7); Cn.gBolt(bx,by,14,bx+Math.cos(a)*r,by+Math.sin(a)*r*FSY,14,VIO,{c2:'#1c0a5a',c3:'#efe6ff',w:26,life:.5,forks:3,jag:.12,delay:rand(0,.12)}); after(.3,()=>Cn.scar({kind:'gash',x:bx+Math.cos(a)*r*.5,y:by+Math.sin(a)*r*.5*FSY,rot:Math.atan2(Math.sin(a)*FSY,Math.cos(a)),len:r,w:120,c:VIO,life:6,heat:2.4})); }
       K.ripple(bx,by,hw*2.1,{life:.7,s:1}); Cn.gCrack(bx,by,hw*1.4,VIO,{c2:'#1c0a5a',c3:ICE,life:3,n:19,w:.09}); Cn.gImpact('mage',bx,by,hw*.7,{c:'#463e66',c3:'#d8c8ff'});

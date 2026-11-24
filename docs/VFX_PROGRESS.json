@@ -1,7 +1,7 @@
 {
  "updated": "2026-11-24",
  "representative": "sw_ult1",
- "iteration": 12,
+ "iteration": 14,
  "project_complete": false,
  "independent_review": [
   {
@@ -51,6 +51,24 @@
     "mg_ult1": 52,
     "fs_ult1": 50,
     "sh_ult1": 48
+   }
+  },
+  {
+   "round": 5,
+   "scope": "all ten",
+   "score": 61,
+   "sheets": "fin5_<ult>.jpg",
+   "per_ult": {
+    "sh_ult2": 69,
+    "sw_ult2": 68,
+    "sw_ult1": 66,
+    "sh_ult1": 64,
+    "py_ult2": 64,
+    "fs_ult1": 63,
+    "mg_ult2": 62,
+    "py_ult1": 62,
+    "mg_ult1": 59,
+    "fs_ult2": 57
    }
   }
  ],
@@ -118,16 +136,24 @@
   }
  },
  "not_verified": [
-  "real phone performance",
+  "real phone performance and touch feel",
   "audio by ear",
   "motion in video (sheets only)",
-  "changes after review round 4 not re-scored"
+  "changes after review round 5 not re-scored"
  ],
  "git": {
   "repo": "_gen/deploy",
   "pushed": false
  },
  "next": "VFX_NEXT_TASK.md",
- "plateau": true,
- "plateau_note": "4 reviews 55-59 across three approaches; remaining cause is mixed art styles, not effect parts"
+ "plateau": false,
+ "plateau_note": "4 reviews 55-59 across three approaches; remaining cause is mixed art styles, not effect parts",
+ "gameplay": {
+  "all_skills_auto": true,
+  "joystick_follow": true,
+  "hit_metric_floor": true,
+  "enemy_telegraph": true,
+  "hero_lean": true,
+  "verified": "simulated input and stepping in desktop browser; not on a phone"
+ }
 }

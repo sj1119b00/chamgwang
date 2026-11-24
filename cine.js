@@ -104,7 +104,7 @@ function rgb01(h){ const n=parseInt(h.slice(1),16); return [(n>>16&255)/255,(n>>
 C.impact=(x,y,o={})=>{ const c=o.c||'#ffffff', k=rgb01(c), dk=k.map(v=>v*.16), n=o.n||3, fd=o.fd||.045;
   let pal=o.pal||(n<3?[[k,[0,0,0]],[dk,[1,1,1]]]:[[[0,0,0],[1,1,1]],[k,[0,0,0]],[dk,[1,1,1]]]); if(LOW()) pal=pal.map(()=>[dk,k]); if(o.soft) pal=[[k.map(v=>v*.08),k.map(v=>.5+v*.3)],[dk.map(v=>v*.4),k.map(v=>.34+v*.4)]];
   C.imp={x,y,c,t:0,fd,n,pal:pal.slice(0,n),seed:(Math.random()*1e4)|0,style:o.style||'radial',ang:o.ang||0,r:o.r??.2,then:o.then,v:o.v??1,flash:o.flash,blur:o.blur,soft:!!o.soft};
-  if(o.soft){ C.imp.amb=GFX.amb.slice(); GFX.amb=[.3,.3,.37]; C.imp.fd=fd*1.5; }
+  if(o.soft){ C.imp.amb=GFX.amb.slice(); GFX.amb=[.46,.46,.54]; C.imp.fd=fd*1.5; }
   hitstop=Math.max(hitstop,n*C.imp.fd); if(AC) duck(.06,n*C.imp.fd*.9); buzz([0,n*C.imp.fd*1000|0,160]); };
 let seedV=1; const srnd=()=>{ seedV=(seedV*16807)%2147483647; return seedV/2147483647; };
 function drawImp(g){ const m=C.imp; if(!m||m.soft) return; const i=Math.min(m.n-1,Math.floor(m.t/m.fd)), [bg,fg]=m.pal[i], [sx,sy]=w2s(m.x,m.y), col=`rgb(${fg.map(v=>v*255|0)})`, R=Math.hypot(W,H), mn=Math.min(W,H);
@@ -276,7 +276,7 @@ C.gBeam=(x,y,h,w,c,o={})=>{ const T=tone(c,o), st=gst(3,'add',T,o.L??2), life=o.
 // fractures of light running out over the floor from an impact, cooling as they go
 C.gCrack=(x,y,R,c,o={})=>{ const T=tone(c,o), st=gst(13,'add',T,0), life=o.life||1.6, sd=Math.random()*9; K.add(life,k=>{ K.floor(st,x,y,R,null,sd,T.c,(o.a??1)*(1-k)*(1-k),Math.min(1,.2+k*5),sd,o.n||13,o.w||.11); },o.delay||0); };
 // a flat texture on the floor (or floating at height z): magic circles. returns the effect; set .r/.a/.rot on its state object
-C.gCircle=(name,x,y,o={})=>{ const s=K.img(name), T=tone(o.c||'#ffffff',{c3:o.c3}), S_={r:o.r||300,a:o.a??1,rot:o.rot||0,z:o.z||0,er:0}, st=name.startsWith('fx2_')?gst(15,'add',T,o.L??0,{t:s.im,uv01:true}):K.st(0,'add',{t:s.im,L:o.L??0,uv01:true}); S_.fx=K.add(o.life||5,(k,t)=>{ if(o.tick) o.tick(S_,t,k); K.floor(st,x,y,S_.r,null,S_.rot,T.c,S_.a,S_.er,2,1.5,o.warp||0,S_.z); },o.delay||0); return S_; };
+C.gCircle=(name,x,y,o={})=>{ const s=K.img(name), T=tone(o.c||'#ffffff',{c3:o.c3}), S_={r:o.r||300,a:o.a??1,rot:o.rot||0,z:o.z||0,er:0}, st=name.startsWith('fx2_')?gst(15,'add',T,o.L??0,{t:s.im,uv01:true}):K.st(0,'add',{t:s.im,L:o.L??0,uv01:true}); if(name==='fx2_circ_mage'){ T.c=T.c.map(v=>v*.32); T.c2=T.c2.map(v=>v*.5); }   /* this one is a filled dial: keep its plate dim so only the linework glows */ S_.fx=K.add(o.life||5,(k,t)=>{ if(o.tick) o.tick(S_,t,k); K.floor(st,x,y,S_.r,null,S_.rot,T.c,S_.a,S_.er,2,1.5,o.warp||0,S_.z); },o.delay||0); return S_; };
 // a lightning stroke between two points in space: a jagged path redrawn every other frame, with forks; hard white core in a coloured sheath
 C.gBolt=(x1,y1,z1,x2,y2,z2,c,o={})=>{ const T=tone(c,o), st=gst(3,'add',T,o.L??3), life=o.life||.25, w=o.w||26, len=Math.hypot(x2-x1,(y2-z2)-(y1-z1)), n=Math.max(5,Math.round(len/(o.seg||105))), jag=o.jag??.07, stO=gst(3,'add',{c2:T.c2,c3:T.c},o.L??3), sd=Math.random()*99; let key=-1, P=null, F=[];
   const build=()=>{ P=[]; F=[]; const s1=rand(0,TAU), s2=rand(0,TAU), f1=rand(1.5,3.5), f2=rand(5,9); for(let i=0;i<=n;i++){ const u=i/n, env=Math.sin(u*Math.PI), e=env*len*jag, sway=(Math.sin(u*f1*TAU+s1)*.7+Math.sin(u*f2*TAU+s2)*.3)*e*1.3; P.push([lerp(x1,x2,u)+sway+(i&&i<n?rand(-e,e)*.35:0),lerp(y1,y2,u),lerp(z1,z2,u)+(i&&i<n?rand(-e,e)*.2:0)]); }
@@ -325,7 +325,7 @@ C.artNow=(name,x,y,z,w,h,c,o={})=>{ const s=C.art(name); if(!s.ok) return false;
   C.gFire=(x,y,z,s,o={})=>{ if(!C.art('fx2_fire').ok) return fire0(x,y,z,s,o); const n=Math.max(1,Math.round((o.n||8)/3*QK())), c=o.c||'#ff7a1a';
     for(let i=0;i<n;i++){ const a=rand(0,TAU), r=n>1?s*rand(.1,.7):0, h=s*rand(1.1,1.7); C.gArt('fx2_fire',x+Math.cos(a)*r,y+Math.sin(a)*r*FSY,c,{c2:o.c2||'#8a1400',c3:o.c3||'#fff2b0',add:true,z:z+h*.92,w:h*.62,h,life:rand(.4,o.life??.8),hold:.35,flipX:Math.random()<.5,grow:.25,boil:.02,delay:rand(0,.1),L:2}); }
     if(o.smoke!==false) after(.15,()=>C.gPuff(x,y,z+s*.6,Math.max(110,s*.9),{c:'#2a2026',c2:'#08060a',c3:'#55464a',vz:rand(s*.5,s*1.2),life:rand(1.1,1.9),a:.8})); };
-  C.gPuff=(x,y,z,s,o={})=>{ if(s<110||o.add||!C.art('fx2_smoke').ok) return puff0(x,y,z,s,o); const life=o.life||rand(.8,1.4), vx=o.vx||0, vy=o.vy||0, vz=o.vz??rand(60,160), d=o.drag??1.6, mv=t=>(1-Math.exp(-d*t))/d;
+  C.gPuff=(x,y,z,s,o={})=>{ if(s<170||o.add||!C.art('fx2_smoke').ok) return puff0(x,y,z,s,o); const life=o.life||rand(.8,1.4), vx=o.vx||0, vy=o.vy||0, vz=o.vz??rand(60,160), d=o.drag??1.6, mv=t=>(1-Math.exp(-d*t))/d;
     C.gArt('fx2_smoke',x,y,o.c||'#3a3446',{c2:o.c2||'#0c0a12',c3:o.c3||'#7a7488',w:s*1.25,h:s*1.1,life,hold:.45,grow:.6,boil:.015,a:o.a??.9,flipX:Math.random()<.5,L:o.L??1,at:(k,t)=>[x+vx*mv(t),y+vy*mv(t),z+s*.6+vz*mv(t)]}); };
   C.gBolt=(x1,y1,z1,x2,y2,z2,c,o={})=>{ const dz=z1-z2; if(dz<1500||!C.art('fx2_bolt').ok) return bolt0(x1,y1,z1,x2,y2,z2,c,o);
     const len=Math.hypot(x1-x2,dz-(y1-y2)), hh=len/2, rot=Math.atan2(x1-x2,dz-(y1-y2)), w=hh*.52*clamp((o.w||26)/26,.7,1.7), life=o.life||.25, fl=Math.random()<.5;
@@ -339,7 +339,7 @@ C.step=rdt=>{ C.t+=rdt; GFX.step(rdt); V.hsc=lerp(V.hsc||1,C.hscT||1,1-Math.exp(
   if(C.lines){ C.lines.t+=rdt; if(C.lines.t>=C.lines.dur) C.lines=null; }
   if(C.st){ C.st.t+=rdt; if(C.st.t>=C.st.dur) C.st=null; }
   if(C.imp){ const m=C.imp; m.t+=rdt; const i=Math.min(m.n-1,Math.floor(m.t/m.fd)), [a,b]=m.pal[i];
-    if(m.soft&&m.t<m.n*m.fd){ GFX.amb=[.3,.3,.37]; }
+    if(m.soft&&m.t<m.n*m.fd){ GFX.amb=[.46,.46,.54]; }
     else if(m.t>=m.n*m.fd){ if(m.amb) GFX.amb=m.amb; C.imp=null; post.invT=0; post.inv=0; SND.hit(m.v); C.shake(1.3*m.v); C.flash(m.flash??.42); post.ca=.012; post.blur=LOW()?0:(m.blur??.09); if(m.then) m.then(); }
     else { post.inkA=a; post.inkB=b; post.invT=Math.max(post.invT,.03); post.inv=1; } }
   for(let i=C.scars.length-1;i>=0;i--){ const s=C.scars[i]; s.t+=rdt; if(s.t>=s.life) C.scars.splice(i,1); }
