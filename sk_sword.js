@@ -145,10 +145,10 @@ function ultZero(id){ ultStart(id); ov.lbT=0; const Cn=X.cine, K=GFX, D=80000*A.
       Cn.zoom(.8); Cn.roll(0); Cn.cam(null); cutScreen(x0,hy,ma,.026,.24); post.grayT=0; K.ambient(.42,.34,.46,10); after(.7,()=>K.ambient(1,1,1,1.8));
       // gold: the first cut opens under him, a wall twice the height of the rest, one burst where he stands
       MC.gold=true; MC.k=1.9; K.add(.14,k=>{ MC.open=.4+.6*easeOut(k); }); after(.75,()=>K.add(.8,k=>{ MC.open=1-k*.9; }));
-      Cn.gWall(MC.x1,MC.y1,MC.x2,MC.y2,2300,GOLD,{c2:'#7a2a00',c3:'#fffbe8',life:1.5,rise:.08,a:.7,cell:70});
-      Cn.gStar(x0,y0,BODY*.5,420,GOLD,{c2:'#7a2a00',c3:'#ffffff',life:.36,n:7}); Cn.gSlip(MC.x1,MC.y1,MC.x2,MC.y2,520,1,.45);
-      Cn.gRing(x0,y0,hw*2.1,GOLD,{c2:'#7a2a00',life:.7,w:.12,jag:.09}); Cn.gRing(x0,y0,hw*1.5,'#ffffff',{c2:GOLD,life:.5,w:.05,jag:.05,delay:.06}); K.ripple(x0,y0,hw*2.2,{life:.7,s:.9});
-      Cn.gCrack(x0,y0,hw*1.25,GOLD,{c2:'#7a2a00',life:2.6,n:15,w:.1}); Cn.scar({kind:'crack',x:x0,y:y0,r:560,c:GOLD,life:8,heat:3});
+      Cn.gWall(MC.x1,MC.y1,MC.x2,MC.y2,2300,GOLD,{c2:'#7a2a00',c3:'#fffbe8',life:1.5,rise:.08,a:.5,cell:70});
+      Cn.gStar(x0,y0,BODY*.5,300,GOLD,{c2:'#7a2a00',c3:'#fff3c8',life:.3,n:7}); Cn.gSlip(MC.x1,MC.y1,MC.x2,MC.y2,520,1,.45);
+      K.ripple(x0,y0,hw*2.2,{life:.7,s:.9}); Cn.gSlab(MC.x1,MC.y1,MC.x2,MC.y2,GOLD,{c2:'#7a2a00',w:80,life:5.5}); for(const c of cuts) Cn.gSlab(c.x1,c.y1,c.x2,c.y2,CRIM,{c2:DEEP,c3:HOT,w:rand(38,60),life:rand(4,5),delay:.1+Math.hypot(c.cx-x0,c.cy-y0)/6000});
+      
       K.light(x0,y0,2000,GOLD,.9,.9); Cn.gDebris(x0,y0,16,{r:hw*.7,s0:100,s1:500,v0:1500,vz:3400,sz0:34,size:90,g:2600}); Cn.gDebris(x0,y0,22,{s0:300,s1:1300,vz:1900,size:30});
       // crimson: the others follow outward from him, lower and dimmer
       K.add(.16,k=>{ open=.4+.6*easeOut(k); glowK=1+k; dim=.65+.35*k; },.1); after(.7,()=>K.add(.9,k=>{ open=1-k*.88; glowK=2-k; }));
@@ -187,7 +187,7 @@ function ultRain(id){ ultStart(id); ov.lbT=0; const Cn=X.cine, K=GFX, D=9000*A.m
   const land=(x,y)=>{ Cn.gStar(x,y,30,rand(110,170),GOLD,{c2:'#6a2600',life:.16,n:5}); Cn.gRing(x,y,260,GOLD,{c2:'#6a2600',life:.3,w:.12,jag:.1}); Cn.gCrack(x,y,190,GOLD,{c2:'#6a2600',life:1.1,n:7,w:.16});
     Cn.gDebris(x,y,3,{s0:150,s1:450,vz:900,size:15}); Cn.gPuff(x,y,8,rand(40,70),{vz:rand(60,140),life:rand(.5,.8),c:'#5a5468',a:.6}); Cn.gSparks(x,y,20,4,GOLD,{vz:1100,s0:200,s1:700});
     K.light(x,y,520,GOLD,.9,.25); sfx('boom',.5,.3); sfx('slash',1.6,.3); inCircle(x,y,170,e=>{ dmg(e,D,{kb:.6,stun:.5,launch:500,sx:x,sy:y}); hitFx(e,GOLD,1); }); };
-  const fall=(x,y,dl=0)=>{ const s={x,y,gone:1e9}; after(dl+.3,()=>stuck.push(s)); if(!sw){ after(dl+.3,()=>land(x,y)); return; } Cn.gDrop(x,y,{img:sw.im,h:470,w:470*sw.w/sw.h,z0:ZS,dur:.32,pz:.0006,flip:true,rot:rand(-.14,.14),trail:GOLD,stick:9,delay:dl,land,sink:.2,alive:()=>RT<s.gone}); };
+  const fall=(x,y,dl=0)=>{ const s={x,y,gone:1e9}; after(dl+.3,()=>stuck.push(s)); if(!sw){ after(dl+.3,()=>land(x,y)); return; } Cn.gDrop(x,y,{img:sw.im,h:470,w:470*sw.w/sw.h,z0:ZS,dur:.32,pz:.0006,flip:true,rot:rand(-.5,.5),dx:rand(-500,500),dy:rand(-200,200),trail:GOLD,stick:9,delay:dl,land,sink:.2,alive:()=>RT<s.gone}); };
   // ---- release (1.35): the cut downward; the sky lets go
   after(1.3,()=>Cn.impact(x0,y0-BODY,{style:'radial',c:GOLD,n:2,soft:true,flash:.08,blur:.03,v:.5,then:()=>{ plSeq([['gs06',.06],['gs07',.1],['gs08',9]]); Cn.zoom(.84); Cn.cam(null); K.ambient(.5,.46,.6,5);
       Cn.gRing(x0,y0,hw*1.6,GOLD,{c2:'#6a2600',life:.5,w:.07,jag:.07}); K.ripple(x0,y0,hw*1.6,{life:.5,s:.6}); drop(700); Cn.SND.shing(.7,.5); }}));

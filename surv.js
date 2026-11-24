@@ -252,7 +252,7 @@ update=function(rdt){ if(G.mode!=='surv') return upd1(rdt); if(G.paused) return;
   const k=1-Math.exp(-rdt*(V.camT&&V.camK||9)), ct=lock&&V.camT; cam.ft=99; cam.fx=ct?ct.x:pl.x; cam.fy=ct?ct.y:pl.gy-BODY*.6; cam.fz=(PORTRAIT?ZP:ZL)*(V.zk||1); cam.x=lerp(cam.x,cam.fx,k); cam.y=lerp(cam.y,cam.fy,k); };
 const respawn1=respawn; respawn=function(){ if(G.mode==='surv') return; return respawn1(); };
 // the hero is drawn 1.3x in survival so he reads above the crowd (his anchors scale with him)
-const HERO_SC=1, box1=plSprBox; plSprBox=function(s){ const b=box1(s); if(G.mode==='surv'){ b.h*=HERO_SC; b.w*=HERO_SC; } return b; };
+const box1=plSprBox; plSprBox=function(s){ const b=box1(s); if(G.mode==='surv'){ const k=V.hsc||1; b.h*=k; b.w*=k; } return b; };
 // floor-warping shockwaves stay small on this camera (big ones read as a fisheye bug)
 const shock1=shock; shock=function(x,y,s=1,spd){ if(G.mode==='surv') return; return shock1(x,y,s,spd); };
 

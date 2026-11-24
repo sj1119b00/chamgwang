@@ -45,9 +45,9 @@ const SND={
 const C={on:false,t:0,dark:0,darkT:0,dc:'6,4,14',spot:null,cut:null,imp:null,lines:null,scars:[],ash:[],ashT:0,ashC:'#888',flashCap:.22,drones:[],veil:0,veilT:0,veilC:'255,255,255',SND,img,tex};
 X.cine=C;
 C.preload=cls=>{ (CUTS[cls]||[]).forEach(img); };
-C.begin=()=>{ C.on=true; C.t=0; C.cut=null; C.imp=null; C.lines=null; post.caMax=.012; };
-C.end=()=>{ C.on=false; if(C.imp&&C.imp.amb) GFX.amb=C.imp.amb; GFX.ambient(1,1,1,3); if(C.st) C.st.dur=Math.min(C.st.dur,C.st.t+.5); C.darkT=0; C.spot=null; C.lines=null; C.cut=null; C.imp=null; C.veilT=0; V.camT=null; V.camK=0; cam.rollT=0; post.caMax=0; V.blast=null; C.flashCap=.22; for(const d of C.drones) d.stop(); C.drones.length=0; if(beamSnd!==NOP){ beamSnd.stop(); beamSnd=NOP; } };
-C.reset=()=>{ C.end(); GFX.reset(); C.st=null; C.dark=0; C.veil=0; C.scars.length=0; C.ash.length=0; C.ashT=0; };
+C.begin=()=>{ C.on=true; C.hscT=1.5; C.t=0; C.cut=null; C.imp=null; C.lines=null; post.caMax=.012; };
+C.end=()=>{ C.on=false; C.hscT=1; if(C.imp&&C.imp.amb) GFX.amb=C.imp.amb; GFX.ambient(1,1,1,3); if(C.st) C.st.dur=Math.min(C.st.dur,C.st.t+.5); C.darkT=0; C.spot=null; C.lines=null; C.cut=null; C.imp=null; C.veilT=0; V.camT=null; V.camK=0; cam.rollT=0; post.caMax=0; V.blast=null; C.flashCap=.22; for(const d of C.drones) d.stop(); C.drones.length=0; if(beamSnd!==NOP){ beamSnd.stop(); beamSnd=NOP; } };
+C.reset=()=>{ C.end(); V.hsc=1; GFX.reset(); C.st=null; C.dark=0; C.veil=0; C.scars.length=0; C.ash.length=0; C.ashT=0; };
 C.drone=(f,v)=>{ const d=SND.drone(f,v); C.drones.push(d); return d; };
 
 // darkness over the field and the enemies (effects and the hero stay bright); spot = a lit patch of floor
@@ -282,14 +282,27 @@ C.gBolt=(x1,y1,z1,x2,y2,z2,c,o={})=>{ const T=tone(c,o), st=gst(3,'add',T,o.L??3
   const build=()=>{ P=[]; F=[]; const s1=rand(0,TAU), s2=rand(0,TAU), f1=rand(1.5,3.5), f2=rand(5,9); for(let i=0;i<=n;i++){ const u=i/n, env=Math.sin(u*Math.PI), e=env*len*jag, sway=(Math.sin(u*f1*TAU+s1)*.7+Math.sin(u*f2*TAU+s2)*.3)*e*1.3; P.push([lerp(x1,x2,u)+sway+(i&&i<n?rand(-e,e)*.35:0),lerp(y1,y2,u),lerp(z1,z2,u)+(i&&i<n?rand(-e,e)*.2:0)]); }
     const nf=o.forks??2; for(let k=0;k<nf;k++){ const i=1+((Math.random()*(n-2))|0), p=P[i], a=rand(0,TAU), l=len*rand(.08,.2); F.push([p,[p[0]+Math.cos(a)*l,p[1],p[2]-Math.abs(Math.sin(a))*l*.8-l*.3]]); } };
   K.add(life,k=>{ const q=Math.floor(RT*(o.fps||18)); if(q!==key){ key=q; build(); } const a=(o.a??1)*(k<.5?1:1-(k-.5)*2)*(Math.random()<.2?.6:1), ww=w*(1-k*.5);
-    for(let i=0;i<n;i++){ const p=P[i], q2=P[i+1], ex=(q2[0]-p[0])*.12, ey=(q2[1]-p[1])*.12, ez=(q2[2]-p[2])*.12; K.line(stO,p[0]-ex,p[1]-ey,p[2]-ez,q2[0]+ex,q2[1]+ey,q2[2]+ez,ww*2.4,T.c,a*.4,0,sd+i,-1.5,.25); K.line(st,p[0]-ex,p[1]-ey,p[2]-ez,q2[0]+ex,q2[1]+ey,q2[2]+ez,ww,T.c,a,0,sd+i,-1.5,.25); }
+    for(let i=0;i<n;i++){ const p=P[i], q2=P[i+1], ex=(q2[0]-p[0])*.12, ey=(q2[1]-p[1])*.12, ez=(q2[2]-p[2])*.12; const tw=1.5-1.05*(i/n); K.line(stO,p[0]-ex,p[1]-ey,p[2]-ez,q2[0]+ex,q2[1]+ey,q2[2]+ez,ww*2.4*tw,T.c,a*.4,0,sd+i,-1.5,.25); K.line(st,p[0]-ex,p[1]-ey,p[2]-ez,q2[0]+ex,q2[1]+ey,q2[2]+ez,ww*tw,T.c,a,0,sd+i,-1.5,.25); }
     for(const f of F) K.line(st,f[0][0],f[0][1],f[0][2],f[1][0],f[1][1],f[1][2],ww*.45,T.c,a*.8,0,sd,1.5,.25); },o.delay||0); };
 // a burst of drawn flame at a point: hot tongues that climb and thin into dark smoke
 C.gFire=(x,y,z,s,o={})=>{ const n=Math.round((o.n||8)*QK()), c=o.c||'#ff7a1a', c3=o.c3||'#fff2b0', c2=o.c2||'#8a1400';
   for(let i=0;i<n;i++){ const a=rand(0,TAU), r=s*rand(0,.6), sp=rand(0,o.sp??s*1.2); C.gPuff(x+Math.cos(a)*r,y+Math.sin(a)*r*FSY,z+rand(0,s*.3),s*rand(.35,.7),{c,c2,c3,add:true,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp*FSY,vz:rand(s*.6,s*2.2),life:rand(.35,o.life??.8),a:1,rise:1.6,grow:s*.4,drag:2.2}); }
   if(o.smoke!==false) for(let i=0;i<Math.ceil(n*.6);i++) after(rand(.1,.4),()=>{ const a=rand(0,TAU), r=s*rand(0,.7); C.gPuff(x+Math.cos(a)*r,y+Math.sin(a)*r*FSY,z+s*.5,s*rand(.5,.9),{c:'#2a2026',c2:'#08060a',c3:'#55464a',vz:rand(s*.5,s*1.3),life:rand(1.1,2),a:.8,grow:s*.5}); }); };
+// --- aftermath pieces: what each ultimate leaves behind is its own
+// the floor either side of a cut no longer meets: one lip in shadow, the other catching light, for a few seconds
+C.gSlab=(x1,y1,x2,y2,c,o={})=>{ const T=tone(c,o), life=o.life||4, stD=K.st(3,'alpha',{c2:[0,0,0],c3:[.02,.02,.03],L:0}), stE=gst(3,'add',T,0), dx=x2-x1, dy=y2-y1, l=Math.hypot(dx,dy)||1, nx=-dy/l, ny=dx/l, w=o.w||46, sd=Math.random()*9;
+  K.add(life,(k,t)=>{ const up=easeOut(Math.min(1,t/.12)), a=Math.min(1,(1-k)*3), off=w*.55*up; K.line(stD,x1+nx*off,y1+ny*off,0,x2+nx*off,y2+ny*off,0,w*up,[.03,.02,.04],.8*a,0,sd,2,.5);
+    K.line(stE,x1-nx*off*.3,y1-ny*off*.3,14*up,x2-nx*off*.3,y2-ny*off*.3,14*up,w*.16,T.c,a*(.35+.65*Math.max(0,1-t/1.6)),0,sd,2,.55); },o.delay||0); };
+// a ring-shaped trench melted into the floor at radius R: dark channel, molten edge that cools, heat still rising
+C.gTrench=(x,y,R,c,o={})=>{ const T=tone(c,o), life=o.life||5, stD=K.st(2,'alpha',{c2:[0,0,0],c3:[.03,.03,.04],L:0}), stE=gst(2,'add',T,0), sd=Math.random()*9, q=1/1.08;
+  K.add(life,(k,t)=>{ const a=Math.min(1,(1-k)*3), heat=Math.max(0,1-t/(o.heat||2.4)); K.floor(stD,x,y,R*1.08,null,sd,[.03,.03,.05],.85*a,q,sd,.09,.035); K.floor(stE,x,y,R*1.08,null,sd,T.c,a*(.12+.6*heat),q,K.tq(8,sd),.018+.02*heat,.035);
+    if(heat>0&&Math.random()<.5*heat){ const an=rand(0,TAU); C.gPuff(x+Math.cos(an)*R,y+Math.sin(an)*R*FSY,6,rand(40,80),{c:o.steam||'#8fa6bb',c2:'#1a2634',c3:'#d6e8f4',vz:rand(140,300),life:.9,a:.4}); } },o.delay||0); };
+// a long scorched gouge where something came in at an angle: dark trough, glowing bed that cools, fire still licking along it
+C.gSkid=(x,y,ang,len,c,o={})=>{ const T=tone(c,o), life=o.life||5, stD=K.st(3,'alpha',{c2:[0,0,0],c3:[.03,.02,.02],L:0}), stE=gst(3,'add',T,0), ca=Math.cos(ang), sa=Math.sin(ang)*FSY, sd=Math.random()*9, w=o.w||150;
+  K.add(life,(k,t)=>{ const g=easeOut(Math.min(1,t/.18)), a=Math.min(1,(1-k)*3), heat=Math.max(0,1-t/(o.heat||3)); K.line(stD,x,y,0,x+ca*len*g,y+sa*len*g,0,w,[.04,.02,.02],.85*a,0,sd,3,.6); K.line(stE,x,y,0,x+ca*len*g,y+sa*len*g,0,w*.36,T.c,a*(.2+.8*heat),.25,sd+t*.4,4,.6);
+    if(heat>.1&&Math.random()<.35*heat){ const u=rand(.05,.95); if(o.fire!==false) C.gFire(x+ca*len*u,y+sa*len*u,6,rand(50,90),{n:2,life:.6,smoke:Math.random()<.3}); } },o.delay||0); };
 // ---------------------------------------------------------------- per-frame
-C.step=rdt=>{ C.t+=rdt; GFX.step(rdt); if(LOW()){ trauma=Math.min(trauma,.4); post.flash=Math.min(post.flash,.12); } C.dark=lerp(C.dark,C.darkT,1-Math.exp(-rdt*(C.darkT>C.dark?6:3.2)));
+C.step=rdt=>{ C.t+=rdt; GFX.step(rdt); V.hsc=lerp(V.hsc||1,C.hscT||1,1-Math.exp(-rdt*5)); if(LOW()){ trauma=Math.min(trauma,.4); post.flash=Math.min(post.flash,.12); } C.dark=lerp(C.dark,C.darkT,1-Math.exp(-rdt*(C.darkT>C.dark?6:3.2)));
   if(C.veilHold>0) C.veilHold-=rdt; else C.veil*=Math.exp(-rdt*7);
   C.flashCap=Math.max(.22,C.flashCap-rdt*2.2);
   if(C.cut){ C.cut.t+=rdt; if(C.cut.t>=C.cut.dur) C.cut=null; }

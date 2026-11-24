@@ -103,6 +103,7 @@ function ultStorm(id){ ultStart(id); ov.lbT=0; const Cn=X.cine, K=GFX, {hw,hh}=v
   K.ambient(.46,.36,.36,3); Cn.zoom(1.3); Cn.cam(x0,y0-BODY,5); SFX.fire(5,.6); Cn.drone(44,.3); duck(.3,.6);
   // omen: sparks wind in round him in a spiral; the floor under him starts to glow
   K.add(1.8,(k,t)=>{ for(let i=0;i<2;i++){ const a=t*9+rand(0,.6), r=lerp(680,60,k)*rand(.8,1.1); K.pt({x:x0+Math.cos(a)*r,y:y0+Math.sin(a)*r*FSY,z:rand(20,200),vx:-Math.sin(a)*500,vy:Math.cos(a)*500*FSY,vz:rand(60,200),drag:2,life:.4,s:rand(6,13),c:K.rgb(pick([FLM,'#ffd28a','#ff3a10'])),m:8,b:'add'}); } });
+  K.add(1.8,(k,t)=>{ for(let i=0;i<5;i++){ const a=i/5*TAU+t*2.4, r=lerp(hw*1.05,90,k*k), x=x0+Math.cos(a)*r, y=y0+Math.sin(a)*r*.8; twister(x,y,46+30*k,i*1.9,.9); if(Math.random()<.25) Cn.scar({kind:'burn',x,y,r:70,c:FLM,life:3,heat:1.4}); } });
   Cn.gCrack(x0,y0,360,FLM,{c2:FD,c3:FH,life:2,n:10,w:.12}); const Lh=K.light(x0,y0,800,FLM,0,2,{hold:4}); K.add(1.6,k=>{ Lh.a=k*1.1; });
   Cn.gather(x0,y0-BODY*.6,{c:FLM,dur:.9,r:860,n:20,cs:[FLM,'#ffd28a'],rings:0,streaks:0});
   const tor=[]; let out=false, home=0, t0=RT, big=0;
@@ -120,9 +121,8 @@ function ultStorm(id){ ultStart(id); ov.lbT=0; const Cn=X.cine, K=GFX, {hw,hh}=v
   // climax: they come home
   after(3.75,()=>{ home=RT; Cn.zoom(1.02); Cn.SND.inhale(.5,.7); K.ambient(.3,.22,.24,4); Cn.gRing(x0,y0,hw*1.3,FH,{c2:FLM,inward:true,life:.5,w:.06,jag:.06}); });
   after(4.3,()=>Cn.impact(x0,y0-BODY,{style:'ember',c:FLM,n:2,r:.15,soft:true,flash:.1,blur:.06,then:()=>{ tor.length=0; big=RT; Cn.zoom(.8); K.ambient(.7,.48,.36,10); after(1,()=>K.ambient(1,1,1,1.6)); for(const d of Cn.drones) d.stop(.05);
-      Cn.gStar(x0,y0,80,900,FLM,{c2:FD,c3:'#ffffff',life:.4,n:9}); for(let i=0;i<4;i++) Cn.gRing(x0,y0,hw*(1.1+i*.45),i%2?FH:FLM,{c2:FD,life:.55+i*.12,w:.15-i*.03,jag:.12,delay:i*.06});
+      for(let arm=0;arm<4;arm++) for(let q=0;q<9;q++){ const tt=q/8, a=arm*TAU/4+tt*3.6, rr=hw*1.5*(.1+.9*tt); after(tt*.45,()=>{ Cn.gFire(x0+Math.cos(a)*rr,y0+Math.sin(a)*rr*FSY,8,130+90*tt,{n:4,life:.9,smoke:q%3===0}); K.light(x0+Math.cos(a)*rr,y0+Math.sin(a)*rr*FSY,500,FLM,.5,.3); }); }
       K.ripple(x0,y0,hw*2.3,{life:.8,s:1.1}); Cn.gCrack(x0,y0,hw*1.4,FLM,{c2:FD,c3:FH,life:4,n:16,w:.11}); Cn.scar({kind:'swirl',x:x0,y:y0,r:900,c:FLM,life:10,heat:4.5}); Cn.scar({kind:'burn',x:x0,y:y0,r:640,c:FLM,life:10,heat:4});
-      for(let i=0;i<12;i++){ const a=i/12*TAU; Cn.gFire(x0+Math.cos(a)*520,y0+Math.sin(a)*520*FSY,10,240,{n:5,life:.9}); }
       Cn.gDebris(x0,y0,24,{s0:400,s1:1500,vz:2000,size:30,c:'#5a4038'}); K.light(x0,y0,2800,FLM,1.5,1.3); Cn.sweep(x0,y0,Dm,{speed:3200,push:1.3}); Cn.shake(1.2); SFX.shatter(.7);
       Cn.gMotes(x0,y0,hw*1.2,FLM,90,{dur:2.2,life:2.4,white:.2}); }}));
   // afterglow: what is left burns where it fell; smoke; ash
@@ -165,7 +165,7 @@ function ultDragon(id){ ultStart(id); ov.lbT=0; const Cn=X.cine, K=GFX, {hw,hh}=
   // climax: the dive
   after(4.45,()=>{ dive=RT; Cn.cam(cx,cy-BODY,9); Cn.zoom(.88); });
   after(4.88,()=>Cn.impact(cx,cy-80,{style:'ember',c:FLM,n:2,r:.15,soft:true,flash:.12,blur:.07,then:()=>{ D.on=false; drag.dead=true; Ld.hold=0; Ld.life=.01; K.ambient(.7,.46,.34,10); after(1,()=>K.ambient(1,1,1,1.6));
-      Cn.gStar(cx,cy,80,1000,FLM,{c2:FD,c3:'#ffffff',life:.42,n:9}); for(let i=0;i<4;i++) Cn.gRing(cx,cy,hw*(1.1+i*.45),i%2?FH:FLM,{c2:FD,life:.55+i*.12,w:.15-i*.03,jag:.12,delay:i*.06});
+      Cn.gRing(cx,cy,hw*1.7,FLM,{c2:FD,life:.65,w:.16,jag:.13}); { const s0=riseP(dive), da=Math.atan2(cy-s0[1],cx-s0[0]); Cn.gSkid(cx-Math.cos(da)*hw*.9,cy-Math.sin(da)*hw*.9*FSY,da,hw*1.5,FLM,{c2:FD,c3:FH,w:200,life:6,heat:3.4}); }
       K.ripple(cx,cy,hw*2.3,{life:.8,s:1.1}); Cn.gCrack(cx,cy,hw*1.5,FLM,{c2:FD,c3:FH,life:4,n:17,w:.11}); Cn.scar({x:cx,y:cy,r:880,c:FLM,life:10,heat:4.5}); Cn.scar({kind:'burn',x:cx,y:cy,r:620,c:FLM,life:10,heat:4});
       Cn.gFire(cx,cy,20,540,{n:24,life:1.1,sp:1000}); for(let r=1;r<=2;r++) after(r*.2,()=>{ const n=5+r*3; for(let i=0;i<n;i++){ const a=i/n*TAU+r; Cn.gFire(cx+Math.cos(a)*r*430,cy+Math.sin(a)*r*430*FSY,10,220,{n:5}); } sfx('boom',1.2,.6); Cn.shake(.6); });
       Cn.gDebris(cx,cy,30,{s0:400,s1:1600,vz:2300,size:34,c:'#5a4038'}); Cn.gDebris(cx,cy,12,{r:320,s0:100,s1:600,v0:1700,vz:3600,sz0:44,size:100,g:2600,c:'#5a4038'});

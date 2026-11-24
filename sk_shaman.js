@@ -109,9 +109,9 @@ function ultStones(id){ ultStart(id); ov.lbT=0; const Cn=X.cine, K=GFX, {hw,hh}=
   // climax: the one that takes the light with it - and then the earth's own teeth, ring after ring
   const tc=at+.05, mx=x0, my=y0-hh*.2, BH=1500;
   after(tc,()=>{ Cn.zoom(.8); K.ambient(.2,.26,.26,4); Cn.SND.inhale(.75,.7); duck(.2,.6); K.add(.8,k=>K.floor(K.st(12,'alpha',{L:0}),mx,my,300+900*k,null,0,[0,0,0],.3+.5*k)); Cn.gRing(mx,my,900,JW,{c2:JADE,inward:true,life:.75,w:.05,jag:.04}); });
-  if(rim) Cn.gDrop(mx,my,{img:rim,h:BH*1.7,w:BH*.8,z0:6500,dur:.7,c:[.62,.78,.7],rot:.06,trail:JADE,tw:.4,tl:2,delay:tc+.1,sink:.14,pz:.0004,L:3,stick:1.7,fade:.5,burn:.7});
+  if(rim) Cn.gDrop(mx,my,{img:rim,h:BH*1.7,w:BH*.8,z0:6500,dur:.7,c:[.62,.78,.7],rot:.06,trail:JADE,tw:.4,tl:2,delay:tc+.1,sink:.14,pz:.0004,L:3,stick:4.2,fade:.8,burn:1.1});
   after(tc+.8,()=>Cn.impact(mx,my-80,{style:'paper',c:JADE,n:2,r:.16,soft:true,flash:.1,blur:.06,then:()=>{ K.ambient(.6,.7,.64,10); after(.8,()=>K.ambient(1,1,1,1.8)); drop(1500); Cn.SND.gong(1);
-      Cn.gStar(mx,my,80,900,JADE,{c2:JD,c3:'#ffffff',life:.4,n:8}); for(let i=0;i<4;i++) Cn.gRing(mx,my,hw*(1.1+i*.45),i%2?JW:JADE,{c2:JD,life:.55+i*.12,w:.14-i*.03,jag:.11,delay:i*.06});
+      Cn.gRing(mx,my,hw*1.5,JADE,{c2:JD,life:.6,w:.14,jag:.12});
       K.ripple(mx,my,hw*2.3,{life:.8,s:1.1}); Cn.gCrack(mx,my,hw*1.5,JADE,{c2:JD,c3:JW,life:4,n:17,w:.1}); Cn.scar({x:mx,y:my,r:900,c:JADE,life:10,heat:3.4});
       Cn.gDebris(mx,my,34,{s0:400,s1:1600,vz:2300,size:36,c:'#56645c'}); Cn.gDebris(mx,my,12,{r:320,s0:100,s1:600,v0:1700,vz:3600,sz0:44,size:100,g:2600,c:'#56645c'});
       for(let r=1;r<=3;r++){ const n=5+r*3, rr=r*400; for(let i=0;i<n;i++){ const a=i/n*TAU+r*.5; menhir(mx+Math.cos(a)*rr,my+Math.sin(a)*rr*FSY,rand(380,560)+r*60,.08+r*.14,1.5-r*.1); } after(.08+r*.14,()=>{ sfx('boom',1.1,.5); Cn.shake(.5); }); }
@@ -151,7 +151,7 @@ function ultKing(id){ ultStart(id); ov.lbT=0; const Cn=X.cine, K=GFX, {hw,hh}=vi
   after(tc,()=>{ Cn.zoom(.8); Cn.cam(bx,by-BODY,6); K.ambient(.18,.26,.25,4); Cn.SND.inhale(.6,.7); eyes=1; duck(.2,.5); K.add(.6,k=>K.floor(K.st(12,'alpha',{L:0}),bx,by,300+1000*k,null,0,[0,0,0],.3+.5*k)); Cn.gRing(bx,by,1000,JW,{c2:JADE,inward:true,life:.58,w:.05,jag:.04}); });
   palm(bx,by,2500,6200,.44,tc+.16,()=>{},3);
   after(tc+.6,()=>Cn.impact(bx,by-60,{style:'paper',c:JADE,n:2,r:.18,soft:true,flash:.1,blur:.06,then:()=>{ K.ambient(.6,.72,.66,10); after(.8,()=>K.ambient(1,1,1,1.8)); for(const d of Cn.drones) d.stop(.05);
-      Cn.gStar(bx,by,80,1000,JADE,{c2:JD,c3:'#ffffff',life:.42,n:9}); for(let i=0;i<4;i++) Cn.gRing(bx,by,hw*(1.1+i*.45),i%2?JW:JADE,{c2:JD,life:.55+i*.12,w:.14-i*.03,jag:.11,delay:i*.06});
+      Cn.gCircle('fx_circle_seal',bx,by,{c:JW,r:200,life:1.6,L:0,tick:(s,t)=>{ s.r=lerp(260,hw*1.25,easeOut(Math.min(1,t/.3))); s.a=Math.max(0,1-t/1.6)*1.4; s.rot=.4; }}); for(let i=0;i<5;i++){ const a=-Math.PI/2+(i-2)*.42; Cn.gWall(bx+Math.cos(a)*200,by+Math.sin(a)*200*FSY,bx+Math.cos(a)*hw*1.25,by+Math.sin(a)*hw*1.25*FSY,rand(500,800),JADE,{c2:JD,c3:JW,life:1,rise:.08,a:.5,cell:90}); }
       K.ripple(bx,by,hw*2.3,{life:.8,s:1.1}); Cn.gCrack(bx,by,hw*1.5,JADE,{c2:JD,c3:JW,life:4,n:15,w:.1}); Cn.scar({kind:'seal',x:bx,y:by,r:720,c:JADE,life:10,heat:4});
       Cn.gDebris(bx,by,30,{s0:400,s1:1500,vz:2200,size:32,c:'#56645c'}); Cn.gDebris(bx,by,12,{r:320,s0:100,s1:600,v0:1700,vz:3600,sz0:44,size:100,g:2600,c:'#56645c'});
       K.light(bx,by,2700,JADE,1.4,1.1); Cn.sweep(bx,by,Dm,{speed:3200,push:1.2}); Cn.shake(1.3); Cn.gMotes(bx,by,hw*1.2,JADE,90,{dur:2,life:2.4,white:.4}); }}));

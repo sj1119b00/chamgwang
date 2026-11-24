@@ -105,7 +105,7 @@ function ultBeam(id){ ultStart(id); ov.lbT=0; const Cn=X.cine, K=GFX, {hw,hh}=vi
   const stB=Cn.gst(3,'add',TK,2), stC=Cn.gst(3,'add',TS,3), stF=K.st(8,'add',{L:0});
   const beamFx=K.add(9,()=>{ if(!firing) return; const ca=Math.cos(ang), sa=Math.sin(ang), w=(170+22*Math.sin(RT*47))*wide, sx=x0+ca*70, sy=y0+sa*70, ex=x0+ca*Lb, ey=y0+sa*Lb, ph=RT*7;
     K.line(stF,sx,sy,0,ex,ey,0,w*2.6,TK.c,.3);                                   // its light on the floor under it
-    K.line(stB,sx,sy,HZ,ex,ey,HZ,w*1.25,TK.c,.9,0,ph,-3,.45); K.line(stC,sx,sy,HZ,ex,ey,HZ,w*.62,TS.c,1,0,ph*1.3,-5,.3);
+    K.line(stB,sx,sy,HZ,ex,ey,HZ,w*1.25,TK.c,.9,0,ph,-3,.45); K.line(stB,sx,sy,HZ,ex,ey,HZ,w*1.05,TK.c,.9,.32,ph*2.6,-9,.7); K.line(stC,sx,sy,HZ,ex,ey,HZ,w*.36,TS.c,.95,.12,ph*3.4,-7,.5);
     for(let i=0;i<4;i++){ const u=((RT*2.4+i/4)%1), px=sx+ca*Lb*u, py=sy+sa*Lb*u; K.bill(Cn.gst(2,'add',TS,3),px,py,HZ,w*(.9+u*.8),w*(.9+u*.8),0,TS.c,.6*(1-u),.8,K.tq(12,i),.1,.05); }
     K.bill(stG,sx,sy,HZ,w*2.2,w*2.2,0,TK.c,.8); K.bill(Cn.gst(4,'add',TS,3),sx,sy,HZ,w*1.6,w*1.6,0,TS.c,1,1,K.tq(18,2),7,.35);
     if(nova){ const k=Math.min(1,(RT-nova)/.32); for(let i=1;i<10;i++){ const a=ang+i*TAU/10; K.line(stB,x0+Math.cos(a)*60,y0+Math.sin(a)*60,HZ,x0+Math.cos(a)*Lb,y0+Math.sin(a)*Lb,HZ,(30+150*k*k),TK.c,k,0,ph+i,-3,.45); } } });
@@ -121,8 +121,8 @@ function ultBeam(id){ ultStart(id); ov.lbT=0; const Cn=X.cine, K=GFX, {hw,hh}=vi
   // climax: the last of it goes out in every direction at once
   after(t0+.1+T,()=>{ wide=.5; nova=RT; Cn.SND.inhale(.3,.5); Cn.zoom(.8); });
   after(t0+.1+T+.32,()=>Cn.impact(x0,hy,{style:'fist',c:KI,n:2,r:.14,soft:true,flash:.1,blur:.06,then:()=>{ firing=false; beamFx.dead=true; beamSnd.stop(); beamSnd=NOP; K.ambient(.6,.66,.8,10); after(.5,()=>K.ambient(1,1,1,2));
-      Cn.gStar(x0,y0,HZ,480,KI,{c2:KD,c3:'#dff8ff',life:.3,n:10}); for(let i=0;i<3;i++) Cn.gRing(x0,y0,hw*(1.3+i*.5),i===1?'#ffffff':KI,{c2:KD,life:.55+i*.12,w:.13-i*.03,jag:.1,delay:i*.07});
-      K.ripple(x0,y0,hw*2.2,{life:.7,s:1}); Cn.gCrack(x0,y0,hw*1.4,KI,{c2:KD,life:3,n:20,w:.09}); Cn.scar({kind:'crater',x:x0,y:y0,r:700,c:KI,life:9,heat:3.4});
+      Cn.gTrench(x0,y0,Lb*.5,KI,{c2:KD,life:5.5,heat:2.2}); for(let i=0;i<7;i++){ const a=a0+i/7*TAU+rand(-.2,.2); Cn.gSkid(x0+Math.cos(a)*160,y0+Math.sin(a)*160*FSY,a,Lb*rand(.3,.46),KI,{c2:KD,c3:"#ffffff",w:90,life:rand(4,5),heat:1.6,delay:rand(0,.1),fire:false}); }
+      K.ripple(x0,y0,hw*2.2,{life:.7,s:1}); Cn.scar({kind:'crater',x:x0,y:y0,r:420,c:KI,life:9,heat:3.4});
       Cn.gDebris(x0,y0,28,{s0:300,s1:1500,vz:2200,size:32}); K.light(x0,y0,2600,KI,1.3,.9); Cn.sweep(x0,y0,Dm,{speed:3600}); Cn.gMotes(x0,y0,hw,KI,60,{dur:1.5,life:2,white:.5}); }}));
   // afterglow: steam off the floor, his hands still lit
   after(t0+T+1,()=>{ for(let i=0;i<12;i++) Cn.gPuff(x0+rand(-420,420),y0+rand(-260,260),10,rand(90,160),{c:'#7c93aa',c2:'#1a2634',c3:'#c6dcec',vz:rand(100,260),life:rand(1.2,2),a:.4}); Cn.zoom(1); });
@@ -154,7 +154,7 @@ function ultSun(id){ ultStart(id); ov.lbT=0; const Cn=X.cine, K=GFX, {hw,hh}=vie
       Cn.gStar(x0,y0,SZ,620,'#ffffff',{c2:SUN,life:.2,n:8}); Cn.gRing(x0,y0,700,'#ffffff',{c2:SUN,life:.3,w:.14,z:SZ,L:3}); }}));
   // climax
   after(2.42+.09+.29,()=>Cn.impact(cx,cy-80,{style:'fist',c:SUN,n:2,r:.15,soft:true,flash:.12,blur:.07,then:()=>{ sun.on=false; sunFx.dead=true; Ls.hold=0; Ls.life=.01; K.ambient(.7,.5,.34,10); after(.9,()=>K.ambient(1,1,1,1.6));
-      Cn.gStar(cx,cy,80,1050,SUN,{c2:'#7a1c00',c3:'#ffffff',life:.42,n:11}); for(let i=0;i<4;i++) Cn.gRing(cx,cy,hw*(1.1+i*.45),i%2?'#fff3c0':SUN,{c2:'#7a1c00',life:.55+i*.12,w:.15-i*.03,jag:.11,delay:i*.06});
+      Cn.gStar(cx,cy,80,1050,SUN,{c2:'#7a1c00',c3:'#ffffff',life:.42,n:11}); Cn.gRing(cx,cy,hw*1.9,SUN,{c2:'#7a1c00',life:.7,w:.16,jag:.12}); for(let i=0;i<9;i++){ const a=i/9*TAU+.2; Cn.gWall(cx+Math.cos(a)*120,cy+Math.sin(a)*120*FSY,cx+Math.cos(a)*hw*1.5,cy+Math.sin(a)*hw*1.5*FSY,rand(500,900),SUN,{c2:'#7a1c00',c3:'#fffbe0',life:rand(.8,1.1),rise:.08,a:.55,cell:90,delay:.04}); }
       K.ripple(cx,cy,hw*2.3,{life:.8,s:1.1}); Cn.gCrack(cx,cy,hw*1.5,SUN,{c2:'#7a1c00',c3:'#fffbe0',life:4,n:21,w:.1}); Cn.scar({kind:'crater',x:cx,y:cy,r:900,c:SUN,life:10,heat:4.5}); Cn.scar({kind:'burn',x:cx,y:cy,r:560,c:SUN,life:10,heat:4});
       Cn.gFire(cx,cy,20,480,{n:20,life:1,sp:900,c:'#ff9a1a'}); Cn.gSpeed(.7,'#fff3c0',{c2:SUN,a:.4,x:cx,y:cy,r:.12,n:22,w:.3,fps:12});
       Cn.gDebris(cx,cy,32,{s0:300,s1:1500,vz:2300,size:34,c:'#6a584a'}); Cn.gDebris(cx,cy,12,{r:300,s0:100,s1:600,v0:1700,vz:3600,sz0:44,size:100,g:2600,c:'#6a584a'});
