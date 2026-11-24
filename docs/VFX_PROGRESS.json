@@ -1,7 +1,7 @@
 {
- "updated": "2026-11-24",
+ "updated": "2026-11-24 (evening)",
  "representative": "sw_ult1",
- "iteration": 31,
+ "iteration": 40,
  "project_complete": false,
  "independent_review": [
   {
@@ -153,12 +153,13 @@
   "HDR fallback path (RGBA8) on devices without half-float targets"
  ],
  "git": {
-  "repo": "_gen/deploy",
+  "deploy_repo": "_gen/deploy",
+  "last_local_commit": "0800aba (plus uncommitted work after it at the time of writing)",
   "pushed": false
  },
  "next": "VFX_NEXT_TASK.md",
  "plateau": true,
- "plateau_note": "representative ult stuck at 60-64 over five independent reviews (z3..z7); approach changed in iteration 31: camera tilt projection, no straight seams (hanging painted crescents), gold wall+pillar peak",
+ "plateau_note": "Three cross reviews 68/66/63 and six solo reviews of the representative ultimate 56-63: no upward trend across four class passes and nine engine/kit iterations. Reviewers agree on what is missing: lit volumetric meshes with shadows, bespoke hero animation synced to the beats, 6-8 layers per beat, visible enemy reactions. Shared kit pieces become the new sameness each time (star burst -> thin shock -> rock field).",
  "gameplay": {
   "all_skills_auto": true,
   "joystick_follow": true,
@@ -228,5 +229,97 @@
    "p95": 12.3,
    "max": 31.1
   }
+ },
+ "independent_review_v3_session2": {
+  "zero_slash_solo": [
+   {
+    "sheet": "z10_big",
+    "score": 57
+   },
+   {
+    "sheet": "z11_big",
+    "score": 56
+   },
+   {
+    "sheet": "z13_big",
+    "score": 63
+   },
+   {
+    "sheet": "z14_big",
+    "score": 61
+   },
+   {
+    "sheet": "z16_big",
+    "score": 59
+   },
+   {
+    "sheet": "z18_big",
+    "score": 56
+   }
+  ],
+  "cross": [
+   {
+    "round": 1,
+    "avg": 68,
+    "per_ult": {
+     "mg_ult2": 74,
+     "sh_ult2": 73,
+     "py_ult1": 72,
+     "fs_ult1": 70,
+     "mg_ult1": 68,
+     "sw_ult1": 67,
+     "py_ult2": 66,
+     "sh_ult1": 66,
+     "fs_ult2": 64,
+     "sw_ult2": 60
+    }
+   },
+   {
+    "round": 2,
+    "avg": 66.0,
+    "sheets": "<cls>_u?_final3 / z13_big",
+    "per_ult": {
+     "py_ult2": 72,
+     "sw_ult1": 71,
+     "sh_ult2": 70,
+     "mg_ult2": 69,
+     "mg_ult1": 68,
+     "py_ult1": 66,
+     "sh_ult1": 63,
+     "sw_ult2": 62,
+     "fs_ult1": 61,
+     "fs_ult2": 58
+    }
+   },
+   {
+    "round": 3,
+    "avg": 63.0,
+    "sheets": "x3_<ult>.jpg (uniform 24 frames)",
+    "per_ult": {
+     "py_ult2": 68,
+     "fs_ult2": 67,
+     "sw_ult1": 66,
+     "sh_ult1": 64,
+     "mg_ult1": 63,
+     "sh_ult2": 63,
+     "fs_ult1": 62,
+     "sw_ult2": 60,
+     "py_ult1": 60,
+     "mg_ult2": 57
+    },
+    "note": "openers polluted by lingering normal-skill effects; 9 of 10 end in the same rock field"
+   }
+  ]
+ },
+ "stickman_mode": {
+  "added": true,
+  "option": "sv.opt.stick",
+  "verified": [
+   "sword",
+   "mage",
+   "fist (captures)",
+   "shaman",
+   "pyro (smoke test)"
+  ]
  }
 }

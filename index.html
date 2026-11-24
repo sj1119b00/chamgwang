@@ -255,7 +255,7 @@ void main(){vec2 p=v;float asp=res.x/res.y;
  col/=nn;
  vec4 vx=vec4(0.);vec3 scn=col;
  if(vfxK>0.){col=mix(col*lit,col,gndK)+hzv;
-  if(gndK>0.){vec4 c0=texture2D(tex,p);float a0=c0.a*smoothstep(.0,.07,max(c0.r,max(c0.g,c0.b))/max(c0.a,.01));if(a0>.05){for(int i=0;i<2;i++){if(glp[i].w>.001){vec2 d=(glp[i].xy-pw)*vec2(asp,1.);float f=glp[i].w/(1.+dot(d,d)/(glp[i].z*glp[i].z));f*=f;vec2 o=normalize(d*res.y+1e-4)*2.4/res;float rim=max(a0-texture2D(tex,p+o).a,0.);col+=glc[i]*rim*min(f,1.2)*1.1;}}}}
+  if(gndK>0.){vec4 c0=texture2D(tex,p);float a0=c0.a*smoothstep(.0,.07,max(c0.r,max(c0.g,c0.b))/max(c0.a,.01));if(a0>.05){for(int i=0;i<2;i++){if(glp[i].w>.001){vec2 d=(glp[i].xy-pw)*vec2(asp,1.);float f=glp[i].w/(1.+dot(d,d)/(glp[i].z*glp[i].z));f*=f;vec2 o=normalize(d*res.y+1e-4)*2.4/res;float rim=max(a0-texture2D(tex,p+o).a,0.);col+=glc[i]*rim*min(f,1.2)*.6;}}}}
   scn=col;vx=texture2D(vfxT,p);vx.rgb=hup(vx.rgb,1.18);if(hero.z>0.){vec2 hd=(pw-hero.xy)*vec2(asp,1.)/hero.zw;float hm=texture2D(tex,p).a*(1.-smoothstep(.5,1.,dot(hd,hd)));vx*=1.-.88*hm;col*=1.+.45*hm*min(1.,vx.a+max(vx.r,max(vx.g,vx.b)));}col=col*(1.-min(vx.a,1.))+vx.rgb*vfxK;}
  vec3 B3=texture2D(b3,p).rgb;
  vec3 bloom=(texture2D(b1,p).rgb*.32+texture2D(b2,p).rgb*.3+B3*.26)*2.*bloomK;

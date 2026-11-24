@@ -175,7 +175,7 @@ function cutFx(c,thick){ const K=VFX.td_cutline, k=K?c.L/K.w:1;   // stretched a
 // ZERO SLASH: a silver circle writes itself under him; one drawn breath; a crescent the width of the field - then four more, each wider than
 // the last, each through its own band of the field and at its own tilt, and he is seen at the end of every one. The blade goes home in
 // silence, close; the circle turns to gold, the four scars tear open, and the light he held back comes down as a blade and breaks the floor.
-function ultZero(id){ ultStart(id); const F3ok=n=>window.FX3&&FX3.ready(n), Cn=X.cine, K=K3, D=80000*A.mul(id), x0=pl.x, y0=pl.gy, {hw,hh}=view(), hy=y0-BODY*.55, P={d:'#240004',b:'#ee1a0e',m:'#ffa24a',h:'#fff4dc',l:'#ff3a1c',s:'#ffb090'}, EMB={d:'#0c0001',b:'#8a1208',m:'#e0522a',h:'#ffd8a8',l:'#c02810',s:'#ff9a70'}, f0=pl.f, RR=hw*.8,
+function ultZero(id){ ultStart(id); const F3ok=n=>window.FX3&&FX3.ready(n), Cn=X.cine, K=K3, D=80000*A.mul(id), x0=pl.x, y0=pl.gy, {hw,hh}=view(), hy=y0-BODY*.55, P={d:'#240004',b:'#e8121c',m:'#ffc4b4',h:'#ffffff',l:'#ff3a2c',s:'#ffc0b0'}, EMB={d:'#0c0001',b:'#8a1208',m:'#e0522a',h:'#ffd8a8',l:'#c02810',s:'#ff9a70'}, f0=pl.f, RR=hw*.8,
     GOLD2={d:'#3a0a00',b:'#ffa820',m:'#ffe9a0',h:'#ffffff',l:'#ffc880',s:'#fff0c0'}, STEEL={d:'#04060e',b:'#5f78c0',m:'#b8ccff',h:'#f4f8ff',l:'#9ab4ff',s:'#d0dcff'}, cl=(v,a,b)=>Math.max(a,Math.min(b,v)),
     tp=(x,y)=>{ const dx=x-pl.x, dy=y-pl.gy; pl.x=x; pl.gy=y; for(const p of [...(pl.scarf||[]),...(pl.coat||[])]){ p.x+=dx; p.y+=dy; if(p.px!=null){ p.px+=dx; p.py+=dy; } } };
   // ---- omen: the light turns cold, the circle writes itself, the air is drawn to the hilt
@@ -232,14 +232,14 @@ function ultZero(id){ ultStart(id); const F3ok=n=>window.FX3&&FX3.ready(n), Cn=X
   const tc=t1+.38;
   after(tc,()=>{ hitstop=Math.max(hitstop,.07); Cn.shake(1.1); post.ca=.005; Cn.zoom(.66); Cn.roll(-.03); Cn.tilt(.28,5); GFX.ambient(.46,.44,.52,30); sig.pal=GOLD2; sig2.pal=GOLD2; sig.a=1.1; sig2.a=.7; sig.hole=.46; sig.kick(); SFX.shatter(.8); Cn.cam(x0,y0-hh*.26,5); });
   cuts.forEach((c,j)=>{ after(tc+j*.07,()=>{ const [px,py]=pivot(c);
-      K.cres(px,py,BODY*.4,{reach:c.reach*.96,dir:c.th,lean:c.lean,roll:c.roll,tex:'v3_slash_heavy',pal:P,swing:.04,hold:.08,fade:.26,gain:.45,rk:[.9,1.75],sparks:14,light:.6,ccw:c.ccw});
+      K.cres(px,py,BODY*.4,{reach:c.reach*.74,dir:c.th,lean:c.lean,roll:c.roll,tex:'v3_slash_thin',pal:P,swing:.04,hold:.08,fade:.24,gain:.7,rk:[.9,1.75],sparks:14,light:.6,ccw:c.ccw});
       K.art(c.x,c.y,{tex:'fx3_slash',floor:true,rot:c.th+Math.PI,s:c.reach*.52,asp:1.47,dur:.95,hold:.12,s0:.96,pal:P,gain:.7});
       for(const u of [-.3,0,.3]){ const qx=c.x+c.dx*c.reach*u, qy=c.y+c.dy*c.reach*u*FSY; K.debris(qx,qy,{n:4,r:100,sp:[200,800],up:1500,size0:8,size:24}); K.dust(qx,qy,{n:4,r:70,sp:[200,600],a:.4}); }
       band(c,e=>{ e.flash=1; e.stun=Math.max(e.stun,1.6); hitFx(e,'#ffb66a',1.4); if(!e.d.heavy){ const a=Math.atan2(e.y-y0,e.x-x0); e.vz=Math.max(e.vz,rand(1500,2200)); e.kx+=Math.cos(a)*rand(260,520); e.ky+=Math.sin(a)*rand(160,320); } });
       Cn.SND.shing(.7+j*.08,.4); SFX.boom(.9+j*.05,.5); Cn.shake(.5+j*.08); Cn.roll((j%2?1:-1)*.03); }); });
   // ---- the held breath: everything leans in toward the place the blade will land
   const tf=tc+.52, bx=x0, by=y0-RR*FSY*.52;
-  after(tf-.6,()=>{ K.blade(bx,by,{h:hh*1.45,omen:.52,drop:.28,hold:.5,dur:1.3,pal:GOLD2,gain:1,tilt:-.2*f0}); GFX.light(bx,by,hw*.8,'#ffc870',.5,.3,{hold:.5,z:260}); });
+  after(tf-.6,()=>{ K.blade(bx,by,{h:hh*1.45,omen:.52,drop:.28,hold:.42,dur:.95,pal:GOLD2,gain:1,tilt:-.2*f0}); GFX.light(bx,by,hw*.8,'#ffc870',.5,.3,{hold:.5,z:260}); });
   after(tf-.2,()=>{ GFX.gain=.5; Cn.zoom(.78); K.shock(bx,by,{r0:hw*1.7,r:90,dur:.2,pal:GOLD2,gain:.6,light:0,dust:0,painted:0,th:.7}); sig.r*=.86; sig2.r*=.86;
     for(let i=0;i<40;i++){ const a=rand(0,TAU), d=rand(500,1100); GFX.pt({x:bx+Math.cos(a)*d,y:by+Math.sin(a)*d*FSY,z:rand(0,500),tx:bx,ty:by,tz:120,pull:9,life:.24,s:rand(3,6),m:3,len:.06,c:GFX.rgb('#fff0c0'),c2:'#ffa820',L:3}); } });
   after(tf,()=>{ GFX.gain=.7; Cn.zoom(.68); Cn.tilt(.3,9); SFX.whoosh(.5,1); });
@@ -247,6 +247,7 @@ function ultZero(id){ ultStart(id); const F3ok=n=>window.FX3&&FX3.ready(n), Cn=X
   after(tf+.2,()=>{ GFX.gain=1.25; hitstop=Math.max(hitstop,.13); Cn.shake(1.9); post.ca=.006; Cn.zoom(.58); Cn.roll(.05); after(.22,()=>Cn.roll(0));
     K.upheave(bx,by,{r:hw*.4,n:7,s:hw*.32,pal:GOLD2,dur:1.7,a0:Math.PI*.86,a1:Math.PI*2.14}); K.upheave(x0,y0,{r:hw*.95,n:8,s:hw*.24,pal:P,dur:1.25,delay:.06,stagger:.03,a0:Math.PI*.1,a1:Math.PI*.9,jit:.36}); K.upheave(x0,y0,{r:hw*1.05,n:6,s:hw*.2,pal:P,dur:1.25,delay:.12,stagger:.02,a0:Math.PI*1.1,a1:Math.PI*1.9,jit:.3});
     for(let i=0;i<5;i++){ const a=-Math.PI*(.1+.2*i); K.smoke(bx+Math.cos(a)*rand(120,260),by+Math.sin(a)*rand(40,110),{s:rand(260,380),dur:rand(1.3,1.9),delay:i*.03,c:'#120608',c2:'#4a2418',a:.75,rise:260}); }
+    K.flare(bx,by,BODY*.3,{pal:GOLD2,s:hw*.34,dur:.09,gain:7}); K.flare(bx,by,BODY*.3,{pal:GOLD2,s:hw*.7,sx:3.2,sy:.3,dur:.14,gain:4});
     // the cutting wind of it: one gold crescent round the foot of the blade
     K.cres(bx-f0*hw*.45,by+30,BODY*.3,{reach:hw*1.5,dir:f0>0?0:Math.PI,lean:.78,roll:0,tex:'fx3_slash',pal:GOLD2,swing:.06,hold:.1,fade:.36,gain:.8,sparks:0,light:0,ccw:f0<0});
     GFX.light(bx,by,hw*1.6,'#ffd090',.8,.45,{z:420}); GFX.light(bx,by-120,hw*1.2,'#ffe6b0',.8,.45,{z:300}); GFX.ripple(bx,by,hw*2.8,{life:.7,s:1.3,w:.14});

@@ -198,7 +198,7 @@ const SKILL={
   py_ring:{fn(id){ if(countIn(480)<4&&!nearest(250)) return false; const d=D(id); raise();
     const wave=k=>{ const x=pl.x, y=pl.gy; ringFire(x,y,{r0:70,r:560,h:230,dur:.52,gain:k?.85:1,smoke:k?0:1}); K.shock(x,y,{r:620,dur:.5,pal:PF,gain:.9}); GFX.ripple(x,y,640,{life:.45,s:.6});
       K.art(x,y,{tex:'v3_spin_ring',floor:true,s:330,dur:.4,pal:PG,gain:.8,hold:.2,s0:.35,rot:rand(0,TAU)}); K.sparks(x,y,40,{pal:PF,n:18,sp:[500,1500],up:420,life:[.25,.55]}); sfx('fire',1,.8);
-      if(!k){ fireLine(ringPts(x,y,535,30),{h:95,dur:1.1,in:.12,out:.6,delay:.34,pal:PD}); K.upheave(x,y,{r:300,n:6,s:120,a0:PI*1.05,a1:PI*1.95,pal:PF,dur:.9,delay:.12}); K.embers(x,y,520,{pal:PF,n:22,life:1.5}); for(let q=0;q<5;q++){ const b=q/5*TAU+rand(0,1); scorch(x+Math.cos(b)*500,y+Math.sin(b)*500*FSY,rand(90,130),{life:2,delay:.3}); } }
+      if(!k){ fireLine(ringPts(x,y,535,30),{h:150,dur:1.1,in:.12,out:.6,delay:.34,pal:PD,tongues:10}); K.upheave(x,y,{r:300,n:6,s:120,a0:PI*1.05,a1:PI*1.95,pal:PF,dur:.9,delay:.12}); K.embers(x,y,520,{pal:PF,n:22,life:1.5}); for(let q=0;q<5;q++){ const b=q/5*TAU+rand(0,1); scorch(x+Math.cos(b)*500,y+Math.sin(b)*500*FSY,rand(90,130),{life:2,delay:.3}); } }
       [0,.1,.2,.3].forEach((t,i)=>after(t,()=>{ const r=160+i*120; inCircle(pl.x,pl.gy,r,o=>{ if((o.ringT||0)>RT) return; o.ringT=RT+.5; dmg(o,d*(k?.6:1),{kb:1.2}); hitFx(o,C1,1.1); }); })); };
     after(.2,()=>wave(0)); if(EVO(id)) after(.75,()=>wave(1)); }},
   // EXPLOSION: the air over the crowd is drawn to a point, and the point goes off
@@ -321,7 +321,7 @@ function ultStorm(id){ ultStart(id); const Cn=X.cine, {hw,hh}=view(), Dm=60000*A
     K.flare(x0,by,BODY*1.4,{pal:PB,s:330,dur:.22,gain:2.6}); GFX.light(x0,by,hw*.8,PB.l,.6,.14,{z:300});
     K.art(x0,by,{tex:BF(),s:hw*.62,asp:BFA(),z:60,dur:.34,pal:PG,gain:1.05,hold:.3,s0:.3,rot:rand(-.3,.3)});
     ringFire(x0,y0,{r0:140,r:hw*1.75,h:700,dur:.8,gain:1.15,hf:.4}); K.shock(x0,y0,{r:hw*1.6,dur:.5,pal:PD,gain:.9,light:0,dust:0}); GFX.ripple(x0,y0,hw*2,{life:.55,s:.9});
-    K.crack(x0,y0,{alt:1,r:hw*1.0,pal:PF,life:4.6,grow:.12,gain:.9}); K.crack(x0,y0,{alt:1,r:hw*.62,pal:PD,life:5.4,grow:.2,gain:.8,rot:rand(0,TAU)});
+    K.crack(x0,y0,{alt:1,r:hw*1.0,pal:PF,life:3.4,grow:.12,gain:.7}); K.crack(x0,y0,{alt:1,r:hw*.62,pal:PD,life:5.4,grow:.2,gain:.8,rot:rand(0,TAU)});
     K.debris(x0,y0,{n:34,r:200,sp:[400,1700],up:2000,size0:14,size:36}); K.dust(x0,y0,{n:20,r:140,sp:[600,1500],a:.5}); K.sparks(x0,by,120,{pal:PF,n:60,sp:[700,2600],up:1800,life:[.4,1]}); GFX.light(x0,y0,hw*1.6,PF.l,1.15,.5,{z:300});
     launch(x0,y0,hw*1.3,1); after(.3,()=>Cn.sweep(x0,y0,Dm,{speed:3200,push:1.3})); });
   // ---- aftermath, in layers that end at different times: the burn that keeps spreading, low dark smoke, embers, rubble; no bonfire

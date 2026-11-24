@@ -395,8 +395,8 @@ function ultMeteor(id){ ultStart(id); const Cn=X.cine, {hw,hh}=view(), Dm=70000*
     K.shock(cx,cy,{r:hw*1.5,dur:.45,pal:P,gain:1}); GFX.ripple(cx,cy,hw*1.9,{life:.5,s:1});
     K.sparks(cx,cy,60,{pal:P,n:56,sp:[700,2800],up:2000,life:[.3,.9]}); K.debris(cx,cy,{n:30,r:220,sp:[600,1900],up:2100,size0:9,size:34,c:'#5a4038'}); K.dust(cx,cy,{n:20,r:160,sp:[600,1600],a:.5,c:'#4a3630'});
     // the floor: rock stands up round the far side of the pit (never between her and the camera), fissures run out of it and keep running
-    K.upheave(cx,cy,{r:Rm*.92,n:9,s:310,a0:Math.PI*1.04,a1:Math.PI*1.96,pal:P,dur:1.8,rock:'#3a2c28'});
-    K.upheave(cx,cy,{r:Rm*1.0,n:3,s:170,a0:-.2,a1:.3,pal:P,dur:1.5,rock:'#3a2c28',delay:.03}); K.upheave(cx,cy,{r:Rm*1.0,n:3,s:170,a0:Math.PI-.3,a1:Math.PI+.2,pal:P,dur:1.5,rock:'#3a2c28',delay:.03});
+    K.upheave(cx,cy,{r:Rm*.92,n:9,s:310,a0:Math.PI*1.04,a1:Math.PI*1.96,pal:P,dur:1.8,rock:'#3a2c28',tex:'v3_break_fire'});
+    K.upheave(cx,cy,{r:Rm*1.0,n:3,s:170,a0:-.2,a1:.3,pal:P,dur:1.5,rock:'#3a2c28',tex:'v3_break_fire',delay:.03}); K.upheave(cx,cy,{r:Rm*1.0,n:3,s:170,a0:Math.PI-.3,a1:Math.PI+.2,pal:P,dur:1.5,rock:'#3a2c28',tex:'v3_break_fire',delay:.03});
     crater(cx,cy,{r:hw*.8,life:5.2,rim:1}); K.crack(cx,cy,{alt:1,r:hw*1.15,ry:1.15,pal:P,life:5,grow:1.3});
     dustRing(cx,cy,hw*1.45,{dur:1.3}); chunks(cx,cy,{n:7,s0:60,s:135});
     launch(cx,cy,hw*1.4);

@@ -98,7 +98,7 @@ function heal(k){ const h=Math.round(A.maxHp()*k); G.hp=Math.min(A.maxHp(),G.hp+
 // ============================================================ ultimates: shared beats (each class stages its own in sk_<class>.js)
 const tdV=(n,x,y,o)=>VFX[n]&&VFX[n].f[0].ok?vfx(n,x,y,o):null;
 function onScreen(m=0){ const {hw,hh}=view(); return V.en.filter(e=>!e.dead&&Math.abs(e.x-cam.x)<hw+m&&Math.abs(e.y-BODY*.5-cam.y)<hh+m); }
-function ultStart(id){ if(window.K3&&K3.tune) K3.tune(); lock=true; V.ug=0; anim.seq=null; V.dash=null; pl.air=pl.airT=0; for(const o of V.orbs.splice(0)) if(o.fx) o.fx.life=0;   /* the stick stays held through the ultimate: he moves again the moment it ends */ ov.lbT=0; V.ultId=id; V.nums.length=0; if(G.sv.cine) G.sv.cine.begin(); }
+function ultStart(id){ if(window.K3&&K3.tune) K3.tune(); lock=true; V.ug=0; anim.seq=null; V.dash=null; pl.air=pl.airT=0; for(const o of V.orbs.splice(0)) if(o.fx) o.fx.life=0; if(window.GFX){ /* the stage is cleared: what the last skills left burning would muddy the opening */ GFX.fx.length=0; GFX.pts.length=0; GFX.lights.length=0; }   /* the stick stays held through the ultimate: he moves again the moment it ends */ ov.lbT=0; V.ultId=id; V.nums.length=0; if(G.sv.cine) G.sv.cine.begin(); }
 const stamp1=stamp; stamp=function(t,o={}){ if(G.mode==='surv'&&lock&&!o.keep) return null; return stamp1(t,o); };
 function ultStop(){ if(G.sv.cine) G.sv.cine.end(); if(V.ultSum){ V.nums.push({x:pl.x,y:pl.gy-BODY*3.1,t:-.4,txt:fmtN(V.ultSum),big:true}); V.ultSum=0; } lock=false; ov.lbT=0; ov.dimT=0; post.grayT=0; V.zk=1; V.ultTick=null; V.cuts=[]; V.shadow=null; V.ultDraw=null; G.inv=.8; pl.visible=true; pl.target=IDLE(); pl.ps=12; pl.air=pl.airT=0; anim.seq=null; }
 function ultHit(e,D,sx,sy){ dmg(e,e.d.boss?D*2:Math.max(D,e.hp*1.05),{crit:true,kb:1.8,big:true,launch:700,sx,sy}); }
@@ -318,8 +318,9 @@ function drawE(e){ const D=e.d, sc=D.sc, x=e.x, y=e.y, fr=eFrame(e), ac=CH().acc
   // the strongest effect light throws his shadow away from it
   if(V.kl){ const L=V.kl, dx=x-L.x, dy=(y-L.y)/FSY, d=Math.hypot(dx,dy)||1, f=Math.max(0,1-d/(L.r*1.5)); if(f>.05&&d>40){ const k=L.s*f, len=D.r*(1.2+3.2*k), ux=dx/d, uy=dy/d*FSY, ul=Math.hypot(ux,uy)||1;
       ctx.fillStyle=`rgba(0,0,0,${Math.min(.5,.55*k)})`; ctx.beginPath(); ctx.ellipse(x+ux/ul*len*.85,y+2+uy/ul*len*.85,len,D.r*.5,Math.atan2(uy,ux),0,TAU); ctx.fill(); } }
-  if(fr){ const [fw,fh,fa]=fr.d; ctx.save(); ctx.translate(x,y-e.z+4); ctx.scale(e.f*sc*e.sv,sc*e.sv); if(e.z>0) ctx.rotate(-.3); ctx.drawImage(tinted(fr.s,D.img==='brute'?55:0),-fa*fw,-fh,fw,fh); ctx.restore(); }
+  if(fr){ const [fw,fh,fa]=fr.d; ctx.save(); ctx.translate(x,y-e.z+4); ctx.scale(e.f*sc*e.sv,sc*e.sv); if(e.z>0){ /* thrown: he tumbles about his middle and comes a little nearer the eye */ e.sp=(e.sp||0)+(e.z>30?.13:0); const up=1+Math.min(.3,e.z/2600); ctx.scale(up,up); ctx.translate(0,-fh*.5); ctx.rotate(-.3-e.sp); ctx.translate(0,fh*.5); } else e.sp=0; ctx.drawImage(tinted(fr.s,D.img==='brute'?55:0),-fa*fw,-fh,fw,fh); ctx.restore(); }
   else { ctx.fillStyle='#3d1458'; ctx.beginPath(); ctx.ellipse(x,y-e.h*.5-e.z,D.r,e.h*.5,0,0,TAU); ctx.fill(); }
+  if(e.z>40&&lock) glow(fx,x,y-e.h*.5-e.z,e.h*.5,'#ffd8b0',Math.min(.28,e.z/700));
   if(e.flash>0) glow(fx,x,y-e.h*.5-e.z,e.h*.45,'#ffffff',e.flash*.55);
   if(e.slowT>0) glow(fx,x,y-e.h*.4,e.h*.4,'#9ff7ff',.35);
   if(D.heavy&&!lock){ glow(fx,x,y-6,D.r*1.4,ac,.2); fx.strokeStyle=hexA('#ff9a3a',.55); fx.lineWidth=4; fx.beginPath(); fx.ellipse(x,y,D.r*1.5*e.sv,D.r*1.5*e.sv*FSY,0,0,TAU); fx.stroke();

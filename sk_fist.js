@@ -336,7 +336,7 @@ function ultSun(id){ ultStart(id); const Cn=X.cine, {hw,hh}=view(), Dm=70000*A.m
   after(tI,()=>{ sun.on=false; SL.hold=0; SL.life=.01; HS.hold=0; HS.life=.3; hitstop=Math.max(hitstop,.12); Cn.shake(1.6); post.ca=.014;
     GFX.ambient(.5,.4,.36,40); after(.16,()=>GFX.ambient(.44,.34,.34,3)); GFX.light(cx,cy,LR,P.l,1.15,.7,{z:260});
     // a wall of fire going straight up, twice the sun wide, gone in half a second
-    K.art(cx,cy,{tex:F.ready('v3_burst_fire')?'v3_burst_fire':'fx3_burst',s:R*2.5,z:-90,dur:.6,pal:P,gain:1,hold:.25,s0:.3}); K.flame(cx,cy,{s:820,dur:.6,pal:P,gain:1.1,light:0}); K.flame(cx-210,cy+20,{s:520,dur:.5,pal:P,light:0,delay:.04}); K.flame(cx+230,cy+16,{s:480,dur:.5,pal:P,light:0,delay:.06});
+    K.art(cx,cy,{tex:F.ready('v3_burst_fire')?'v3_burst_fire':'fx3_burst',s:R*2.5,z:-90,dur:.48,pal:P,gain:1,hold:.3,s0:.3}); K.flame(cx,cy,{s:820,dur:.6,pal:P,gain:1.1,light:0}); K.flame(cx-210,cy+20,{s:520,dur:.5,pal:P,light:0,delay:.04}); K.flame(cx+230,cy+16,{s:480,dur:.5,pal:P,light:0,delay:.06});
     K.burst(cx,cy,{s:320,pal:P,scar:6,no:['flash','smoke','crack']}); K.arcwall(cx,cy,{r:340,h:720,a0:-PI+.2,a1:-.2,dur:.7,pal:P,hb:1,hf:.5,light:0});
     K.shock(cx,cy,{r:rs*2.3,dur:.55,pal:P,gain:1.1,light:0}); K.shock(cx,cy,{r:hw*2.2,dur:.8,pal:P,gain:.6,delay:.1,light:0}); GFX.ripple(cx,cy,hw*2,{life:.6,s:.9});
     // rock stands up in a ring, open toward him
