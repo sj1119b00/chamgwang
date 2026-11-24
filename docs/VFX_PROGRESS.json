@@ -1,7 +1,7 @@
 {
  "updated": "2026-11-24",
  "representative": "sw_ult1",
- "iteration": 30,
+ "iteration": 31,
  "project_complete": false,
  "independent_review": [
   {
@@ -76,46 +76,46 @@
  "ults": {
   "sw_ult1": {
    "status": "rewritten_on_v3",
-   "iterations_v3": 12,
+   "iterations_v3": 14,
    "verified_run": true,
    "state_restore": true,
-   "sheet": "z7_big.jpg",
-   "video": "_gen/review/zero_slash_v8.mp4",
-   "source": "_gen/v3/zero_v3.js (installed by _gen/v3/p7.py)"
+   "sheet": "z8_big.jpg",
+   "video": "_gen/review/zero_slash_v9.mp4",
+   "source": "_gen/v3/zero_v4.js (installed by _gen/v3/p7.py)"
   },
   "sw_ult2": {
    "status": "rewritten_on_v3_by_agent",
    "verified_run": true,
    "state_restore": true,
-   "sheet": "sword_u2_r6.jpg",
+   "sheet": "sword_u2_f2.jpg",
    "checked_by_main": true
   },
   "mg_ult1": {
    "status": "rewritten_on_v3_by_agent",
    "verified_run": true,
    "state_restore": true,
-   "sheet": "mage_u1_final.jpg",
+   "sheet": "mage_u1_final2.jpg",
    "checked_by_main": true
   },
   "mg_ult2": {
    "status": "rewritten_on_v3_by_agent",
    "verified_run": true,
    "state_restore": true,
-   "sheet": "mage_u2_final.jpg",
+   "sheet": "mage_u2_final2.jpg",
    "checked_by_main": true
   },
   "fs_ult1": {
    "status": "rewritten_on_v3_by_agent",
    "verified_run": true,
    "state_restore": true,
-   "sheet": "fist_u1_final.jpg",
+   "sheet": "fist_u1_final2.jpg",
    "checked_by_main": true
   },
   "fs_ult2": {
    "status": "rewritten_on_v3_by_agent",
    "verified_run": true,
    "state_restore": true,
-   "sheet": "fist_u2_final.jpg",
+   "sheet": "fist_u2_final2.jpg",
    "checked_by_main": true
   },
   "sh_ult1": {
@@ -157,8 +157,8 @@
   "pushed": false
  },
  "next": "VFX_NEXT_TASK.md",
- "plateau": false,
- "plateau_note": "17 rounds plateaued at 55-71 on the old layer; approach replaced by engine v3",
+ "plateau": true,
+ "plateau_note": "representative ult stuck at 60-64 over five independent reviews (z3..z7); approach changed in iteration 31: camera tilt projection, no straight seams (hanging painted crescents), gold wall+pillar peak",
  "gameplay": {
   "all_skills_auto": true,
   "joystick_follow": true,
@@ -203,6 +203,12 @@
    "score": 60,
    "old_same_reviewer": 41,
    "sheet": "z6"
+  },
+  {
+   "n": 10,
+   "score": 60,
+   "old_same_reviewer": 44,
+   "sheet": "z7"
   }
  ],
  "realtime_fps_headless": {

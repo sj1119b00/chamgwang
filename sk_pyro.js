@@ -322,10 +322,10 @@ function ultDragon(id){ ultStart(id); const Cn=X.cine, {hw,hh}=view(), Dm=70000*
   K.arcwall(x0,y0,{r:SR*1.02,h:330,hb:1,hf:.28,dur:1.3,rise:.7,pal:PD,gain:.9,delay:.9,light:.5});
   // path of the head: floor position and height, lt seconds after it leaves the circle. The dive is one arc: on along the lap, up, over and in.
   const lap=lt=>{ const a=-PI/2+lt*3.0, R=RR*Math.min(1,lt/.45); return [x0+Math.cos(a)*R,y0+Math.sin(a)*R*.75]; }, zl=lt=>ZF*eo3(sat(lt/.35))+Math.sin(lt*6)*38;
-  const [sx,sy]=lap(TD), [sxb,syb]=lap(TD-.02), sz=zl(TD), Y0=sy-sz, hvx=(sx-sxb)/.02, hvy=(sy-syb)/.02-(sz-zl(TD-.02))/.02, hvl=Math.hypot(hvx,hvy)||1, side=hvx>=0?1:-1;
-  const b1x=sx+hvx/hvl*420, b1y=Y0+hvy/hvl*420-240, b2x=cx+side*580, b2y=cy-300;
-  const pos=lt=>{ if(lt<=0) return {x:x0,y:y0,z:0}; if(lt<TD){ const [x,y]=lap(lt); return {x,y,z:zl(lt)}; }
-    const k=sat((lt-TD)/DD), w=k*(.7+.3*k), u=1-w, X=u*u*u*sx+3*u*u*w*b1x+3*u*w*w*b2x+w*w*w*cx, Y=u*u*u*Y0+3*u*u*w*b1y+3*u*w*w*b2y+w*w*w*cy, z=Math.max(0,lerp(sy,cy,w*w*(3-2*w))-Y); return {x:X,y:Y+z,z}; };
+  // the dive keeps turning the way the lap turned and winds inward onto the mark (the circle it flies shrinks and slides over to the
+  // target), so the body never has to double back on itself; its height swells once and falls away
+  const sz=zl(TD), pos=lt=>{ if(lt<=0) return {x:x0,y:y0,z:0}; if(lt<TD){ const [x,y]=lap(lt); return {x,y,z:zl(lt)}; }
+    const k=sat((lt-TD)/DD), w=k*(.7+.3*k), a=-PI/2+lt*3.0, R=RR*(1-w); return {x:lerp(x0,cx,w)+Math.cos(a)*R,y:lerp(y0,cy,w)+Math.sin(a)*R*.75,z:sz*(1-Math.pow(k,1.8))+1300*k*k*Math.pow(1-k,1.5)}; };
   let t=0, sc=0, fl=0, arcT=.2, dive=0, done=false; const trail=[];
   V.ultTick=dt=>{ t+=dt; sig.r=lerp(30,SR,easeOut(Math.min(1,t/1))); Cn.shake(t<1.8?.1+t*.1:0);
     if(t<T0){ if((sc+=dt)>.09){ sc=0; const a=rand(0,TAU), r=rand(.55,1)*SR; K.flame(x0+Math.cos(a)*r,y0+Math.sin(a)*r*FSY,{s:rand(70,150)*(.5+t*.4),dur:.5,pal:PD,light:0}); } return; }
@@ -355,6 +355,9 @@ function ultDragon(id){ ultStart(id); const Cn=X.cine, {hw,hh}=view(), Dm=70000*
         while(pts.length<N&&d>0&&acc+d>=tgt){ const f=(tgt-acc)/d, i=pts.length, u=i/(N-1), wv=Math.sin(lt0*10-u*8)*28*Math.min(1,u*4); pts.push({x:mix(prev.x,p.x,f),y:mix(prev.y,p.y,f),z:Math.max(0,mix(prev.z,p.z,f)+wv),w:WB*shape(u)*sat((tgt+40)/160)*sat(lt0/.08)}); tgt+=SL; }
         acc+=d; prev=p; }
       while(pts.length<N) pts.push({x:x0,y:y0,z:0,w:0});
+      // round the path off where it turns hard (twice over), and thin the body where it still bends tighter than its own width
+      for(let pass=0;pass<2;pass++){ let ax=pts[0].x, ay=pts[0].y, az=pts[0].z; for(let i=1;i<N-1;i++){ const p=pts[i], b=pts[i+1], nx=(ax+2*p.x+b.x)/4, ny=(ay+2*p.y+b.y)/4, nz=(az+2*p.z+b.z)/4; ax=p.x; ay=p.y; az=p.z; if(p.w>0&&b.w>0){ p.x=nx; p.y=ny; p.z=nz; } } }
+      for(let i=1;i<N-1;i++){ const a=pts[i-1], p=pts[i], b=pts[i+1], ux=p.x-a.x, uy=(p.y-p.z)-(a.y-a.z), vx=b.x-p.x, vy=(b.y-b.z)-(p.y-p.z), ul=Math.hypot(ux,uy)||1, vl=Math.hypot(vx,vy)||1, c=(ux*vx+uy*vy)/(ul*vl); if(c<.8) p.w*=Math.max(.35,.5+.5*c/.8); }
       for(let i=N-1;i>=0;i--){ const p=pts[i]; au.push({x:p.x,y:p.y,z:p.z,w:p.w*2.5}); sm.push({x:p.x,y:p.y,z:p.z+p.w*.5,w:p.w*3.4}); }
       const hp=pts[0], hq=pts[2], dx=hp.x-hq.x, dy=(hp.y-hp.z)-(hq.y-hq.z), th=Math.atan2(dy,dx), right=dx>=0, head=lt0<END, hk=sat(lt0/.25), mid=pts[Math.min(N-1,i0+(N>>1))], live=head?1:sat(1-gone/LB), dv=sat((lt0-TD)/DD);
       L1.x=hp.x; L1.y=hp.y; L1.a=1.25*live; L2.x=mid.x; L2.y=mid.y; L2.a=.9*live*sat(lt/.4);

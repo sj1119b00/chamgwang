@@ -19,7 +19,7 @@ K.PAL={
 };
 const pal=p=>typeof p==='string'?K.PAL[p]:(p||K.PAL.crimson);
 K.pal=pal;
-const TEX=['v3_fist_punch','v3_fist_cone','v3_flame_cone','v3_vortex_wisps','v3_boulder','v3_spikes','v3_palmprint','v3_skygate','v3_bolt_b','v3_bolt_fork','v3_arc_h','v3_frost_ring','v3_crater','v3_comet_tail','v3_greatsword','v3_cres_up','v3_pillar','v3_scorch','v3_dustring','v3_orb','v3_circ_mage','v3_circ_fist','v3_circ_shaman','v3_circ_pyro','fx_circle_arcane','fx_circle_seal','v3_slash_thin','v3_slash_heavy','v3_thrust','v3_spin_ring','v3_circ_blade','v3_fissure','v3_gash','v3_xburst','fx3_burst','fx3_shock','fx3_smoke','fx3_slash','fx3_fire','fx3_bolt','fx3_tornado','fx3_beam','fx_crack','fx_gash'];
+const TEX=['v3_stroke_open','v3_circ_blade2','v3_fist_punch','v3_fist_cone','v3_flame_cone','v3_vortex_wisps','v3_boulder','v3_spikes','v3_palmprint','v3_skygate','v3_bolt_b','v3_bolt_fork','v3_arc_h','v3_frost_ring','v3_crater','v3_comet_tail','v3_greatsword','v3_cres_up','v3_pillar','v3_scorch','v3_dustring','v3_orb','v3_circ_mage','v3_circ_fist','v3_circ_shaman','v3_circ_pyro','fx_circle_arcane','fx_circle_seal','v3_slash_thin','v3_slash_heavy','v3_thrust','v3_spin_ring','v3_circ_blade','v3_fissure','v3_gash','v3_xburst','fx3_burst','fx3_shock','fx3_smoke','fx3_slash','fx3_fire','fx3_bolt','fx3_tornado','fx3_beam','fx_crack','fx_gash'];
 K.pre=()=>{ if(F&&F.on){ for(const t of TEX) F.img(t); F.img('v3_curtain',{repeat:true}); F.img('v3_groundfire',{repeat:true}); for(const t of ['meteor','sword']) F.img(t); } };
 // a point of a tilted local frame in world coordinates (x, floor y, height)
 K.at=(M,x,y,z,lx,ly,lz)=>[x+M[0]*lx+M[4]*ly+M[8]*lz,y+(M[1]*lx+M[5]*ly+M[9]*lz)*FSY,z+M[2]*lx+M[6]*ly+M[10]*lz];
@@ -109,7 +109,7 @@ K.slash=(x,y,z,o={})=>{ if(!F.on) return; const m=mats(), P=pal(o.pal), r=o.r||4
 // hangs for a breath, and burns away from the tail. The painting's crescent bulges to its left (the cutting edge).
 //  With o.keep it stays hanging (dimmed, in o.idlePal) and returns a handle: h.end() burns it away, h.kick() pulses it.
 //  o: {reach (from the swordsman to the cutting edge) or s (half height), dir (floor angle the edge faces), lean (0 flat on the floor .. .9 almost facing the camera), roll (one tip up, the other down), tex, pal, swing, hold, fade, ccw, gain, z, asp}
-const ART={fx3_slash:{asp:1.47,piv:[.62,.5],edge:.07,rk:[.55,1.02]},v3_slash_thin:{asp:1.78,piv:[.8,.5],edge:.02,rk:[.5,1]},v3_slash_heavy:{asp:1.5,piv:[.74,.5],edge:.02,rk:[.72,1.3]},v3_cres_up:{asp:.667,piv:[.8,.5],edge:.11,rk:[.4,1]}};
+const ART={fx3_slash:{asp:1.47,piv:[.62,.5],edge:.07,rk:[.55,1.02]},v3_slash_thin:{asp:1.78,piv:[.8,.5],edge:.02,rk:[.5,1]},v3_slash_heavy:{asp:1.5,piv:[.74,.5],edge:.02,rk:[.72,1.3]},v3_cres_up:{asp:.667,piv:[.8,.5],edge:.11,rk:[.4,1]},v3_stroke_open:{asp:.667,piv:[.75,.5],edge:.03,rk:[.45,1]}};
 K.ART=ART;
 K.cres=(x,y,z,o={})=>{ const h={on:true,t1:-1,pk:-9,end(){ if(h.t1<0) h.t1=RT; },kick(){ h.pk=RT; }}; if(!F.on) return h; const m=mats(), P=pal(o.pal), tex=o.tex&&F.ready(o.tex)?o.tex:'fx3_slash', A=ART[tex]||ART.fx3_slash, asp=o.asp||A.asp, s=o.reach?o.reach/((A.piv[0]-A.edge)*2*asp):(o.s||300), sw=o.swing??.07, hold=o.hold??.08, fade=o.fade??.3, keep=o.keep?(o.max||8):0, life=keep||sw+hold+fade, C=col(P), CI=col(pal(o.idlePal||o.pal)), g=o.gain||1, dir=o.dir||0, ccw=o.ccw?1:-1;
   const mt=F.mat({...m.art,tex,layer:'o',nz:'wisp',n1:[1.5,1.5,.4*ccw,.1],n2:[1.2,1.2,.2,.1],dist:.025,mdist:1,rk:o.rk||A.rk}), sd=Math.random()*9;
@@ -119,7 +119,7 @@ K.cres=(x,y,z,o={})=>{ const h={on:true,t1:-1,pk:-9,end(){ if(h.t1<0) h.t1=RT; }
     if(keep){ f=h.t1<0?0:sat((RT-h.t1)/fade); idle=sat((t-sw-hold)/.18); if(f>=1){ h.on=false; return; } } else f=sat((t-sw-hold)/fade);
     const ss=s*(1+.1*f+.05*hk), tail=f*1.25, pk=Math.max(0,1-(RT-h.pk)/.25), dim=keep?mix(1,(o.idle??.5)+.35*pk,idle):1, Cc=keep&&idle>.5&&h.t1<0?CI:C;
     // uv pivot; in texture space the crescent runs from the top tip round the left (the cutting edge) to the bottom tip
-    const aw=[A.piv[0],A.piv[1],ccw>0?.8:-.8,ccw], aw2=[.06+hk*.8,tail*.62,.22,1];
+    const arc=o.arc||[0,.86], aw=[A.piv[0],A.piv[1],ccw>0?.8:-.8,ccw], aw2=[arc[0]+.06+hk*(arc[1]-arc[0]-.06),arc[0]+tail*.62*(arc[1]-arc[0])/.86,o.arc?.1:.22,1];
     F.quad(mt,cx,cy,ss*asp,ss,0,{z,M:F.xfw({sx:ss*asp,sy:ss,rx:-(o.lean??.3),ry:o.roll||0,rz}),...Cc,a:(1-f*f)*Math.min(1,dim+.25),gain:3*g*dim,bgain:1.1*Math.max(.6,dim),ero:.1+f*.3+(keep?idle*.06:0),nk:.18+f*.25,aw,aw2,t0:sd}); },o.delay||0);
   const fx=()=>{ if(o.light!==0) GFX.light(x+Math.cos(dir)*s*.6,y+Math.sin(dir)*s*.6*FSY,s*2.6,P.l,o.light??1,(sw+hold+fade)*.8,{z});
     if(o.sparks!==0) K.sparks(x+Math.cos(dir)*s*.8,y+Math.sin(dir)*s*.8*FSY,z,{pal:P,n:o.sparks||10,dir,spread:1.1,sp:[400,1500],up:400,life:[.15,.45]}); };
@@ -188,7 +188,7 @@ K.sigil=(x,y,o={})=>{ const h={x,y,r:o.r||400,a:1,pal:o.pal,pk:-9,dead:false,kic
   GFX.add(dur,(k,t)=>{ if(h.dead) return; const P=pal(h.pal), C=col(P), i=sat(t/tin), out=sat((dur-t)/tout), pk=Math.max(0,1-(RT-h.pk)/.3), a=h.a*out*(1+pk*.8), rr=h.r*(.9+.1*eo3(i));
     F.quad(m.dark,h.x,h.y,rr*1.2,rr*1.2,0,{a:.7*Math.min(1,a)*i});
     F.quad(m.glowG,h.x,h.y,rr*1.3,rr*1.3,0,{...C,a:(.2+.5*pk)*a*i,gain:.6,bgain:.5});
-    const hole=o.hole||0;
+    const hole=h.hole??o.hole??0;
     F.quad(ma,h.x,h.y,rr,rr,rot0+t*spin,{...C,a:a*.9,gain:2.2*g,rv:[i*1.5,.25,hole,.14]});
     F.quad(mb,h.x,h.y,rr,rr,rot0+t*spin,{...C,a:a*(.45+.3*Math.sin(t*5)),gain:2.6*g,rv:[i*1.5,.25,hole,.14]});
     if(i<1){ const an=t*11+rot0, lr=rr*i*.98; F.quad(m.glowG,h.x+Math.cos(an)*lr,h.y+Math.sin(an)*lr*FSY,rr*.16,rr*.16,0,{...C,a:1,gain:3,bgain:2,rk:[.3,.7]}); if(Math.random()<.5) K.sparks(h.x+Math.cos(an)*lr,h.y+Math.sin(an)*lr*FSY,6,{pal:P,n:1,sp:[100,400],up:400,life:[.2,.4],s:2}); } },o.delay||0);
@@ -310,6 +310,19 @@ K.hpal=hpal;
 K.hit=(x,y,z,c,pw=1)=>{ if(!F.on) return; const P=hpal(c||'#ffffff'), m=mats(), mt=m.hitA||(m.hitA=F.mat({...m.art,tex:'v3_xburst',rk:[.5,1]})), C=col(P), rot=R(0,TAU_), s=46*pw;
   GFX.add(.16,k=>{ const e=eo3(k); F.bill(mt,x,y,z,s*(.5+.7*e),s*(.5+.7*e),rot,{...C,a:1-k*k,gain:2.6,ero:.1+k*.5}); });
   K.sparks(x,y,z,{pal:P,n:pw>1.1?4:2,sp:[300,900*pw],up:300,life:[.12,.3],s:2}); };
+
+// BLADE: a colossal painted blade of light that drops point-first onto a spot, stands there for a breath, and burns away from the ground up.
+//  o: {h (blade length), drop (seconds of fall), hold, dur (after landing), pal, gain, land()}  - land() is called at the moment the point touches
+K.blade=(x,y,o={})=>{ if(!F.on){ if(o.land) after(o.drop??.14,o.land); return; } const m=mats(), P=pal(o.pal), h=o.h||1800, drop=o.drop??.14, hold=o.hold??.3, dur=o.dur||1, C=col(P), g=o.gain||1, sd=Math.random()*9, hw=h*.25,
+    mB=m.bldB||(m.bldB=F.mat({...m.art,tex:'v3_greatsword',nz:'streak',n1:[1,2,0,-1.5],n2:[1.2,1,0,-1],dist:.012,mdist:1,nk:.18,rk:[.45,1],gain:3,bgain:1.15})),
+    mS=m.bldS||(m.bldS=F.mat({...m.art,tex:'v3_greatsword',nz:'billow',n1:[1.2,1,0,-.6],n2:[1,1,0,-.5],dist:.05,mdist:1,nk:.5,pw:.5,ero:.08,soft:.5,cA:'#000000',cB:'#000000',cC:'#000000',op:1}));
+  GFX.add(drop+dur,(k,t)=>{ const fall=sat(t/drop), e=fall*fall, z0=h*1.3*(1-e), land=t>=drop, tl=t-drop, f=land?sat((tl-hold)/Math.max(.01,dur-hold)):0, a=1-f*f*f, cut=[0,0,.02+f*1.15,.03], bury=h*.04;
+    F.quad(m.dark,x,y,hw*(1.6-.8*e),hw*(1.6-.8*e),0,{a:.3+.4*e*(1-f)});
+    if(!land) F.bill(m.glowO,x,y,z0+h*1.1,hw*.5,h*.9*(1-e*.5),0,{...C,a:.5*fall,gain:2});
+    if(!F.low) F.bill(mS,x,y,z0+h/2-bury,hw*1.25,h/2*1.03,0,{a:a*.5,fd:cut,t0:sd});
+    F.bill(mB,x,y,z0+h/2-bury,hw,h/2,0,{...C,a,gain:3*g*(land?1+.5*Math.max(0,1-tl/.15):1),ero:.06+f*.4,fd:cut,t0:sd});
+    if(land) F.quad(m.glowG,x,y,hw*2.2,hw*2.2,0,{...C,a:a*(.6+.4*Math.max(0,1-tl/.3)),gain:1.6*g}); });
+  after(drop,()=>{ if(o.land) o.land(); }); };
 
 // FLARE: a soft hot glow in the air (the muzzle of a cut, a glint on the hilt)
 K.flare=(x,y,z,o={})=>{ if(!F.on) return; const m=mats(), P=pal(o.pal), dur=o.dur||.25, s=o.s||160, C=col(P);
