@@ -19,7 +19,7 @@ K.PAL={
 };
 const pal=p=>typeof p==='string'?K.PAL[p]:(p||K.PAL.crimson);
 K.pal=pal;
-const TEX=['v3_flip_blast','v3_flip_smoke','v3_break_sword','v3_break_arcane','v3_break_ki','v3_break_fire','v3_katana','v3_scorch_ring','v3_burst_sword','v3_burst_arcane','v3_burst_ki','v3_burst_lotus','v3_burst_fire','v3_shock_thick','v3_fissure_b','v3_stroke_open','v3_circ_blade2','v3_fist_punch','v3_fist_cone','v3_flame_cone','v3_vortex_wisps','v3_boulder','v3_spikes','v3_palmprint','v3_skygate','v3_bolt_b','v3_bolt_fork','v3_arc_h','v3_frost_ring','v3_crater','v3_comet_tail','v3_greatsword','v3_cres_up','v3_pillar','v3_scorch','v3_dustring','v3_orb','v3_circ_mage','v3_circ_fist','v3_circ_shaman','v3_circ_pyro','fx_circle_arcane','fx_circle_seal','v3_slash_thin','v3_slash_heavy','v3_thrust','v3_spin_ring','v3_circ_blade','v3_fissure','v3_gash','v3_xburst','fx3_burst','fx3_shock','fx3_smoke','fx3_slash','fx3_fire','fx3_bolt','fx3_tornado','fx3_beam','fx_crack','fx_gash'];
+const TEX=['v3_flip_blast','v3_flip_smoke','v3_flip_shock','v3_flip_arcane','v3_flip_bolt','v3_flip_ki','v3_flip_lotus','v3_flip_cut','v3_break_sword','v3_break_arcane','v3_break_ki','v3_break_fire','v3_katana','v3_scorch_ring','v3_burst_sword','v3_burst_arcane','v3_burst_ki','v3_burst_lotus','v3_burst_fire','v3_shock_thick','v3_fissure_b','v3_stroke_open','v3_circ_blade2','v3_fist_punch','v3_fist_cone','v3_flame_cone','v3_vortex_wisps','v3_boulder','v3_spikes','v3_palmprint','v3_skygate','v3_bolt_b','v3_bolt_fork','v3_arc_h','v3_frost_ring','v3_crater','v3_comet_tail','v3_greatsword','v3_cres_up','v3_pillar','v3_scorch','v3_dustring','v3_orb','v3_circ_mage','v3_circ_fist','v3_circ_shaman','v3_circ_pyro','fx_circle_arcane','fx_circle_seal','v3_slash_thin','v3_slash_heavy','v3_thrust','v3_spin_ring','v3_circ_blade','v3_fissure','v3_gash','v3_xburst','fx3_burst','fx3_shock','fx3_smoke','fx3_slash','fx3_fire','fx3_bolt','fx3_tornado','fx3_beam','fx_crack','fx_gash'];
 K.pre=()=>{ if(F&&F.on){ for(const t of TEX) F.img(t); F.img('v3_curtain',{repeat:true}); F.img('v3_groundfire',{repeat:true}); for(const t of ['meteor','sword']) F.img(t); } };
 // a point of a tilted local frame in world coordinates (x, floor y, height)
 K.at=(M,x,y,z,lx,ly,lz)=>[x+M[0]*lx+M[4]*ly+M[8]*lz,y+(M[1]*lx+M[5]*ly+M[9]*lz)*FSY,z+M[2]*lx+M[6]*ly+M[10]*lz];
@@ -343,14 +343,14 @@ K.blade=(x,y,o={})=>{ if(!F.on){ if(o.land) after(o.drop??.14,o.land); return; }
   const om=o.omen||0, tl0=o.tilt||0;
   if(om) GFX.add(om,(k)=>{ const e=k*k; F.quad(m.dark,x,y,hw*(.7+1.1*k),hw*(.7+1.1*k),0,{a:.5*k}); F.quad(m.glowG,x,y,hw*(.5+1.2*e),hw*(.5+1.2*e),0,{...C,a:.55*k,gain:.9*g});
     F.bill(m.glowO,x-Math.sin(tl0)*h*.9,y,h*.9,hw*(.05+.07*e),h*.9,tl0,{...C,a:.4*k,gain:1.6}); });
-  GFX.add(drop+dur,(k,t)=>{ const fall=sat(t/drop), e=fall*fall, z0=h*1.3*(1-e), land=t>=drop, tl=t-drop, f=land?sat((tl-hold)/Math.max(.01,dur-hold)):0, a=1-f*f*f, cut=[0,0,.02,.03+f*1.15], bury=h*.05,
-      tl2=tl0, wob=land?Math.sin(tl*46)*.035*Math.max(0,1-tl/.28):0, rz=tl2+wob, st=land?1:1+1.6*(1-e), sx=land?1:1-.45*(1-e), shl=h*.42*e;
+  GFX.add(drop+dur,(k,t)=>{ const fall=sat(t/drop), e=fall*fall, z0=h*.5*(1-e), land=t>=drop, tl=t-drop, f=land?sat((tl-hold)/Math.max(.01,dur-hold)):0, a=1-f*f*f, cut=[0,0,.02,.03+f*1.15], bury=h*.05,
+      tl2=tl0, wob=land?Math.sin(tl*46)*.035*Math.max(0,1-tl/.28):0, rz=tl2+wob, st=land?1:1+1.5*(1-e), sx=land?1:1+1.5*(1-e), fa=land?1:sat(fall*3.5), shl=h*.42*e;
     F.quad(m.dark,x,y,hw*(1.6-.8*e),hw*(1.6-.8*e),0,{a:.3+.4*e*(1-f)});
     if(shl>20){ const sa=o.sa??.5; F.quad(mSh,x+Math.cos(sa)*shl*.92,y+Math.sin(sa)*shl*.92*FSY,hw*.8,shl,sa+PI/2,{a:.55*e*(1-f)*(1-f)}); }
     if(!land) F.bill(m.glowO,x,y,z0+h*1.1,hw*.5,h*.9*(1-e*.5),0,{...C,a:.5*fall,gain:2});
     const bx=x-Math.sin(rz)*h*.5, bz=z0+h/2*st-bury;
     if(!F.low) F.bill(mS,bx,y,bz,hw*1.25*sx,h/2*1.03*st,rz,{a:a*.5*(1-f)*(1-f),fd:cut,t0:sd});
-    F.bill(mB,bx,y,bz,hw*sx,h/2*st,rz,{...C,a,gain:3*g*(land?1+.5*Math.max(0,1-tl/.15):1),ero:.06+f*.5,nk:.18+f*.3,fd:cut,t0:sd});
+    F.bill(mB,bx,y,bz,hw*sx,h/2*st,rz,{...C,a:a*fa,gain:3*g*(land?1+.5*Math.max(0,1-tl/.15):1),ero:.06+f*.5,nk:.18+f*.3,fd:cut,t0:sd});
     if(land&&f<1) F.bill(mB,bx,y,bz,hw*sx,h/2*st,rz,{...C,a:a*(.55+.45*Math.max(0,1-tl/.4)),gain:2.2*g,ero:.06+f*.5,nk:.18+f*.3,fd:[0,0,.02,.72],t0:sd});
     if(land) F.quad(m.glowG,x,y,hw*1.9,hw*1.9,0,{...C,a:a*(.5+.4*Math.max(0,1-tl/.3)),gain:1*g}); },om);
   after(om+drop,()=>{ if(o.land) o.land(); });

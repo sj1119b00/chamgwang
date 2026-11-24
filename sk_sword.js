@@ -202,7 +202,7 @@ function ultZero(id){ ultStart(id); const F3ok=n=>window.FX3&&FX3.ready(n), Cn=X
     K.shock(x0,y0,{r:hw*1.7,dur:.55,pal:P}); GFX.ripple(x0,y0,hw*1.8,{life:.45,s:.7});
     K.sparks(x0+f0*60,y0,BODY*.6,{pal:P,n:40,sp:[500,1900],up:500,dir,spread:1.5});
     K.dust(x0,y0,{n:14,r:80,sp:[400,1000]}); K.debris(x0,y0,{n:10,r:120,sp:[200,700],up:900});
-    hitstop=Math.max(hitstop,.085); Cn.shake(1); post.ca=.005; Cn.zoom(.7); Cn.cam(x0,y0-hh*.04,6); Cn.roll(.03); Cn.tilt(.14,6); SFX.slash(.8,1.2); Cn.SND.shing(.8,.7); SFX.whoosh(.7,1);
+    sig.pal=EMB; sig2.pal=EMB; hitstop=Math.max(hitstop,.085); Cn.shake(1); post.ca=.005; Cn.zoom(.7); Cn.cam(x0,y0-hh*.04,6); Cn.roll(.03); Cn.tilt(.14,6); SFX.slash(.8,1.2); Cn.SND.shing(.8,.7); SFX.whoosh(.7,1);
     X.inCircleS(x0,y0,hw*1.3,e=>{ e.flash=1; e.stun=Math.max(e.stun,3.2); e.kx+=(e.x-x0>0?1:-1)*120; hitFx(e,RED,1); }); });
   // ---- the flurry: four cuts, each wider than the last; he stands at the end of each for a blink, blade out
   let tt=t0+.26, prev=[x0,y0]; const gaps=[.2,.18,.16,.14];
@@ -216,6 +216,7 @@ function ultZero(id){ ultStart(id); const F3ok=n=>window.FX3&&FX3.ready(n), Cn=X
       // its shape stays in the floor as embers
       K.art(c.x,c.y,{tex:'fx3_slash',floor:true,rot:c.th+Math.PI,s:c.reach*.5,asp:1.47,dur:2.4,hold:.1,s0:.96,pal:EMB,gain:.6});
       for(let j=0;j<2;j++) K.smoke(c.x-c.dx*c.reach*rand(.05,.3),c.y-c.dy*c.reach*rand(.05,.3)*FSY,{s:rand(190,270),dur:rand(.9,1.3),delay:.05+j*.06,c:'#160406',c2:'#5a1a10',a:.5,rise:150});
+      K.flip(c.x,c.y,{tex:'v3_flip_cut',s:c.reach*.3,z:BODY*.2,dur:.5,pal:P,gain:.9}); K.flip(c.x+c.dx*c.reach*.3,c.y+c.dy*c.reach*.3*FSY,{tex:'v3_flip_smoke',s:rand(170,230),dur:rand(.9,1.2),delay:.08,smoke:true,nb:1,c:'#150608',c2:'#5a2a22',rise:120});
       K.sparks(ex,ey,BODY*.6,{pal:P,n:26,sp:[500,1800],up:500,dir:c.th,spread:1.2});
       K.dust(c.x,c.y,{n:8,dir:c.th,spread:.9,sp:[300,800],a:.4}); K.debris(c.x,c.y,{n:6,r:160,sp:[200,800],up:1100,size0:8,size:22});
       GFX.light(c.x,c.y,c.reach*1.3,'#ff4a20',.9,.32,{z:120});
@@ -226,7 +227,7 @@ function ultZero(id){ ultStart(id); const F3ok=n=>window.FX3&&FX3.ready(n), Cn=X
   after(t1,()=>{ const was=prev; const st=GFX.st(0,'add',{c2:[.55,.35,0],c3:[1,.5,.3]}); GFX.add(.26,k=>{ GFX.pose(st,'sword','gs07',was[0],was[1],pl.f,[1,.4,.25],(1-k)*(1-k),{smear:.3+.5*k,sc:1.15}); });
     tp(x0,y0); pl.visible=true; pl.f=f0; plSeq([['gc08',.1],['gc09',.12],['gc10',.14],['gc11',.16],['gc12',9]]); pl.target='iaiDone'; pl.ps=30; Cn.zoom(1.32); Cn.roll(.035); Cn.cam(x0,hy,3); Cn.tilt(.24,2.2);
     GFX.ambient(.44,.5,.62,8); GFX.light(x0,y0-40,480,'#ffe8e0',.8,.3,{hold:.4,z:200});
-    K.flare(x0,y0,BODY*.5,{pal:'silver',s:200,dur:.3,gain:2}); SFX.whoosh(1.4,.5); duck(.18,.75); K.dust(x0,y0,{n:10,r:40,sp:[150,380],a:.35}); sig.a=.9; sig2.a=.5; });
+    K.flare(x0,y0,BODY*.5,{pal:'silver',s:200,dur:.3,gain:2}); SFX.whoosh(1.4,.5); duck(.18,.75); K.dust(x0,y0,{n:10,r:40,sp:[150,380],a:.35}); sig.a=.7; sig2.a=.4; });
   [.08,.22].forEach((d,j)=>after(t1+d,()=>{ sig.kick(); sig2.kick(); SFX.heart(.7+j*.08); GFX.light(x0,y0,hw*1.1,'#c8d4ff',.14+j*.05,.16,{z:100}); K.shock(x0,y0,{r0:hw*.5,r:70,dur:.2,pal:'silver',gain:.35,light:0,dust:0,haze:.3,th:.5,painted:0}); Cn.zoom(1.34+j*.05); }));
   after(t1+.24,()=>{ pl.target='sheath'; pl.ps=14; SFX.click(); Cn.SND.tick(.6,.3); K.flare(x0-f0*30,y0,BODY*.62,{pal:'silver',s:50,sx:7,sy:.3,dur:.24,gain:6}); });
   // ---- the tear: the circle turns to gold; the four scars open one after another and throw what stands on them
@@ -235,20 +236,24 @@ function ultZero(id){ ultStart(id); const F3ok=n=>window.FX3&&FX3.ready(n), Cn=X
   cuts.forEach((c,j)=>{ after(tc+j*.07,()=>{ const [px,py]=pivot(c);
       K.cres(px,py,BODY*.4,{reach:c.reach*.74,dir:c.th,lean:c.lean,roll:c.roll,tex:'v3_slash_thin',pal:P,swing:.04,hold:.08,fade:.24,gain:.7,rk:[.9,1.75],sparks:14,light:.6,ccw:c.ccw});
       K.art(c.x,c.y,{tex:'fx3_slash',floor:true,rot:c.th+Math.PI,s:c.reach*.52,asp:1.47,dur:.95,hold:.12,s0:.96,pal:P,gain:.7});
+      K.flip(c.x,c.y,{tex:'v3_flip_cut',s:c.reach*.34,z:BODY*.2,dur:.5,pal:GOLD2,gain:.8});
       for(const u of [-.3,0,.3]){ const qx=c.x+c.dx*c.reach*u, qy=c.y+c.dy*c.reach*u*FSY; K.debris(qx,qy,{n:4,r:100,sp:[200,800],up:1500,size0:8,size:24}); K.dust(qx,qy,{n:4,r:70,sp:[200,600],a:.4}); }
       band(c,e=>{ e.flash=1; e.stun=Math.max(e.stun,1.6); hitFx(e,'#ffb66a',1.4); if(!e.d.heavy){ const a=Math.atan2(e.y-y0,e.x-x0); e.vz=Math.max(e.vz,rand(1500,2200)); e.kx+=Math.cos(a)*rand(260,520); e.ky+=Math.sin(a)*rand(160,320); } });
       Cn.SND.shing(.7+j*.08,.4); SFX.boom(.9+j*.05,.5); Cn.shake(.5+j*.08); Cn.roll((j%2?1:-1)*.03); }); });
   // ---- the held breath: everything leans in toward the place the blade will land
   const tf=tc+.52, bx=x0, by=y0-RR*FSY*.52;
   after(tf-.5,()=>{ plSeq([['gw02',.08],['gw03',.1],['gw04',9]]); K.flare(x0,y0,BODY*1.25,{pal:GOLD2,s:70,dur:.3,gain:4}); });
-  after(tf-.6,()=>{ K.blade(bx,by,{h:hh*1.45,omen:.52,drop:.28,hold:.42,dur:.95,pal:GOLD2,gain:1,tilt:-.2*f0}); GFX.light(bx,by,hw*.8,'#ffc870',.5,.3,{hold:.5,z:260}); });
+  after(tf-.6,()=>{ K.blade(bx,by,{h:hh*1.45,omen:.38,drop:.42,hold:.42,dur:.95,pal:GOLD2,gain:1,tilt:-.2*f0}); GFX.light(bx,by,hw*.8,'#ffc870',.5,.3,{hold:.5,z:260}); });
   after(tf-.2,()=>{ GFX.gain=.5; Cn.zoom(.78); K.shock(bx,by,{r0:hw*1.7,r:90,dur:.2,pal:GOLD2,gain:.6,light:0,dust:0,painted:0,th:.7}); sig.r*=.86; sig2.r*=.86;
     for(let i=0;i<40;i++){ const a=rand(0,TAU), d=rand(500,1100); GFX.pt({x:bx+Math.cos(a)*d,y:by+Math.sin(a)*d*FSY,z:rand(0,500),tx:bx,ty:by,tz:120,pull:9,life:.24,s:rand(3,6),m:3,len:.06,c:GFX.rgb('#fff0c0'),c2:'#ffa820',L:3}); } });
   after(tf,()=>{ GFX.gain=.7; Cn.zoom(.68); Cn.tilt(.3,9); SFX.whoosh(.5,1); });
   // ---- the peak: the blade lands behind him and the floor breaks
   after(tf+.2,()=>{ plSeq([['gw05',.05],['gw06',.34],['gw09',.14],['gw10',.14],['gw11',.16],['gw12',9]]); GFX.gain=1.25; hitstop=Math.max(hitstop,.13); Cn.shake(1.9); post.ca=.006; Cn.zoom(.58); Cn.roll(.05); after(.22,()=>Cn.roll(0));
-    K.upheave(bx,by,{r:hw*.42,n:6,s:hw*.25,pal:GOLD2,dur:1.2,a0:Math.PI*.9,a1:Math.PI*2.1}); K.upheave(x0,y0,{r:hw*1.05,n:6,s:hw*.17,pal:P,dur:.95,delay:.06,stagger:.03,a0:Math.PI*.12,a1:Math.PI*.88,jit:.22}); K.upheave(x0,y0,{r:hw*1.1,n:5,s:hw*.15,pal:P,dur:.95,delay:.12,stagger:.02,a0:Math.PI*1.1,a1:Math.PI*1.9,jit:.25});
-    for(let i=0;i<5;i++){ const a=-Math.PI*(.1+.2*i); K.smoke(bx+Math.cos(a)*rand(120,260),by+Math.sin(a)*rand(40,110),{s:rand(260,380),dur:rand(1.3,1.9),delay:i*.03,c:'#120608',c2:'#4a2418',a:.75,rise:260}); }
+    K.upheave(bx,by,{r:hw*.42,n:6,s:hw*.25,pal:GOLD2,rock:'#2a252c',dur:1.2,a0:Math.PI*.9,a1:Math.PI*2.1}); K.upheave(x0,y0,{r:hw*1.05,n:6,s:hw*.17,pal:GOLD2,rock:'#2a252c',dur:.95,delay:.06,stagger:.03,a0:Math.PI*.12,a1:Math.PI*.88,jit:.22}); K.upheave(x0,y0,{r:hw*1.1,n:5,s:hw*.15,pal:GOLD2,rock:'#2a252c',dur:.95,delay:.12,stagger:.02,a0:Math.PI*1.1,a1:Math.PI*1.9,jit:.25});
+    K.flip(bx,by,{tex:'v3_flip_shock',floor:true,s:hw*1.55,dur:.75,pal:GOLD2,gain:1}); K.flip(bx,by,{tex:'v3_flip_cut',s:hw*.8,z:BODY*.5,dur:.6,pal:GOLD2,gain:.9});
+    // the blow itself: a painted explosion that rolls and turns to smoke, and smoke rising where the floor broke
+    K.flip(bx,by,{tex:'v3_flip_blast',s:hw*.66,dur:1,smoke:true,nb:1,c:'#120806',c2:'#4c3a30',lift:.62}); K.flip(bx,by,{tex:'v3_flip_blast',s:hw*.66,dur:1,pal:GOLD2,gain:.85,lift:.62});
+    for(let i=0;i<4;i++){ const a=-Math.PI*(.12+.25*i); K.flip(bx+Math.cos(a)*rand(160,300),by+Math.sin(a)*rand(40,110),{tex:'v3_flip_smoke',s:rand(240,330),dur:rand(1.2,1.7),delay:.08+i*.05,smoke:true,c:'#140a0a',c2:'#5e4a44',rise:140}); }
     K.flare(bx,by,BODY*.3,{pal:GOLD2,s:hw*.34,dur:.09,gain:7}); K.flare(bx,by,BODY*.3,{pal:GOLD2,s:hw*.7,sx:3.2,sy:.3,dur:.14,gain:4});
     // the cutting wind of it: one gold crescent round the foot of the blade
     K.cres(bx-f0*hw*.45,by+30,BODY*.3,{reach:hw*1.5,dir:f0>0?0:Math.PI,lean:.78,roll:0,tex:'fx3_slash',pal:GOLD2,swing:.06,hold:.1,fade:.36,gain:.8,sparks:0,light:0,ccw:f0<0});
@@ -257,7 +262,7 @@ function ultZero(id){ ultStart(id); const F3ok=n=>window.FX3&&FX3.ready(n), Cn=X
     K.crack(bx,by+30,{r:hw*1.25,ry:1.25,pal:GOLD2,life:6,grow:.2,gain:1.3,alt:1}); K.crack(x0,y0+hh*.3,{r:hw*1.1,pal:P,life:5.5,grow:.7,gain:1,alt:1,rot:rand(0,TAU)}); K.crack(x0-hw*.5,y0-hh*.1,{r:hw*.9,pal:P,life:5,grow:1,gain:.9,alt:1,rot:rand(0,TAU)}); K.crack(x0+hw*.55,y0+hh*.05,{r:hw*.8,pal:P,life:5,grow:1.3,gain:.9,rot:rand(0,TAU)});
     K.shock(bx,by,{r:hw*3,dur:.55,pal:GOLD2,gain:1.4}); K.shock(x0,y0,{r:hw*1.8,dur:.6,pal:P,gain:.8,delay:.08,light:0});
     K.debris(bx,by,{n:30,r:300,sp:[300,1500],up:2100,size0:10,size:32}); K.dust(bx,by,{n:22,r:160,sp:[500,1500],a:.5});
-    let nb=0; for(const e of onScreen(200)){ if(nb++<26) K.hit(e.x,e.y,e.h*.5+e.z,'#ffd27a',1.7); e.flash=1; e.stun=Math.max(e.stun,1.2); if(!e.d.heavy){ const a=Math.atan2(e.y-by,e.x-bx); e.kx+=Math.cos(a)*rand(360,700); e.ky+=Math.sin(a)*rand(210,420); e.vz=Math.max(e.vz,rand(1500,2300)); } }
+    let nb=0; for(const e of onScreen(200)){ if(nb++<9) K.hit(e.x,e.y,e.h*.5+e.z,'#ffd27a',1.5); e.flash=1; e.stun=Math.max(e.stun,1.2); if(!e.d.heavy){ const a=Math.atan2(e.y-by,e.x-bx); e.kx+=Math.cos(a)*rand(360,700); e.ky+=Math.sin(a)*rand(210,420); e.vz=Math.max(e.vz,rand(1500,2300)); } }
     after(.45,()=>Cn.sweep(x0,y0,D*1.5,{speed:4200,max:.3})); post.grayT=0; SFX.shatter(1); Cn.SND.hit(1); SFX.boom(1.6,1);
     K.petals(x0,y0-hh*.2,hw*1.3,{pal:P,n:110,z0:300,z1:1700,life:3.4,s:1.6}); after(1,()=>GFX.light(x0,y0,hw*1.7,'#ff4a20',.4,2.3,{z:140})); });
   // ---- afterglow: the camera rises again; smoke stands over the scars, petals of light come down, the broken floor cools
