@@ -260,12 +260,12 @@ K.smoke=(x,y,o={})=>{ if(!F.on) return; const m=mats(), dur=o.dur||1.4, s=o.s||2
 //  gain, floor, rot, flip, smoke (true = dark alpha smoke in o.c / o.c2 instead of light), a, s0 (start scale), delay}
 K.flip=(x,y,o={})=>{ if(!F.on) return; const m=mats(), P=pal(o.pal), dur=o.dur||.7, s=o.s||300, C=o.smoke?{}:col(P), g=o.gain||1, cols=o.cols||4, rows=o.rows||4, n=o.n||cols*rows, tex=o.tex||'v3_flip_blast', asp=o.asp||1, fl=o.flip??(Math.random()<.5),
     key='fl'+tex+(o.floor?'g':'o')+(o.smoke?'s'+(o.c||'')+(o.c2||''):''), c=o.c||'#16121c',
-    mt=m[key]||(m[key]=F.mat(o.smoke?{...m.art,tex,layer:o.floor?'g':'o',nk:0,ero:0,soft:.4,op:1,cA:c,cB:c,cC:o.c2||'#4a424e',rk:[.25,1],gain:1,bgain:1}:{...m.art,tex,layer:o.floor?'g':'o',nk:0,ero:0,soft:.3,rk:o.rk||[.55,1.05]}));
+    mt=m[key]||(m[key]=F.mat(o.smoke?{...m.art,tex,layer:o.floor?'g':'o',nz:'billow',n1:[1.5,1.5,.05,-.12],n2:[1.2,1.2,.03,-.1],dist:0,mdist:1,pw:.42,ero:.03,soft:.22,op:1,cA:c,cB:c,cC:o.c2||'#4a424e',rk:[.12,.8],gain:1,bgain:1}:{...m.art,tex,layer:o.floor?'g':'o',nk:0,ero:0,soft:.3,rk:o.rk||[.55,1.05]}));
   if(!F.ready(tex)) return;
-  const uv=i=>{ const cc=i%cols, r=Math.floor(i/cols); return fl?[-1/cols,1/rows,(cc+1)/cols,r/rows]:[1/cols,1/rows,cc/cols,r/rows]; };
+  const uv=i=>{ const cc=i%cols, r=rows-1-Math.floor(i/cols); return fl?[-1/cols,1/rows,(cc+1)/cols,r/rows]:[1/cols,1/rows,cc/cols,r/rows]; };
   GFX.add(dur,(kk)=>{ const fp=kk*(n-1), i0=Math.floor(fp), w=fp-i0, ss=s*mix(o.s0??1,1,kk), a=(o.a??1)*sat(kk*30)*sat((1-kk)*12);
-    const dr=(i,al)=>{ if(al<.03) return; const q={...C,a:a*al,gain:3*g,ero:0,nk:0,uvT:uv(i)}; if(o.floor) F.quad(mt,x,y,ss*asp,ss,o.rot||0,q); else F.bill(mt,x+(o.vx||0)*kk,y,(o.z||0)+ss*(o.lift??.8)+(o.rise||0)*kk,ss*asp,ss,o.rot||0,q); };
-    dr(i0,1-w); if(i0+1<n) dr(i0+1,w); },o.delay||0); };
+    const dr=(i,al)=>{ if(al<.03) return; const q=o.smoke?{a:a*al*.9,ero:.04,nk:0,uvT:uv(i)}:{...C,a:a*al,gain:3*g,ero:0,nk:0,uvT:uv(i)}; if(o.floor) F.quad(mt,x,y,ss*asp,ss,o.rot||0,q); else F.bill(mt,x+(o.vx||0)*kk,y,(o.z||0)+ss*(o.lift??.8)+(o.rise||0)*kk,ss*asp,ss,o.rot||0,q); };
+    if(o.nb||F.low||s<200) dr(Math.min(n-1,Math.round(fp)),1); else if(w<.12) dr(i0,1); else if(w>.88) dr(Math.min(n-1,i0+1),1); else { dr(i0,1-w); if(i0+1<n) dr(i0+1,w); } },o.delay||0); };
 
 // BURST: an explosion standing in the world: a white flash of needles, the painted fireball swelling and tearing apart, smoke
 // rolling up after it, a shock ring and haze on the floor, sparks and rock. o: {s, pal, z, parts:{flash,ball,smoke,shock,sparks,debris,crack}}
@@ -273,7 +273,10 @@ const BT={sword:'v3_burst_sword',mage:'v3_burst_arcane',fist:'v3_burst_ki',shama
 K.btex=()=>{ const t=BT[pl.cls]; return t&&F.ready(t)?t:'v3_xburst'; };
 K.burst=(x,y,o={})=>{ if(!F.on) return; const P=pal(o.pal), s=o.s||300, z=o.z||0, on=k=>!(o.no&&o.no.includes(k)), g=o.gain||1;
   const fx=()=>{ if(on('flash')){ const ft=o.ftex||K.btex(), nd=ft==='v3_xburst'; K.art(x,y,{tex:ft,s:s*(nd?1.15:1.3),z:z-s*.3,dur:nd?.22:.34,pal:P,gain:(nd?1.1:.9)*g,hold:.15,s0:.5,rot:nd?0:R(0,TAU_)}); }
-    if(on('ball')) K.art(x,y,{tex:'fx3_burst',s:s,asp:1.39,z:z-s*.25,dur:o.dur||.6,pal:P,gain:g,hold:.25,s0:.4,rot:R(-.3,.3)});
+    if(on('ball')){ if(F.ready('v3_flip_blast')&&o.flip!==0){ const fs=s*1.45, fd=(o.dur||.6)*1.7, fl=Math.random()<.5; /* a painted flipbook: the fireball itself rolls, splits and turns to smoke */
+        if(!F.low&&s>=160) K.flip(x,y,{tex:'v3_flip_blast',s:fs,z:z-s*.4,dur:fd,smoke:true,nb:1,c:'#160e12',c2:'#6e5e5a',lift:.72,flip:fl});
+        K.flip(x,y,{tex:'v3_flip_blast',s:fs,z:z-s*.4,dur:fd,pal:P,gain:g,lift:.72,flip:fl}); }
+      else K.art(x,y,{tex:'fx3_burst',s:s,asp:1.39,z:z-s*.25,dur:o.dur||.6,pal:P,gain:g,hold:.25,s0:.4,rot:R(-.3,.3)}); }
     if(on('smoke')) for(let i=0;i<(o.smoke??2);i++) K.smoke(x+R(-.3,.3)*s,y+R(-.1,.1)*s,{s:s*R(.6,.9),z,dur:R(1.1,1.7),delay:.12+i*.08,a:.7,rise:s*.8});
     if(on('shock')&&z<80){ K.shock(x,y,{r:s*2.3,dur:.5,pal:P,gain:g}); GFX.ripple(x,y,s*2.4,{life:.45,s:.7}); }
     if(on('sparks')) K.sparks(x,y,z+30,{pal:P,n:Math.round(s/12),sp:[s*1.5,s*5],up:s*3,life:[.3,.8]});
