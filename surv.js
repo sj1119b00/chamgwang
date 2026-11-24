@@ -266,7 +266,12 @@ const shock1=shock; shock=function(x,y,s=1,spd){ if(G.mode==='surv') return; ret
 
 // ============================================================ drawing
 let floorPat=null, floorCh=-1;
+const FLOORIM=new Image(); let floorArt=false; FLOORIM.onload=()=>{ floorArt=true; floorPat=null; }; FLOORIM.src='assets/fx2_floor.webp?v='+ASSET_V;
 function floor(){ if(floorPat&&floorCh===V.ch) return floorPat; floorCh=V.ch;
+  if(floorArt){ const cv=document.createElement('canvas'); cv.width=cv.height=1280; const g=cv.getContext('2d'), [fr,fg,fb]=CH().floor;
+    for(let i=0;i<2;i++) for(let j=0;j<2;j++){ g.save(); g.translate(i?1280:0,j?1280:0); g.scale(i?-1:1,j?-1:1); g.drawImage(FLOORIM,0,0,640,640); g.restore(); }
+    g.globalCompositeOperation='multiply'; g.fillStyle=`rgb(${Math.min(255,fr*1.75)|0},${Math.min(255,fg*1.75)|0},${Math.min(255,fb*1.75)|0})`; g.fillRect(0,0,1280,1280); g.globalCompositeOperation='source-over';
+    return floorPat=ctx.createPattern(cv,'repeat'); }
   const N=4, T_=160, cv=document.createElement('canvas'); cv.width=cv.height=N*T_; const g=cv.getContext('2d'), [fr,fg,fb]=CH().floor;
   let sd=7; const rnd=()=>(sd=(sd*16807)%2147483647)/2147483647;
   g.fillStyle=`rgb(${fr*.82|0},${fg*.82|0},${fb*.82|0})`; g.fillRect(0,0,cv.width,cv.height);
@@ -279,7 +284,7 @@ function floor(){ if(floorPat&&floorCh===V.ch) return floorPat; floorCh=V.ch;
   return floorPat=ctx.createPattern(cv,'repeat'); }
 const prep1=drawBackground_prep;
 drawBackground_prep=function(){ prep1(); if(G.mode!=='surv') return;
-  applyCam(ctx); const {hw,hh}=view(), m=1.3, p=floor(); p.setTransform(new DOMMatrix().translate(V.ox%640,V.oy%640).scale(1,FSY));   // tiles foreshortened like the effects' floor rings
+  applyCam(ctx); const {hw,hh}=view(), m=1.3, p=floor(); p.setTransform(new DOMMatrix().translate(V.ox%(floorArt?1280:640),V.oy%(floorArt?1280:640)).scale(1,FSY));   // tiles foreshortened like the effects' floor rings
   ctx.fillStyle=p; ctx.fillRect(cam.x-hw*m,cam.y-hh*m,hw*2*m,hh*2*m);
   const cs=spr('crystal'), Cg=520; if(cs){ const i0=Math.floor((cam.x-hw*1.2)/Cg), i1=Math.floor((cam.x+hw*1.2)/Cg), j0=Math.floor((cam.y-hh*1.2)/Cg), j1=Math.floor((cam.y+hh*1.3)/Cg), im=tinted(cs,150);
     for(let i=i0;i<=i1;i++) for(let j=j0;j<=j1;j++){ const h=Math.abs(Math.sin(i*127.1+j*311.7)*43758.5453)%1; if(h>.42) continue; const x=(i+.2+h*1.4)*Cg, y=(j+.3+((h*7)%1)*.5)*Cg;
@@ -292,12 +297,17 @@ const bg1=drawBackground; drawBackground=function(){ if(G.mode!=='surv') return 
 const TINT=new Map();
 function tinted(s,extra=0){ const c=CH(), hue=c.hue+extra; let m=TINT.get(s); if(m&&m.ch===V.ch) return m.cv;
   const cv=document.createElement('canvas'); cv.width=s.w; cv.height=s.h; const g=cv.getContext('2d'); g.drawImage(s.im,0,0);
-  const D=g.getImageData(0,0,s.w,s.h), p=D.data, a=Math.cos(hue*Math.PI/180), b=Math.sin(hue*Math.PI/180), k=c.bri*1.2;
+  const D=g.getImageData(0,0,s.w,s.h), p=D.data, a=Math.cos(hue*Math.PI/180), b=Math.sin(hue*Math.PI/180), k=c.bri*1.42;
   const M=[.213+.787*a-.213*b,.715-.715*a-.715*b,.072-.072*a+.928*b,.213-.213*a+.143*b,.715+.285*a+.140*b,.072-.072*a-.283*b,.213-.213*a-.787*b,.715-.715*a+.715*b,.072+.928*a+.072*b];
   const sat=extra?1:(c.sat??1);
   for(let i=0;i<p.length;i+=4){ if(!p[i+3]) continue; const r=p[i], gg=p[i+1], bb=p[i+2];
     let R=(M[0]*r+M[1]*gg+M[2]*bb)*k, Gg=(M[3]*r+M[4]*gg+M[5]*bb)*k, B=(M[6]*r+M[7]*gg+M[8]*bb)*k; const l=.3*R+.59*Gg+.11*B; p[i]=l+(R-l)*sat; p[i+1]=l+(Gg-l)*sat; p[i+2]=l+(B-l)*sat; }
-  g.putImageData(D,0,0); TINT.set(s,{ch:V.ch,cv}); return cv; }
+  g.putImageData(D,0,0);
+  const sil=document.createElement('canvas'); sil.width=s.w; sil.height=s.h; const sg=sil.getContext('2d'); sg.drawImage(cv,0,0); sg.globalCompositeOperation='source-in'; sg.fillStyle=RIMC(); sg.fillRect(0,0,s.w,s.h);
+  const out=document.createElement('canvas'); out.width=s.w; out.height=s.h; const og=out.getContext('2d'), t=Math.max(1.5,s.h*.011); og.globalAlpha=.85;
+  for(let q=0;q<8;q++) og.drawImage(sil,Math.cos(q*Math.PI/4)*t,Math.sin(q*Math.PI/4)*t); og.globalAlpha=1; og.drawImage(cv,0,0);
+  TINT.set(s,{ch:V.ch,cv:out}); return out; }
+const RIMC=()=>{ const n=parseInt(CH().acc.slice(1),16), m=v=>Math.round(v+(255-v)*.55); return `rgb(${m(n>>16&255)},${m(n>>8&255)},${m(n&255)})`; };
 function eFrame(e){ const F=A.EFR[e.d.img]; if(!F) return null; let a='walk', i=0;
   if(F.hurt&&(e.z>0||e.stun>0||e.hurtT>0)){ a='hurt'; const n=F.hurt.length; i=e.z>0?2:Math.min(n-1,Math.floor((1-Math.max(0,e.hurtT)/.3)*n)); }
   else if(F.attack&&e.castT>0){ a='attack'; const dur=e.d.boss?.9:.55; i=clamp(Math.floor((1-e.castT/dur)*F.attack.length),0,F.attack.length-1); }

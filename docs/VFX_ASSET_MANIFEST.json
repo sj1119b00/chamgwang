@@ -163,7 +163,8 @@
  ],
  "unused_now": [
   "assets/<cls>_cut1/2.webp (컷인: 새 궁극기에서 미사용)",
-  "vfx_td_*, vfx_fx_* GIF 프레임 (궁극기에서는 미사용, 일반 스킬은 계속 사용)"
+  "vfx_td_*, vfx_fx_* GIF 프레임 (궁극기에서는 미사용, 일반 스킬은 계속 사용)",
+  "assets/deity.webp, palm.webp, meteor.webp(궁극기), sword.webp(궁극기), dragon_head.webp, fx_sun.webp, fx_circle_arcane/seal.webp — fx2_* 로 대체됨"
  ],
  "pending": [
   {
@@ -227,5 +228,33 @@
     "used_by": "제로 슬래시 통과 참격"
    }
   ]
+ },
+ "generated_2026_11_24_b": {
+  "tool": "gpt-image 스킬, 같은 3톤 셀 문체. 매니페스트 _gen/v2.json(12장)·v3.json(5장)·v4.json(1장). 저장 실패분은 Codex 캐시에서 잡 순서·시각·종횡비로 대조해 복구 후 눈으로 확인",
+  "summons": [
+   "fx2_deity",
+   "fx2_palm",
+   "fx2_meteor",
+   "fx2_gsword",
+   "fx2_monolith",
+   "fx2_dragonhead",
+   "fx2_dragonbody"
+  ],
+  "impacts": [
+   "fx2_imp_sword",
+   "fx2_imp_mage",
+   "fx2_imp_fist",
+   "fx2_imp_shaman",
+   "fx2_imp_pyro"
+  ],
+  "circles": [
+   "fx2_circ_sword",
+   "fx2_circ_mage",
+   "fx2_circ_fist",
+   "fx2_circ_shaman",
+   "fx2_circ_pyro"
+  ],
+  "floor": "fx2_floor (640px, 거울 타일)",
+  "blend": "모드 15 톤 치환(소환물·충돌=알파, 마법진·불=가산)"
  }
 }
