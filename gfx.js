@@ -150,9 +150,9 @@ X.bill=(st,x,y,z,hw,hh,rot,c,a,p0=0,p1=0,p2=0,p3=0)=>{ if(!X.on) return; camSet(
   const K=[[-1,-1],[1,-1],[-1,1],[1,1]]; for(let i=0;i<4;i++){ const lx=K[i][0]*hw, ly=K[i][1]*hh; prj(x+lx*co-ly*si,y+lx*si+ly*co,z,tmp[i]); }
   push(st,tmp,st.uv01?[0,1,1,1,0,0,1,0]:[-1,-1,1,-1,-1,1,1,1],c,a,p0,p1,p2,p3); };
 // a streak between two world points (each with a height), half-width w in world units; uv: x 0..1 along, y -1..1 across
-X.line=(st,x1,y1,z1,x2,y2,z2,w,c,a,p0=0,p1=0,p2=0,p3=0)=>{ if(!X.on) return; camSet(); const ax=x1, ay=y1-z1, bx=x2, by=y2-z2, dx=bx-ax, dy=by-ay, l=Math.hypot(dx,dy)||1, nx=-dy/l*w, ny=dx/l*w;
+X.line=(st,x1,y1,z1,x2,y2,z2,w,c,a,p0=0,p1=0,p2=0,p3=0,u0=0,u1=1)=>{ if(!X.on) return; camSet(); const ax=x1, ay=y1-z1, bx=x2, by=y2-z2, dx=bx-ax, dy=by-ay, l=Math.hypot(dx,dy)||1, nx=-dy/l*w, ny=dx/l*w;
   prj(ax+nx,ay+ny,0,tmp[0]); prj(bx+nx,by+ny,0,tmp[1]); prj(ax-nx,ay-ny,0,tmp[2]); prj(bx-nx,by-ny,0,tmp[3]);
-  push(st,tmp,[0,-1,1,-1,0,1,1,1],c,a,p0,p1,p2,p3); };
+  push(st,tmp,st.uv01?[u0,1,u1,1,u0,0,u1,0]:[0,-1,1,-1,0,1,1,1],c,a,p0,p1,p2,p3); };
 // a wall standing on a floor line, extruded to height h; uv: x 0..1 along the base, y 0 floor .. 1 top
 X.wall=(st,x1,y1,x2,y2,h,c,a,p0=0,p1=0,p2=0,p3=0,z0=0)=>{ if(!X.on) return; camSet();
   prj(x1,y1,z0+h,tmp[0]); prj(x2,y2,z0+h,tmp[1]); prj(x1,y1,z0,tmp[2]); prj(x2,y2,z0,tmp[3]);

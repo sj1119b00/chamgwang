@@ -38,7 +38,7 @@ function basic(){ const e=nearest(900); if(!e) return false; const a=angTo(e); f
   return true; }
 
 const SKILL={
-  py_dash:{fn(id){ const e=nearest(560); if(!e) return false; const a=angTo(e), Ld=Math.min(520,Math.hypot(e.x-pl.x,e.y-pl.gy)+120), d=D(id), x0=pl.x, y0=pl.gy, x1=x0+Math.cos(a)*Ld, y1=y0+Math.sin(a)*Ld, T=EVO(id)?4:2; face(a); push();
+  py_dash:{moves:true,fn(id){ const e=nearest(560); if(!e) return false; const a=angTo(e), Ld=Math.min(520,Math.hypot(e.x-pl.x,e.y-pl.gy)+120), d=D(id), x0=pl.x, y0=pl.gy, x1=x0+Math.cos(a)*Ld, y1=y0+Math.sin(a)*Ld, T=EVO(id)?4:2; face(a); push();
     const J=pl.j; for(let i=0;i<6;i++){ const k=i/6; add({k:'ghost',j:shiftJ(J,(x1-x0)*k,(y1-y0)*k),life:.18+k*.14,c:C1}); }
     V.dash={x0,y0,x1,y1,t:0,dur:.12}; G.inv=Math.max(G.inv,.35); sfx('fire',.8,.6);
     for(let i=0;i<=6;i++){ const x=lerp(x0,x1,i/6), y=lerp(y0,y1,i/6); fire({x,y:y-10,x2:x,y2:y-70,r:34,r2:22,i:1.1,type:0,life:T,fin:.2,fade:.5}); }
@@ -87,7 +87,7 @@ const SKILL={
     const core=fire({x:pl.x,y:pl.gy-BODY,r:20,i:1.6,type:2,pal:0,life:.75,fin:.1,fade:.05,gr:90});
     after(.75,()=>{ const M=VFX.fx_pyro_nova; if(M&&M.f[0].ok) vfx('fx_pyro_nova',pl.x,pl.gy-BODY*.4,{sc:R*2.4/M.w});
       fireBurst(pl.x,pl.gy-BODY*.5,2.2,0); fring(pl.x,pl.gy,R*6,C1,.6,12); fring(pl.x,pl.gy,R*4,'#ffffff',.35,5); shock(pl.x,pl.gy-BODY*.4,1.5,1.1);
-      setInv(.08,'inv'); post.flash=.5; trauma=1.3; hitstop=.07; sfx('boom',2.2,1); light(pl.x,pl.gy,2200,C1,1,.6);
+      post.flash=.5; trauma=1.3; hitstop=.07; sfx('boom',2.2,1); light(pl.x,pl.gy,2200,C1,1,.6);
       inCircle(pl.x,pl.gy,R,o=>{ dmg(o,d,{kb:2.2,big:true,launch:900}); hitFx(o,C1,1.5); }); }); }},
 };
 
@@ -123,7 +123,7 @@ function ultStorm(id){ ultStart(id); ov.lbT=0; const Cn=X.cine, K=GFX, {hw,hh}=v
   after(3.75,()=>{ home=RT; Cn.zoom(1.02); Cn.SND.inhale(.5,.7); K.ambient(.3,.22,.24,4); Cn.gRing(x0,y0,hw*1.3,FH,{c2:FLM,inward:true,life:.5,w:.06,jag:.06}); });
   after(4.3,()=>Cn.impact(x0,y0-BODY,{style:'ember',c:FLM,n:2,r:.15,soft:true,flash:.1,blur:.06,then:()=>{ tor.length=0; big=RT; Cn.zoom(.8); K.ambient(.7,.48,.36,10); after(1,()=>K.ambient(1,1,1,1.6)); for(const d of Cn.drones) d.stop(.05);
       for(let arm=0;arm<4;arm++) for(let q=0;q<9;q++){ const tt=q/8, a=arm*TAU/4+tt*3.6, rr=hw*1.5*(.1+.9*tt); after(tt*.45,()=>{ Cn.gFire(x0+Math.cos(a)*rr,y0+Math.sin(a)*rr*FSY,8,130+90*tt,{n:4,life:.9,smoke:q%3===0}); K.light(x0+Math.cos(a)*rr,y0+Math.sin(a)*rr*FSY,500,FLM,.5,.3); }); }
-      K.ripple(x0,y0,hw*2.3,{life:.8,s:1.1}); Cn.gCrack(x0,y0,hw*1.4,FLM,{c2:FD,c3:FH,life:4,n:16,w:.11}); Cn.scar({kind:'swirl',x:x0,y:y0,r:900,c:FLM,life:10,heat:4.5}); Cn.scar({kind:'burn',x:x0,y:y0,r:640,c:FLM,life:10,heat:4});
+      K.ripple(x0,y0,hw*2.3,{life:.8,s:1.1}); Cn.gCrack(x0,y0,hw*1.4,FLM,{c2:FD,c3:FH,life:4,n:16,w:.11}); Cn.scar({kind:'swirl',x:x0,y:y0,r:900,c:FLM,life:10,heat:4.5}); Cn.gImpact('pyro',x0,y0,hw*1.25); Cn.scar({kind:'burn',x:x0,y:y0,r:640,c:FLM,life:10,heat:4});
       Cn.gDebris(x0,y0,24,{s0:400,s1:1500,vz:2000,size:30,c:'#5a4038'}); K.light(x0,y0,2800,FLM,1.5,1.3); Cn.sweep(x0,y0,Dm,{speed:3200,push:1.3}); Cn.shake(1.2); SFX.shatter(.7);
       Cn.gMotes(x0,y0,hw*1.2,FLM,90,{dur:2.2,life:2.4,white:.2}); }}));
   // afterglow: what is left burns where it fell; smoke; ash
@@ -142,7 +142,7 @@ function ultDragon(id){ ultStart(id); ov.lbT=0; const Cn=X.cine, K=GFX, {hw,hh}=
   Cn.gather(x0,y0-BODY*.4,{c:FLM,dur:.9,r:860,n:24,cs:[FLM,'#ffd28a','#ff3a10'],rings:0,streaks:0});
   // the dragon: a head and the path it has flown; the body is drawn along that path, thinning to the tail
   const D={x:x0,y:y0,z:60,on:false,P:[],sc:0}; let tS=0, dive=0, rise=0;
-  const stB=K.st(5,'add',{c2:K.rgb(FD),c3:K.rgb(FH),L:2}), stSp=K.st(3,'add',{c2:K.rgb(FD),c3:K.rgb(FH),L:2}), stG=K.st(8,'add',{L:2}), stSh=K.st(12,'alpha',{L:0}), stH=hd&&K.st(0,'alpha',{t:hd.im,L:3,uv01:true}), Ld=K.light(x0,y0,1300,FLM,0,9,{hold:9});
+  const stB=K.st(5,'add',{c2:K.rgb(FD),c3:K.rgb(FH),L:2}), stSp=K.st(3,'add',{c2:K.rgb(FD),c3:K.rgb(FH),L:2}), stG=K.st(8,'add',{L:2}), stSh=K.st(12,'alpha',{L:0}), TD=Cn.tone('#f0581c',{c2:'#5a0c00',c3:'#fff0a8'}), stH=Cn.gst(15,'alpha',TD,3,{t:Cn.art('fx2_dragonhead').im,uv01:true}), stBd=Cn.gst(15,'alpha',TD,2,{t:Cn.art('fx2_dragonbody').im,uv01:true}), Ld=K.light(x0,y0,1300,FLM,0,9,{hold:9});
   const lapP=T=>{ const lt=Math.max(0,T-tS), a=-Math.PI/2+lt*2.9, R=RR*Math.min(1,lt/.45); return [x0+Math.cos(a)*R,y0+Math.sin(a)*R*.8,(260+Math.sin(lt*5)*110)*Math.min(1,lt/.3)+40,a]; };
   const riseP=T=>{ const s=lapP(rise), k=clamp((T-rise)/.7,0,1), a=s[3]+k*2.2; return [lerp(s[0],lerp(x0,cx,.5),k)+Math.cos(a)*RR*.4*(1-k)*k*2,lerp(s[1],lerp(y0,cy,.5)-hh*.3,k),lerp(s[2],3000,easeOut(k))]; };
   const diveP=T=>{ const s=riseP(dive), k=clamp((T-dive)/.42,0,1), e=k*k; return [lerp(s[0],cx,e),lerp(s[1],cy,e),lerp(s[2],40,e)]; };
@@ -150,11 +150,10 @@ function ultDragon(id){ ultStart(id); ov.lbT=0; const Cn=X.cine, K=GFX, {hw,hh}=
   const drag=K.add(9,()=>{ if(!D.on) return; const PZ=.0004, P=D.P; P.length=0; for(let i=0;i<60;i++){ const T=RT-i*.02; if(T<tS) break; P.push(posP(T)); }
     [D.x,D.y,D.z]=P[0]; Ld.x=D.x; Ld.y=D.y; Ld.a=1.1; Ld.t=0; const n=P.length;
     for(let i=n-1;i>=0;i--){ const p=P[i], u=i/60, sc=1+p[2]*PZ, r=(320*(1-u*.82)+40*Math.sin(RT*9-i*.5))*sc; K.floor(stSh,p[0],p[1],r*.8,null,0,[0,0,0],.3*(1-u)/(1+p[2]*.002));
-      if(i%2===0&&i+2<n){ const q=P[i+2]; K.line(stSp,p[0],p[1],p[2],q[0],q[1],q[2],r*.62,c,.95*(1-u*.5),u*.5,K.tq(12,i),-2,.5); }
-      K.bill(stB,p[0],p[1],p[2]+r*.3,r,r,RT*2+i,c,.8*(1-u*.6),.1+u*.55,K.tq(12,i*.7),1.2,1.5); }
+      if(i%2===0&&i+2<n){ const q=P[i+2]; K.line(stBd,q[0],q[1],q[2],p[0],p[1],p[2],r*.7,TD.c,1,0,3,1,0,1-(i+2)/60,1-i/60); }
+      if(i%3===0) K.bill(stB,p[0],p[1],p[2]+r*.5,r*.7,r*.7,RT*2+i,c,.5*(1-u*.5),.2+u*.5,K.tq(12,i*.7),1.2,1.5); }
     const p=P[0], q=P[Math.min(3,n-1)], sc=1+p[2]*PZ, ang=Math.atan2((p[1]-p[2])-(q[1]-q[2]),p[0]-q[0]); K.bill(stG,p[0],p[1],p[2],420*sc,420*sc,0,c,.7);
-    if(stH){ const h=900*sc, w=h*hd.w/hd.h, fl=Math.cos(ang)<0?-1:1, stN=K.st(5,'add',{c2:K.rgb(FD),c3:K.rgb(FH),L:4}); K.bill(stH,p[0],p[1],p[2],w*.5,h*.5*fl,ang,[1,1,1],1,0,0,1,0);
-      for(let j=0;j<4;j++){ const d=w*(.26+j*.1); K.bill(stN,p[0]-Math.cos(ang)*d,p[1],p[2]+Math.sin(ang)*d,h*(.42+j*.03),h*(.42+j*.03),RT*3+j,c,.95,.12+j*.06,K.tq(12,j*2.3),1.2,1.5); } }
+    { const h=560*sc, w=h*2, fl=Math.cos(ang)<0?-1:1; K.bill(stH,p[0]+Math.cos(ang)*w*.12,p[1],p[2]-Math.sin(ang)*w*.12,w*.5,h*.5*fl,ang,TD.c,1,0,3,1,0); }
     if(!dive&&!rise){ if(RT-D.sc>.11){ D.sc=RT; Cn.gFire(D.x+rand(-40,40),D.y+rand(-20,20),4,rand(60,100),{n:3,life:.8}); Cn.scar({kind:'burn',x:D.x,y:D.y,r:150,c:FLM,life:6,heat:2.6}); }
       if(Math.random()<.35){ V.blast={x:D.x,y:D.y,p:.8}; inCircle(D.x,D.y,270,o=>ultHit(o,Dm*.15,D.x,D.y)); } } });
   // release: the roar; it comes up out of the floor
@@ -167,7 +166,7 @@ function ultDragon(id){ ultStart(id); ov.lbT=0; const Cn=X.cine, K=GFX, {hw,hh}=
   after(4.45,()=>{ dive=RT; Cn.cam(cx,cy-BODY,9); Cn.zoom(.88); });
   after(4.88,()=>Cn.impact(cx,cy-80,{style:'ember',c:FLM,n:2,r:.15,soft:true,flash:.12,blur:.07,then:()=>{ D.on=false; drag.dead=true; Ld.hold=0; Ld.life=.01; K.ambient(.7,.46,.34,10); after(1,()=>K.ambient(1,1,1,1.6));
       Cn.gRing(cx,cy,hw*1.7,FLM,{c2:FD,life:.65,w:.16,jag:.13}); { const s0=riseP(dive), da=Math.atan2(cy-s0[1],cx-s0[0]); Cn.gSkid(cx-Math.cos(da)*hw*.9,cy-Math.sin(da)*hw*.9*FSY,da,hw*1.5,FLM,{c2:FD,c3:FH,w:200,life:6,heat:3.4}); }
-      K.ripple(cx,cy,hw*2.3,{life:.8,s:1.1}); Cn.gCrack(cx,cy,hw*1.5,FLM,{c2:FD,c3:FH,life:4,n:17,w:.11}); Cn.scar({x:cx,y:cy,r:880,c:FLM,life:10,heat:4.5}); Cn.scar({kind:'burn',x:cx,y:cy,r:620,c:FLM,life:10,heat:4});
+      K.ripple(cx,cy,hw*2.3,{life:.8,s:1.1}); Cn.gCrack(cx,cy,hw*1.5,FLM,{c2:FD,c3:FH,life:4,n:17,w:.11}); Cn.gImpact('pyro',cx,cy,hw*1.25); Cn.scar({kind:'burn',x:cx,y:cy,r:620,c:FLM,life:10,heat:4});
       Cn.gFire(cx,cy,20,540,{n:24,life:1.1,sp:1000}); for(let r=1;r<=2;r++) after(r*.2,()=>{ const n=5+r*3; for(let i=0;i<n;i++){ const a=i/n*TAU+r; Cn.gFire(cx+Math.cos(a)*r*430,cy+Math.sin(a)*r*430*FSY,10,220,{n:5}); } sfx('boom',1.2,.6); Cn.shake(.6); });
       Cn.gDebris(cx,cy,30,{s0:400,s1:1600,vz:2300,size:34,c:'#5a4038'}); Cn.gDebris(cx,cy,12,{r:320,s0:100,s1:600,v0:1700,vz:3600,sz0:44,size:100,g:2600,c:'#5a4038'});
       K.light(cx,cy,2800,FLM,1.5,1.3); Cn.sweep(cx,cy,Dm,{speed:3200,push:1.3}); SFX.roar(1.6,.8); Cn.shake(1.4); Cn.gMotes(cx,cy,hw*1.2,FLM,90,{dur:2.2,life:2.4,white:.2}); }}));

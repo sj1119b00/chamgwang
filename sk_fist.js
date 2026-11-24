@@ -28,14 +28,14 @@ const sk={
 const order=Object.keys(sk);
 
 function basic(){ const e=nearest(360); if(!e) return false; const a=angTo(e), n=V.chain++%4, up=n===3, d=900*A.mul('fs_basic')*(up?2.4:1); face(a);
-  S(PUNCH[n],true); if(Math.hypot(e.x-pl.x,e.y-pl.gy)>200) V.dash={x0:pl.x,y0:pl.gy,x1:e.x-Math.cos(a)*120,y1:e.y-Math.sin(a)*120,t:0,dur:.08};
+  S(PUNCH[n],true); if(!V.steer&&Math.hypot(e.x-pl.x,e.y-pl.gy)>200) V.dash={x0:pl.x,y0:pl.gy,x1:e.x-Math.cos(a)*120,y1:e.y-Math.sin(a)*120,t:0,dur:.08,soft:true}; /* the step-in never fights the stick */
   after(up?.2:.1,()=>{ const x=pl.x+Math.cos(a)*150, y=pl.gy+Math.sin(a)*150; blow(x,y,up?1.4:.9,up?C2:C1); sfx('boom',up?.9:.5,.5); sfx('whoosh',1.5,.4);
     inSector(pl.x,pl.gy,a,up?300:260,.9,o=>{ dmg(o,d,{kb:up?1.2:.6,launch:up?1100:0,stun:up?.8:.2}); hitFx(o,up?C2:C1,up?1.3:1); });
     if(up) trauma=Math.min(.9,trauma+.25); });
   return true; }
 
 const SKILL={
-  fs_dash:{fn(id){ const e=nearest(560); if(!e) return false; const a=angTo(e), Ld=Math.min(520,Math.hypot(e.x-pl.x,e.y-pl.gy)+80), d=D(id), x0=pl.x, y0=pl.gy, x1=x0+Math.cos(a)*Ld, y1=y0+Math.sin(a)*Ld; face(a);
+  fs_dash:{moves:true,fn(id){ const e=nearest(560); if(!e) return false; const a=angTo(e), Ld=Math.min(520,Math.hypot(e.x-pl.x,e.y-pl.gy)+80), d=D(id), x0=pl.x, y0=pl.gy, x1=x0+Math.cos(a)*Ld, y1=y0+Math.sin(a)*Ld; face(a);
     S(PUNCH[1]); const J=pl.j; for(let i=0;i<6;i++){ const k=i/6; add({k:'ghost',j:shiftJ(J,(x1-x0)*k,(y1-y0)*k),life:.18+k*.14,c:C1}); }
     V.dash={x0,y0,x1,y1,t:0,dur:.11}; G.inv=Math.max(G.inv,.35); sfx('whoosh',1.3,.7);
     add({k:'line',x1:x0,y1:y0-BODY,x2:x1,y2:y1-BODY,life:.35,c:C1,w:34,grow:true}); add({k:'line',x1:x0,y1:y0-BODY,x2:x1,y2:y1-BODY,life:.25,c:'#ffffff',w:8,grow:true});
@@ -122,7 +122,7 @@ function ultBeam(id){ ultStart(id); ov.lbT=0; const Cn=X.cine, K=GFX, {hw,hh}=vi
   after(t0+.1+T,()=>{ wide=.5; nova=RT; Cn.SND.inhale(.3,.5); Cn.zoom(.8); });
   after(t0+.1+T+.32,()=>Cn.impact(x0,hy,{style:'fist',c:KI,n:2,r:.14,soft:true,flash:.1,blur:.06,then:()=>{ firing=false; beamFx.dead=true; beamSnd.stop(); beamSnd=NOP; K.ambient(.6,.66,.8,10); after(.5,()=>K.ambient(1,1,1,2));
       Cn.gTrench(x0,y0,Lb*.5,KI,{c2:KD,life:5.5,heat:2.2}); for(let i=0;i<7;i++){ const a=a0+i/7*TAU+rand(-.2,.2); Cn.gSkid(x0+Math.cos(a)*160,y0+Math.sin(a)*160*FSY,a,Lb*rand(.3,.46),KI,{c2:KD,c3:"#ffffff",w:90,life:rand(4,5),heat:1.6,delay:rand(0,.1),fire:false}); }
-      K.ripple(x0,y0,hw*2.2,{life:.7,s:1}); Cn.scar({kind:'crater',x:x0,y:y0,r:420,c:KI,life:9,heat:3.4});
+      K.ripple(x0,y0,hw*2.2,{life:.7,s:1}); Cn.gImpact('fist',x0,y0,hw*.72,{c:'#46586c',c3:'#bff2ff'});
       Cn.gDebris(x0,y0,28,{s0:300,s1:1500,vz:2200,size:32}); K.light(x0,y0,2600,KI,1.3,.9); Cn.sweep(x0,y0,Dm,{speed:3600}); Cn.gMotes(x0,y0,hw,KI,60,{dur:1.5,life:2,white:.5}); }}));
   // afterglow: steam off the floor, his hands still lit
   after(t0+T+1,()=>{ for(let i=0;i<12;i++) Cn.gPuff(x0+rand(-420,420),y0+rand(-260,260),10,rand(90,160),{c:'#7c93aa',c2:'#1a2634',c3:'#c6dcec',vz:rand(100,260),life:rand(1.2,2),a:.4}); Cn.zoom(1); });
@@ -155,7 +155,7 @@ function ultSun(id){ ultStart(id); ov.lbT=0; const Cn=X.cine, K=GFX, {hw,hh}=vie
   // climax
   after(2.42+.09+.29,()=>Cn.impact(cx,cy-80,{style:'fist',c:SUN,n:2,r:.15,soft:true,flash:.12,blur:.07,then:()=>{ sun.on=false; sunFx.dead=true; Ls.hold=0; Ls.life=.01; K.ambient(.7,.5,.34,10); after(.9,()=>K.ambient(1,1,1,1.6));
       Cn.gStar(cx,cy,80,1050,SUN,{c2:'#7a1c00',c3:'#ffffff',life:.42,n:11}); Cn.gRing(cx,cy,hw*1.9,SUN,{c2:'#7a1c00',life:.7,w:.16,jag:.12}); for(let i=0;i<9;i++){ const a=i/9*TAU+.2; Cn.gWall(cx+Math.cos(a)*120,cy+Math.sin(a)*120*FSY,cx+Math.cos(a)*hw*1.5,cy+Math.sin(a)*hw*1.5*FSY,rand(500,900),SUN,{c2:'#7a1c00',c3:'#fffbe0',life:rand(.8,1.1),rise:.08,a:.55,cell:90,delay:.04}); }
-      K.ripple(cx,cy,hw*2.3,{life:.8,s:1.1}); Cn.gCrack(cx,cy,hw*1.5,SUN,{c2:'#7a1c00',c3:'#fffbe0',life:4,n:21,w:.1}); Cn.scar({kind:'crater',x:cx,y:cy,r:900,c:SUN,life:10,heat:4.5}); Cn.scar({kind:'burn',x:cx,y:cy,r:560,c:SUN,life:10,heat:4});
+      K.ripple(cx,cy,hw*2.3,{life:.8,s:1.1}); Cn.gCrack(cx,cy,hw*1.5,SUN,{c2:'#7a1c00',c3:'#fffbe0',life:4,n:21,w:.1}); Cn.gImpact('fist',cx,cy,hw*1.05,{c:'#6a543c',c3:'#ffe9a0'}); Cn.scar({kind:'burn',x:cx,y:cy,r:560,c:SUN,life:10,heat:4});
       Cn.gFire(cx,cy,20,480,{n:20,life:1,sp:900,c:'#ff9a1a'}); Cn.gSpeed(.7,'#fff3c0',{c2:SUN,a:.4,x:cx,y:cy,r:.12,n:22,w:.3,fps:12});
       Cn.gDebris(cx,cy,32,{s0:300,s1:1500,vz:2300,size:34,c:'#6a584a'}); Cn.gDebris(cx,cy,12,{r:300,s0:100,s1:600,v0:1700,vz:3600,sz0:44,size:100,g:2600,c:'#6a584a'});
       K.light(cx,cy,2800,SUN,1.5,1.2); Cn.sweep(cx,cy,Dm,{speed:3200,push:1.3}); SFX.shatter(1); Cn.shake(1.4); Cn.gMotes(cx,cy,hw,SUN,70,{dur:1.8,life:2.2,white:.4}); }}));

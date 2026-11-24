@@ -78,8 +78,8 @@ const SKILL={
 /// ---- ultimates. Each is one staged sequence: omen -> release -> climax -> afterglow (director: cine.js, drawn by gfx.js)
 const JADE='#2fe8a4', JD='#053a2c', JW='#e6fff4';
 // a slab of rock that shoulders up out of the floor, stands, and sinks back
-function menhir(x,y,h,dl=0,life=1.6){ const Cn=X.cine, K=GFX, rk=rockSpr(); if(!rk) return; const st=K.st(0,'alpha',{t:rk.im||rk,L:2,uv01:true}), w=h*.42, rot=rand(-.12,.12);
-  K.add(life,(k,t)=>{ const up=t<.16?easeOut(t/.16):t>life-.4?Math.max(0,(life-t)/.4):1; if(up<=0) return; K.floor(K.st(12,'alpha',{L:0}),x,y,w*.9,null,0,[0,0,0],.4*up); K.bill(st,x,y,h*up*.5-h*.08,w*.5,h*up*.5,rot,[.62,.78,.7],1,0,0,1,0); },dl);
+function menhir(x,y,h,dl=0,life=1.6){ const Cn=X.cine, K=GFX, rk=rockSpr(); if(!rk) return; const st=Cn.gst(15,'alpha',Cn.tone('#5f7a6e',{c2:'#101c18',c3:'#e6fff4'}),2,{t:Cn.art('fx2_monolith').im,uv01:true}), w=h*.5, rot=rand(-.12,.12);
+  K.add(life,(k,t)=>{ const up=t<.16?easeOut(t/.16):t>life-.4?Math.max(0,(life-t)/.4):1; if(up<=0) return; K.floor(K.st(12,'alpha',{L:0}),x,y,w*.9,null,0,[0,0,0],.4*up); K.bill(st,x,y,h*up*.5-h*.04,w*.5,h*up*.5,rot,st.c||K.rgb('#5f7a6e'),1,0,3,1,0); },dl);
   after(dl,()=>{ Cn.gDebris(x,y,4,{s0:150,s1:500,vz:1100,size:18,c:'#56645c'}); Cn.gPuff(x,y,10,w*.7,{c:'#4a554e',c2:'#0a120e',c3:'#7c8c82',vz:120,life:.8,a:.6}); Cn.gRing(x,y,w*1.6,JADE,{c2:JD,life:.3,w:.12}); }); }
 // STONE RAIN: a bell, a seal spreading over the earth, chains of light that hold everything where it stands -
 // then stones fall to a drum that keeps speeding up, the last one blots out the light, and the earth answers with its own teeth.
@@ -104,15 +104,15 @@ function ultStones(id){ ultStart(id); ov.lbT=0; const Cn=X.cine, K=GFX, {hw,hh}=
   pts.forEach(([x,y],i)=>{ const h=rand(300,460), land=()=>{ Cn.gStar(x,y,40,rand(200,280),JW,{c2:JADE,life:.16,n:6}); Cn.gRing(x,y,400,JADE,{c2:JD,life:.32,w:.13,jag:.1}); Cn.gCrack(x,y,280,JADE,{c2:JD,life:1.4,n:8,w:.15});
       Cn.gDebris(x,y,6,{s0:200,s1:700,vz:1300,size:22,c:'#56645c'}); Cn.gPuff(x,y,10,rand(80,120),{c:'#4a554e',c2:'#0a120e',c3:'#7c8c82',vz:rand(100,220),life:1,a:.65}); K.light(x,y,800,JADE,.9,.25);
       SFX.boom(.9+Math.random()*.3,.55); Cn.shake(.38+i*.012); hitstop=Math.max(hitstop,.018); inCircle(x,y,230,o=>ultHit(o,Dm*.4,x,y)); if(i%3===0) Cn.scar({x,y,r:200,c:JADE,life:7,heat:1.6}); };
-    if(rim) Cn.gDrop(x,y,{img:rim,h,w:h*1.05,z0:3600,dur:.36,c:[.62,.78,.7],spin:rand(-5,5),trail:JADE,tw:.3,tl:3,delay:at-.36,land,sink:.5,pz:.0005,stick:.5,fade:.5,burn:.5}); else after(at,land);
+    if(rim) Cn.gDrop(x,y,{art:'fx2_meteor',artc:'#5f7a6e',c2:'#101c18',c3:'#e6fff4',h,w:h*1.1,z0:3600,dur:.36,spin:rand(-5,5),trail:JADE,tw:.3,tl:3,delay:at-.36,land,sink:.5,pz:.0005,stick:.5,fade:.5,burn:.5}); else after(at,land);
     at+=gap; gap=Math.max(.06,gap*.86); });
   // climax: the one that takes the light with it - and then the earth's own teeth, ring after ring
   const tc=at+.05, mx=x0, my=y0-hh*.2, BH=1500;
   after(tc,()=>{ Cn.zoom(.8); K.ambient(.2,.26,.26,4); Cn.SND.inhale(.75,.7); duck(.2,.6); K.add(.8,k=>K.floor(K.st(12,'alpha',{L:0}),mx,my,300+900*k,null,0,[0,0,0],.3+.5*k)); Cn.gRing(mx,my,900,JW,{c2:JADE,inward:true,life:.75,w:.05,jag:.04}); });
-  if(rim) Cn.gDrop(mx,my,{img:rim,h:BH*1.7,w:BH*.8,z0:6500,dur:.7,c:[.62,.78,.7],rot:.06,trail:JADE,tw:.4,tl:2,delay:tc+.1,sink:.14,pz:.0004,L:3,stick:4.2,fade:.8,burn:1.1});
+  if(rim) Cn.gDrop(mx,my,{art:'fx2_monolith',artc:'#5f7a6e',c2:'#101c18',c3:'#e6fff4',h:BH*1.7,w:BH*1.7*.667,z0:6500,dur:.7,rot:.04,trail:JADE,tw:.4,tl:2,delay:tc+.1,sink:.14,pz:.0004,L:3,stick:4.2,fade:.8,burn:1.1});
   after(tc+.8,()=>Cn.impact(mx,my-80,{style:'paper',c:JADE,n:2,r:.16,soft:true,flash:.1,blur:.06,then:()=>{ K.ambient(.6,.7,.64,10); after(.8,()=>K.ambient(1,1,1,1.8)); drop(1500); Cn.SND.gong(1);
       Cn.gRing(mx,my,hw*1.5,JADE,{c2:JD,life:.6,w:.14,jag:.12});
-      K.ripple(mx,my,hw*2.3,{life:.8,s:1.1}); Cn.gCrack(mx,my,hw*1.5,JADE,{c2:JD,c3:JW,life:4,n:17,w:.1}); Cn.scar({x:mx,y:my,r:900,c:JADE,life:10,heat:3.4});
+      K.ripple(mx,my,hw*2.3,{life:.8,s:1.1}); Cn.gCrack(mx,my,hw*1.5,JADE,{c2:JD,c3:JW,life:4,n:17,w:.1}); Cn.gImpact('shaman',mx,my,hw*.95,{c:'#3e5a50',c3:'#bfffe6'});
       Cn.gDebris(mx,my,34,{s0:400,s1:1600,vz:2300,size:36,c:'#56645c'}); Cn.gDebris(mx,my,12,{r:320,s0:100,s1:600,v0:1700,vz:3600,sz0:44,size:100,g:2600,c:'#56645c'});
       for(let r=1;r<=3;r++){ const n=5+r*3, rr=r*400; for(let i=0;i<n;i++){ const a=i/n*TAU+r*.5; menhir(mx+Math.cos(a)*rr,my+Math.sin(a)*rr*FSY,rand(380,560)+r*60,.08+r*.14,1.5-r*.1); } after(.08+r*.14,()=>{ sfx('boom',1.1,.5); Cn.shake(.5); }); }
       K.light(mx,my,2600,JADE,1.3,1); Cn.sweep(mx,my,Dm,{speed:3000,push:1.3}); Cn.gMotes(mx,my,hw,JADE,70,{dur:1.8,life:2.2,white:.4}); }}));
@@ -123,21 +123,21 @@ function ultStones(id){ ultStart(id); ov.lbT=0; const Cn=X.cine, K=GFX, {hw,hh}=
 // and it is its hands that do the work - each one bigger than the screen while it is still high, the last one covering the sky.
 function ultKing(id){ ultStart(id); ov.lbT=0; const Cn=X.cine, K=GFX, {hw,hh}=view(), Dm=70000*A.mul(id), x0=pl.x, y0=pl.gy, dv=spr('deity'), pm=spr('palm');
   const TJ=Cn.tone(JADE,{c2:JD,c3:JW});
-  S([['gy01',.12],['gy02',.18],['gy03',.25],['gy04',.7],['gy05',.7],['gy06',.12,{kick:[-.8,.6]}],['gy07',.2],['gy08',.7],['gy09',.7],['gy10',.8],['gy11',.18,{kick:[1.6,-1.2]}],['gy12',.7],['gy13',.8],['gy14',9]]);
+  S([['gx04',.14,{kick:[-.8,.6]}],['gx07',1.75],['gx11',.12,{kick:[-1,.8]}],['gx12',.1,{kick:[2,-1.6]}],['gx13',3.6],['gx14',9]]);   /* the old prayer frames have a small spirit painted into them; the king is its own drawing now */
   K.ambient(.3,.4,.4,3); Cn.zoom(1.28); Cn.cam(x0,y0-BODY*2.4,4); SFX.choir(5.2); SFX.bell(); Cn.drone(49,.3); duck(.3,.6);
   Cn.gCircle('fx_circle_seal',x0,y0,{c:JADE,r:40,life:6.4,tick:(s,t)=>{ s.r=lerp(40,hw*.7,easeOut(Math.min(1,t/1.5))); s.rot=-t*.25; s.a=t>5.6?Math.max(0,1-(t-5.6)/.6):.8; }});
   Cn.gMotes(x0,y0,hw*.8,JADE,90,{dur:5,life:2.2,white:.3});
   // the king: burns into being out of noise, tall as the field, breathing; its eyes are the light
-  let eyes=0, gone=0, t00=RT; const KH=1800, KW=dv?KH*dv.w/dv.h:900, stK=dv&&K.st(0,'alpha',{t:dv.im,L:1,uv01:true,c3:K.rgb(JW)}), stG=K.st(8,'add',{L:1});
+  let eyes=0, gone=0, t00=RT; const KH=1700, KW=KH*1.09, TKg=Cn.tone('#2fbf8a',{c2:'#06352a',c3:'#eafff6'}), stK=dv&&Cn.gst(15,'alpha',TKg,1,{t:Cn.art('fx2_deity').im,uv01:true}), stG=K.st(8,'add',{L:1});
   const Le=K.light(x0,y0-200,1500,JADE,0,9,{hold:9});
   const king=K.add(9,()=>{ const t=RT-t00, form=Math.min(1,t/1.5), out=gone?Math.min(1,(RT-gone)/.8):0, bob=Math.sin(RT*1.3)*14; eyes=Math.max(0,eyes-Math.min(.1,RT-(king.lt||RT))*.9); king.lt=RT; Le.a=(.25+eyes)*(1-out); Le.t=0;
-    if(dv) K.bill(stK,x0,y0-260,KH*.5+bob+out*500,KW*.5,KH*.5,0,[.5+.4*eyes,.9,.78],(.5+.2*eyes)*(1-out),Math.max(1-form,out),t*.2,1.2,.004);
+    if(dv) K.bill(stK,x0,y0-260,KH*.5+bob+out*500,KW*.5,KH*.5,0,TKg.c,(.62+.22*eyes)*(1-out),Math.max(1-form,out),K.tq(8,2),2.2,.004);
     K.bill(stG,x0,y0-60,KH*.66+bob,900,900,0,TJ.c,(.15+.35*eyes)*(1-out)); K.bill(stG,x0-KW*.06,y0-60,KH*.83+bob,90+160*eyes,40+70*eyes,0,[1,1,1],eyes*(1-out)); K.bill(stG,x0+KW*.06,y0-60,KH*.83+bob,90+160*eyes,40+70*eyes,0,[1,1,1],eyes*(1-out)); });
   Cn.gather(x0,y0-BODY*.9,{c:JADE,dur:1,r:900,n:30,cs:[JADE,C2,'#ffffff'],fy:y0,rings:0,streaks:0});
   // release: its eyes open
   after(1.95,()=>Cn.impact(x0,y0-BODY*2,{style:'paper',c:JADE,n:2,soft:true,flash:.07,blur:.03,v:.6,then:()=>{ eyes=1; Cn.zoom(.86); Cn.cam(x0,y0-BODY*1.4,5); K.ambient(.36,.46,.44,5); SFX.roar(1.1,.5); Cn.SND.gong(.9); Cn.gRing(x0,y0,hw*1.6,JADE,{c2:JD,life:.55,w:.07,jag:.07}); K.ripple(x0,y0,hw*1.6,{life:.5,s:.6}); }}));
   // a hand: falls palm-first from above the camera onto its own shadow
-  const palm=(x,y,h,z0,dur,dl,land,L)=>{ if(pm) Cn.gDrop(x,y,{img:pm.im,h,w:h*pm.w/pm.h,z0,dur,delay:dl,land,sink:.45,pz:.00042,L:L??3,c:[.8,1,.92],stick:.5,fade:.45,burn:.45,trail:JADE,tw:.5,tl:1.6}); else after(dl+dur,()=>land(x,y)); };
+  const palm=(x,y,h,z0,dur,dl,land,L)=>{ if(pm) Cn.gDrop(x,y,{art:'fx2_palm',artc:'#3fd49c',c2:'#06352a',c3:'#eafff6',h,w:h*.59,z0,dur,delay:dl,land,sink:.45,pz:.00042,L:L??3,stick:.5,fade:.45,burn:.45,trail:JADE,tw:.5,tl:1.6}); else after(dl+dur,()=>land(x,y)); };
   const T=onScreen(150), spots=[]; for(let i=0;i<4;i++){ const e=T.length?T[(Math.random()*T.length)|0]:null; spots.push(e?X.inView(e.x,e.y,.75):[x0+rand(-hw,hw)*.7,y0+rand(-hh,hh)*.7]); }
   let at=2.35;
   spots.forEach(([x,y],i)=>{ after(at-.42,()=>{ eyes=Math.max(eyes,.7); Cn.cam(lerp(x0,x,.35),lerp(y0,y,.35)-BODY,6); sfx('whoosh',.5,.9); K.add(.42,k=>K.floor(K.st(12,'alpha',{L:0}),x,y,160+380*k,null,0,[0,0,0],.25+.45*k)); });
@@ -152,7 +152,7 @@ function ultKing(id){ ultStart(id); ov.lbT=0; const Cn=X.cine, K=GFX, {hw,hh}=vi
   palm(bx,by,2500,6200,.44,tc+.16,()=>{},3);
   after(tc+.6,()=>Cn.impact(bx,by-60,{style:'paper',c:JADE,n:2,r:.18,soft:true,flash:.1,blur:.06,then:()=>{ K.ambient(.6,.72,.66,10); after(.8,()=>K.ambient(1,1,1,1.8)); for(const d of Cn.drones) d.stop(.05);
       Cn.gCircle('fx_circle_seal',bx,by,{c:JW,r:200,life:1.6,L:0,tick:(s,t)=>{ s.r=lerp(260,hw*1.25,easeOut(Math.min(1,t/.3))); s.a=Math.max(0,1-t/1.6)*1.4; s.rot=.4; }}); for(let i=0;i<5;i++){ const a=-Math.PI/2+(i-2)*.42; Cn.gWall(bx+Math.cos(a)*200,by+Math.sin(a)*200*FSY,bx+Math.cos(a)*hw*1.25,by+Math.sin(a)*hw*1.25*FSY,rand(500,800),JADE,{c2:JD,c3:JW,life:1,rise:.08,a:.5,cell:90}); }
-      K.ripple(bx,by,hw*2.3,{life:.8,s:1.1}); Cn.gCrack(bx,by,hw*1.5,JADE,{c2:JD,c3:JW,life:4,n:15,w:.1}); Cn.scar({kind:'seal',x:bx,y:by,r:720,c:JADE,life:10,heat:4});
+      K.ripple(bx,by,hw*2.3,{life:.8,s:1.1}); Cn.gCrack(bx,by,hw*1.5,JADE,{c2:JD,c3:JW,life:4,n:15,w:.1}); Cn.gImpact('shaman',bx,by,hw*1.02,{c:'#3e5a50',c3:'#bfffe6',rot:0});
       Cn.gDebris(bx,by,30,{s0:400,s1:1500,vz:2200,size:32,c:'#56645c'}); Cn.gDebris(bx,by,12,{r:320,s0:100,s1:600,v0:1700,vz:3600,sz0:44,size:100,g:2600,c:'#56645c'});
       K.light(bx,by,2700,JADE,1.4,1.1); Cn.sweep(bx,by,Dm,{speed:3200,push:1.2}); Cn.shake(1.3); Cn.gMotes(bx,by,hw*1.2,JADE,90,{dur:2,life:2.4,white:.4}); }}));
   // afterglow: it goes back up as light; the bell again

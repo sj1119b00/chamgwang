@@ -648,7 +648,7 @@ addEventListener('touchstart',enableTouch,{passive:true});
 // ============================================================ boot
 // survival mode (surv.js) works on the same save, levels and skill table
 G.api={get SV(){ return SV; },SK,ORDER,SLOT_KEYS,save,mul,cdOf,maxHp,needExp,gainExp,unlocked,sLv,stickLoco,toMenu,menuRender,setPause,toast,floatTxt,EFR,ET,menuEl,isTouch,fr2,swapClass,locoPose,hurtAnim};
-{ const s=document.createElement('script'); s.src='surv.js?v=24'; document.body.appendChild(s); }
+{ const s=document.createElement('script'); s.src='surv.js?v=25'; document.body.appendChild(s); }
 started=true; setClass(SV.cls||'sword',true); E.dead=true; E.respawn=1e9; pl.x=pl.home=VW*.62;
 menuRender(); menuEl.classList.add('on');
 })();

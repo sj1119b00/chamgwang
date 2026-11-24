@@ -120,7 +120,7 @@ function ultThunder(id){ ultStart(id); ov.lbT=0; const Cn=X.cine, K=GFX, x0=pl.x
       const stC=Cn.gst(3,'add',Cn.tone(ICE,{c2:VIO,c3:'#ffffff'}),3); K.add(.75,k=>{ K.line(stC,bx,by,0,bx,by,ZC+600,(190+40*Math.sin(RT*60))*(1-k*k),K.rgb(ICE),1-k*k,k*.4,RT*6,-2,.3); });
       for(let i=0;i<5;i++) Cn.gBolt(bx+rand(-380,380),by+rand(-60,60),ZC,bx+rand(-60,60),by,0,VIO,{c2:'#1c0a5a',c3:'#efe6ff',w:40,life:.5,forks:3,delay:i*.07,jag:.1});
       for(let i=0;i<14;i++){ const a=i/14*TAU+rand(-.15,.15), r=hw*rand(.9,1.7); Cn.gBolt(bx,by,14,bx+Math.cos(a)*r,by+Math.sin(a)*r*FSY,14,VIO,{c2:'#1c0a5a',c3:'#efe6ff',w:26,life:.5,forks:3,jag:.12,delay:rand(0,.12)}); after(.3,()=>Cn.scar({kind:'gash',x:bx+Math.cos(a)*r*.5,y:by+Math.sin(a)*r*.5*FSY,rot:Math.atan2(Math.sin(a)*FSY,Math.cos(a)),len:r,w:120,c:VIO,life:6,heat:2.4})); }
-      K.ripple(bx,by,hw*2.1,{life:.7,s:1}); Cn.gCrack(bx,by,hw*1.4,VIO,{c2:'#1c0a5a',c3:ICE,life:3,n:19,w:.09}); Cn.scar({x:bx,y:by,r:760,c:VIO,life:9,heat:3.2});
+      K.ripple(bx,by,hw*2.1,{life:.7,s:1}); Cn.gCrack(bx,by,hw*1.4,VIO,{c2:'#1c0a5a',c3:ICE,life:3,n:19,w:.09}); Cn.gImpact('mage',bx,by,hw*.7,{c:'#463e66',c3:'#d8c8ff'});
       Cn.gDebris(bx,by,26,{s0:300,s1:1400,vz:2100,size:30}); K.light(bx,by,2600,'#b9a8ff',1.4,.9,{flick:.4}); SFX.thunder(1.3); Cn.shake(1.2);
       // it jumps from body to body before they fall
       const L=onScreen(200).slice(0,20); for(let i=0;i<L.length;i++){ const a=i?L[i-1]:{x:bx,y:by,h:200}, b=L[i]; Cn.gBolt(a.x,a.y,(a.h||200)*.5,b.x,b.y,b.h*.5,i%2?VIO:ICE,{c2:'#1c0a5a',w:16,life:.3,forks:1,delay:.05+i*.012}); }
@@ -142,21 +142,21 @@ function ultMeteor(id){ ultStart(id); ov.lbT=0; const Cn=X.cine, K=GFX, {hw,hh}=
   // a small one: comes in on the same slant as the big one will
   const SL=[hw*1.5,-hh*.5], small=(x,y,dl)=>{ const land=()=>{ Cn.gFire(x,y,10,150,{n:7}); Cn.gStar(x,y,40,260,EMB,{c2:'#6a1000',c3:'#fff2b0',life:.2,n:6}); Cn.gRing(x,y,420,EMB,{c2:'#6a1000',life:.35,w:.12,jag:.1}); Cn.gCrack(x,y,300,EMB,{c2:'#6a1000',life:1.6,n:8,w:.15});
       Cn.gDebris(x,y,6,{s0:200,s1:700,vz:1300,size:20}); K.light(x,y,900,EMB,1.1,.35); sfx('boom',.8,.4); Cn.shake(.4); Cn.scar({kind:'burn',x,y,r:170,c:EMB,life:6,heat:2}); inCircle(x,y,220,o=>ultHit(o,Dm*.3,x,y)); };
-    if(ms) Cn.gDrop(x,y,{img:ms.im,h:230,w:230*ms.w/ms.h,z0:3400,dur:.42,dx:SL[0]*.45,dy:SL[1]*.45,spin:6,trail:EMB,tw:.5,tl:5,delay:dl,land,sink:.5,pz:.0005}); else after(dl+.42,land); };
+    if(ms) Cn.gDrop(x,y,{art:'fx2_meteor',artc:'#b0481c',c2:'#3a1206',c3:'#fff2b0',h:230,w:230*1.1,z0:3400,dur:.42,dx:SL[0]*.45,dy:SL[1]*.45,spin:6,trail:EMB,tw:.5,tl:5,delay:dl,land,sink:.5,pz:.0005}); else after(dl+.42,land); };
   // release: the camera lets go of her; the field is shown the size of the shadow
   after(1.5,()=>Cn.impact(x0,y0-BODY,{style:'ember',c:EMB,n:2,soft:true,flash:.06,blur:.03,v:.5,then:()=>{ Cn.zoom(.8); Cn.cam(lerp(x0,cx,.7),lerp(y0,cy,.7)-hh*.2,3.2); K.ambient(.42,.3,.3,3); SFX.fire(1.7,.7); Cn.SND.inhale(1.7,.7);
       K.add(1.75,k=>K.floor(K.st(12,'alpha',{L:0}),cx,cy,200+760*k*k,null,0,[0,0,0],.2+.6*k)); Cn.gSpeed(1.7,HOT,{c2:EMB,a:.18,x:cx,y:cy,r:.55,n:60,w:.1}); }}));
   for(let i=0;i<8;i++) small(cx+rand(-hw,hw)*.95,cy+rand(-hh,hh)*.7,1.62+i*.15);
   // the big one: a rock the size of the screen at first (it is level with the camera), dragging fire, shrinking onto its shadow
   const BH=880, stT=Cn.gst(3,'add',TE,2); let lastP=0;
-  if(ms) Cn.gDrop(cx,cy,{img:ms.im,h:BH,w:BH*ms.w/ms.h,z0:6200,dur:1.5,dx:SL[0],dy:SL[1],spin:1.4,delay:1.78,sink:.5,pz:.00042,L:3,trail:EMB,tw:.62,tl:4.2,
+  if(ms) Cn.gDrop(cx,cy,{art:'fx2_meteor',artc:'#b0481c',c2:'#3a1206',c3:'#fff2b0',h:BH,w:BH*1.1,z0:6200,dur:1.5,dx:SL[0],dy:SL[1],spin:1.4,delay:1.78,sink:.5,pz:.00042,L:3,trail:EMB,tw:.62,tl:4.2,
     tick:(x,y,z,q)=>{ const sc=1+z*.00042; K.bill(K.st(8,'add',{L:2}),x,y,z+BH*.5,BH*1.5*sc,BH*1.5*sc,0,TE.c,.55); K.light(cx,cy,1500+1500*q,EMB,.5+q*.9,.1);
       if(RT-lastP>.03){ lastP=RT; Cn.gPuff(x+rand(-1,1)*BH*.3*sc,y,z+BH*sc*rand(.6,1.1),BH*rand(.3,.55)*sc,{c:EMB,c2:'#6a1000',c3:'#fff2b0',add:true,vx:SL[0]*.25,vy:SL[1]*.25,vz:rand(300,900),life:rand(.4,.7),a:.9,rise:1.5,L:2}); trauma=Math.max(trauma,.1+q*.45); } }});
   after(2.9,()=>{ Cn.cam(cx,cy-BODY,8); Cn.zoom(.86); });
   // climax
   after(3.28,()=>Cn.impact(cx,cy-100,{style:'ember',c:EMB,n:2,r:.15,soft:true,flash:.12,blur:.07,then:()=>{ for(const d of Cn.drones) d.stop(.05); K.ambient(.62,.4,.3,10); after(.9,()=>K.ambient(1,1,1,1.6)); drop(1600);
       Cn.gStar(cx,cy,80,980,EMB,{c2:'#6a1000',c3:'#ffffff',life:.4,n:9}); for(let i=0;i<4;i++) Cn.gRing(cx,cy,hw*(1.1+i*.45),i%2?HOT:EMB,{c2:'#6a1000',life:.55+i*.12,w:.14-i*.03,jag:.11,delay:i*.06});
-      K.ripple(cx,cy,hw*2.3,{life:.8,s:1.1}); Cn.gCrack(cx,cy,hw*1.5,EMB,{c2:'#6a1000',c3:'#fff2b0',life:4,n:17,w:.11}); Cn.scar({x:cx,y:cy,r:860,c:EMB,life:10,heat:4.5}); Cn.scar({kind:'burn',x:cx,y:cy,r:620,c:EMB,life:10,heat:4});
+      K.ripple(cx,cy,hw*2.3,{life:.8,s:1.1}); Cn.gCrack(cx,cy,hw*1.5,EMB,{c2:'#6a1000',c3:'#fff2b0',life:4,n:17,w:.11}); Cn.gImpact('mage',cx,cy,hw*1.0,{c:'#5a3a30',c3:'#ffb040'}); Cn.scar({kind:'burn',x:cx,y:cy,r:620,c:EMB,life:10,heat:4});
       Cn.gFire(cx,cy,20,520,{n:22,life:1.1,sp:900}); { const sa=Math.atan2(-SL[1],-SL[0]); Cn.gSkid(cx,cy,sa,hw*1.5,EMB,{c2:'#6a1000',c3:'#fff2b0',w:230,life:6,heat:3.4}); Cn.gDebris(cx,cy,14,{dir:sa,spread:.5,s0:700,s1:2200,vz:1500,size:34,c:'#5a4844'}); } for(let i=0;i<10;i++){ const a=i/10*TAU; after(.05,()=>Cn.gFire(cx+Math.cos(a)*420,cy+Math.sin(a)*420*FSY,10,260,{n:5,life:.9})); }
       Cn.gDebris(cx,cy,34,{s0:400,s1:1700,vz:2400,size:36,c:'#5a4844'}); Cn.gDebris(cx,cy,14,{r:320,s0:100,s1:600,v0:1700,vz:3800,sz0:44,size:110,g:2600,c:'#5a4844'});
       K.light(cx,cy,2800,EMB,1.5,1.2); Cn.sweep(cx,cy,Dm,{speed:3000,push:1.3}); SFX.shatter(1); Cn.shake(1.4);

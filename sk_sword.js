@@ -5,7 +5,7 @@ const SV=()=>RPG.api.SV, G=RPG, X=RPG.sv, FSY=RPG.sv.FSY, {V,A,SK,BODY,nearest,c
 
 // ============================================================ skills (the RPG's sword set, re-done for a top-down field; all fire on their own)
 const SKILL={
-  sw_dash:{range:560,fn(id){ const e=nearest(560); if(!e) return false; const a=angTo(e), L=Math.min(520,Math.hypot(e.x-pl.x,e.y-pl.gy)+140), d=SK[id].dmg*A.mul(id);
+  sw_dash:{moves:true,range:560,fn(id){ const e=nearest(560); if(!e) return false; const a=angTo(e), L=Math.min(520,Math.hypot(e.x-pl.x,e.y-pl.gy)+140), d=SK[id].dmg*A.mul(id);
     const x0=pl.x, y0=pl.gy, x1=x0+Math.cos(a)*L, y1=y0+Math.sin(a)*L; face(a); seq('gs',['05','07','09']);
     const J=pl.j; for(let i=0;i<6;i++){ const k=i/6; add({k:'ghost',j:shiftJ(J,(x1-x0)*k,(y1-y0)*k),life:.18+k*.14,c:'#ff6a85'}); }
     V.dash={x0,y0,x1,y1,t:0,dur:.1}; G.inv=Math.max(G.inv,.35);
@@ -27,11 +27,11 @@ const SKILL={
     for(let i=0;i<4;i++) after(i*.13,()=>{ const a=RT*7+i*1.6, y=pl.gy-BODY*.8;
       vfxSwing({x:pl.x,y,r:300,a0:a,a1:a+2.2},{k:1.3,hue:45}); vfxSwing({x:pl.x,y,r:300,a0:a+Math.PI,a1:a+Math.PI+2.2},{k:1.3,hue:45,a:.7});
       ring(pl.x,pl.gy,1300,'#ffd36a',.35,{w:7}); sfx('whoosh',1.3,.8); sfx('slash',1.2,.9);
-      inCircle(pl.x,pl.gy,360,e=>{ dmg(e,d*.5,{kb:1.1,big:i===3}); hitFx(e,'#ffd36a',1.1); }); }); }},
+      X.inCircleS(pl.x,pl.gy,360,e=>{ dmg(e,d*.5,{kb:1.1,big:i===3}); hitFx(e,'#ffd36a',1.1); }); }); }},
   sw_fly:{range:620,fn(id){ if(V.orbs.length||!nearest(620)) return false; const n=3+Math.floor((A.sLv(id)-1)/2), d=SK[id].dmg*A.mul(id)*.35;
     plSeq([['gs04',.06],['gs06',.06,{kick:[1.6,-1.2]}],['gs08',.14],['gs12',.06]]); sfx('rise',.4,.3);
     for(let i=0;i<n;i++){ const o={a:i/n*TAU,t:0,life:5,d,v:{x:pl.x,y:pl.gy-BODY}}; o.R=380; o.fx=vfx('goldsword',o.v.x,o.v.y,{follow:o.v,loop:true,life:5,sc:1.15,a:1}); V.orbs.push(o); } }},
-  sw_plunge:{range:460,fn(id){ const e=nearest(460); if(!e) return false; const a=angTo(e), d=SK[id].dmg*A.mul(id), L=Math.max(0,Math.hypot(e.x-pl.x,e.y-pl.gy)-60), up=k=>1-(1-k)*(1-k), dn=k=>k*k; face(a);
+  sw_plunge:{moves:true,range:460,fn(id){ const e=nearest(460); if(!e) return false; const a=angTo(e), d=SK[id].dmg*A.mul(id), L=Math.max(0,Math.hypot(e.x-pl.x,e.y-pl.gy)-60), up=k=>1-(1-k)*(1-k), dn=k=>k*k; face(a);
     V.dash={x0:pl.x,y0:pl.gy,x1:pl.x+Math.cos(a)*L,y1:pl.gy+Math.sin(a)*L,t:0,dur:.42}; G.inv=Math.max(G.inv,.5);
     const land=()=>{ const cx=pl.x, cy=pl.gy; pl.air=pl.airT=0;
       shock(cx,cy-20,.8); ring(cx,cy,1700,'#ff6a85',.5,{w:9}); ring(cx,cy,900,'#ffffff',.25,{w:4}); gl0(cx,cy-40,260,'#ff6a85',.35,{grow:300,a:.6}); light(cx,cy,900,'#ff6a85',.4,.5);
@@ -47,13 +47,13 @@ const SKILL={
       inLine(x0,y0,x1,y1,60,e=>{ dmg(e,d,{kb:.25,stun:.3}); hitFx(e,'#ffffff',.9); }); }); }},
   sw_counter:{passive:true},
 };
-function counterReady(){ const id='sw_counter'; return SV().slots.includes(id)&&A.unlocked(id)&&(V.cd[id]||0)<=0; }
-function counter(src){ const id='sw_counter', d=SK[id].dmg*A.mul(id); V.cd[id]=A.cdOf(id); G.inv=1.1; slow(.25,.35); setInv(.06,'inv'); stamp('카운터',{x:.5,y:.36,size:.14,life:.9,c:'#9ff7ff'}); sfx('boom',1,.8);
+function counterReady(){ const id='sw_counter'; return A.unlocked(id)&&(V.cd[id]||0)<=0; }
+function counter(src){ const id='sw_counter', d=SK[id].dmg*A.mul(id); V.cd[id]=A.cdOf(id); G.inv=1.1; slow(.25,.35); stamp('카운터',{x:.5,y:.36,size:.14,life:.9,c:'#9ff7ff'}); sfx('boom',1,.8);
   if(src) face(Math.atan2(src.y-pl.gy,src.x-pl.x)); anim.seq=null;
   plSeq([['gc05',.05,{tr:1,kick:[2.8,-2.6]}],['gc06',.08,{tr:1}],['gc07',.18],['gc10',.08],['gc12',.06]]);
   const y=pl.gy-BODY*.8; vfxSwing({x:pl.x,y,r:340,a0:-2.4,a1:.2},{k:1.4,hue:-160}); vfxSwing({x:pl.x,y,r:340,a0:.7,a1:3.3},{k:1.4,hue:-160});
   ring(pl.x,pl.gy,1600,'#9ff7ff',.45,{w:8}); light(pl.x,y,900,'#9ff7ff',.5,.5);
-  inCircle(pl.x,pl.gy,440,e=>{ dmg(e,d,{kb:2,big:true,crit:true}); hitFx(e,'#9ff7ff',1.5); }); }
+  X.inCircleS(pl.x,pl.gy,440,e=>{ dmg(e,d,{kb:2,big:true,crit:true}); hitFx(e,'#9ff7ff',1.5); }); }
 
 // basic: a 3-cut chain at the nearest enemy - two cuts, then a wide heavy one
 function basic(){ const e=nearest(430); if(!e) return false; const a=angTo(e), n=V.chain++%3, big=n===2, r=big?360:300, d=1200*A.mul('sw_basic')*(big?1.7:1), s=n===1?-1:1; face(a);
@@ -147,7 +147,7 @@ function ultZero(id){ ultStart(id); ov.lbT=0; const Cn=X.cine, K=GFX, D=80000*A.
       MC.gold=true; MC.k=1.9; K.add(.14,k=>{ MC.open=.4+.6*easeOut(k); }); after(.75,()=>K.add(.8,k=>{ MC.open=1-k*.9; }));
       Cn.gWall(MC.x1,MC.y1,MC.x2,MC.y2,2300,GOLD,{c2:'#7a2a00',c3:'#fffbe8',life:1.5,rise:.08,a:.5,cell:70});
       Cn.gStar(x0,y0,BODY*.5,300,GOLD,{c2:'#7a2a00',c3:'#fff3c8',life:.3,n:7}); Cn.gSlip(MC.x1,MC.y1,MC.x2,MC.y2,520,1,.45);
-      K.ripple(x0,y0,hw*2.2,{life:.7,s:.9}); Cn.gSlab(MC.x1,MC.y1,MC.x2,MC.y2,GOLD,{c2:'#7a2a00',w:80,life:5.5}); for(const c of cuts) Cn.gSlab(c.x1,c.y1,c.x2,c.y2,CRIM,{c2:DEEP,c3:HOT,w:rand(38,60),life:rand(4,5),delay:.1+Math.hypot(c.cx-x0,c.cy-y0)/6000});
+      K.ripple(x0,y0,hw*2.2,{life:.7,s:.9}); Cn.gImpact('sword',x0,y0,hw*.95,{c3:GOLD,rot:ma}); Cn.gSlab(MC.x1,MC.y1,MC.x2,MC.y2,GOLD,{c2:'#7a2a00',w:80,life:5.5}); for(const c of cuts) Cn.gSlab(c.x1,c.y1,c.x2,c.y2,CRIM,{c2:DEEP,c3:HOT,w:rand(38,60),life:rand(4,5),delay:.1+Math.hypot(c.cx-x0,c.cy-y0)/6000});
       
       K.light(x0,y0,2000,GOLD,.9,.9); Cn.gDebris(x0,y0,16,{r:hw*.7,s0:100,s1:500,v0:1500,vz:3400,sz0:34,size:90,g:2600}); Cn.gDebris(x0,y0,22,{s0:300,s1:1300,vz:1900,size:30});
       // crimson: the others follow outward from him, lower and dimmer
@@ -187,7 +187,7 @@ function ultRain(id){ ultStart(id); ov.lbT=0; const Cn=X.cine, K=GFX, D=9000*A.m
   const land=(x,y)=>{ Cn.gStar(x,y,30,rand(110,170),GOLD,{c2:'#6a2600',life:.16,n:5}); Cn.gRing(x,y,260,GOLD,{c2:'#6a2600',life:.3,w:.12,jag:.1}); Cn.gCrack(x,y,190,GOLD,{c2:'#6a2600',life:1.1,n:7,w:.16});
     Cn.gDebris(x,y,3,{s0:150,s1:450,vz:900,size:15}); Cn.gPuff(x,y,8,rand(40,70),{vz:rand(60,140),life:rand(.5,.8),c:'#5a5468',a:.6}); Cn.gSparks(x,y,20,4,GOLD,{vz:1100,s0:200,s1:700});
     K.light(x,y,520,GOLD,.9,.25); sfx('boom',.5,.3); sfx('slash',1.6,.3); inCircle(x,y,170,e=>{ dmg(e,D,{kb:.6,stun:.5,launch:500,sx:x,sy:y}); hitFx(e,GOLD,1); }); };
-  const fall=(x,y,dl=0)=>{ const s={x,y,gone:1e9}; after(dl+.3,()=>stuck.push(s)); if(!sw){ after(dl+.3,()=>land(x,y)); return; } Cn.gDrop(x,y,{img:sw.im,h:470,w:470*sw.w/sw.h,z0:ZS,dur:.32,pz:.0006,flip:true,rot:rand(-.5,.5),dx:rand(-500,500),dy:rand(-200,200),trail:GOLD,stick:9,delay:dl,land,sink:.2,alive:()=>RT<s.gone}); };
+  const fall=(x,y,dl=0)=>{ const s={x,y,gone:1e9}; after(dl+.3,()=>stuck.push(s)); if(!sw){ after(dl+.3,()=>land(x,y)); return; } Cn.gDrop(x,y,{art:'fx2_gsword',artc:GOLD,c2:'#5a2200',c3:'#fffbe8',h:470,w:470*.44,z0:ZS,dur:.32,pz:.0006,rot:rand(-.5,.5),dx:rand(-500,500),dy:rand(-200,200),trail:GOLD,stick:9,delay:dl,land,sink:.2,alive:()=>RT<s.gone}); };
   // ---- release (1.35): the cut downward; the sky lets go
   after(1.3,()=>Cn.impact(x0,y0-BODY,{style:'radial',c:GOLD,n:2,soft:true,flash:.08,blur:.03,v:.5,then:()=>{ plSeq([['gs06',.06],['gs07',.1],['gs08',9]]); Cn.zoom(.84); Cn.cam(null); K.ambient(.5,.46,.6,5);
       Cn.gRing(x0,y0,hw*1.6,GOLD,{c2:'#6a2600',life:.5,w:.07,jag:.07}); K.ripple(x0,y0,hw*1.6,{life:.5,s:.6}); drop(700); Cn.SND.shing(.7,.5); }}));
@@ -200,10 +200,10 @@ function ultRain(id){ ultStart(id); ov.lbT=0; const Cn=X.cine, K=GFX, D=9000*A.m
     K.add(.95,k=>{ K.floor(K.st(12,'alpha',{L:0}),cx,cy,200+900*k,null,0,[0,0,0],.25+.5*k); });
     Cn.gRing(cx,cy,820,GOLD,{c2:'#6a2600',inward:true,life:.9,w:.05,jag:.04,a:.8}); Cn.gSpeed(.9,GOLD,{c2:'#6a2600',a:.25,x:cx,y:cy,r:.5,n:60,w:.1}); });
   const BH=2500, BW=sw?BH*sw.w/sw.h:500;
-  if(sw) Cn.gDrop(cx,cy,{img:sw.im,h:BH,w:BW,z0:5200,dur:.48,flip:true,rot:.04,trail:GOLD,stick:1.5,fade:.6,delay:3.78,sink:.12,pz:.00016,L:3});
+  if(sw) Cn.gDrop(cx,cy,{art:'fx2_gsword',artc:GOLD,c2:'#5a2200',c3:'#fffbe8',h:BH,w:BH*.44,z0:5200,dur:.48,rot:.04,trail:GOLD,stick:1.5,fade:.6,delay:3.78,sink:.12,pz:.00016,L:3});
   after(4.26,()=>Cn.impact(cx,cy-80,{c:GOLD,n:2,r:.16,soft:true,flash:.1,blur:.06,then:()=>{ Cn.zoom(.86); for(const d of Cn.drones) d.stop(.05); K.ambient(.5,.4,.3,10); after(.6,()=>K.ambient(1,1,1,2));
       Cn.gStar(cx,cy,60,900,GOLD,{c2:'#6a2600',c3:'#ffffff',life:.4,n:8}); for(let i=0;i<3;i++) Cn.gRing(cx,cy,hw*(1.3+i*.5),i===1?'#ffffff':GOLD,{c2:'#6a2600',life:.6+i*.12,w:.12-i*.03,jag:.09,delay:i*.07});
-      K.ripple(cx,cy,hw*2.2,{life:.7,s:1}); Cn.gCrack(cx,cy,hw*1.5,GOLD,{c2:'#6a2600',life:3,n:17,w:.1}); Cn.scar({kind:'crack',x:cx,y:cy,r:760,c:GOLD,life:9,heat:3.4}); Cn.scar({kind:'burn',x:cx,y:cy,r:420,c:GOLD,life:9,heat:3});
+      K.ripple(cx,cy,hw*2.2,{life:.7,s:1}); Cn.gCrack(cx,cy,hw*1.5,GOLD,{c2:'#6a2600',life:3,n:17,w:.1}); Cn.gImpact('sword',cx,cy,hw*.92,{c3:GOLD}); Cn.scar({kind:'burn',x:cx,y:cy,r:420,c:GOLD,life:9,heat:3});
       Cn.gDebris(cx,cy,30,{s0:300,s1:1500,vz:2200,size:34}); Cn.gDebris(cx,cy,14,{r:300,s0:100,s1:600,v0:1600,vz:3600,sz0:40,size:100,g:2600});
       for(let i=0;i<16;i++){ const a=i/16*TAU; Cn.gPuff(cx+Math.cos(a)*260,cy+Math.sin(a)*260*FSY,12,rand(110,190),{vx:Math.cos(a)*rand(700,1300),vy:Math.sin(a)*rand(700,1300)*FSY,vz:rand(60,200),life:rand(1,1.7),c:'#5a5468',a:.75,drag:2}); }
       K.light(cx,cy,2400,GOLD,1.1,1); Cn.sweep(cx,cy,D*8,{speed:3400}); SFX.shatter(1); Cn.SND.gong(.8);

@@ -264,7 +264,7 @@ C.gSlip=(x1,y1,x2,y2,w,s,life=.25,delay=0)=>{ if(LOW()) return; const st=K.st(10
 C.gSpeed=(dur,c,o={})=>{ const T=tone(c,o), st=gst(14,'add',T,5), sd=Math.random()*9; K.add(dur,k=>{ K.screen(st,o.x,o.y,T.c,(o.a??.7)*Math.min(1,k*8)*Math.min(1,(1-k)*4),o.r??.3,K.tq(o.fps||16,sd),o.n??11,o.w??.22); },o.delay||0); };
 // something falling out of the sky onto (x,y): drawn larger while it is high (nearer the camera), its shadow closing in under it, a streak behind it.
 // o: {img, h (world height), w, z0, dur, c (tint), flip, rot, trail (colour), stick (seconds it stays planted), sink, land(x,y)}
-C.gDrop=(x,y,o={})=>{ const im=o.img, h=o.h||300, w=o.w||h*.4, z0=o.z0||3000, dur=o.dur||.35, tint=o.c||[1,1,1], st=K.st(0,'alpha',{t:im,L:o.L??2,uv01:true}), TT=o.trail?tone(o.trail):null, stT=TT&&gst(3,'add',TT,o.L??2), stS=K.st(12,'alpha',{L:0}), pz=o.pz??.00035, rot=o.rot||0, sink=o.sink??.14, stick=o.stick||0, fl=o.flip?-1:1;
+C.gDrop=(x,y,o={})=>{ const im=o.img, h=o.h||300, w=o.w||h*.4, z0=o.z0||3000, dur=o.dur||.35, AT=o.art?tone(o.artc||'#ffffff',{c2:o.c2,c3:o.c3}):null, tint=AT?AT.c:(o.c||[1,1,1]), st=AT?gst(15,'alpha',AT,o.L??2,{t:C.art(o.art).im,uv01:true}):K.st(0,'alpha',{t:im,L:o.L??2,uv01:true}), TT=o.trail?tone(o.trail):null, stT=TT&&gst(3,'add',TT,o.L??2), stS=K.st(12,'alpha',{L:0}), pz=o.pz??.00035, rot=o.rot||0, sink=o.sink??.14, stick=o.stick||0, fl=o.flip?-1:1;
   const fxd=K.add(dur+stick,(k,t)=>{ if(o.alive&&!o.alive()){ fxd.dead=true; return; } const q=Math.min(1,t/dur), z=z0*(1-q*q), sc=1+z*pz, landed=t>=dur, a=landed?Math.min(1,(dur+stick-t)/(o.fade||.35)):Math.min(1,q*4);
     if(!landed){ K.floor(stS,x,y,w*(1.2+2.2*(1-q)),null,0,[0,0,0],(.15+.5*q*q)); if(stT){ const ox=(o.dx||0)*(z/z0), oy=(o.dy||0)*(z/z0), z2=Math.min(z0,z+h*(o.tl||3.2)), ox2=(o.dx||0)*(z2/z0), oy2=(o.dy||0)*(z2/z0); K.line(stT,x+ox,y+oy,z+h*.6,x+ox2,y+oy2,z2+h*.6,w*(o.tw||.34)*sc,TT.c,.7*q,0,t*9,2,.5); } }
     else K.floor(stS,x,y,w*.9,null,0,[0,0,0],.45*a);
@@ -304,7 +304,10 @@ C.gSkid=(x,y,ang,len,c,o={})=>{ const T=tone(c,o), life=o.life||5, stD=K.st(3,'a
 // --- drawn key art (assets/fx2_*.webp: three grey tones on black) recoloured per class and animated the way a drawing is:
 // it pops in over two drawings, "boils" (its outline is redrawn slightly differently every other frame), and burns away through noise
 C.ART={}; C.art=n=>C.ART[n]||(C.ART[n]=K.img(n));
-['fx2_burst','fx2_slash','fx2_fire','fx2_bolt','fx2_smoke','fx2_shock','fx2_tornado','fx2_cloud'].forEach(C.art);
+['fx2_burst','fx2_slash','fx2_fire','fx2_bolt','fx2_smoke','fx2_shock','fx2_tornado','fx2_cloud','fx2_deity','fx2_palm','fx2_meteor','fx2_gsword','fx2_monolith','fx2_dragonhead','fx2_dragonbody','fx2_imp_sword','fx2_imp_mage','fx2_imp_fist','fx2_imp_shaman','fx2_imp_pyro'].forEach(C.art);
+// what a class's ultimate leaves in the floor: its own drawing, in stone colours with the class light in the cracks; cools and fades over a few seconds
+const IMP={sword:['fx2_imp_sword',1.01],mage:['fx2_imp_mage',1],fist:['fx2_imp_fist',.8],shaman:['fx2_imp_shaman',1],pyro:['fx2_imp_pyro',.7]};
+C.gImpact=(cls,x,y,w,o={})=>{ const [name,ar]=IMP[cls], fire=cls==='pyro'; C.gArt(name,x,y,fire?(o.c||'#ff6a1a'):(o.c||'#4c465c'),{c2:fire?'#7a1000':'#0b0912',c3:o.c3||(fire?'#fff0a8':'#ffffff'),add:fire,floor:true,w,h:w*ar,rot:o.rot??rand(0,TAU),life:o.life||(fire?3:7),hold:fire?.45:.8,grow:fire?.35:0,ease:true,boil:fire?.02:0,fps:fire?12:1,L:0,delay:o.delay}); };
 // o: {floor (lie on the floor) | z, w, h (half sizes; h defaults to w), rot, life, hold (fraction of life before it starts to burn away), grow, boil, add, L, delay, flipX}
 C.gArt=(name,x,y,c,o={})=>{ const s=C.art(name), T=tone(c,o), st=gst(15,o.add?'add':'alpha',T,o.L??2,{t:s.im,uv01:true}), life=o.life||.5, hold=o.hold??.35, w=o.w||300, h=o.h||w, sd=Math.random()*9, boil=o.boil??.012, fx_=o.flipX?-1:1;
   return K.add(life,(k,t)=>{ if(!s.ok) return; const pop=t<.05?.72:t<.1?.92:1, g=pop*(1+(o.grow||0)*(o.ease?easeOut(k):k)), er=k<hold?0:(k-hold)/(1-hold), ph=K.tq(o.fps||12,sd), P=o.at?o.at(k,t):null, px=P?P[0]:x, py=P?P[1]:y, pz=P?P[2]:(o.z||0);
