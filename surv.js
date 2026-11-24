@@ -5,7 +5,7 @@
 // World: x/y is the floor plane (y = depth), z is height. The hero's floor position is pl.x / pl.gy (the engine draws him at pl.gy).
 'use strict';
 (()=>{
-const G=RPG, A=G.api, SV=()=>A.SV, SK=A.SK, VER=25;
+const G=RPG, A=G.api, SV=()=>A.SV, SK=A.SK, VER=26;
 const ZL=.42, ZP=.5, DUR=300, BOSS_T=240, CAP=340, SPD=430, BODY=170, FAR=1e5;
 const CLS_ORDER=['sword','mage','fist','shaman','pyro'];
 const NAMES={sword:'소드맨',mage:'메이지',fist:'파이터',shaman:'샤먼',pyro:'파이로'};
@@ -98,7 +98,7 @@ function heal(k){ const h=Math.round(A.maxHp()*k); G.hp=Math.min(A.maxHp(),G.hp+
 // ============================================================ ultimates: shared beats (each class stages its own in sk_<class>.js)
 const tdV=(n,x,y,o)=>VFX[n]&&VFX[n].f[0].ok?vfx(n,x,y,o):null;
 function onScreen(m=0){ const {hw,hh}=view(); return V.en.filter(e=>!e.dead&&Math.abs(e.x-cam.x)<hw+m&&Math.abs(e.y-BODY*.5-cam.y)<hh+m); }
-function ultStart(id){ lock=true; V.ug=0; anim.seq=null; V.dash=null;   /* the stick stays held through the ultimate: he moves again the moment it ends */ ov.lbT=0; V.ultId=id; V.nums.length=0; if(G.sv.cine) G.sv.cine.begin(); }
+function ultStart(id){ lock=true; V.ug=0; anim.seq=null; V.dash=null; pl.air=pl.airT=0;   /* the stick stays held through the ultimate: he moves again the moment it ends */ ov.lbT=0; V.ultId=id; V.nums.length=0; if(G.sv.cine) G.sv.cine.begin(); }
 const stamp1=stamp; stamp=function(t,o={}){ if(G.mode==='surv'&&lock&&!o.keep) return null; return stamp1(t,o); };
 function ultStop(){ if(G.sv.cine) G.sv.cine.end(); if(V.ultSum){ V.nums.push({x:pl.x,y:pl.gy-BODY*3.1,t:-.4,txt:fmtN(V.ultSum),big:true}); V.ultSum=0; } lock=false; ov.lbT=0; ov.dimT=0; post.grayT=0; V.zk=1; V.ultTick=null; V.cuts=[]; V.shadow=null; V.ultDraw=null; G.inv=.8; pl.visible=true; pl.target=IDLE(); pl.ps=12; pl.air=pl.airT=0; anim.seq=null; }
 function ultHit(e,D,sx,sy){ dmg(e,e.d.boss?D*2:Math.max(D,e.hp*1.05),{crit:true,kb:1.8,big:true,launch:700,sx,sy}); }
@@ -286,7 +286,7 @@ function floor(){ if(floorPat&&floorCh===V.ch) return floorPat; floorCh=V.ch;
 const prep1=drawBackground_prep;
 drawBackground_prep=function(){ prep1(); if(G.mode!=='surv') return;
   applyCam(ctx); const {hw,hh}=view(), m=1.3, p=floor(); p.setTransform(new DOMMatrix().translate(V.ox%(floorArt?1280:640),V.oy%(floorArt?1280:640)).scale(1,FSY));   // tiles foreshortened like the effects' floor rings
-  ctx.fillStyle=p; ctx.fillRect(cam.x-hw*m,cam.y-hh*m,hw*2*m,hh*2*m);
+  V.glFloor=!!(gl&&window.FX3&&FX3.groundReady()); if(V.glFloor){ const f=CH().floor; FX3.gtint=[f[0]/62,f[1]/62,f[2]/62]; } else { ctx.fillStyle=p; ctx.fillRect(cam.x-hw*m,cam.y-hh*m,hw*2*m,hh*2*m); }
   const cs=spr('crystal'), Cg=520; if(cs){ const i0=Math.floor((cam.x-hw*1.2)/Cg), i1=Math.floor((cam.x+hw*1.2)/Cg), j0=Math.floor((cam.y-hh*1.2)/Cg), j1=Math.floor((cam.y+hh*1.3)/Cg), im=tinted(cs,150);
     for(let i=i0;i<=i1;i++) for(let j=j0;j<=j1;j++){ const h=Math.abs(Math.sin(i*127.1+j*311.7)*43758.5453)%1; if(h>.42) continue; const x=(i+.2+h*1.4)*Cg, y=(j+.3+((h*7)%1)*.5)*Cg;
       for(let k=0;k<3;k++){ const s=(60+((h*13+k*.37)%1)*70)*(k?.6:1), dx=(k-1)*s*.55, w=s*cs.w/cs.h; ctx.globalAlpha=.4; ctx.drawImage(im,x+dx-w/2,y-s,w,s); }
@@ -584,7 +584,7 @@ G.firstSkills=c=>{ const L=(A.ORDER[c]||[]).filter(id=>SK[id]&&SK[id].type==='sk
 const inView=(x,y,k=.5)=>{ const {hw,hh}=view(); return [clamp(x,cam.x-hw*k,cam.x+hw*k),clamp(y,cam.y-hh*k+BODY*.5,cam.y+hh*k+BODY*.5)]; };
 G.sv={V,A,SK,BODY,CH,CLS,CCOL,NAMES,shock1,inView,FSY,draw:(life,fn,delay=0)=>V.draws.push({t0:RT+delay,life,fn}),nearest,countIn,densest,angTo,face,seq,dmg,hitFx,inCircle,inCircleS,inSector,inLine,sfx,view,onScreen,tdV,dropFx,ultStart,ultStop,ultHit,addVfx,burst,fring,heal,hurt,
   reg(c,def){ CLS[c]=def; if(def.sk) Object.assign(SK,def.sk); if(def.order) A.ORDER[c]=def.order; if(G.mode==='menu') A.menuRender(); if(G.mode==='surv'&&c===pl.cls) buildBar(); }};
-for(const f of ['gfx','cine',...CLS_ORDER.map(c=>'sk_'+c)]){ const s=document.createElement('script'); s.src=`${f}.js?v=${VER}`; s.async=false; document.body.appendChild(s); }
+for(const f of ['fx3','gfx','vfx3','cine',...CLS_ORDER.map(c=>'sk_'+c)]){ const s=document.createElement('script'); s.src=`${f}.js?v=${VER}`; s.async=false; document.body.appendChild(s); }
 if(G.mode==='menu') A.menuRender();
 G.survStart=start;
 })();

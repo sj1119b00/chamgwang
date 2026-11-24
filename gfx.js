@@ -206,12 +206,15 @@ function setState(st,G){ const t=st.t?texOf(st.t,st.live):white; if(st.t&&!t) re
   if(B.mode!==st.m){ gl.uniform1f(U.mode,st.m); B.mode=st.m; }
   if(B.c2!==st.c2){ gl.uniform3fv(U.c2,st.c2); B.c2=st.c2; } if(B.c3!==st.c3){ gl.uniform3fv(U.c3,st.c3); B.c3=st.c3; }
   return true; }
-X.resize=G=>{ for(const k of ['gVfx','gDist']) if(G[k]){ gl.deleteTexture(G[k].t); gl.deleteFramebuffer(G[k].f); } G.gVfx=mkRT(W,H); G.gDist=mkRT(Math.max(1,W>>2),Math.max(1,H>>2)); };
+X.resize=G=>{ for(const k of ['gVfx','gDist']) if(G[k]){ gl.deleteTexture(G[k].t); gl.deleteFramebuffer(G[k].f); } G.gVfx=window.FX3&&FX3.on?FX3.mkRT(W,H,true):mkRT(W,H); G.gDist=mkRT(Math.max(1,W>>2),Math.max(1,H>>2)); };
 X.active=()=>X.on&&(X.fx.length||X.pts.length||X.q.length||X.lights.length||Math.abs(X.amb[0]-1)+Math.abs(X.amb[1]-1)+Math.abs(X.amb[2]-1)>.01);
 // called from glFrame before the bloom chain; returns true when the layer has something in it this frame
-X.render=G=>{ if(!X.on) return false; FRAME++; if(!G.gVfx||G.gVfx.w!==W||G.gVfx.h!==H) X.resize(G);
+// run the timed effects and particles for this frame (once): they submit to GFX and FX3. Called at the top of glFrame so floor-layer meshes reach the ground pass.
+let built=-1;
+X.build=()=>{ if(!X.on||built===FRAME) return; built=FRAME;
   for(let i=X.fx.length-1;i>=0;i--){ const e=X.fx[i], t=RT-e.t0; if(e.dead||t>=e.life){ X.fx.splice(i,1); continue; } if(t>=0) e.fn(t/e.life,t); }
-  drawPts();
+  drawPts(); };
+X.render=G=>{ if(!X.on) return false; X.build(); FRAME++; if(!G.gVfx||G.gVfx.w!==W||G.gVfx.h!==H) X.resize(G);
   const act=X.q.length>0;
   if(!act&&X.wasClear) return false;
   gl.bindFramebuffer(gl.FRAMEBUFFER,G.gDist.f); gl.viewport(0,0,G.gDist.w,G.gDist.h); gl.clearColor(.5,.5,0,1); gl.clear(gl.COLOR_BUFFER_BIT);

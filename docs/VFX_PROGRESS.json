@@ -1,7 +1,7 @@
 {
  "updated": "2026-11-24",
  "representative": "sw_ult1",
- "iteration": 14,
+ "iteration": 24,
  "project_complete": false,
  "independent_review": [
   {
@@ -75,61 +75,62 @@
  "target": 95,
  "ults": {
   "sw_ult1": {
-   "status": "rebuilt_on_gpu",
-   "iterations": 9,
+   "status": "rewritten_on_v3",
+   "iterations_v3": 6,
    "verified_run": true,
-   "state_restore": true
+   "state_restore": true,
+   "sheet": "z2_5.jpg"
   },
   "sw_ult2": {
-   "status": "rebuilt_on_gpu",
+   "status": "old_engine_pending_v3",
    "iterations": 2,
    "verified_run": true,
    "state_restore": true
   },
   "mg_ult1": {
-   "status": "rebuilt_on_gpu",
+   "status": "old_engine_pending_v3",
    "iterations": 2,
    "verified_run": true,
    "state_restore": true
   },
   "mg_ult2": {
-   "status": "rebuilt_on_gpu",
+   "status": "old_engine_pending_v3",
    "iterations": 1,
    "verified_run": true,
    "state_restore": true
   },
   "fs_ult1": {
-   "status": "rebuilt_on_gpu",
+   "status": "old_engine_pending_v3",
    "iterations": 2,
    "verified_run": true,
    "state_restore": true
   },
   "fs_ult2": {
-   "status": "rebuilt_on_gpu",
+   "status": "old_engine_pending_v3",
    "iterations": 2,
    "verified_run": true,
    "state_restore": true
   },
   "sh_ult1": {
-   "status": "rebuilt_on_gpu",
+   "status": "old_engine_pending_v3",
    "iterations": 2,
    "verified_run": true,
    "state_restore": true
   },
   "sh_ult2": {
-   "status": "rebuilt_on_gpu",
+   "status": "old_engine_pending_v3",
    "iterations": 2,
    "verified_run": true,
    "state_restore": true
   },
   "py_ult1": {
-   "status": "rebuilt_on_gpu",
+   "status": "old_engine_pending_v3",
    "iterations": 1,
    "verified_run": true,
    "state_restore": true
   },
   "py_ult2": {
-   "status": "rebuilt_on_gpu",
+   "status": "old_engine_pending_v3",
    "iterations": 3,
    "verified_run": true,
    "state_restore": true
@@ -147,7 +148,7 @@
  },
  "next": "VFX_NEXT_TASK.md",
  "plateau": false,
- "plateau_note": "4 reviews 55-59 across three approaches; remaining cause is mixed art styles, not effect parts",
+ "plateau_note": "17 rounds plateaued at 55-71 on the old layer; approach replaced by engine v3",
  "gameplay": {
   "all_skills_auto": true,
   "joystick_follow": true,
@@ -155,5 +156,10 @@
   "enemy_telegraph": true,
   "hero_lean": true,
   "verified": "simulated input and stepping in desktop browser; not on a phone"
+ },
+ "engine": "v3 (fx3.js lit ground + mesh HDR renderer, vfx3.js kit)",
+ "skills_v3": {
+  "done": [],
+  "pending": "all normal skills and basics of 5 classes"
  }
 }
