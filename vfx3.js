@@ -19,7 +19,7 @@ K.PAL={
 };
 const pal=p=>typeof p==='string'?K.PAL[p]:(p||K.PAL.crimson);
 K.pal=pal;
-const TEX=['v3_flip_blast','v3_flip_smoke','v3_flip_shock','v3_flip_arcane','v3_flip_bolt','v3_flip_ki','v3_flip_lotus','v3_flip_cut','v3_break_sword','v3_break_arcane','v3_break_ki','v3_break_fire','v3_katana','v3_scorch_ring','v3_burst_sword','v3_burst_arcane','v3_burst_ki','v3_burst_lotus','v3_burst_fire','v3_shock_thick','v3_fissure_b','v3_stroke_open','v3_circ_blade2','v3_fist_punch','v3_fist_cone','v3_flame_cone','v3_vortex_wisps','v3_boulder','v3_spikes','v3_palmprint','v3_skygate','v3_bolt_b','v3_bolt_fork','v3_arc_h','v3_frost_ring','v3_crater','v3_comet_tail','v3_greatsword','v3_cres_up','v3_pillar','v3_scorch','v3_dustring','v3_orb','v3_circ_mage','v3_circ_fist','v3_circ_shaman','v3_circ_pyro','fx_circle_arcane','fx_circle_seal','v3_slash_thin','v3_slash_heavy','v3_thrust','v3_spin_ring','v3_circ_blade','v3_fissure','v3_gash','v3_xburst','fx3_burst','fx3_shock','fx3_smoke','fx3_slash','fx3_fire','fx3_bolt','fx3_tornado','fx3_beam','fx_crack','fx_gash'];
+const TEX=['v3_greatsword_n','v3_flip_blast','v3_flip_smoke','v3_flip_shock','v3_flip_arcane','v3_flip_bolt','v3_flip_ki','v3_flip_lotus','v3_flip_cut','v3_break_sword','v3_break_arcane','v3_break_ki','v3_break_fire','v3_katana','v3_scorch_ring','v3_burst_sword','v3_burst_arcane','v3_burst_ki','v3_burst_lotus','v3_burst_fire','v3_shock_thick','v3_fissure_b','v3_stroke_open','v3_circ_blade2','v3_fist_punch','v3_fist_cone','v3_flame_cone','v3_vortex_wisps','v3_boulder','v3_spikes','v3_palmprint','v3_skygate','v3_bolt_b','v3_bolt_fork','v3_arc_h','v3_frost_ring','v3_crater','v3_comet_tail','v3_greatsword','v3_cres_up','v3_pillar','v3_scorch','v3_dustring','v3_orb','v3_circ_mage','v3_circ_fist','v3_circ_shaman','v3_circ_pyro','fx_circle_arcane','fx_circle_seal','v3_slash_thin','v3_slash_heavy','v3_thrust','v3_spin_ring','v3_circ_blade','v3_fissure','v3_gash','v3_xburst','fx3_burst','fx3_shock','fx3_smoke','fx3_slash','fx3_fire','fx3_bolt','fx3_tornado','fx3_beam','fx_crack','fx_gash'];
 K.pre=()=>{ if(F&&F.on){ for(const t of TEX) F.img(t); F.img('v3_curtain',{repeat:true}); F.img('v3_groundfire',{repeat:true}); for(const t of ['meteor','sword']) F.img(t); } };
 // a point of a tilted local frame in world coordinates (x, floor y, height)
 K.at=(M,x,y,z,lx,ly,lz)=>[x+M[0]*lx+M[4]*ly+M[8]*lz,y+(M[1]*lx+M[5]*ly+M[9]*lz)*FSY,z+M[2]*lx+M[6]*ly+M[10]*lz];
@@ -340,6 +340,7 @@ K.hit=(x,y,z,c,pw=1)=>{ if(!F.on) return; const P=hpal(c||'#ffffff'), m=mats(), 
 K.blade=(x,y,o={})=>{ if(!F.on){ if(o.land) after(o.drop??.14,o.land); return; } const m=mats(), P=pal(o.pal), h=o.h||1800, drop=o.drop??.14, hold=o.hold??.3, dur=o.dur||1, C=col(P), g=o.gain||1, sd=Math.random()*9, bt=o.tex&&F.ready(o.tex)?o.tex:'v3_greatsword', hw=h*(bt===o.tex&&o.asp?o.asp:.25),
     mB=m['bldB'+bt]||(m['bldB'+bt]=F.mat({...m.art,tex:bt,nz:'streak',n1:[1,2,0,-1.5],n2:[1.2,1,0,-1],dist:.012,mdist:1,nk:.18,rk:[.62,1.3],gain:2.4,bgain:1.05})),
     mSh=m['bldH'+bt]||(m['bldH'+bt]=F.mat({tex:bt,nk:0,pw:.6,ero:.05,soft:.3,cA:'#000000',cB:'#000000',cC:'#000000',op:1,layer:'g'})),
+    mL=bt==='v3_greatsword'?(m.bldL||(m.bldL=F.mat({...m.art,tex:bt,nrm:'v3_greatsword_n',lit:1,lspec:.9,nk:0,ero:.05,soft:.22,op:1,cA:'#150b02',cB:'#6e4a10',cM:'#b98a2a',cC:'#f6dc98',rk:[.4,1.15],gain:1,bgain:1}))):null,
     mS=m['bldS'+bt]||(m['bldS'+bt]=F.mat({...m.art,tex:bt,nz:'billow',n1:[1.2,1,0,-.6],n2:[1,1,0,-.5],dist:.05,mdist:1,nk:.5,pw:.5,ero:.08,soft:.5,cA:'#000000',cB:'#000000',cC:'#000000',op:1}));
   const om=o.omen||0, tl0=o.tilt||0;
   if(om) GFX.add(om,(k)=>{ const e=k*k; F.quad(m.dark,x,y,hw*(.7+1.1*k),hw*(.7+1.1*k),0,{a:.5*k}); F.quad(m.glowG,x,y,hw*(.5+1.2*e),hw*(.5+1.2*e),0,{...C,a:.55*k,gain:.9*g});
@@ -347,16 +348,19 @@ K.blade=(x,y,o={})=>{ if(!F.on){ if(o.land) after(o.drop??.14,o.land); return; }
   GFX.add(drop+dur,(k,t)=>{ const fall=sat(t/drop), e=fall*fall, z0=h*.5*(1-e), land=t>=drop, tl=t-drop, f=land?sat((tl-hold)/Math.max(.01,dur-hold)):0, a=1-f*f*f, cut=[0,0,.02,.03+f*1.15], bury=h*.05,
       tl2=tl0, wob=land?Math.sin(tl*46)*.035*Math.max(0,1-tl/.28):0, rz=tl2+wob, st=land?1:1+1.5*(1-e), sx=land?1:1+1.5*(1-e), fa=land?1:sat(fall*3.5), shl=h*.42*e;
     F.quad(m.dark,x,y,hw*(1.6-.8*e),hw*(1.6-.8*e),0,{a:.3+.4*e*(1-f)});
-    if(shl>20){ const sa=o.sa??.5; F.quad(mSh,x+Math.cos(sa)*shl*.92,y+Math.sin(sa)*shl*.92*FSY,hw*.8,shl,sa+PI/2,{a:.55*e*(1-f)*(1-f)}); }
+    if(shl>20){ let sa=o.sa??.5; if(o.sa==null&&GFX.lights.length){ let bl=null, bv=0; for(const l of GFX.lights){ const d=Math.hypot(l.x-x,(l.y-y)/FSY), w=l.a*l.r/(d+200); if(d>120&&w>bv){ bv=w; bl=l; } } if(bl) sa=Math.atan2((y-bl.y)/FSY,x-bl.x); } F.quad(mSh,x+Math.cos(sa)*shl*.92,y+Math.sin(sa)*shl*.92*FSY,hw*.8,shl,sa+PI/2,{a:.55*e*(1-f)*(1-f)}); }
     if(!land) F.bill(m.glowO,x,y,z0+h*1.1,hw*.5,h*.9*(1-e*.5),0,{...C,a:.5*fall,gain:2});
     const bx=x-Math.sin(rz)*h*.5, bz=z0+h/2*st-bury;
     if(!F.low) F.bill(mS,bx,y,bz,hw*1.25*sx,h/2*1.03*st,rz,{a:a*.5*(1-f)*(1-f),fd:cut,t0:sd});
-    F.bill(mB,bx,y,bz,hw*sx,h/2*st,rz,{...C,a:a*fa,gain:3*g*(land?1+.5*Math.max(0,1-tl/.15):1),ero:.06+f*.5,nk:.18+f*.3,fd:cut,t0:sd});
+    if(mL&&F.ready('v3_greatsword_n')) F.bill(mL,bx,y,bz,hw*sx,h/2*st,rz,{a:a*fa,ero:.05+f*.5,nk:.18+f*.3,fd:cut,t0:sd});
+    F.bill(mB,bx,y,bz,hw*sx,h/2*st,rz,{...C,a:a*fa*(mL?.55:1),gain:3*g*(land?1+.5*Math.max(0,1-tl/.15):1),ero:.06+f*.5,nk:.18+f*.3,fd:cut,t0:sd});
     if(land&&f<1) F.bill(mB,bx,y,bz,hw*sx,h/2*st,rz,{...C,a:a*(.55+.45*Math.max(0,1-tl/.4)),gain:2.2*g,ero:.06+f*.5,nk:.18+f*.3,fd:[0,0,.02,.72],t0:sd});
     if(land) F.quad(m.glowG,x,y,hw*1.9,hw*1.9,0,{...C,a:a*(.5+.4*Math.max(0,1-tl/.3)),gain:1*g}); },om);
   after(om+drop,()=>{ if(o.land) o.land(); });
   if(!F.low) for(let i=0;i<6;i++) after(om+drop+hold+i*(dur-hold)*.13,()=>K.sparks(x-Math.sin(tl0)*h*(.95-i*.15),y,h*(.95-i*.15),{pal:P,n:14,sp:[200,800],up:700,life:[.5,1.1]})); };
 
+// solid pieces by class: [mesh kind, stone colour, spec, vein glow, size, roughness]
+const SOL={sword:['slab','#322e37',.55,.3,1.15,2.8],mage:['crystal','#5c4e8c',1.3,.95,1.25,.6],fist:['boulder','#4c4852',.4,.2,.8,3.2],shaman:['spike','#34504a',.7,.7,1,1.8],pyro:['plate','#18161b',1.2,1,1.05,1.2]};
 const BRK={sword:'v3_break_sword',mage:'v3_break_arcane',fist:'v3_break_ki',pyro:'v3_break_fire'};
 // UPHEAVE: the floor breaks upward: clusters of painted rock spikes erupt in a ring (or an arc a0..a1), lean outward, stand, then crumble.
 //  They are solid and dark - they hide what burns behind them, and their lit faces take the colour of the light. o: {r, n, s, a0, a1, pal, dur, rise, stagger}
@@ -367,12 +371,27 @@ K.upheave=(x,y,o={})=>{ if(!F.on) return; const m=mats(), P=pal(o.pal), bk=o.tex
   // nothing solid stands between the camera and the hero: a piece that would cover him is moved aside and made smaller
   if(typeof pl!=='undefined'&&pl.gy!=null) for(const p of L){ const dx=p.x-pl.x, dy=p.y-pl.gy; if(dy>-30&&dy<p.s*1.25&&Math.abs(dx)<p.s*.85){ p.x=pl.x+(dx>=0?1:-1)*p.s*R(.9,1.15); p.s*=.72; } }
   for(const p of L) p.sa=Math.atan2((p.y-ly)/FSY,p.x-lx);
+  // real geometry when the engine has it: each place is a cluster of lit, faceted pieces that rise through the floor, lean outward, throw shadows away from the light and crumble
+  if(F.solids&&F.solids()&&o.flat!==1){ const st=SOL[pl.cls]||SOL.shaman, kind=o.kind||st[0], alb=o.rock||st[1], per=o.per||(F.low?1:2);
+    for(const p of L){ p.pc=[]; for(let q=0;q<per;q++){ const big=q===0; p.pc.push({big,v:(Math.random()*4)|0,dx:big?0:R(-.55,.55)*p.s,dy:big?0:R(-.3,.4)*p.s,s:p.s*(big?1:R(.38,.68))*st[4],rz:R(0,TAU_),ln:R(.14,.42)*(o.lean??1),d:big?0:R(.02,.09)}); } }
+    GFX.add(dur+.3,(kk,t)=>{ for(const p of L){ const t0=t-p.d; if(t0<0) continue; const ca=Math.cos(p.a), sa=Math.sin(p.a);
+        for(const c of p.pc){ const tt=t0-c.d; if(tt<0) continue; const e=eo3(sat(tt/rise)), f=sat((tt-dur*.55)/(dur*.45)), z=c.s*(e-1)*.95-f*f*c.s*.3;
+          F.solid(kind,c.v,p.x+c.dx,p.y+c.dy*FSY,z,{M:F.xfw({s:c.s,rz:c.rz,rx:sa*c.ln,ry:ca*c.ln}),alb,emis:P.b,rimC:P.h,spec:st[2],rim:.22,vein:st[3]*(1-f*.6),heat:.9*(1-sat(tt/.7))+.12,ero:f*.8,bump:st[5],tone:.22,shadow:c.big?[Math.cos(p.sa)*.85,Math.sin(p.sa)*.85,.5*(1-f)]:null}); } } },o.delay||0);
+    after(o.delay||0,()=>{ for(const p of L) if(Math.random()<.6) K.dust(p.x,p.y,{n:3,r:40,sp:[150,500],a:.45}); K.debris(x,y,{n:Math.min(24,n*2),r,sp:[200,900],up:1700,size0:8,size:26}); });
+    return; }
   L.sort((p,q)=>p.y-q.y);
   GFX.add(dur+.3,(kk,t)=>{ for(const p of L){ const tt=t-p.d; if(tt<0) continue; const e=eo3(sat(tt/rise)), f=sat((tt-dur*.55)/(dur*.45)), hh=p.s*(.25+.75*e)*(1-.3*f);
       F.quad(m.dark,p.x,p.y,p.s*.5,p.s*.5,0,{a:.5*e*(1-f)});
       if(!F.low){ const sl=hh*.62; F.quad(ms,p.x+Math.cos(p.sa)*sl*.9,p.y+Math.sin(p.sa)*sl*.9*FSY,p.s*.62,sl,p.sa+PI/2,{a:.5*e*(1-f)*(1-f),uvT:p.flip?[-1,1,1,0]:[1,1,0,0]}); }
       F.bill(mt,p.x,p.y,hh*.97,p.s*.72,hh,p.lean,{...C,a:sat(tt/.03)*(1-f*f*f),ero:.07+f*.75,nk:f*.8,uvT:p.flip?[-1,1,1,0]:[1,1,0,0],t0:p.sd}); } },o.delay||0);
   after(o.delay||0,()=>{ for(const p of L) if(Math.random()<.6) K.dust(p.x,p.y,{n:3,r:40,sp:[150,500],a:.45}); K.debris(x,y,{n:Math.min(24,n*2),r,sp:[200,900],up:1700,size0:8,size:26}); }); };
+
+// CHUNKS: pieces of the floor thrown into the air as real, lit, tumbling solids with shadows that slide under them; they land, lie, and crumble.
+//  o: {n, r, sp:[lo,hi], up, s:[lo,hi], pal, kind, life, rock}. Falls back to K.debris where solids are unavailable.
+K.chunks=(x,y,o={})=>{ if(!F.on) return; if(!(F.solids&&F.solids())) return K.debris(x,y,o); const P=pal(o.pal), st=SOL[pl.cls]||SOL.fist, kind=o.kind||(st[0]==='crystal'||st[0]==='plate'?st[0]:'boulder'), alb=o.rock||st[1], n=Math.max(2,Math.round((o.n||7)*(F.low?.5:1))), life=o.life||1.7, g=3000, L=[];
+  for(let i=0;i<n;i++){ const a=R(0,TAU_), sp=R(...(o.sp||[300,900])), vz=R(.5,1)*(o.up||1500), z0=R(0,40); L.push({x:x+Math.cos(a)*R(0,o.r||60),y:y+Math.sin(a)*R(0,o.r||60)*FSY,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp*FSY,vz,z0,tl:(vz+Math.sqrt(vz*vz+2*g*z0))/g,s:R(...(o.s||[36,80])),v:(Math.random()*4)|0,ax:R(-8,8),ay:R(-8,8),az:R(-5,5)}); }
+  GFX.add(life,(kk,t)=>{ const f=sat((kk-.7)/.3); for(const c of L){ const tt=Math.min(t,c.tl), z=Math.max(0,c.z0+c.vz*tt-.5*g*tt*tt);
+      F.solid(kind,c.v,c.x+c.vx*tt,c.y+c.vy*tt,z+c.s*.3,{M:F.xf({s:c.s,rx:c.ax*tt,ry:c.ay*tt,rz:c.az*tt}),alb,emis:P.b,rimC:P.h,spec:st[2],rim:.2,vein:st[3]*.6*(1-kk),heat:0,ero:f*.85,bump:st[5],tone:.22,clip:0,shadow:[.55,.28,.42*(1-f)]}); } },o.delay||0); };
 
 // FLARE: a soft hot glow in the air (the muzzle of a cut, a glint on the hilt)
 K.flare=(x,y,z,o={})=>{ if(!F.on) return; const m=mats(), P=pal(o.pal), dur=o.dur||.25, s=o.s||160, C=col(P);

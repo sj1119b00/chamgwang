@@ -1,7 +1,7 @@
 {
  "updated": "2026-11-24 (evening)",
  "representative": "sw_ult1",
- "iteration": 43,
+ "iteration": 44,
  "project_complete": false,
  "independent_review": [
   {
@@ -155,12 +155,12 @@
  ],
  "git": {
   "deploy_repo": "_gen/deploy",
-  "last_local_commit": "20ee26d + records",
+  "last_local_commit": "see git log",
   "pushed": false
  },
  "next": "VFX_NEXT_TASK.md",
  "plateau": true,
- "plateau_note": "Five cross reviews 68/66/63/68.3/65.3 and eight solo reviews of the representative ultimate 56-63. Hero pose sets and painted flipbooks (the two untried approaches) did not move the band. No ultimate has passed 75. Untried: real 3D meshes with lighting and shadows; re-made 3/4-view character and enemy art.",
+ "plateau_note": "Six cross reviews 68/66/63/68.3/65.3/67.5 and nine solo reviews 56-64. Tried and measured: class art, re-pacing, ground break, camera, hero pose sets, eight flipbooks, real 3D meshes with lighting and projected shadows, a normal-mapped blade. None moved the band; no ultimate has passed 75. What remains is the base itself: side-view character, enemy and key-prop paintings standing on a top-down floor, and enemies too small and dark to show reactions.",
  "gameplay": {
   "all_skills_auto": true,
   "joystick_follow": true,
@@ -260,6 +260,10 @@
    {
     "sheet": "z24_big",
     "score": 61
+   },
+   {
+    "sheet": "z27_big",
+    "score": 64
    }
   ],
   "cross": [
@@ -348,6 +352,24 @@
      "py_ult1": 61
     },
     "note": "after hero pose sets and eight flipbooks"
+   },
+   {
+    "round": 6,
+    "avg": 67.5,
+    "sheets": "x7_<ult>.jpg",
+    "per_ult": {
+     "py_ult2": 74,
+     "sh_ult2": 71,
+     "mg_ult1": 70,
+     "sh_ult1": 70,
+     "py_ult1": 69,
+     "fs_ult2": 67,
+     "sw_ult1": 66,
+     "mg_ult2": 66,
+     "fs_ult1": 62,
+     "sw_ult2": 60
+    },
+    "note": "after real 3D meshes, projected shadows and the normal-mapped blade"
    }
   ]
  },

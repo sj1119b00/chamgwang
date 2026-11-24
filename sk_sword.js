@@ -250,7 +250,7 @@ function ultZero(id){ ultStart(id); const F3ok=n=>window.FX3&&FX3.ready(n), Cn=X
   after(tf,()=>{ GFX.gain=.7; Cn.zoom(.68); Cn.tilt(.3,9); SFX.whoosh(.5,1); });
   // ---- the peak: the blade lands behind him and the floor breaks
   after(tf+.2,()=>{ plSeq([['gw05',.05],['gw06',.34],['gw09',.14],['gw10',.14],['gw11',.16],['gw12',9]]); GFX.gain=1.25; hitstop=Math.max(hitstop,.13); Cn.shake(1.9); post.ca=.006; Cn.zoom(.58); Cn.roll(.05); after(.22,()=>Cn.roll(0));
-    K.upheave(bx,by,{r:hw*.42,n:6,s:hw*.25,pal:GOLD2,rock:'#2a252c',dur:1.2,a0:Math.PI*.9,a1:Math.PI*2.1}); K.upheave(x0,y0,{r:hw*1.05,n:6,s:hw*.17,pal:GOLD2,rock:'#2a252c',dur:.95,delay:.06,stagger:.03,a0:Math.PI*.12,a1:Math.PI*.88,jit:.22}); K.upheave(x0,y0,{r:hw*1.1,n:5,s:hw*.15,pal:GOLD2,rock:'#2a252c',dur:.95,delay:.12,stagger:.02,a0:Math.PI*1.1,a1:Math.PI*1.9,jit:.25});
+    K.upheave(bx,by,{r:hw*.44,n:7,s:hw*.36,pal:GOLD2,rock:'#2a252c',dur:1.5,a0:Math.PI*.9,a1:Math.PI*2.1}); K.upheave(x0,y0,{r:hw*1.05,n:5,per:1,s:hw*.24,pal:GOLD2,rock:'#2a252c',dur:.95,delay:.06,stagger:.03,a0:Math.PI*.12,a1:Math.PI*.88,jit:.22}); K.upheave(x0,y0,{r:hw*1.1,n:4,per:1,s:hw*.22,pal:GOLD2,rock:'#2a252c',dur:.95,delay:.12,stagger:.02,a0:Math.PI*1.1,a1:Math.PI*1.9,jit:.25});
     K.flip(bx,by,{tex:'v3_flip_shock',floor:true,s:hw*1.55,dur:.75,pal:GOLD2,gain:1}); K.flip(bx,by,{tex:'v3_flip_cut',s:hw*.8,z:BODY*.5,dur:.6,pal:GOLD2,gain:.9});
     // the blow itself: a painted explosion that rolls and turns to smoke, and smoke rising where the floor broke
     K.flip(bx,by,{tex:'v3_flip_blast',s:hw*.66,dur:1,smoke:true,nb:1,c:'#120806',c2:'#4c3a30',lift:.62}); K.flip(bx,by,{tex:'v3_flip_blast',s:hw*.66,dur:1,pal:GOLD2,gain:.85,lift:.62});
@@ -262,7 +262,7 @@ function ultZero(id){ ultStart(id); const F3ok=n=>window.FX3&&FX3.ready(n), Cn=X
     sig.dead=true; sig2.dead=true; K.art(x0,y0,{tex:'v3_circ_blade',s:hw*.95,floor:true,dur:.6,pal:GOLD2,gain:.7,hold:.05,s0:.62}); K.sparks(bx,by,20,{pal:GOLD2,n:50,sp:[600,2200],up:1300,life:[.4,1]});
     K.crack(bx,by+30,{r:hw*1.25,ry:1.25,pal:GOLD2,life:6,grow:.2,gain:1.3,alt:1}); K.crack(x0,y0+hh*.3,{r:hw*1.1,pal:P,life:5.5,grow:.7,gain:1,alt:1,rot:rand(0,TAU)}); K.crack(x0-hw*.5,y0-hh*.1,{r:hw*.9,pal:P,life:5,grow:1,gain:.9,alt:1,rot:rand(0,TAU)}); K.crack(x0+hw*.55,y0+hh*.05,{r:hw*.8,pal:P,life:5,grow:1.3,gain:.9,rot:rand(0,TAU)});
     K.shock(bx,by,{r:hw*3,dur:.55,pal:GOLD2,gain:1.4}); K.shock(x0,y0,{r:hw*1.8,dur:.6,pal:P,gain:.8,delay:.08,light:0});
-    K.debris(bx,by,{n:30,r:300,sp:[300,1500],up:2100,size0:10,size:32}); K.dust(bx,by,{n:22,r:160,sp:[500,1500],a:.5});
+    K.chunks(bx,by,{n:7,r:120,sp:[350,1200],up:2200,s:[40,96],pal:GOLD2,rock:'#2a252c'}); K.debris(bx,by,{n:12,r:300,sp:[300,1500],up:2100,size0:10,size:28}); K.dust(bx,by,{n:22,r:160,sp:[500,1500],a:.5});
     let nb=0; for(const e of onScreen(200)){ if(nb++<9) K.hit(e.x,e.y,e.h*.5+e.z,'#ffd27a',1.5); e.flash=1; e.stun=Math.max(e.stun,1.2); if(!e.d.heavy){ const a=Math.atan2(e.y-by,e.x-bx); e.kx+=Math.cos(a)*rand(360,700); e.ky+=Math.sin(a)*rand(210,420); e.vz=Math.max(e.vz,rand(1500,2300)); } }
     after(.45,()=>Cn.sweep(x0,y0,D*1.5,{speed:4200,max:.3})); post.grayT=0; SFX.shatter(1); Cn.SND.hit(1); SFX.boom(1.6,1);
     K.petals(x0,y0-hh*.2,hw*1.3,{pal:P,n:110,z0:300,z1:1700,life:3.4,s:1.6}); after(1,()=>GFX.light(x0,y0,hw*1.7,'#ff4a20',.4,2.3,{z:140})); });
