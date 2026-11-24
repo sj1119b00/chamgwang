@@ -335,7 +335,7 @@ function glFrame(){
   if(nf){ P=G.pFire; rtTarget(G.fire); common(P); gl.uniform4fv(U_(P,'fa'),FAA); gl.uniform4fv(U_(P,'fb'),FBA); gl.drawArrays(gl.TRIANGLES,0,3); G.fClr=false; }
   else if(!G.fClr){ rtTarget(G.fire); gl.clearColor(0,0,0,0); gl.clear(gl.COLOR_BUFFER_BIT); G.fClr=true; }
   const gfxOn=!!(window.GFX&&GFX.on&&RPG_SURV()&&GFX.render(G)), gfxLit=gfxOn||!!(window.GFX&&GFX.on&&RPG_SURV()&&GFX.active());
-  P=G.pDown; rtTarget(G.b1a); gl.useProgram(P.p); bindTex(0,G.tFx); bindTex(1,G.fire.t); bindTex(2,gfxOn?G.gVfx.t:G.fire.t); gl.uniform1i(U_(P,'a'),0); gl.uniform1i(U_(P,'b'),1); gl.uniform1i(U_(P,'c'),2); gl.uniform1f(U_(P,'ck'),gfxOn?.9:0); gl.drawArrays(gl.TRIANGLES,0,3);
+  P=G.pDown; rtTarget(G.b1a); gl.useProgram(P.p); bindTex(0,G.tFx); bindTex(1,G.fire.t); bindTex(2,gfxOn?G.gVfx.t:G.fire.t); gl.uniform1i(U_(P,'a'),0); gl.uniform1i(U_(P,'b'),1); gl.uniform1i(U_(P,'c'),2); gl.uniform1f(U_(P,'ck'),gfxOn?1.0:0); gl.drawArrays(gl.TRIANGLES,0,3);
   blurPass(G.b1a,G.b1b,1,0); blurPass(G.b1b,G.b1a,0,1);
   blurPass(G.b1a,G.b2a,1,0); blurPass(G.b2a,G.b2b,0,1);
   blurPass(G.b2b,G.b3a,1,0); blurPass(G.b3a,G.b3b,0,1);

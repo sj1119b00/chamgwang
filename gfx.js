@@ -6,7 +6,7 @@
 'use strict';
 (()=>{
 const FSY=.58, MAXQ=3072;
-const X={on:false,q:[],fx:[],pts:[],lights:[],amb:[1,1,1],ambT:[1,1,1],ambK:6,gain:1.3,dk:1,tex:{},FSY,QK:1};
+const X={on:false,q:[],fx:[],pts:[],lights:[],amb:[1,1,1],ambT:[1,1,1],ambK:6,gain:1.25,dk:1,tex:{},FSY,QK:1};
 window.GFX=X;
 const NOPF=()=>{};
 // stepped clock: effects animate "on twos" (12 drawings a second) unless they ask for smooth time
@@ -24,7 +24,7 @@ float N(vec2 q){return texture2D(nz,q).r;}
 float M(vec2 q){return texture2D(nz,q).g;}
 float C(vec2 q){return texture2D(nz,q).b;}
 // three flat tones from one field: m<=0 nothing, a thin rim, the body colour, a hot core above k
-vec4 cel(float m,float k,float rim){float a=smoothstep(0.,.035,m);vec3 c=mix(c2,vc.rgb,smoothstep(rim,rim+.03,m));c=mix(c,c3,smoothstep(k,k+.04,m));return vec4(c*a,a)*vc.a;}
+vec4 cel(float m,float k,float rim){float a=smoothstep(0.,.07,m);vec3 c=mix(c2,vc.rgb,smoothstep(rim*.3,rim+.24,m));c=mix(c,c3,smoothstep(k-.26,k+.12,m));c*=.85+.35*clamp(m,0.,1.);return vec4(c*a,a)*vc.a;}
 void main(){vec4 o=vec4(0.);
  if(mode<.5){ // 0 textured sprite: uv warp by noise, dissolve, hot dissolve edge
   vec2 w=(vec2(N(v*vp.z+vp.y),M(v*vp.z-vp.y))-.5)*vp.w;vec2 q=v+w;vec4 t=texture2D(tex,q);
@@ -39,8 +39,7 @@ void main(){vec4 o=vec4(0.);
   float n=N(vec2(u*vp.z*.55-vp.y,r*5.5));float n2=M(vec2(u*vp.z*.2+vp.y*.5,r*2.2));
   float m=min(q,(1.-q)*3.5);m-=(1.-sc)*(1.-sc)*n*2.2+(1.-q)*n2*.55*(1.-sc*.6);
   m*=step(0.,s)*step(s,1.)*step(u,1.)*step(r,R);
-  float a=smoothstep(0.,.05,m);vec3 c=mix(c2,vc.rgb,smoothstep(.12,.16,m));c=mix(c,c3,smoothstep(.5,.56,q*sc+m*.25));
-  o=vec4(c*a,a)*vc.a;
+  float a=smoothstep(0.,.09,m);vec3 c=mix(c2,vc.rgb,smoothstep(.04,.34,m));c=mix(c,c3,smoothstep(.3,.72,q*sc+m*.25));o=vec4(c*a,a)*vc.a;
  }else if(mode<2.5){ // 2 shock ring on the floor: x=radius, z=thickness, w=jag, y=phase
   float r=length(v);float th=atan(v.y,v.x)/6.2831853;float n=N(vec2(th*3.+vp.y,.37))*.6+M(vec2(th*9.-vp.y,.71))*.4;
   float rr=r+(n-.5)*vp.w;float d=rr-vp.x;float m=d>0.?1.-d/(vp.z*.35):1.+d/vp.z;m=min(m,1.)-M(vec2(th*5.+vp.y,r*1.5))*.35*step(d,0.);
@@ -85,8 +84,8 @@ void main(){vec4 o=vec4(0.);
   float m=(1.-abs(k)/max(w,.0001))*sel*step(r,vp.x);m=max(m,1.-r/(vp.x*.16));o=cel(m,.5,.05);
  }else if(mode<15.5&&mode>14.5){ // 15 hand-drawn key art in three grey tones -> rim / body / core colours: x=erode, y=phase, z=warp scale, w=warp amount
   vec2 w2=(vec2(N(v*vp.z+vp.y),M(v*vp.z-vp.y*1.3))-.5)*vp.w;float L=texture2D(tex,v+w2).g;float n=N(v*1.6+vp.y*.17);
-  float keep=smoothstep(vp.x*1.25-.25,vp.x*1.25-.18,n);float a=smoothstep(.1,.16,L)*keep;
-  vec3 c=mix(c2,vc.rgb,smoothstep(.36,.44,L));c=mix(c,c3,smoothstep(.72,.82,L));o=vec4(c*a,a)*vc.a;
+  float keep=smoothstep(vp.x*1.25-.25,vp.x*1.25-.1,n);float a=smoothstep(.03,.22,L)*keep;
+  vec3 c=mix(c2,vc.rgb,smoothstep(.06,.46,L));c=mix(c,c3,smoothstep(.46,.86,L));c=mix(c,vec3(1.),smoothstep(.9,1.,L)*.55*smoothstep(.6,.95,max(c3.r,max(c3.g,c3.b))));float e=(smoothstep(vp.x*1.25-.25,vp.x*1.25-.2,n)-keep);o=vec4(c*a*(.6+.4*L)+c3*e*L*.6,a)*vc.a;
  }else{ // 14 screen-space speed streaks toward a point: x=inner radius, z=count, w=density, y=phase
   float r=length(v);float th=atan(v.y,v.x)/6.2831853;float n=N(vec2(th*vp.z+vp.y,.5));float n2=M(vec2(th*vp.z*3.1+vp.y*1.7,.1));
   float len=vp.x+(1.-vp.x)*n2;float m=(n-(1.-vp.w))/vp.w;m*=smoothstep(len,len+.25,r);o=cel(m,.6,.02);
@@ -188,7 +187,7 @@ function drawPts(){ for(const p of X.pts){ const k=p.t/p.life, a=p.a*(p.fade==='
 // X.light(x,y,r,c,a,life): a coloured light on the floor and everything standing on it (up to 4 strongest are used)
 X.light=(x,y,r,c,a=1,life=.5,o={})=>{ const L={x,y,z:o.z||0,r,c:rgb(c),a,t:0,life,hold:o.hold||0,flick:o.flick||0}; X.lights.push(L); return L; };
 // ambient: the scene's own light level and tint during a sequence; eases toward the target
-X.ambient=(r,g,b,k=6)=>{ X.ambT=[Math.max(.4,r),Math.max(.4,g),Math.max(.44,b)]; X.ambK=k; };
+X.ambient=(r,g,b,k=6)=>{ X.ambT=[Math.max(.3,r),Math.max(.3,g),Math.max(.34,b)]; X.ambK=k; };
 // one-shot refraction ring growing over the floor
 X.ripple=(x,y,R,o={})=>{ if(!X.on||(X.calm&&X.calm())) return; const life=o.life||.6, st=X.st(9,'mix',{rt:'dist'}), s=o.s??.6; X.add(life,k=>{ const e=1-(1-k)*(1-k); X.floor(st,x,y,R,null,0,[0,0,0],(1-k)*(1-k),e*.92,0,o.w||.09,s,o.z||0); },o.delay||0); };
 

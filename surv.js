@@ -45,7 +45,7 @@ function countIn(R){ let n=0; for(const e of V.en) if(!e.dead&&(e.x-pl.x)**2+((e
 function densest(R,r=260){ let b=null,bn=0; const L=V.en.filter(e=>!e.dead&&(e.x-pl.x)**2+((e.y-pl.gy)/FSY)**2<R*R);
   for(let i=0;i<L.length;i+=Math.max(1,L.length/40|0)){ const e=L[i]; let n=0; for(const o of L) if((o.x-e.x)**2+(o.y-e.y)**2<r*r) n++; if(n>bn){ bn=n; b=e; } } return b; }
 const angTo=e=>Math.atan2(e.y-pl.gy,e.x-pl.x);
-function face(a){ const c=Math.cos(a); if(Math.abs(c)>.05) pl.f=c>0?1:-1; V.leanT=clamp(Math.atan2(Math.sin(a),Math.abs(c)),-1.2,1.2)*.3*pl.f; V.leanHold=.28; }
+function face(a){ const c=Math.cos(a); if(Math.abs(c)>.05) pl.f=c>0?1:-1; V.leanT=clamp(Math.atan2(Math.sin(a),Math.abs(c)),-1.2,1.2)*.1*pl.f; V.leanHold=.28; }
 function inCircle(x,y,r,fn){ for(const e of V.en){ if(e.dead) continue; const dx=e.x-x, dy=(e.y-y)/FSY, rr=r+e.d.r; if(dx*dx+dy*dy<rr*rr) fn(e); } }
 function inCircleS(x,y,r,fn){ for(const e of V.en){ if(e.dead) continue; const dx=e.x-x, dy=e.y-y, rr=r+e.d.r; if(dx*dx+dy*dy<rr*rr) fn(e); } }
 function inSector(x,y,a,r,half,fn){ inCircleS(x,y,r,e=>{ const dx=e.x-x, dy=e.y-y, l=Math.hypot(dx,dy); let d=Math.atan2(dy,dx)-a; d=Math.atan2(Math.sin(d),Math.cos(d)); if(l<e.d.r+40||Math.abs(d)<half+e.d.r/Math.max(l,1)) fn(e); }); }
@@ -97,7 +97,7 @@ function heal(k){ const h=Math.round(A.maxHp()*k); G.hp=Math.min(A.maxHp(),G.hp+
 // ============================================================ ultimates: shared beats (each class stages its own in sk_<class>.js)
 const tdV=(n,x,y,o)=>VFX[n]&&VFX[n].f[0].ok?vfx(n,x,y,o):null;
 function onScreen(m=0){ const {hw,hh}=view(); return V.en.filter(e=>!e.dead&&Math.abs(e.x-cam.x)<hw+m&&Math.abs(e.y-BODY*.5-cam.y)<hh+m); }
-function ultStart(id){ lock=true; V.ug=0; anim.seq=null; V.dash=null;   /* the stick stays held through the ultimate: he moves again the moment it ends */ ov.lbT=1; V.ultId=id; V.nums.length=0; if(G.sv.cine) G.sv.cine.begin(); }
+function ultStart(id){ lock=true; V.ug=0; anim.seq=null; V.dash=null;   /* the stick stays held through the ultimate: he moves again the moment it ends */ ov.lbT=0; V.ultId=id; V.nums.length=0; if(G.sv.cine) G.sv.cine.begin(); }
 const stamp1=stamp; stamp=function(t,o={}){ if(G.mode==='surv'&&lock&&!o.keep) return null; return stamp1(t,o); };
 function ultStop(){ if(G.sv.cine) G.sv.cine.end(); if(V.ultSum){ V.nums.push({x:pl.x,y:pl.gy-BODY*3.1,t:-.4,txt:fmtN(V.ultSum),big:true}); V.ultSum=0; } lock=false; ov.lbT=0; ov.dimT=0; post.grayT=0; V.zk=1; V.ultTick=null; V.cuts=[]; V.shadow=null; V.ultDraw=null; G.inv=.8; pl.visible=true; pl.target=IDLE(); pl.ps=12; pl.air=pl.airT=0; anim.seq=null; }
 function ultHit(e,D,sx,sy){ dmg(e,e.d.boss?D*2:Math.max(D,e.hp*1.05),{crit:true,kb:1.8,big:true,launch:700,sx,sy}); }
@@ -149,7 +149,7 @@ function pre(rdt){
   else if(moving){ pl.x+=mx*SPD*dt; pl.gy+=my*SPD*.86*dt; if(!anim.seq&&Math.abs(mx)>.1){ const f=mx>0?1:-1; if(f!==pl.f){ pl.f=f; anim.bv-=1.4; anim.cv+=1.6; } } /* turning throws the trunk and the cloth */
     V.stepT=(V.stepT||0)+rdt*Math.hypot(mx,my); if(V.stepT>.3){ V.stepT=0; smoke(pl.x-mx*24,pl.gy+2,rand(12,18),{vx:-mx*70,vy:-my*40-10,a:.28,life:.45,grow:24}); } }
   if(V.wasMv&&!moving&&!anim.seq) anim.bv+=1.1; V.wasMv=!!moving;
-  V.leanHold=(V.leanHold||0)-rdt; if(V.leanHold<=0) V.leanT=moving?my*.12*pl.f:0; V.lean=lerp(V.lean||0,V.leanT||0,1-Math.exp(-rdt*16)); /* stopping: the weight catches up */
+  V.leanHold=(V.leanHold||0)-rdt; if(V.leanHold<=0) V.leanT=moving?my*.05*pl.f:0; V.lean=lerp(V.lean||0,V.leanT||0,1-Math.exp(-rdt*16)); /* stopping: the weight catches up */
   if(V.boss&&!V.boss.dead){ /* the boss is a wall, not a ghost */ const b=V.boss, dx=pl.x-b.x, dy=pl.gy-b.y, l=Math.hypot(dx,dy)||1, m=b.d.r+50; if(l<m){ pl.x=b.x+dx/l*m; pl.gy=b.y+dy/l*m; } }
   if(!(anim.seq&&anim.seq.steps.some(s=>s[2]&&s[2].air))) pl.airT=0;   // only a leap holds him in the air
   G.jz=0; G.pose=A.locoPose(rdt*(.5+.62*Math.hypot(mx,my)),moving&&!anim.seq);   // painted run cycle (falls back to the idle loop where a class has none)
@@ -266,7 +266,7 @@ const shock1=shock; shock=function(x,y,s=1,spd){ if(G.mode==='surv') return; ret
 
 // ============================================================ drawing
 let floorPat=null, floorCh=-1;
-const FLOORIM=new Image(); let floorArt=false; FLOORIM.onload=()=>{ floorArt=true; floorPat=null; }; FLOORIM.src='assets/fx2_floor.webp?v='+ASSET_V;
+const FLOORIM=new Image(); let floorArt=false; FLOORIM.onload=()=>{ /* the flat drawn tile read as a downgrade: kept on disk, not used */ }; FLOORIM.src='assets/fx2_floor.webp?v='+ASSET_V;
 function floor(){ if(floorPat&&floorCh===V.ch) return floorPat; floorCh=V.ch;
   if(floorArt){ const cv=document.createElement('canvas'); cv.width=cv.height=1280; const g=cv.getContext('2d'), [fr,fg,fb]=CH().floor;
     for(let i=0;i<2;i++) for(let j=0;j<2;j++){ g.save(); g.translate(i?1280:0,j?1280:0); g.scale(i?-1:1,j?-1:1); g.drawImage(FLOORIM,0,0,640,640); g.restore(); }
@@ -297,16 +297,13 @@ const bg1=drawBackground; drawBackground=function(){ if(G.mode!=='surv') return 
 const TINT=new Map();
 function tinted(s,extra=0){ const c=CH(), hue=c.hue+extra; let m=TINT.get(s); if(m&&m.ch===V.ch) return m.cv;
   const cv=document.createElement('canvas'); cv.width=s.w; cv.height=s.h; const g=cv.getContext('2d'); g.drawImage(s.im,0,0);
-  const D=g.getImageData(0,0,s.w,s.h), p=D.data, a=Math.cos(hue*Math.PI/180), b=Math.sin(hue*Math.PI/180), k=c.bri*1.42;
+  const D=g.getImageData(0,0,s.w,s.h), p=D.data, a=Math.cos(hue*Math.PI/180), b=Math.sin(hue*Math.PI/180), k=c.bri*1.2;
   const M=[.213+.787*a-.213*b,.715-.715*a-.715*b,.072-.072*a+.928*b,.213-.213*a+.143*b,.715+.285*a+.140*b,.072-.072*a-.283*b,.213-.213*a-.787*b,.715-.715*a+.715*b,.072+.928*a+.072*b];
   const sat=extra?1:(c.sat??1);
   for(let i=0;i<p.length;i+=4){ if(!p[i+3]) continue; const r=p[i], gg=p[i+1], bb=p[i+2];
     let R=(M[0]*r+M[1]*gg+M[2]*bb)*k, Gg=(M[3]*r+M[4]*gg+M[5]*bb)*k, B=(M[6]*r+M[7]*gg+M[8]*bb)*k; const l=.3*R+.59*Gg+.11*B; p[i]=l+(R-l)*sat; p[i+1]=l+(Gg-l)*sat; p[i+2]=l+(B-l)*sat; }
   g.putImageData(D,0,0);
-  const sil=document.createElement('canvas'); sil.width=s.w; sil.height=s.h; const sg=sil.getContext('2d'); sg.drawImage(cv,0,0); sg.globalCompositeOperation='source-in'; sg.fillStyle=RIMC(); sg.fillRect(0,0,s.w,s.h);
-  const out=document.createElement('canvas'); out.width=s.w; out.height=s.h; const og=out.getContext('2d'), t=Math.max(1.5,s.h*.011); og.globalAlpha=.85;
-  for(let q=0;q<8;q++) og.drawImage(sil,Math.cos(q*Math.PI/4)*t,Math.sin(q*Math.PI/4)*t); og.globalAlpha=1; og.drawImage(cv,0,0);
-  TINT.set(s,{ch:V.ch,cv:out}); return out; }
+  TINT.set(s,{ch:V.ch,cv}); return cv; }
 const RIMC=()=>{ const n=parseInt(CH().acc.slice(1),16), m=v=>Math.round(v+(255-v)*.55); return `rgb(${m(n>>16&255)},${m(n>>8&255)},${m(n&255)})`; };
 function eFrame(e){ const F=A.EFR[e.d.img]; if(!F) return null; let a='walk', i=0;
   if(F.hurt&&(e.z>0||e.stun>0||e.hurtT>0)){ a='hurt'; const n=F.hurt.length; i=e.z>0?2:Math.min(n-1,Math.floor((1-Math.max(0,e.hurtT)/.3)*n)); }
