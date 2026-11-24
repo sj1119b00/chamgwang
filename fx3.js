@@ -32,7 +32,7 @@ varying vec2 v;varying vec2 vd;
 uniform sampler2D tex,nzA,nzB;
 uniform float kind,time;
 uniform vec4 uvT,n1,n2,ch1,ch1b,pr,fd,pw,pm,rv;
-uniform vec3 cA,cB,cC;uniform vec3 rk;uniform vec4 msk;uniform vec2 gn;uniform vec4 aw,aw2;
+uniform vec3 cA,cB,cC,cM;uniform vec3 rk;uniform vec4 msk;uniform vec2 gn;uniform vec4 aw,aw2;
 void main(){
  vec2 d=(texture2D(nzA,v*n2.xy+time*n2.zw).rg-.5)*pr.x;
  vec2 q1=v*n1.xy+time*n1.zw+d;
@@ -60,7 +60,7 @@ void main(){
  float a=smoothstep(pr.z,pr.z+pr.w,val);
  float heat=clamp((val-pr.z)/max(1.-pr.z,.001),0.,1.);
  if(kind<.5){
-  vec3 col=mix(cA,cB*gn.x,smoothstep(0.,rk.x,heat));col=mix(col,cC*pw.y,smoothstep(rk.x,rk.y,heat));
+  float mk=mix(rk.x,rk.y,.42);vec3 col=mix(cA,cB*gn.x,smoothstep(0.,rk.x,heat));col=mix(col,cM*gn.x*1.12,smoothstep(rk.x,mk,heat));col=mix(col,cC*pw.y,smoothstep(mk,rk.y,heat));
   gl_FragColor=vec4(col*a*pw.w,a*pw.z*pw.w);
  }else if(kind<1.5){
   // refraction: push along the mesh's outward direction (lathe) by the field's value
@@ -118,7 +118,7 @@ function uni(P,names){ const U={}; for(const n of names) U[n]=gl.getUniformLocat
 
 function init(){ if(typeof gl==='undefined'||!gl||!GLX) return;
   try{
-    Pm=prog(VS,FS,['p','uv']); Um=uni(Pm,['M','org','camP','hf','la','lb','tex','nzA','nzB','kind','time','uvT','n1','n2','ch1','ch1b','pr','fd','pw','pm','rv','cA','cB','cC','rk','msk','gn','aw','aw2']);
+    Pm=prog(VS,FS,['p','uv']); Um=uni(Pm,['M','org','camP','hf','la','lb','tex','nzA','nzB','kind','time','uvT','n1','n2','ch1','ch1b','pr','fd','pw','pm','rv','cA','cB','cC','cM','rk','msk','gn','aw','aw2']);
     Pg=prog(GVS,GFS,['p']); Ug=uni(Pg,['alb','nrm','nzA','res','camU','gOff','amb','tint','lp','lc','time','gk','hp']);
     // lathe grid: p = (u around 0..1, t along the profile 0..1, 0), uv = (u, t)
     { const vtx=new Float32Array((LN+1)*(LT+1)*5), idx=new Uint16Array(LN*LT*6); let o=0;
@@ -172,7 +172,7 @@ const CH={fbm:[1,0,0,0, 0,0,0,0],billow:[0,1,0,0, 0,0,0,0],streak:[0,0,1,0, 0,0,
 const DEF={kind:0,tex:null,msk:[0,1,0,0],uvT:[1,1,0,0],n1:[1,1,0,0],n2:[1,1,0,0],nz:'fbm',dist:0,mdist:1,nk:1,ero:.1,soft:.2,fd:[0,0,0,0],pw:1,gain:1,bgain:1,op:0,a:1,pm:[0,1,.06,0],rv:[0,.1,0,.1],
   cA:[0,0,0],cB:[1,1,1],cC:[1,1,1],rk:[.35,.8],layer:'o',ord:0};
 // F.mat({...}): a material is a plain parameter set; colours may be '#rrggbb'
-F.mat=o=>{ const m={...DEF,...o}; m.cA=rgb(m.cA); m.cB=rgb(m.cB); m.cC=rgb(m.cC); if(typeof m.tex==='string') m.tex=F.img(m.tex,m.texO||{}); if(typeof m.nz==='string') m.nz=CH[m.nz]||CH.fbm; return m; };
+F.mat=o=>{ const m={...DEF,...o}; m.cA=rgb(m.cA); m.cB=rgb(m.cB); m.cC=rgb(m.cC); m.cM=m.cM?rgb(m.cM):null; if(typeof m.tex==='string') m.tex=F.img(m.tex,m.texO||{}); if(typeof m.nz==='string') m.nz=CH[m.nz]||CH.fbm; return m; };
 
 // ---------------------------------------------------------------- transforms
 // scale, then tilt about x (lean away from the camera), about y (roll), then turn about the vertical axis
@@ -224,7 +224,7 @@ function drawOne(q){ const m=q.mat, o=q.ov; let t=m.tex?glTex(m.tex):white; if(!
   v4(Um.uvT,uvT); v4(Um.n1,n1); v4(Um.n2,n2); gl.uniform4f(Um.ch1,nz[0],nz[1],nz[2],nz[3]); gl.uniform4f(Um.ch1b,nz[4],nz[5],nz[6],nz[7]);
   gl.uniform4f(Um.pr,o.dist??m.dist,o.nk??m.nk,o.ero??m.ero,o.soft??m.soft); v4(Um.fd,fd); gl.uniform4f(Um.pw,o.pw??m.pw,o.gain??m.gain,o.op??m.op,(o.a??1)*m.a); v4(Um.pm,pm); v4(Um.rv,rv);
   const cA=o.cA?rgb(o.cA):m.cA, cB=o.cB?rgb(o.cB):m.cB, cC=o.cC?rgb(o.cC):m.cC;
-  gl.uniform3f(Um.cA,cA[0],cA[1],cA[2]); gl.uniform3f(Um.cB,cB[0],cB[1],cB[2]); gl.uniform3f(Um.cC,cC[0],cC[1],cC[2]); gl.uniform3f(Um.rk,rk[0],rk[1],o.mdist??m.mdist); v4(Um.msk,m.msk); gl.uniform2f(Um.gn,o.bgain??m.bgain,0); if(o.aw){ v4(Um.aw,o.aw); v4(Um.aw2,o.aw2); } else gl.uniform4f(Um.aw2,0,0,0,0);
+  const cM=o.cM?rgb(o.cM):(m.cM||cB); gl.uniform3f(Um.cA,cA[0],cA[1],cA[2]); gl.uniform3f(Um.cB,cB[0],cB[1],cB[2]); gl.uniform3f(Um.cC,cC[0],cC[1],cC[2]); gl.uniform3f(Um.cM,cM[0],cM[1],cM[2]); gl.uniform3f(Um.rk,rk[0],rk[1],o.mdist??m.mdist); v4(Um.msk,m.msk); gl.uniform2f(Um.gn,o.bgain??m.bgain,0); if(o.aw){ v4(Um.aw,o.aw); v4(Um.aw2,o.aw2); } else gl.uniform4f(Um.aw2,0,0,0,0);
   if(q.geo==='lathe') gl.drawElements(gl.TRIANGLES,lathe.n,gl.UNSIGNED_SHORT,0); else if(q.geo==='dyn') gl.drawArrays(gl.TRIANGLE_STRIP,q.first,q.count); else gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
   F.stats.draws++; }
 function beginMesh(){ gl.useProgram(Pm); gl.enableVertexAttribArray(0); gl.enableVertexAttribArray(1); cur=null;
@@ -240,6 +240,8 @@ const LP=new Float32Array(32), LC=new Float32Array(24);
 F.groundReady=()=>F.on&&!F.noGround&&!!(glTex(F.gAlb)&&glTex(F.gNrm)&&glTex(nzA));
 // 1) the floor and everything lying on it -> G.gGround. Called first in glFrame (survival only).
 F.renderGround=G=>{ if(!F.on) return false; F.stats.draws=0;
+  // upload one waiting effect texture a frame while nothing is at stake, so the first big skill does not hitch
+  for(const k in F.tex){ const t=F.tex[k]; if(t.ok&&!t.w){ t.w=1; if(!F._wrt){ F._wrt=F.mkRT(4,4,false); F._wm=F.mat({}); } F._wm.tex=t; beginMesh(); gl.bindFramebuffer(gl.FRAMEBUFFER,F._wrt.f); gl.viewport(0,0,4,4); drawOne({geo:'quadF',mat:F._wm,org:[cam.x,cam.y,0],M:IDENT,la:null,lb:null,ov:{},L:1}); endMesh(); break; } }
   if(dynN){ gl.bindBuffer(gl.ARRAY_BUFFER,dyn); gl.bufferSubData(gl.ARRAY_BUFFER,0,dynData.subarray(0,dynN*5)); }
   F.q.sort((a,b)=>a.L-b.L||a.ord-b.ord);
   if(!F.groundReady()){ F.ground=false; return false; }
@@ -250,7 +252,7 @@ F.renderGround=G=>{ if(!F.on) return false; F.stats.draws=0;
   gl.uniform1i(Ug.alb,0); gl.uniform1i(Ug.nrm,1); gl.uniform1i(Ug.nzA,2); gl.uniform2f(Ug.res,W,H); gl.uniform4f(Ug.camU,cam.x-cam.sx,cam.y-cam.sy,S*cam.z,cam.rot);
   const V=RPG.surv; gl.uniform4f(Ug.gOff,V.ox||0,V.oy||0,F.tile,0); gl.uniform1f(Ug.time,RT); gl.uniform1f(Ug.gk,F.gk); gl.uniform3f(Ug.hp,pl.x,pl.gy??pl.y,1150);
   const A=window.GFX?GFX.amb:[1,1,1]; gl.uniform3f(Ug.amb,A[0],A[1],A[2]); gl.uniform3f(Ug.tint,F.gtint[0],F.gtint[1],F.gtint[2]);
-  LP.fill(0); LC.fill(0); if(window.GFX){ const Ls=GFX.lights.map(l=>{ const k=l.t<l.hold?1:Math.max(0,1-(l.t-l.hold)/l.life); return [l,l.a*k*k*(l.flick?1-l.flick*Math.random():1)]; }).filter(e=>e[1]>.01).sort((a,b)=>b[1]*b[0].r-a[1]*a[0].r).slice(0,8);
+  LP.fill(0); LC.fill(0); if(window.GFX){ const Ls=GFX.lights.map(l=>{ const k=l.t<l.hold?1:Math.max(0,1-(l.t-l.hold)/l.life); return [l,l.a*k*k*(l.flick?1-l.flick*Math.random():1)]; }).filter(e=>e[1]>.01).sort((a,b)=>b[1]*b[0].r-a[1]*a[0].r).slice(0,F.low?4:8);
     Ls.forEach(([l,a],i)=>{ LP.set([l.x,l.y,(l.z||0)+90,l.r*1.5],i*4); LC.set([l.c[0]*a*1.7,l.c[1]*a*1.7,l.c[2]*a*1.7],i*3); }); }
   gl.uniform4fv(Ug.lp,LP); gl.uniform3fv(Ug.lc,LC);
   gl.drawArrays(gl.TRIANGLES,0,3);

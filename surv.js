@@ -98,7 +98,7 @@ function heal(k){ const h=Math.round(A.maxHp()*k); G.hp=Math.min(A.maxHp(),G.hp+
 // ============================================================ ultimates: shared beats (each class stages its own in sk_<class>.js)
 const tdV=(n,x,y,o)=>VFX[n]&&VFX[n].f[0].ok?vfx(n,x,y,o):null;
 function onScreen(m=0){ const {hw,hh}=view(); return V.en.filter(e=>!e.dead&&Math.abs(e.x-cam.x)<hw+m&&Math.abs(e.y-BODY*.5-cam.y)<hh+m); }
-function ultStart(id){ lock=true; V.ug=0; anim.seq=null; V.dash=null; pl.air=pl.airT=0; for(const o of V.orbs.splice(0)) if(o.fx) o.fx.life=0;   /* the stick stays held through the ultimate: he moves again the moment it ends */ ov.lbT=0; V.ultId=id; V.nums.length=0; if(G.sv.cine) G.sv.cine.begin(); }
+function ultStart(id){ if(window.K3&&K3.tune) K3.tune(); lock=true; V.ug=0; anim.seq=null; V.dash=null; pl.air=pl.airT=0; for(const o of V.orbs.splice(0)) if(o.fx) o.fx.life=0;   /* the stick stays held through the ultimate: he moves again the moment it ends */ ov.lbT=0; V.ultId=id; V.nums.length=0; if(G.sv.cine) G.sv.cine.begin(); }
 const stamp1=stamp; stamp=function(t,o={}){ if(G.mode==='surv'&&lock&&!o.keep) return null; return stamp1(t,o); };
 function ultStop(){ if(G.sv.cine) G.sv.cine.end(); if(V.ultSum){ V.nums.push({x:pl.x,y:pl.gy-BODY*3.1,t:-.4,txt:fmtN(V.ultSum),big:true}); V.ultSum=0; } lock=false; ov.lbT=0; ov.dimT=0; post.grayT=0; V.zk=1; V.ultTick=null; V.cuts=[]; V.shadow=null; V.ultDraw=null; G.inv=.8; pl.visible=true; pl.target=IDLE(); pl.ps=12; pl.air=pl.airT=0; anim.seq=null; }
 function ultHit(e,D,sx,sy){ dmg(e,e.d.boss?D*2:Math.max(D,e.hp*1.05),{crit:true,kb:1.8,big:true,launch:700,sx,sy}); }
@@ -356,6 +356,9 @@ drawEnemy=function(){ if(G.mode!=='surv') return drawEnemy1();
   for(const q of V.dying){ const [fw,fh,fa]=q.fr.d, D=q.e.d, k=q.t/q.life, t=q.t, fly=q.vx!=null; ctx.save(); ctx.globalAlpha=fly?Math.min(1,(1-k)*2.5):1-k; if(fly){ ctx.translate(q.e.x+q.vx*t,q.e.y+q.vy*t-(q.vz*t-1400*t*t)-fh*D.sc*.5); ctx.rotate(q.spin*t); ctx.translate(0,fh*D.sc*.5); } else ctx.translate(q.e.x,q.e.y-q.e.z+4-k*40); ctx.scale(q.e.f*D.sc*(1+k*.25),D.sc*(1+k*.25)); ctx.drawImage(tinted(q.fr.s,D.img==='brute'?55:0),-fa*fw,-fh,fw,fh); ctx.restore();
     if(!lock) glow(fx,q.e.x,q.e.y-D.h*D.sc*.5,D.h*D.sc*.4,'#ffffff',(1-k)*.25); }
   ctx.globalAlpha=1;
+  // recolour one enemy frame a frame ahead of need (the first use of a frame costs a pixel loop; a crowd going into its hurt frames at once would hitch)
+  if(V.warmCh!==V.ch){ V.warmCh=V.ch; V.warm=[]; for(const im in A.EFR) for(const a of ['hurt','attack','walk']){ const L=A.EFR[im][a]; if(L) for(let i=0;i<L.length;i++) V.warm.push([`enemy_${im}_${a}${A.fr2(i+1)}`,im==='brute'?55:0]); } }
+  if(V.warm&&V.warm.length){ const [n,ex]=V.warm[V.warm.length-1], sp=spr(n); if(sp){ V.warm.pop(); tinted(sp,ex); } else if(SPR[n]===undefined) V.warm.pop(); }
   V.kl=null; if(window.GFX&&GFX.lights.length){ let b=.3; for(const l of GFX.lights){ const k=l.t<l.hold?1:Math.max(0,1-(l.t-l.hold)/l.life), v=Math.min(1.2,l.a*k*k); if(v>b&&l.r>300){ b=v; V.kl={x:l.x,y:l.y,r:l.r,s:v}; } } }
   V.sorted=V.en.filter(e=>!e.dead).sort((a,b)=>a.y-b.y);
   for(const e of V.sorted) if(e.y<=(pl.gy??pl.y)) drawE(e);
@@ -449,7 +452,7 @@ const css=document.createElement('style'); css.textContent=`
 #rmenu.mob .mm{width:min(480px,100%);height:100%;display:flex;flex-direction:column;padding:0 14px;box-sizing:border-box}
 #rmenu.mob .hd{text-align:center;margin-bottom:10px} #rmenu.mob .hd h1{font:900 44px "Malgun Gothic",sans-serif;letter-spacing:.08em;margin:0}
 #rmenu.mob .hd small{display:block;color:#b9b0d8;letter-spacing:.45em;font-size:12px}
-#rmenu.mob .hd{position:relative} #rmenu.mob .opt{position:absolute;right:0;top:0;padding:6px 9px;border-radius:9px;font:700 11px "Malgun Gothic",sans-serif;color:#b9b0d8;background:rgba(20,14,34,.8);border:1px solid rgba(255,255,255,.2)} #rmenu.mob .opt.on{color:#fff;border-color:#55ddff;background:rgba(85,221,255,.2)}
+#rmenu.mob .hd{position:relative} #rmenu.mob .opt.opt2{top:34px} #rmenu.mob .opt{position:absolute;right:0;top:0;padding:6px 9px;border-radius:9px;font:700 11px "Malgun Gothic",sans-serif;color:#b9b0d8;background:rgba(20,14,34,.8);border:1px solid rgba(255,255,255,.2)} #rmenu.mob .opt.on{color:#fff;border-color:#55ddff;background:rgba(85,221,255,.2)}
 #rmenu.mob .cl{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:10px}
 #rmenu.mob .cc{position:relative;border:1px solid rgba(255,255,255,.18);border-radius:12px;background:rgba(20,14,34,.75);padding:4px 2px 5px;text-align:center;cursor:pointer;overflow:hidden}
 #rmenu.mob .cc img{width:100%;height:62px;object-fit:contain;display:block}
@@ -521,7 +524,7 @@ G.survKey=(e,down)=>{ const k=KM[e.code]; if(k){ V.keys[k]=down; e.preventDefaul
 addEventListener('blur',()=>{ V.keys={}; joyHide(); });
 
 // ============================================================ run flow
-function start(ch){
+function start(ch){ if(window.K3&&K3.tune) K3.tune();
   if(!AC) initAudio(); if(AC&&AC.state!=='running') AC.resume();
   Object.assign(V,{t:0,ch:ch??V.ch,en:[],pj:[],gems:[],items:[],nums:[],shards:[],mk:[],orbs:[],zones:[],kills:0,run:0,acc:0,accT:0,ug:0,cd:{},gcd:0,bcd:.5,chain:0,dash:null,boss:null,bossDone:false,cuts:[],shadow:null,shads:[],ultDraw:null,dying:[],draws:[],zk:1,ultTick:null,spawn:0,horde:0,over:false,keys:{},mag:0,armor:0,id:0});
   joyHide(); G.mode='surv'; G.paused=false; G.hp=A.maxHp(); G.inv=0; G.jz=G.jv=0; G.runT=0; G.landT=0; G.stats={kills:0,dmg:0,exp:0,t:RT}; combo=0;
@@ -557,7 +560,7 @@ function goFull(){ if(!A.isTouch()) return; const d=document.documentElement; if
 G.menuOverride=el=>{
   const sv=SV(), cls=pl.cls, ids=A.ORDER[cls]||[], need=A.needExp(sv.lv), open=Math.min(CHAP.length-1,sv.chClear||0); if(sel==null||sel>open) sel=open;
   el.classList.add('mob');
-  let h=`<div class="mm"><div class="hd"><h1>참광</h1><small>SURVIVAL RPG</small><button class="opt ${sv.opt&&sv.opt.calm?'on':''}" data-opt="calm">섬광·흔들림 줄이기 ${sv.opt&&sv.opt.calm?'켜짐':'꺼짐'}</button></div>
+  let h=`<div class="mm"><div class="hd"><h1>참광</h1><small>SURVIVAL RPG</small><button class="opt ${sv.opt&&sv.opt.calm?'on':''}" data-opt="calm">섬광·흔들림 줄이기 ${sv.opt&&sv.opt.calm?'켜짐':'꺼짐'}</button><button class="opt opt2 ${sv.opt&&sv.opt.lowfx?'on':''}" data-opt="lowfx">이펙트 품질 ${sv.opt&&sv.opt.lowfx?'낮음':'높음'}</button></div>
     <div class="cl">${CLS_ORDER.map(c=>{ const d=c===sv.cls?sv:(sv.chars&&sv.chars[c])||{lv:1}; return `<div class="cc ${c===cls?'on':''}" data-c="${c}" style="--c:${CCOL[c]}"><img src="assets/${c}_a.webp" alt=""><b>${NAMES[c]}</b><small>Lv ${d.lv}</small></div>`; }).join('')}</div>
     <div class="pv" style="--c:${CCOL[cls]}"><img src="assets/${cls}_a.webp" alt=""><div><b>${NAMES[cls]}</b><small>${(SK[ids[0]]||{}).name||''} · ${ids.filter(id=>SK[id]&&SK[id].type==='skill').length}개 스킬 · 궁극기 2</small></div></div>
     <div class="st"><b>${NAMES[cls]} · Lv ${sv.lv}</b><span>스킬 포인트 <b style="color:#55ddff">${sv.sp}</b> · HP ${A.maxHp()}</span></div><div class="xp"><i style="width:${sv.exp/need*100}%"></i></div>
