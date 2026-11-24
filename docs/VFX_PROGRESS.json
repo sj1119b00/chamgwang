@@ -148,18 +148,19 @@
   }
  },
  "not_verified": [
-  "real phone performance and touch feel",
+  "real phone performance and touch",
   "audio by ear",
-  "HDR fallback path (RGBA8) on devices without half-float targets"
+  "LDR fallback (?ldr=1)",
+  "independent review of the 45 normal skills"
  ],
  "git": {
   "deploy_repo": "_gen/deploy",
-  "last_local_commit": "0800aba (plus uncommitted work after it at the time of writing)",
+  "last_local_commit": "11e361e + docs commit",
   "pushed": false
  },
  "next": "VFX_NEXT_TASK.md",
  "plateau": true,
- "plateau_note": "Three cross reviews 68/66/63 and six solo reviews of the representative ultimate 56-63: no upward trend across four class passes and nine engine/kit iterations. Reviewers agree on what is missing: lit volumetric meshes with shadows, bespoke hero animation synced to the beats, 6-8 layers per beat, visible enemy reactions. Shared kit pieces become the new sameness each time (star burst -> thin shock -> rock field).",
+ "plateau_note": "Four cross reviews 68/66/63/68.3 and six solo reviews of the representative ultimate 56-63: no upward trend across four class passes and ten engine/kit iterations; no ultimate has ever passed 75. Reviewers agree on what is missing: lit volumetric meshes with shadows, bespoke hero animation synced to the beats, 5-8 layers per beat, visible enemy reactions. Shared kit pieces become the new sameness each time.",
  "gameplay": {
   "all_skills_auto": true,
   "joystick_follow": true,
@@ -308,6 +309,23 @@
      "mg_ult2": 57
     },
     "note": "openers polluted by lingering normal-skill effects; 9 of 10 end in the same rock field"
+   },
+   {
+    "round": 4,
+    "avg": 68.3,
+    "sheets": "x4_<ult>.jpg",
+    "per_ult": {
+     "py_ult2": 74,
+     "sh_ult2": 71,
+     "mg_ult1": 70,
+     "py_ult1": 70,
+     "sh_ult1": 69,
+     "fs_ult2": 68,
+     "fs_ult1": 67,
+     "sw_ult1": 66,
+     "mg_ult2": 66,
+     "sw_ult2": 62
+    }
    }
   ]
  },
