@@ -84,79 +84,88 @@ const SKILL={
 };
 const G_over=()=>V.over||RPG.mode!=='surv';
 
-/// ---- ultimates. Each is one staged sequence: omen -> release -> climax -> afterglow (director: cine.js)
-const VIO='#a070ff', EMB='#ff7a2a';
-// a painted bolt from far above down to a floor point, flickering for a few frames
-function skyBolt(x,y,w,life,c){ const Cn=X.cine, flip=Math.random()<.5?-1:1; X.draw(life,k=>{ const t=Cn.tex('fx_lightning',c); if(!t) return; const h=w*1.5, a=(1-k)*(Math.random()<.25?.45:1); fx.save(); fx.translate(x,y+h*.03); fx.scale(flip*(k<.5?1:-1),1); fx.globalAlpha=a; fx.drawImage(t,-w/2,-h,w,h); fx.globalAlpha=a*.7; fx.drawImage(Cn.img('fx_lightning').im,-w/2,-h,w,h); fx.restore(); fx.globalAlpha=1; }); }
-// HEAVEN THUNDER: the sky is marked first - a reticle closes on every enemy - then it comes down on each mark in turn, and last of all on the whole field.
-function ultThunder(id){ ultStart(id); const Cn=X.cine, x0=pl.x, y0=pl.gy, {hw,hh}=view(), R=Math.max(hw,hh)*1.05, Dm=60000*A.mul(id);
-  S([['gx03',.12],['gx04',.3],['gx06',2.3],['gx08',.12,{kick:[1.2,-1]}],['gx10',2],['gx13',.8],['gx14',9]]);
-  Cn.setDark(.82,{c:'6,3,20',spot:{x:x0,y:y0-BODY*.5,r:900,a:.3}}); Cn.zoom(1.3); Cn.cam(x0,y0-BODY*1.2,5); SFX.thunder(.35); Cn.drone(46,.3); Cn.storm(5.2,VIO);
-  const circ=Cn.floorTex('fx_circle_arcane',x0,y0,50,{c:VIO,spin:-.5,a:.95,life:7}); circ.core=.3;
-  let t=0, fl=1.1; V.ultTick=dt=>{ t+=dt; circ.r=lerp(50,hw*.5,easeOut(Math.min(1,t/1.2))); circ.a=t>3.9?Math.max(0,.95-(t-3.9)*2.4):.95;
-    // heat lightning: the dark lifts for a frame now and then
-    fl-=dt; if(fl<=0&&t<4.2){ fl=rand(.35,.8); Cn.dark=Math.max(0,Cn.dark-.3); Cn.wash('190,170,255',.07); } };
-  Cn.gather(x0,y0-BODY*2,{c:VIO,dur:.9,r:900,n:40,cs:[VIO,'#ffffff',C2],fy:y0});
-  after(.85,()=>Cn.cutin(0,{style:'punch',title:SK[id].name,sub:'HEAVEN THUNDER',c:VIO,ang:-.1,y:.38,h:.31,dur:.95,fy:.36,fx:.52}));
-  // the marks
-  const T=onScreen(120).sort((a,b)=>Math.hypot(a.x-x0,a.y-y0)-Math.hypot(b.x-x0,b.y-y0)).slice(0,32);
-  after(1.8,()=>{ Cn.zoom(.9); Cn.cam(null); Cn.setDark(.86,{spot:null}); Cn.roll(-.03); });
-  after(2.76,()=>{ Cn.roll(.03); Cn.zoom(.84); });
-  T.forEach((e,i)=>after(1.85+i*(.75/Math.max(1,T.length)),()=>{ if(e.dead) return; ring(e.x,e.y,-900,VIO,.3,{r0:300,w:5,dec:1,sy:FSY}); e.mark=RT; Cn.SND.tick(.8+i*.03,.16); add({k:'bolt',lines:genBolt(x0,y0-20,e.x,e.y-20,70,3,[]),life:.22,c:i%2?C1:C2}); e.flash=.6; }));
-  X.draw(2.4,()=>{ for(const e of T){ if(e.dead||!e.mark) continue; const k=Math.min(1,(RT-e.mark)/.25), r=(110-40*k)*(1+.06*Math.sin(RT*20)); fx.strokeStyle=hexA('#ffffff',.9*k); fx.lineWidth=3; fx.beginPath(); fx.ellipse(e.x,e.y,r,r*FSY,0,0,TAU); fx.stroke();
-      fx.strokeStyle=hexA(VIO,k); fx.lineWidth=7; for(let q=0;q<4;q++){ const a=q*Math.PI/2+RT*2; fx.beginPath(); fx.ellipse(e.x,e.y,r*1.25,r*1.25*FSY,0,a,a+.5); fx.stroke(); } } },1.85);
-  // release: the staff comes down and every mark is answered, one after another
-  after(2.76,()=>{ Cn.release(x0,y0,VIO); Cn.speed(1.1,{c:C2,a:.22,n:18}); });
-  T.forEach((e,i)=>after(2.86+i*(1.0/Math.max(1,T.length)),()=>{ if(e.dead) return; skyBolt(e.x,e.y,440,.24,i%2?VIO:'#ffffff'); add({k:'bolt',lines:genBolt(e.x+rand(-140,140),e.y-1100,e.x,e.y-20,90,5,[]),life:.26,c:i%2?C1:C2}); fring(e.x,e.y,760,VIO,.3,5); gl0(e.x,e.y-40,130,C2,.16,{a:.6}); light(e.x,e.y-200,520,VIO,.2,.35); ultHit(e,Dm*.4,e.x,e.y+200); Cn.dark=Math.max(.25,Cn.dark-.35);
-    if(i%4===0){ sfx('thunder',.5); Cn.shake(.45); Cn.scar({kind:'burn',x:e.x,y:e.y,r:150,c:VIO,life:6,heat:1.6}); } }));
-  // climax: the pillar
+/// ---- ultimates. Each is one staged sequence: omen -> release -> climax -> afterglow (director: cine.js, drawn by gfx.js)
+const VIO='#9a6bff', EMB='#ff7a2a', ICE='#d8f4ff';
+// HEAVEN THUNDER: a storm ceiling closes over the field and a ring of light opens in it. Every enemy is marked from her staff;
+// then the ceiling answers each mark in turn, and last of all one pillar that the whole field arcs from.
+function ultThunder(id){ ultStart(id); ov.lbT=0; const Cn=X.cine, K=GFX, x0=pl.x, y0=pl.gy, {hw,hh}=view(), Dm=60000*A.mul(id), ZC=2700;
+  const TV=Cn.tone(VIO,{c2:'#1c0a5a',c3:'#ffffff'});
+  S([['gx03',.12],['gx04',.3],['gx06',2.2],['gx08',.12,{kick:[1.2,-1]}],['gx10',2],['gx13',.8],['gx14',9]]);
+  K.ambient(.36,.38,.6,3); Cn.zoom(1.35); Cn.cam(x0,y0-BODY*1.2,5); SFX.thunder(.35); Cn.drone(46,.3); duck(.3,.6);
+  // the ceiling: slabs of cloud sliding in over the camera, and the ring of light in them
+  for(let i=0;i<14;i++){ const a=i/14*TAU, r=rand(.5,1.5)*hw; after(rand(0,.7),()=>K.pt({x:x0+Math.cos(a)*r*2.2,y:y0+Math.sin(a)*r*1.5,z:ZC+rand(-200,300),vx:-Math.cos(a)*r*.6,vy:-Math.sin(a)*r*.4,drag:.5,life:5.2,s:rand(520,900),grow:30,c:K.rgb('#241c44'),c2:'#07051a',c3:'#3a3066',L:4,m:5,b:'alpha',er:.55,ns:rand(.5,.9),w:.6,fade:'in',a:.8,ph:rand(0,9)})); }
+  Cn.gCircle('fx_circle_arcane',x0,y0,{c:VIO,r:50,life:4.6,tick:(s,t)=>{ s.r=lerp(50,hw*.55,easeOut(Math.min(1,t/1.2))); s.rot=-t*.5; s.a=t>3.9?Math.max(0,1-(t-3.9)/.6):.9; }});
+  Cn.gCircle('fx_circle_arcane',x0,y0,{c:ICE,r:100,z:ZC,L:4,life:5.2,delay:.3,tick:(s,t)=>{ s.r=lerp(200,hw*1.9,easeOut(Math.min(1,t/1.3))); s.rot=t*.25; s.a=(t>4.5?Math.max(0,1-(t-4.5)/.6):Math.min(1,t/.5))*.55; }});
+  Cn.gather(x0,y0-BODY*2,{c:VIO,dur:.9,r:900,n:30,cs:[VIO,'#ffffff',C2],fy:y0,rings:0,streaks:0});
+  // heat lightning in the ceiling: the whole field is lit for a frame
+  let fl=RT+.5; K.add(4.2,()=>{ if(RT>=fl){ fl=RT+rand(.3,.75); const x=x0+rand(-hw,hw), y=y0+rand(-hh,hh)*.6; K.light(x,y,2600,'#b9a8ff',.5,.18,{z:ZC}); Cn.gBolt(x,y,ZC,x+rand(-700,700),y+rand(-200,200),ZC-rand(0,200),ICE,{c2:'#1c0a5a',w:14,life:.14,forks:1,L:4}); } });
+  // the marks: a thread from the staff to each, a ring that closes on it
+  const T=onScreen(120).sort((a,b)=>Math.hypot(a.x-x0,a.y-y0)-Math.hypot(b.x-x0,b.y-y0)).slice(0,30), stM=Cn.gst(2,'add',TV,0);
+  after(1.25,()=>{ Cn.zoom(.9); Cn.cam(null); Cn.roll(-.03); });
+  T.forEach((e,i)=>after(1.3+i*(.8/Math.max(1,T.length)),()=>{ if(e.dead) return; e.mark=RT; Cn.SND.tick(.8+i*.03,.16); e.flash=.6;
+    Cn.gBolt(x0+pl.f*30,y0,BODY*1.9,e.x,e.y,e.h*.5,VIO,{c2:'#1c0a5a',w:9,life:.16,forks:0,jag:.05}); Cn.gRing(e.x,e.y,210,VIO,{c2:'#1c0a5a',inward:true,life:.3,w:.12,jag:.04}); }));
+  K.add(2.6,()=>{ for(const e of T){ if(e.dead||!e.mark) continue; const k=Math.min(1,(RT-e.mark)/.2); K.floor(stM,e.x,e.y,105,null,RT*2+e.x,TV.c,.55*k,.74+.05*Math.sin(RT*18+e.x),K.tq(12,e.x),.045,.05); } },1.3);
+  // release: the staff comes down; the ceiling answers every mark, one after another, faster
+  after(2.36,()=>Cn.impact(x0,y0-BODY,{style:'bolt',c:VIO,n:2,soft:true,flash:.06,blur:.03,v:.5,then:()=>{ Cn.roll(.03); Cn.zoom(.84); K.ambient(.44,.42,.66,6); Cn.gRing(x0,y0,hw*1.5,VIO,{c2:'#1c0a5a',life:.5,w:.07,jag:.08}); K.ripple(x0,y0,hw*1.5,{life:.5,s:.6}); }}));
+  T.forEach((e,i)=>after(2.5+Math.pow(i/Math.max(1,T.length),.75)*1.15,()=>{ if(e.dead) return; const sx=e.x+rand(-260,260), sy=e.y+rand(-80,80);
+    Cn.gBolt(sx,sy,ZC,e.x,e.y,0,VIO,{c2:'#1c0a5a',c3:'#efe6ff',w:22,life:.22,forks:2}); Cn.gStar(e.x,e.y,e.h*.4,rand(150,230),ICE,{c2:VIO,life:.16,n:5}); Cn.gCrack(e.x,e.y,230,VIO,{c2:'#1c0a5a',life:1,n:7,w:.16});
+    Cn.gSparks(e.x,e.y,30,5,ICE,{vz:1300,s0:200,s1:800}); K.light(e.x,e.y,900,'#b9a8ff',1.3,.22); ultHit(e,Dm*.4,e.x,e.y+200);
+    if(i%4===0){ sfx('thunder',.5); Cn.shake(.45); Cn.scar({kind:'burn',x:e.x,y:e.y,r:150,c:VIO,life:6,heat:1.6}); Cn.gPuff(e.x,e.y,20,rand(60,100),{vz:rand(120,240),life:1,a:.6}); } }));
+  // climax: the ring in the ceiling closes to a point over the thickest of them - and lets everything go at once
   const tb=densest(1400), [bx,by]=X.inView(tb?tb.x:x0,tb?tb.y:y0-hh*.25,.4);
-  after(3.95,()=>{ Cn.roll(0); Cn.cam(bx,by-BODY,7); Cn.omen(bx,by,520,VIO,.6); V.shadow={x:bx,y:by,t0:RT,dur:.6,r:480,c:VIO}; Cn.zoom(.82); Cn.setDark(.94,{spot:{x:bx,y:by,r:800,a:.35}}); Cn.SND.inhale(.6,.6); duck(.25,.5); });
-  after(4.55,()=>{ V.shadow=null; Cn.impact(bx,by-80,{style:'bolt',c:VIO,n:3,r:.14,then:()=>{ skyBolt(bx,by,1700,.75,VIO); skyBolt(bx,by,1100,.6,'#ffffff'); after(.12,()=>skyBolt(bx+rand(-120,120),by,1400,.5,C1)); after(.26,()=>skyBolt(bx+rand(-160,160),by,1200,.45,VIO));
-      Cn.waves(bx,by,VIO,{n:3,s:1.1,dc:'40,30,70'}); Cn.scar({x:bx,y:by,r:760,c:VIO,life:9,heat:3.2}); Cn.wash('210,190,255',.22,0,bx,by); SFX.thunder(1.3);
+  after(3.75,()=>{ Cn.roll(0); Cn.cam(bx,by-BODY,6); Cn.zoom(.8); K.ambient(.24,.24,.44,5); Cn.SND.inhale(.6,.6); duck(.25,.5);
+    K.add(.62,k=>K.floor(K.st(12,'alpha',{L:0}),bx,by,300+500*k,null,0,[0,0,0],.3+.45*k)); Cn.gRing(bx,by,700,ICE,{c2:VIO,inward:true,life:.6,w:.06,jag:.04}); Cn.gSpeed(.6,ICE,{c2:VIO,a:.22,x:bx,y:by,r:.5,n:60,w:.1}); });
+  after(4.37,()=>Cn.impact(bx,by-80,{style:'bolt',c:VIO,n:2,r:.14,soft:true,flash:.1,blur:.06,then:()=>{ K.ambient(.5,.46,.7,10); after(.6,()=>K.ambient(1,1,1,2)); for(const d of Cn.drones) d.stop(.05);
+      // the pillar: a solid core, three strokes wound round it, re-struck twice
+      const stC=Cn.gst(3,'add',Cn.tone(ICE,{c2:VIO,c3:'#ffffff'}),3); K.add(.75,k=>{ K.line(stC,bx,by,0,bx,by,ZC+600,(190+40*Math.sin(RT*60))*(1-k*k),K.rgb(ICE),1-k*k,k*.4,RT*6,-2,.3); });
+      for(let i=0;i<5;i++) Cn.gBolt(bx+rand(-380,380),by+rand(-60,60),ZC,bx+rand(-60,60),by,0,VIO,{c2:'#1c0a5a',c3:'#efe6ff',w:40,life:.5,forks:3,delay:i*.07,jag:.1});
+      Cn.gStar(bx,by,80,760,ICE,{c2:VIO,c3:'#ffffff',life:.36,n:8}); for(let i=0;i<3;i++) Cn.gRing(bx,by,hw*(1.2+i*.5),i===1?'#ffffff':VIO,{c2:'#1c0a5a',life:.55+i*.12,w:.12-i*.03,jag:.1,delay:i*.07});
+      K.ripple(bx,by,hw*2.1,{life:.7,s:1}); Cn.gCrack(bx,by,hw*1.4,VIO,{c2:'#1c0a5a',c3:ICE,life:3,n:19,w:.09}); Cn.scar({x:bx,y:by,r:760,c:VIO,life:9,heat:3.2});
+      Cn.gDebris(bx,by,26,{s0:300,s1:1400,vz:2100,size:30}); K.light(bx,by,2600,'#b9a8ff',1.4,.9,{flick:.4}); SFX.thunder(1.3); Cn.shake(1.2);
       // it jumps from body to body before they fall
-      const L=onScreen(200).slice(0,22); for(let i=0;i<L.length;i++){ const a=i?L[i-1]:{x:bx,y:by}, b=L[i]; add({k:'bolt',lines:genBolt(a.x,a.y-BODY*.5,b.x,b.y-BODY*.5,60,4,[]),life:.3,c:i%2?C1:'#ffffff'}); }
-      Cn.sweep(bx,by,Dm,{speed:3600}); Cn.setDark(.35,{spot:null}); Cn.ashFall(2.6,'#cdb8ff',30,{glow:true,up:true}); }}); });
-  // afterglow: the floor keeps arcing
-  for(let i=0;i<16;i++) after(4.9+i*.09,()=>{ const a=rand(0,TAU), r=rand(80,560), x=bx+Math.cos(a)*r, y=by+Math.sin(a)*r*FSY; add({k:'bolt',lines:genBolt(x,y,x+rand(-180,180),y+rand(-80,80),40,2.5,[]),life:.16,c:C2}); if(i%3===0) Cn.SND.tick(2+Math.random(),.08); });
-  after(5.6,()=>{ Cn.setDark(0); Cn.zoom(1); Cn.embers(bx,by,600,VIO,{n:30,dur:1.2}); });
-  after(6.25,ultStop); }
+      const L=onScreen(200).slice(0,20); for(let i=0;i<L.length;i++){ const a=i?L[i-1]:{x:bx,y:by,h:200}, b=L[i]; Cn.gBolt(a.x,a.y,(a.h||200)*.5,b.x,b.y,b.h*.5,i%2?VIO:ICE,{c2:'#1c0a5a',w:16,life:.3,forks:1,delay:.05+i*.012}); }
+      Cn.sweep(bx,by,Dm,{speed:3600}); Cn.gMotes(bx,by,hw,VIO,60,{dur:1.6,life:2,white:.5}); }}));
+  // afterglow: the floor keeps arcing along the fractures
+  for(let i=0;i<14;i++) after(4.8+i*.09,()=>{ const a=rand(0,TAU), r=rand(80,620), x=bx+Math.cos(a)*r, y=by+Math.sin(a)*r*FSY; Cn.gBolt(x,y,10,x+rand(-240,240),y+rand(-110,110),10,ICE,{c2:VIO,w:9,life:.16,forks:1,jag:.2}); if(i%3===0) Cn.SND.tick(2+Math.random(),.08); });
+  after(5.5,()=>{ Cn.zoom(1); Cn.cam(null); });
+  after(6.1,ultStop); }
 
-// METEOR FALL: she looks up, and so does the camera - it is already coming. It crosses the whole sky before it lands, and the land does not forget it.
-function ultMeteor(id){ ultStart(id); const Cn=X.cine, {hw,hh}=view(), Dm=70000*A.mul(id), b=V.boss&&!V.boss.dead?V.boss:null, t0=b||densest(1600), [cx,cy]=X.inView(t0?t0.x:pl.x,t0?t0.y:pl.gy-hh*.3,.4), x0=pl.x, y0=pl.gy;
-  S([['gy03',.14],['gy05',.5],['gy06',1.6],['gy07',1.3],['gy09',.14,{kick:[1.2,-1]}],['gy10',.6],['gy13',.9],['gy14',9]]);
-  Cn.setDark(.72,{c:'26,5,2',spot:{x:x0,y:y0-BODY*.5,r:900,a:.3}}); Cn.zoom(1.25); Cn.cam(x0,y0-BODY*1.6,5); SFX.rumble(1.6); Cn.drone(40,.3);
-  const circ=Cn.floorTex('fx_circle_arcane',cx,cy,30,{c:EMB,spin:1.2,a:.9,life:4}); circ.core=.2;
-  const ms=spr('meteor'), M={x:cx+hw*1.5,y:cy-hh*2.6,r:150,on:false,k:0}; let t=0;
-  V.ultTick=dt=>{ t+=dt; circ.r=lerp(30,560,easeOut(Math.min(1,t/1.2))); if(t>3.5) circ.kill();
-    if(t>1.9&&t<3.55){ const k=Math.min(1,(t-1.9)/1.6), e=k*k*k; M.on=true; M.k=k; M.x=lerp(cx+hw*1.5,cx,e); M.y=lerp(cy-hh*2.6,cy-140,e); M.r=lerp(200,520,k);
-      trauma=Math.max(trauma,.12+k*.5); if(Math.random()<.9) fire({x:M.x+M.r*.5,y:M.y-M.r*.9,x2:M.x+M.r*2.4,y2:M.y-M.r*4,r:M.r*.7,r2:M.r*.2,i:1.2,type:1,life:.3,fin:.03,fade:.25});
-      if(Math.random()<.5) smoke(M.x+rand(-M.r,M.r)*.5+M.r,M.y-M.r*1.6,M.r*.5,{vx:rand(100,300),vy:rand(-500,-200),a:.4,life:rand(.8,1.4),grow:M.r*.5,c:'40,20,14'}); } else M.on=false; };
-  V.ultDraw=()=>{ if(!M.on) return; const d=M.r*2.2, ang=Math.atan2(cy-(cy-hh*2.6),cx-(cx+hw*1.5));
-    glow(fx,M.x,M.y,M.r*3,EMB,.55); glow(fx,M.x,M.y,M.r*1.5,'#fff0c0',.5);
-    // the trail it drags across the sky
-    fx.save(); fx.translate(M.x,M.y); fx.rotate(ang+Math.PI); const g=fx.createLinearGradient(0,0,M.r*9,0); g.addColorStop(0,hexA('#ffe0a0',.8)); g.addColorStop(.3,hexA(EMB,.5)); g.addColorStop(1,hexA('#ff3a10',0)); fx.fillStyle=g; fx.beginPath(); fx.moveTo(0,-M.r*.95); fx.lineTo(M.r*9,-M.r*.2); fx.lineTo(M.r*9,M.r*.2); fx.lineTo(0,M.r*.95); fx.fill(); fx.restore();
-    if(ms){ ctx.save(); ctx.translate(M.x,M.y); ctx.rotate(ang+RT*.6); ctx.drawImage(ms.im,-d/2,-d/2*ms.h/ms.w,d,d*ms.h/ms.w); ctx.restore(); } else { ctx.fillStyle='#2a1810'; ctx.beginPath(); ctx.arc(M.x,M.y,M.r,0,TAU); ctx.fill(); }
-    fx.strokeStyle=hexA('#fff0c0',.8); fx.lineWidth=M.r*.08; fx.beginPath(); fx.arc(M.x,M.y,M.r*1.05,ang-1.1,ang+1.1); fx.stroke(); };
-  Cn.gather(x0,y0-BODY*2,{c:EMB,dur:.9,r:900,n:36,cs:[EMB,'#ffd28a','#ffffff'],fy:y0});
-  after(.85,()=>Cn.cutin(1,{style:'diag',title:SK[id].name,sub:'METEOR FALL',c:EMB,ang:-.14,y:.38,h:.31,dur:.95,fy:.35,fx:.55}));
-  // release: the camera lets go of her and takes in the sky
-  after(1.85,()=>{ Cn.zoom(.78); Cn.cam(lerp(x0,cx,.6),lerp(y0,cy,.6)-hh*.5,3.5); Cn.setDark(.8,{spot:{x:cx,y:cy,r:1000,a:.4}}); Cn.omen(cx,cy,640,EMB,1.65); circ.kill(); SFX.fire(1.7,.7); Cn.SND.inhale(1.65,.7); Cn.speed(1.6,{c:'#ffb070',a:.22,n:16,x:cx,y:cy-200}); });
-  for(let i=0;i<7;i++) after(2+i*.17,()=>{ const x=cx+rand(-hw,hw)*.9, y=cy+rand(-hh,hh)*.7, at=.12; add({k:'line',x1:x+500,y1:y-1400,x2:x,y2:y-30,life:.14,c:'#ffb070',w:16}); after(at,()=>{ const P=VFX.pyro_explosion; if(P&&P.f[0].ok) vfx('pyro_explosion',x,y-50,{sc:.7}); fring(x,y,900,EMB,.35,6); sfx('boom',.8,.4); Cn.scar({kind:'burn',x,y,r:170,c:EMB,life:6,heat:2}); inCircle(x,y,200,o=>ultHit(o,Dm*.3,x,y)); }); });
-  after(3.2,()=>{ Cn.cam(cx,cy-BODY,9); Cn.zoom(.86); });
+// METEOR FALL: she points, and a shadow starts to grow on the floor. Small ones first, to show how far there is to fall;
+// then the one that has been coming the whole time crosses the screen above the camera and the ground does not forget it.
+function ultMeteor(id){ ultStart(id); ov.lbT=0; const Cn=X.cine, K=GFX, {hw,hh}=view(), Dm=70000*A.mul(id), b=V.boss&&!V.boss.dead?V.boss:null, t0=b||densest(1600), [cx,cy]=X.inView(t0?t0.x:pl.x,t0?t0.y:pl.gy-hh*.3,.4), x0=pl.x, y0=pl.gy;
+  const ms=spr('meteor'), TE=Cn.tone(EMB,{c2:'#6a1000',c3:'#fff2b0'}), HOT='#ffd08a';
+  S([['gy03',.14],['gy05',.5],['gy06',1.5],['gy07',1.2],['gy09',.14,{kick:[1.2,-1]}],['gy10',.6],['gy13',.9],['gy14',9]]);
+  K.ambient(.5,.4,.42,3); Cn.zoom(1.3); Cn.cam(x0,y0-BODY*1.4,5); SFX.rumble(1.6); Cn.drone(40,.3); duck(.3,.6);
+  Cn.gCircle('fx_circle_arcane',cx,cy,{c:EMB,r:30,life:3.5,tick:(s,t)=>{ s.r=lerp(30,640,easeOut(Math.min(1,t/1.3))); s.rot=t*1.1; s.a=t>3?Math.max(0,1-(t-3)/.4):.85; }});
+  Cn.gather(x0,y0-BODY*2,{c:EMB,dur:.9,r:900,n:30,cs:[EMB,HOT,'#ffffff'],fy:y0,rings:0,streaks:0});
+  const drop=Cn.gLevitate(cx,cy,820,24,{dur:1.6,life:5,c:'#6a5a58'});
+  // a small one: comes in on the same slant as the big one will
+  const SL=[hw*1.5,-hh*.5], small=(x,y,dl)=>{ const land=()=>{ Cn.gFire(x,y,10,150,{n:7}); Cn.gStar(x,y,40,260,EMB,{c2:'#6a1000',c3:'#fff2b0',life:.2,n:6}); Cn.gRing(x,y,420,EMB,{c2:'#6a1000',life:.35,w:.12,jag:.1}); Cn.gCrack(x,y,300,EMB,{c2:'#6a1000',life:1.6,n:8,w:.15});
+      Cn.gDebris(x,y,6,{s0:200,s1:700,vz:1300,size:20}); K.light(x,y,900,EMB,1.1,.35); sfx('boom',.8,.4); Cn.shake(.4); Cn.scar({kind:'burn',x,y,r:170,c:EMB,life:6,heat:2}); inCircle(x,y,220,o=>ultHit(o,Dm*.3,x,y)); };
+    if(ms) Cn.gDrop(x,y,{img:ms.im,h:230,w:230*ms.w/ms.h,z0:3400,dur:.42,dx:SL[0]*.45,dy:SL[1]*.45,spin:6,trail:EMB,tw:.5,tl:5,delay:dl,land,sink:.5,pz:.0005}); else after(dl+.42,land); };
+  // release: the camera lets go of her; the field is shown the size of the shadow
+  after(1.5,()=>Cn.impact(x0,y0-BODY,{style:'ember',c:EMB,n:2,soft:true,flash:.06,blur:.03,v:.5,then:()=>{ Cn.zoom(.8); Cn.cam(lerp(x0,cx,.7),lerp(y0,cy,.7)-hh*.2,3.2); K.ambient(.42,.3,.3,3); SFX.fire(1.7,.7); Cn.SND.inhale(1.7,.7);
+      K.add(1.75,k=>K.floor(K.st(12,'alpha',{L:0}),cx,cy,200+760*k*k,null,0,[0,0,0],.2+.6*k)); Cn.gSpeed(1.7,HOT,{c2:EMB,a:.18,x:cx,y:cy,r:.55,n:60,w:.1}); }}));
+  for(let i=0;i<8;i++) small(cx+rand(-hw,hw)*.95,cy+rand(-hh,hh)*.7,1.62+i*.15);
+  // the big one: a rock the size of the screen at first (it is level with the camera), dragging fire, shrinking onto its shadow
+  const BH=880, stT=Cn.gst(3,'add',TE,2); let lastP=0;
+  if(ms) Cn.gDrop(cx,cy,{img:ms.im,h:BH,w:BH*ms.w/ms.h,z0:6200,dur:1.5,dx:SL[0],dy:SL[1],spin:1.4,delay:1.78,sink:.5,pz:.00042,L:3,trail:EMB,tw:.62,tl:4.2,
+    tick:(x,y,z,q)=>{ const sc=1+z*.00042; K.bill(K.st(8,'add',{L:2}),x,y,z+BH*.5,BH*1.5*sc,BH*1.5*sc,0,TE.c,.55); K.light(cx,cy,1500+1500*q,EMB,.5+q*.9,.1);
+      if(RT-lastP>.03){ lastP=RT; Cn.gPuff(x+rand(-1,1)*BH*.3*sc,y,z+BH*sc*rand(.6,1.1),BH*rand(.3,.55)*sc,{c:EMB,c2:'#6a1000',c3:'#fff2b0',add:true,vx:SL[0]*.25,vy:SL[1]*.25,vz:rand(300,900),life:rand(.4,.7),a:.9,rise:1.5,L:2}); trauma=Math.max(trauma,.1+q*.45); } }});
+  after(2.9,()=>{ Cn.cam(cx,cy-BODY,8); Cn.zoom(.86); });
   // climax
-  after(3.5,()=>{ V.shadow=null; Cn.impact(cx,cy-100,{style:'ember',c:EMB,n:3,r:.15,then:()=>{ M.on=false;
-      const K=VFX.fx_mage_meteor; if(K&&K.f[0].ok){ const v=vfx('fx_mage_meteor',cx,cy,{px:K.ix,py:K.iy,sc:3000/K.h}); if(v){ v.age=K.hit*K.ms/1000; v.life-=v.age; } }
-      const N=VFX.fx_pyro_nova; if(N&&N.f[0].ok) vfx('fx_pyro_nova',cx,cy-60,{sc:2900/N.w,a:.8}); fireBurst(cx,cy-80,2.6,0);
-      Cn.waves(cx,cy,EMB,{n:4,s:1.25,dust:22,dc:'60,36,24'}); Cn.scar({x:cx,y:cy,r:860,c:EMB,life:10,heat:4.5}); Cn.scar({kind:'burn',x:cx,y:cy,r:620,c:EMB,life:10,heat:4}); Cn.wash('255,220,170',.34,0,cx,cy);
-      burst(cx,cy,34,{rock:true,s0:400,s1:1500,size:24,vz:1500}); Cn.sweep(cx,cy,Dm,{speed:3000,push:1.3}); SFX.shatter(1);
+  after(3.28,()=>Cn.impact(cx,cy-100,{style:'ember',c:EMB,n:2,r:.15,soft:true,flash:.12,blur:.07,then:()=>{ for(const d of Cn.drones) d.stop(.05); K.ambient(.62,.4,.3,10); after(.9,()=>K.ambient(1,1,1,1.6)); drop(1600);
+      Cn.gStar(cx,cy,80,980,EMB,{c2:'#6a1000',c3:'#ffffff',life:.4,n:9}); for(let i=0;i<4;i++) Cn.gRing(cx,cy,hw*(1.1+i*.45),i%2?HOT:EMB,{c2:'#6a1000',life:.55+i*.12,w:.14-i*.03,jag:.11,delay:i*.06});
+      K.ripple(cx,cy,hw*2.3,{life:.8,s:1.1}); Cn.gCrack(cx,cy,hw*1.5,EMB,{c2:'#6a1000',c3:'#fff2b0',life:4,n:17,w:.11}); Cn.scar({x:cx,y:cy,r:860,c:EMB,life:10,heat:4.5}); Cn.scar({kind:'burn',x:cx,y:cy,r:620,c:EMB,life:10,heat:4});
+      Cn.gFire(cx,cy,20,520,{n:22,life:1.1,sp:900}); for(let i=0;i<10;i++){ const a=i/10*TAU; after(.05,()=>Cn.gFire(cx+Math.cos(a)*420,cy+Math.sin(a)*420*FSY,10,260,{n:5,life:.9})); }
+      Cn.gDebris(cx,cy,34,{s0:400,s1:1700,vz:2400,size:36,c:'#5a4844'}); Cn.gDebris(cx,cy,14,{r:320,s0:100,s1:600,v0:1700,vz:3800,sz0:44,size:110,g:2600,c:'#5a4844'});
+      K.light(cx,cy,2800,EMB,1.5,1.2); Cn.sweep(cx,cy,Dm,{speed:3000,push:1.3}); SFX.shatter(1); Cn.shake(1.4);
       // the ground keeps going off further and further out
-      for(let r=1;r<=2;r++) after(r*.2,()=>{ const n=5+r*3, rr=r*430; for(let i=0;i<n;i++){ const a=i/n*TAU+r, x=cx+Math.cos(a)*rr, y=cy+Math.sin(a)*rr*.75, P=VFX.pyro_explosion; if(P&&P.f[0].ok) vfx('pyro_explosion',x,y-60,{sc:.8}); fring(x,y,900,EMB,.3,5); } sfx('boom',1.2,.6); Cn.shake(.6); });
-      Cn.setDark(.4,{spot:null}); Cn.ashFall(3.4,'#7a6a64',56); }}); });
-  // afterglow: ash, smoke, a crater that is still molten
-  after(4.1,()=>{ Cn.smokeRise(cx,cy,420,{n:14,dur:1.4,c:'36,26,22',a:.42}); Cn.embers(cx,cy,640,EMB,{n:44,dur:2}); });
-  after(4.7,()=>{ Cn.setDark(0); Cn.zoom(1); Cn.cam(null); });
-  after(5.35,ultStop); }
+      for(let r=1;r<=2;r++) after(r*.22,()=>{ const n=5+r*3, rr=r*470; for(let i=0;i<n;i++){ const a=i/n*TAU+r, x=cx+Math.cos(a)*rr, y=cy+Math.sin(a)*rr*.75; Cn.gFire(x,y,10,200,{n:5}); Cn.gBeam(x,y,900,90,EMB,{c2:'#6a1000',c3:'#fff2b0',life:.4}); Cn.gRing(x,y,380,EMB,{c2:'#6a1000',life:.3,w:.12}); } sfx('boom',1.2,.6); Cn.shake(.6); }); }}));
+  // afterglow: a column of smoke over a crater that is still molten, ash coming down
+  after(3.8,()=>{ for(let i=0;i<18;i++) after(i*.07,()=>Cn.gPuff(cx+rand(-300,300),cy+rand(-120,120),rand(40,300),rand(160,300),{c:'#2a2026',c2:'#08060a',c3:'#5a484a',vz:rand(260,620),life:rand(1.6,2.6),a:.85,grow:160})); Cn.gMotes(cx,cy,hw,EMB,70,{dur:2,life:2.4}); Cn.gMotes(cx,cy,hw*1.2,'#8a7a78',50,{fall:true,dur:1.6,life:2.6,m:11,s0:3,s1:7,white:0}); });
+  after(4.5,()=>{ Cn.zoom(1); Cn.cam(null); });
+  after(5.3,ultStop); }
 
 X.reg('mage',{sk,order,basic:{fn:basic,cd:()=>.85*(1-.05*(L('mg_basic')-1))},skills:SKILL,ults:{mg_ult1:ultThunder,mg_ult2:ultMeteor}});
 })();

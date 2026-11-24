@@ -46,7 +46,7 @@ void main(){vec4 o=vec4(0.);
   float rr=r+(n-.5)*vp.w;float d=rr-vp.x;float m=d>0.?1.-d/(vp.z*.35):1.+d/vp.z;m=min(m,1.)-M(vec2(th*5.+vp.y,r*1.5))*.35*step(d,0.);
   m*=step(r,1.);o=cel(m,.62,.14);
  }else if(mode<3.5){ // 3 streak / beam: u 0..1 along, v.y -1..1 across; x=erode, z=noise stretch, w=edge jag, y=phase
-  float u=v.x;float tp=pow(max(sin(3.14159*clamp(u,0.,1.)),0.),.4);float n=N(vec2(u*vp.z-vp.y,v.y*.21+.5));
+  float u=v.x;float tp=vp.z<0.?1.:pow(max(sin(3.14159*clamp(u,0.,1.)),0.),vp.w>=.5?1.3:.4);float n=N(vec2(u*abs(vp.z)-vp.y,v.y*.21+.5));
   float m=tp*(1.-vp.w*n)-abs(v.y);m-=vp.x*(.4+n);o=cel(m,.42,.1);
  }else if(mode<4.5){ // 4 impact star: x=size, z=spike count, w=core, y=phase
   float r=length(v);float th=atan(v.y,v.x)/6.2831853;float sp=N(vec2(th*vp.z+vp.y,.5));sp=sp*sp;float sp2=M(vec2(th*vp.z*2.3-vp.y,.2));
@@ -67,7 +67,7 @@ void main(){vec4 o=vec4(0.);
   float st=step(.86,C(vec2(u*vp.z*.9+vp.y*.02,v.y*.9+.5)))*N(vec2(u*3.+vp.y,v.y));
   vec3 vo=c2*(.2+.8*M(vec2(u*1.7-vp.y*.05,v.y*.4+vp.y*.03)))+vec3(st)*.8;
   float e=exp(-max(d-w,0.)/(.05+.1*vp.w))*step(.002,w);float core=smoothstep(.07,.0,abs(d-w));
-  o=vec4(vo*inside+(vc.rgb*e*.9+c3*core)*(1.-inside*.4),inside)*vc.a;
+  o=vec4(vo*inside+vc.rgb*e*.9*(1.-inside)+c3*core,inside)*vc.a;
  }else if(mode<8.5){ // 8 soft glow
   float r=length(v);float m=max(1.-r,0.);o=vec4(vc.rgb*m*m*vc.a,0.);
  }else if(mode<9.5){ // 9 refraction ring -> distortion buffer: x=radius, z=width, w=strength
@@ -168,7 +168,7 @@ X.st=(m,b='add',o={})=>({m,b,rt:'vfx',c2:[0,0,0],c3:[1,1,1],...o});
 // X.add(life, fn(k, t), delay): fn is called every rendered frame of its life with k = 0..1 and t = seconds
 X.add=(life,fn,delay=0)=>{ const e={t0:RT+delay,life,fn,dead:false}; X.fx.push(e); return e; };
 // particles: {x,y,z,vx,vy,vz,g,drag,life,s,c,m,rot,vr,grow,a,bounce,shadow,st}
-const PT_ST={}; function ptSt(m,b,c2){ const k=m+b+(c2||''); return PT_ST[k]||(PT_ST[k]=X.st(m,b,{c2:c2?rgb(c2):[0,0,0]})); }
+const PT_ST={}; function ptSt(m,b,c2,c3,L){ const k=m+b+(c2||'')+(c3||'')+(L||''); return PT_ST[k]||(PT_ST[k]=X.st(m,b,{c2:c2?rgb(c2):[0,0,0],c3:c3?rgb(c3):[1,1,1],L:L??1})); }
 X.pt=o=>{ if(!X.on||X.pts.length>900) return; X.pts.push({x:0,y:0,z:0,vx:0,vy:0,vz:0,g:0,drag:0,life:1,s:10,c:[1,1,1],m:8,rot:0,vr:0,grow:0,a:1,t:0,b:'add',ph:Math.random()*9,sx:1,...o}); };
 function stepPts(dt){ for(let i=X.pts.length-1;i>=0;i--){ const p=X.pts[i]; p.t+=dt; if(p.t>=p.life){ X.pts.splice(i,1); continue; }
     const d=Math.exp(-p.drag*dt); p.vx*=d; p.vy*=d; p.vz=(p.vz-p.g*dt)*(p.g?1:d); p.x+=p.vx*dt; p.y+=p.vy*dt; p.z+=p.vz*dt; p.rot+=p.vr*dt; p.s+=p.grow*dt;
@@ -176,7 +176,7 @@ function stepPts(dt){ for(let i=X.pts.length-1;i>=0;i--){ const p=X.pts[i]; p.t+
     if(p.z<0){ if(p.bounce){ p.z=0; p.vz=-p.vz*p.bounce; p.vx*=.55; p.vy*=.55; p.vr*=.5; if(Math.abs(p.vz)<120){ p.vz=0; p.g=0; p.vx=p.vy=p.vr=0; p.bounce=0; } } else if(p.g){ p.t=p.life; } } } }
 function drawPts(){ for(const p of X.pts){ const k=p.t/p.life, a=p.a*(p.fade==='in'?Math.min(1,k*5)*Math.min(1,(1-k)*2.5):Math.min(1,(1-k)*(p.fk||3)));
     if(p.shadow&&p.z>4) X.floor(ptSt(12,'alpha'),p.x,p.y,p.s*(1+p.z*.0012),null,0,[0,0,0],.5*a/(1+p.z*.004));
-    const st=ptSt(p.m,p.b,p.c2);
+    const st=ptSt(p.m,p.b,p.c2,p.c3,p.L);
     if(p.m===3){ const sp=Math.hypot(p.vx,p.vy-p.vz)||1, l=p.len||.04; X.line(st,p.x,p.y,p.z,p.x-p.vx*l,p.y-p.vy*l,p.z-p.vz*l,p.s,p.c,a,0,p.ph,1,0); }
     else X.bill(st,p.x,p.y,p.z,p.s*p.sx,p.s,p.rot,p.c,a,p.er?k*p.er:0,p.ph,p.ns||1,p.w||0); } }
 

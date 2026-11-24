@@ -102,16 +102,16 @@ function drawCut(g){ const c=C.cut; if(!c) return; const u=U(), t=c.t, inK=easeO
 const PAL={bw:[[[0,0,0],[1,1,1]],[[1,1,1],[0,0,0]],[[0,0,0],[1,1,1]]]};
 function rgb01(h){ const n=parseInt(h.slice(1),16); return [(n>>16&255)/255,(n>>8&255)/255,(n&255)/255]; }
 C.impact=(x,y,o={})=>{ const c=o.c||'#ffffff', k=rgb01(c), dk=k.map(v=>v*.16), n=o.n||3, fd=o.fd||.045;
-  let pal=o.pal||(n<3?[[k,[0,0,0]],[dk,[1,1,1]]]:[[[0,0,0],[1,1,1]],[k,[0,0,0]],[dk,[1,1,1]]]); if(LOW()) pal=pal.map(()=>[dk,k]);
-  C.imp={x,y,c,t:0,fd,n,pal:pal.slice(0,n),seed:(Math.random()*1e4)|0,style:o.style||'radial',ang:o.ang||0,r:o.r??.2,then:o.then,v:o.v??1,flash:o.flash,blur:o.blur};
+  let pal=o.pal||(n<3?[[k,[0,0,0]],[dk,[1,1,1]]]:[[[0,0,0],[1,1,1]],[k,[0,0,0]],[dk,[1,1,1]]]); if(LOW()) pal=pal.map(()=>[dk,k]); if(o.soft) pal=[[k.map(v=>v*.08),k.map(v=>.5+v*.3)],[dk.map(v=>v*.4),k.map(v=>.34+v*.4)]];
+  C.imp={x,y,c,t:0,fd,n,pal:pal.slice(0,n),seed:(Math.random()*1e4)|0,style:o.style||'radial',ang:o.ang||0,r:o.r??.2,then:o.then,v:o.v??1,flash:o.flash,blur:o.blur,soft:!!o.soft};
   hitstop=Math.max(hitstop,n*fd); if(AC) duck(.06,n*fd*.9); buzz([0,n*fd*1000|0,160]); };
 let seedV=1; const srnd=()=>{ seedV=(seedV*16807)%2147483647; return seedV/2147483647; };
 function drawImp(g){ const m=C.imp; if(!m) return; const i=Math.min(m.n-1,Math.floor(m.t/m.fd)), [bg,fg]=m.pal[i], [sx,sy]=w2s(m.x,m.y), col=`rgb(${fg.map(v=>v*255|0)})`, R=Math.hypot(W,H), mn=Math.min(W,H);
   seedV=m.seed+i*977+1; g.save(); g.setTransform(1,0,0,1,0,0); g.fillStyle=col;
   if(m.style==='slash'){ // parallel streaks along the cut, thinning toward its line
     g.translate(sx,sy); g.rotate(m.ang);
-    for(let k=0;k<34;k++){ const off=(srnd()<.5?-1:1)*(mn*.05+srnd()*srnd()*R*.6), th=(2+srnd()*srnd()*26)*U(), x0=-R+srnd()*R*.8, l=R*(.5+srnd()*1.4); g.beginPath(); g.moveTo(x0,off); g.lineTo(x0+l*.5,off-th/2); g.lineTo(x0+l,off); g.lineTo(x0+l*.5,off+th/2); g.fill(); }
-    g.fillRect(-R,-2.5*U(),R*2,5*U()); }
+    for(let k=0;k<(m.soft?13:34);k++){ const off=(srnd()<.5?-1:1)*(mn*(m.soft?.2:.05)+srnd()*srnd()*R*.6), th=(2+srnd()*srnd()*26)*U(), x0=-R+srnd()*R*.8, l=R*(.5+srnd()*1.4); g.beginPath(); g.moveTo(x0,off); g.lineTo(x0+l*.5,off-th/2); g.lineTo(x0+l,off); g.lineTo(x0+l*.5,off+th/2); g.fill(); }
+    if(!m.soft) g.fillRect(-R,-2.5*U(),R*2,5*U()); }
   else { const st=m.style, u=U(); g.translate(sx,sy); g.strokeStyle=col;
     const wedges=N=>{ for(let k=0;k<N;k++){ const a=k/N*TAU+srnd()*.2, r0=mn*(m.r+srnd()*srnd()*.55), wd=.012+srnd()*srnd()*.07; g.beginPath(); g.moveTo(Math.cos(a)*r0,Math.sin(a)*r0); g.lineTo(Math.cos(a-wd)*R,Math.sin(a-wd)*R); g.lineTo(Math.cos(a+wd)*R,Math.sin(a+wd)*R); g.fill(); } };
     if(st==='bolt'){ // forked fractures running out from the strike
@@ -241,7 +241,7 @@ C.gRing=(x,y,R,c,o={})=>{ const T=tone(c,o), st=gst(2,o.alpha?'alpha':'add',T,o.
 C.gStar=(x,y,z,s,c,o={})=>{ const T=tone(c,o), st=gst(4,o.alpha?'alpha':'add',T,o.L??3), life=o.life||.2, sd=Math.random()*9;
   K.add(life,k=>{ const g=k<.25?.6+k*1.6:1-(k-.25)*.6; K.bill(st,x,y,z,s*g,s*g*(o.sy??1),0,T.c,o.a??1,1,K.tq(o.fps||16,sd),o.n||5,.3*(1-k)); },o.delay||0); };
 // cel smoke / dust / flame puffs that billow and eat themselves away
-C.gPuff=(x,y,z,s,o={})=>{ const T=tone(o.c||'#3a3446',{c2:o.c2||'#0c0a12',c3:o.c3||'#7a7488'}); K.pt({x,y,z,vx:o.vx||0,vy:o.vy||0,vz:o.vz??rand(60,160),drag:o.drag??1.6,life:o.life||rand(.8,1.4),s,grow:o.grow??s*.7,c:T.c,m:5,b:o.add?'add':'alpha',st:null,er:1,ns:o.ns||rand(.8,1.3),w:o.rise??1,fk:6,a:o.a??.9,c2:o.c2||'#0c0a12',L:o.L??1}); };
+C.gPuff=(x,y,z,s,o={})=>{ const T=tone(o.c||'#3a3446',{c2:o.c2||'#0c0a12',c3:o.c3||'#7a7488'}); K.pt({x,y,z,vx:o.vx||0,vy:o.vy||0,vz:o.vz??rand(60,160),drag:o.drag??1.6,life:o.life||rand(.8,1.4),s,grow:o.grow??s*.7,c:T.c,m:5,b:o.add?'add':'alpha',st:null,er:1,ns:o.ns||rand(.8,1.3),w:o.rise??1,fk:6,a:o.a??.9,c2:o.c2||'#0c0a12',c3:o.c3||'#7a7488',L:o.L??1}); };
 // rock torn out of the floor: thrown up, falls under gravity, bounces, casts a shadow
 C.gDebris=(x,y,n,o={})=>{ n=Math.round(n*QK()); for(let i=0;i<n;i++){ const a=o.dir!=null?o.dir+rand(-(o.spread??.6),o.spread??.6):rand(0,TAU), sp=rand(o.s0??200,o.s1??900);
     K.pt({x:x+rand(-1,1)*(o.r||30),y:y+rand(-1,1)*(o.r||30)*FSY,z:rand(4,30),vx:Math.cos(a)*sp,vy:Math.sin(a)*sp*FSY,vz:rand(o.v0??500,o.vz??1500),g:o.g??3000,life:rand(1,1.9),s:rand(o.sz0??8,o.size??24),c:K.rgb(o.c||'#5d5470'),c2:'#0b0910',m:11,b:'alpha',rot:rand(0,TAU),vr:rand(-12,12),bounce:.35,shadow:true,fk:5,ph:rand(0,9)}); } };
@@ -261,6 +261,32 @@ C.gWall=(x1,y1,x2,y2,h,c,o={})=>{ const T=tone(c,o), st=gst(6,'add',T,o.L??2), l
 C.gSlip=(x1,y1,x2,y2,w,s,life=.25,delay=0)=>{ if(LOW()) return; const st=K.st(10,'mix',{rt:'dist'}); K.add(life,k=>{ const [ax,ay]=K.w2s(x1,y1), [bx,by]=K.w2s(x2,y2), l=Math.hypot(bx-ax,by-ay)||1; K.line(st,x1,y1,0,x2,y2,0,w,[0,0,0],1,s*Math.sin(Math.min(1,k*1.6)*Math.PI)*(1-k*.4),0,(bx-ax)/l,-(by-ay)/l); },delay); };
 // speed streaks racing toward a point of the screen
 C.gSpeed=(dur,c,o={})=>{ const T=tone(c,o), st=gst(14,'add',T,5), sd=Math.random()*9; K.add(dur,k=>{ K.screen(st,o.x,o.y,T.c,(o.a??.7)*Math.min(1,k*8)*Math.min(1,(1-k)*4),o.r??.3,K.tq(o.fps||16,sd),o.n??11,o.w??.22); },o.delay||0); };
+// something falling out of the sky onto (x,y): drawn larger while it is high (nearer the camera), its shadow closing in under it, a streak behind it.
+// o: {img, h (world height), w, z0, dur, c (tint), flip, rot, trail (colour), stick (seconds it stays planted), sink, land(x,y)}
+C.gDrop=(x,y,o={})=>{ const im=o.img, h=o.h||300, w=o.w||h*.4, z0=o.z0||3000, dur=o.dur||.35, tint=o.c||[1,1,1], st=K.st(0,'alpha',{t:im,L:o.L??2,uv01:true}), TT=o.trail?tone(o.trail):null, stT=TT&&gst(3,'add',TT,o.L??2), stS=K.st(12,'alpha',{L:0}), pz=o.pz??.00035, rot=o.rot||0, sink=o.sink??.14, stick=o.stick||0, fl=o.flip?-1:1;
+  const fxd=K.add(dur+stick,(k,t)=>{ if(o.alive&&!o.alive()){ fxd.dead=true; return; } const q=Math.min(1,t/dur), z=z0*(1-q*q), sc=1+z*pz, landed=t>=dur, a=landed?Math.min(1,(dur+stick-t)/(o.fade||.35)):Math.min(1,q*4);
+    if(!landed){ K.floor(stS,x,y,w*(1.2+2.2*(1-q)),null,0,[0,0,0],(.15+.5*q*q)); if(stT){ const ox=(o.dx||0)*(z/z0), oy=(o.dy||0)*(z/z0), z2=Math.min(z0,z+h*(o.tl||3.2)), ox2=(o.dx||0)*(z2/z0), oy2=(o.dy||0)*(z2/z0); K.line(stT,x+ox,y+oy,z+h*.6,x+ox2,y+oy2,z2+h*.6,w*(o.tw||.34)*sc,TT.c,.7*q,0,t*9,2,.5); } }
+    else K.floor(stS,x,y,w*.9,null,0,[0,0,0],.45*a);
+    const ox=(o.dx||0)*(z/z0), oy=(o.dy||0)*(z/z0); if(o.tick&&!landed) o.tick(x+ox,y+oy,z,q);
+    K.bill(st,x+ox,y+oy,z+h*(.5-sink)*sc,w*.5*sc,h*.5*sc*fl,rot+(o.spin||0)*t,tint,a,landed&&o.burn?Math.max(0,1-(dur+stick-t)/(o.burn)):0,3,1,0); },o.delay||0);
+  if(o.land) after((o.delay||0)+dur,()=>o.land(x,y)); };
+// a column of light standing on a point of the floor
+C.gBeam=(x,y,h,w,c,o={})=>{ const T=tone(c,o), st=gst(3,'add',T,o.L??2), life=o.life||.4, sd=Math.random()*9; K.add(life,k=>{ const e=Math.min(1,k*6); K.line(st,x,y,0,x,y,h*e,w*(1-k*.7),T.c,(o.a??1)*(1-k*k),k*.5,sd+k*3,2,.4); },o.delay||0); };
+// fractures of light running out over the floor from an impact, cooling as they go
+C.gCrack=(x,y,R,c,o={})=>{ const T=tone(c,o), st=gst(13,'add',T,0), life=o.life||1.6, sd=Math.random()*9; K.add(life,k=>{ K.floor(st,x,y,R,null,sd,T.c,(o.a??1)*(1-k)*(1-k),Math.min(1,.2+k*5),sd,o.n||13,o.w||.11); },o.delay||0); };
+// a flat texture on the floor (or floating at height z): magic circles. returns the effect; set .r/.a/.rot on its state object
+C.gCircle=(name,x,y,o={})=>{ const s=K.img(name), T=tone(o.c||'#ffffff'), S_={r:o.r||300,a:o.a??1,rot:o.rot||0,z:o.z||0,er:0}, st=K.st(0,'add',{t:s.im,L:o.L??0,uv01:true}); S_.fx=K.add(o.life||5,(k,t)=>{ if(o.tick) o.tick(S_,t,k); K.floor(st,x,y,S_.r,null,S_.rot,T.c,S_.a,S_.er,2,1.5,o.warp||0,S_.z); },o.delay||0); return S_; };
+// a lightning stroke between two points in space: a jagged path redrawn every other frame, with forks; hard white core in a coloured sheath
+C.gBolt=(x1,y1,z1,x2,y2,z2,c,o={})=>{ const T=tone(c,o), st=gst(3,'add',T,o.L??3), life=o.life||.25, w=o.w||26, len=Math.hypot(x2-x1,(y2-z2)-(y1-z1)), n=Math.max(5,Math.round(len/(o.seg||105))), jag=o.jag??.07, stO=gst(3,'add',{c2:T.c2,c3:T.c},o.L??3), sd=Math.random()*99; let key=-1, P=null, F=[];
+  const build=()=>{ P=[]; F=[]; for(let i=0;i<=n;i++){ const u=i/n, e=Math.sin(u*Math.PI)*len*jag; P.push([lerp(x1,x2,u)+(i&&i<n?rand(-e,e):0),lerp(y1,y2,u),lerp(z1,z2,u)+(i&&i<n?rand(-e,e)*.6:0)]); }
+    const nf=o.forks??2; for(let k=0;k<nf;k++){ const i=1+((Math.random()*(n-2))|0), p=P[i], a=rand(0,TAU), l=len*rand(.08,.2); F.push([p,[p[0]+Math.cos(a)*l,p[1],p[2]-Math.abs(Math.sin(a))*l*.8-l*.3]]); } };
+  K.add(life,k=>{ const q=Math.floor(RT*(o.fps||18)); if(q!==key){ key=q; build(); } const a=(o.a??1)*(k<.5?1:1-(k-.5)*2)*(Math.random()<.2?.6:1), ww=w*(1-k*.5);
+    for(let i=0;i<n;i++){ const p=P[i], q2=P[i+1], ex=(q2[0]-p[0])*.12, ey=(q2[1]-p[1])*.12, ez=(q2[2]-p[2])*.12; K.line(stO,p[0]-ex,p[1]-ey,p[2]-ez,q2[0]+ex,q2[1]+ey,q2[2]+ez,ww*2.4,T.c,a*.4,0,sd+i,-1.5,.25); K.line(st,p[0]-ex,p[1]-ey,p[2]-ez,q2[0]+ex,q2[1]+ey,q2[2]+ez,ww,T.c,a,0,sd+i,-1.5,.25); }
+    for(const f of F) K.line(st,f[0][0],f[0][1],f[0][2],f[1][0],f[1][1],f[1][2],ww*.45,T.c,a*.8,0,sd,1.5,.25); },o.delay||0); };
+// a burst of drawn flame at a point: hot tongues that climb and thin into dark smoke
+C.gFire=(x,y,z,s,o={})=>{ const n=Math.round((o.n||8)*QK()), c=o.c||'#ff7a1a', c3=o.c3||'#fff2b0', c2=o.c2||'#8a1400';
+  for(let i=0;i<n;i++){ const a=rand(0,TAU), r=s*rand(0,.6), sp=rand(0,o.sp??s*1.2); C.gPuff(x+Math.cos(a)*r,y+Math.sin(a)*r*FSY,z+rand(0,s*.3),s*rand(.35,.7),{c,c2,c3,add:true,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp*FSY,vz:rand(s*.6,s*2.2),life:rand(.35,o.life??.8),a:1,rise:1.6,grow:s*.4,drag:2.2}); }
+  if(o.smoke!==false) for(let i=0;i<Math.ceil(n*.6);i++) after(rand(.1,.4),()=>{ const a=rand(0,TAU), r=s*rand(0,.7); C.gPuff(x+Math.cos(a)*r,y+Math.sin(a)*r*FSY,z+s*.5,s*rand(.5,.9),{c:'#2a2026',c2:'#08060a',c3:'#55464a',vz:rand(s*.5,s*1.3),life:rand(1.1,2),a:.8,grow:s*.5}); }); };
 // ---------------------------------------------------------------- per-frame
 C.step=rdt=>{ C.t+=rdt; GFX.step(rdt); if(LOW()){ trauma=Math.min(trauma,.4); post.flash=Math.min(post.flash,.12); } C.dark=lerp(C.dark,C.darkT,1-Math.exp(-rdt*(C.darkT>C.dark?6:3.2)));
   if(C.veilHold>0) C.veilHold-=rdt; else C.veil*=Math.exp(-rdt*7);
