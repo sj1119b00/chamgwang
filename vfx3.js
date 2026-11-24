@@ -19,7 +19,7 @@ K.PAL={
 };
 const pal=p=>typeof p==='string'?K.PAL[p]:(p||K.PAL.crimson);
 K.pal=pal;
-const TEX=['v3_break_sword','v3_break_arcane','v3_break_ki','v3_break_fire','v3_katana','v3_scorch_ring','v3_burst_sword','v3_burst_arcane','v3_burst_ki','v3_burst_lotus','v3_burst_fire','v3_shock_thick','v3_fissure_b','v3_stroke_open','v3_circ_blade2','v3_fist_punch','v3_fist_cone','v3_flame_cone','v3_vortex_wisps','v3_boulder','v3_spikes','v3_palmprint','v3_skygate','v3_bolt_b','v3_bolt_fork','v3_arc_h','v3_frost_ring','v3_crater','v3_comet_tail','v3_greatsword','v3_cres_up','v3_pillar','v3_scorch','v3_dustring','v3_orb','v3_circ_mage','v3_circ_fist','v3_circ_shaman','v3_circ_pyro','fx_circle_arcane','fx_circle_seal','v3_slash_thin','v3_slash_heavy','v3_thrust','v3_spin_ring','v3_circ_blade','v3_fissure','v3_gash','v3_xburst','fx3_burst','fx3_shock','fx3_smoke','fx3_slash','fx3_fire','fx3_bolt','fx3_tornado','fx3_beam','fx_crack','fx_gash'];
+const TEX=['v3_flip_blast','v3_flip_smoke','v3_break_sword','v3_break_arcane','v3_break_ki','v3_break_fire','v3_katana','v3_scorch_ring','v3_burst_sword','v3_burst_arcane','v3_burst_ki','v3_burst_lotus','v3_burst_fire','v3_shock_thick','v3_fissure_b','v3_stroke_open','v3_circ_blade2','v3_fist_punch','v3_fist_cone','v3_flame_cone','v3_vortex_wisps','v3_boulder','v3_spikes','v3_palmprint','v3_skygate','v3_bolt_b','v3_bolt_fork','v3_arc_h','v3_frost_ring','v3_crater','v3_comet_tail','v3_greatsword','v3_cres_up','v3_pillar','v3_scorch','v3_dustring','v3_orb','v3_circ_mage','v3_circ_fist','v3_circ_shaman','v3_circ_pyro','fx_circle_arcane','fx_circle_seal','v3_slash_thin','v3_slash_heavy','v3_thrust','v3_spin_ring','v3_circ_blade','v3_fissure','v3_gash','v3_xburst','fx3_burst','fx3_shock','fx3_smoke','fx3_slash','fx3_fire','fx3_bolt','fx3_tornado','fx3_beam','fx_crack','fx_gash'];
 K.pre=()=>{ if(F&&F.on){ for(const t of TEX) F.img(t); F.img('v3_curtain',{repeat:true}); F.img('v3_groundfire',{repeat:true}); for(const t of ['meteor','sword']) F.img(t); } };
 // a point of a tilted local frame in world coordinates (x, floor y, height)
 K.at=(M,x,y,z,lx,ly,lz)=>[x+M[0]*lx+M[4]*ly+M[8]*lz,y+(M[1]*lx+M[5]*ly+M[9]*lz)*FSY,z+M[2]*lx+M[6]*ly+M[10]*lz];
@@ -255,6 +255,18 @@ K.smoke=(x,y,o={})=>{ if(!F.on) return; const m=mats(), dur=o.dur||1.4, s=o.s||2
   GFX.add(dur,(k)=>{ const e=eo3(k), ss=s*mix(.5,1.25,e), f=sat((k-.3)/.7);
     F.bill(mt,x+(o.vx||0)*k,y,(o.z||0)+ss*.6+(o.rise??s*.6)*e,ss*1.5,ss,0,{fd:[.12,.12,.12,.12],a:(o.a??.8)*(1-f*f)*sat(k*8),ero:.22+f*.55,nk:.3+f*.6,t0:sd,uvT:flip?[-1,1,1,0]:[1,1,0,0]}); },o.delay||0); };
 
+// FLIP: a painted flipbook (cols x rows frames in one image) played in the world. The shape itself changes from frame to frame, so nothing
+//  has to be eroded or scaled to make it move; two neighbouring frames are cross-faded. o: {tex, cols, rows, n, dur, s, asp, z, lift, pal,
+//  gain, floor, rot, flip, smoke (true = dark alpha smoke in o.c / o.c2 instead of light), a, s0 (start scale), delay}
+K.flip=(x,y,o={})=>{ if(!F.on) return; const m=mats(), P=pal(o.pal), dur=o.dur||.7, s=o.s||300, C=o.smoke?{}:col(P), g=o.gain||1, cols=o.cols||4, rows=o.rows||4, n=o.n||cols*rows, tex=o.tex||'v3_flip_blast', asp=o.asp||1, fl=o.flip??(Math.random()<.5),
+    key='fl'+tex+(o.floor?'g':'o')+(o.smoke?'s'+(o.c||'')+(o.c2||''):''), c=o.c||'#16121c',
+    mt=m[key]||(m[key]=F.mat(o.smoke?{...m.art,tex,layer:o.floor?'g':'o',nk:0,ero:0,soft:.4,op:1,cA:c,cB:c,cC:o.c2||'#4a424e',rk:[.25,1],gain:1,bgain:1}:{...m.art,tex,layer:o.floor?'g':'o',nk:0,ero:0,soft:.3,rk:o.rk||[.55,1.05]}));
+  if(!F.ready(tex)) return;
+  const uv=i=>{ const cc=i%cols, r=Math.floor(i/cols); return fl?[-1/cols,1/rows,(cc+1)/cols,r/rows]:[1/cols,1/rows,cc/cols,r/rows]; };
+  GFX.add(dur,(kk)=>{ const fp=kk*(n-1), i0=Math.floor(fp), w=fp-i0, ss=s*mix(o.s0??1,1,kk), a=(o.a??1)*sat(kk*30)*sat((1-kk)*12);
+    const dr=(i,al)=>{ if(al<.03) return; const q={...C,a:a*al,gain:3*g,ero:0,nk:0,uvT:uv(i)}; if(o.floor) F.quad(mt,x,y,ss*asp,ss,o.rot||0,q); else F.bill(mt,x+(o.vx||0)*kk,y,(o.z||0)+ss*(o.lift??.8)+(o.rise||0)*kk,ss*asp,ss,o.rot||0,q); };
+    dr(i0,1-w); if(i0+1<n) dr(i0+1,w); },o.delay||0); };
+
 // BURST: an explosion standing in the world: a white flash of needles, the painted fireball swelling and tearing apart, smoke
 // rolling up after it, a shock ring and haze on the floor, sparks and rock. o: {s, pal, z, parts:{flash,ball,smoke,shock,sparks,debris,crack}}
 const BT={sword:'v3_burst_sword',mage:'v3_burst_arcane',fist:'v3_burst_ki',shaman:'v3_burst_lotus',pyro:'v3_burst_fire'};
@@ -348,6 +360,8 @@ K.upheave=(x,y,o={})=>{ if(!F.on) return; const m=mats(), P=pal(o.pal), bk=o.tex
     mt=m['upv'+ut]||(m['upv'+ut]=F.mat({tex:ut,nz:'billow',n1:[2,2,0,-.2],nk:0,pw:ut==='v3_spikes'?.8:.7,ero:.07,soft:.1,fd:[.05,.05,.07,0],cA:'#050308',cB:'#4a4252',rk:ut==='v3_spikes'?[.8,1.25]:(ut==='v3_break_arcane'||ut==='v3_break_fire')?[.62,1.15]:[.9,1.4],gain:1.3,op:1})),
     ms=m['upS'+ut]||(m['upS'+ut]=F.mat({tex:ut,nk:0,pw:.8,ero:.05,soft:.25,fd:[.05,.05,.07,.1],cA:'#000000',cB:'#000000',cC:'#000000',op:1,layer:'g'})), lx=o.lx??x, ly=o.ly??y;
   const L=[]; for(let i=0;i<n;i++){ const jit=o.jit??.14, a=mix(a0,a1,(i+R(.2,.8))/n), rr=r*R(1-jit,1+jit); L.push({a,x:x+Math.cos(a)*rr,y:y+Math.sin(a)*rr*FSY+R(-.12,.12)*s,s:s*R(.6,1.3)*(1+.35*Math.sin(a)),flip:Math.random()<.5,d:(o.stagger??.012)*i+R(0,.03),sd:R(0,9),lean:Math.cos(a)*.24}); }
+  // nothing solid stands between the camera and the hero: a piece that would cover him is moved aside and made smaller
+  if(typeof pl!=='undefined'&&pl.gy!=null) for(const p of L){ const dx=p.x-pl.x, dy=p.y-pl.gy; if(dy>-30&&dy<p.s*1.25&&Math.abs(dx)<p.s*.85){ p.x=pl.x+(dx>=0?1:-1)*p.s*R(.9,1.15); p.s*=.72; } }
   for(const p of L) p.sa=Math.atan2((p.y-ly)/FSY,p.x-lx);
   L.sort((p,q)=>p.y-q.y);
   GFX.add(dur+.3,(kk,t)=>{ for(const p of L){ const tt=t-p.d; if(tt<0) continue; const e=eo3(sat(tt/rise)), f=sat((tt-dur*.55)/(dur*.45)), hh=p.s*(.25+.75*e)*(1-.3*f);

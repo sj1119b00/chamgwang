@@ -179,7 +179,7 @@ function ultZero(id){ ultStart(id); const F3ok=n=>window.FX3&&FX3.ready(n), Cn=X
     GOLD2={d:'#3a0a00',b:'#ffa820',m:'#ffe9a0',h:'#ffffff',l:'#ffc880',s:'#fff0c0'}, STEEL={d:'#04060e',b:'#5f78c0',m:'#b8ccff',h:'#f4f8ff',l:'#9ab4ff',s:'#d0dcff'}, cl=(v,a,b)=>Math.max(a,Math.min(b,v)),
     tp=(x,y)=>{ const dx=x-pl.x, dy=y-pl.gy; pl.x=x; pl.gy=y; for(const p of [...(pl.scarf||[]),...(pl.coat||[])]){ p.x+=dx; p.y+=dy; if(p.px!=null){ p.px+=dx; p.py+=dy; } } };
   // ---- omen: the light turns cold, the circle writes itself, the air is drawn to the hilt
-  plSeq([['gs03',.12],['gs04',9]]); pl.target='iaiReady'; pl.ps=18;
+  plSeq([['gc02',.14],['gc03',.14],['gc04',9]]); pl.target='iaiReady'; pl.ps=18;
   GFX.ambient(.46,.58,.68,3.5); const spot=GFX.light(x0,y0-60,560,'#d8e4ff',.8,.6,{hold:9,z:200});
   const sig=K.sigil(x0,y0,{r:hw*.6,dur:9,in:.62,out:.3,spin:.32,pal:STEEL,gain:.36,hole:.3,tex:F3ok('v3_circ_blade2')?'v3_circ_blade2':null}), sig2=K.sigil(x0,y0,{r:hw*.86,dur:9,in:.75,out:.3,spin:-.2,pal:STEEL,gain:.24,hole:.64});
   sig2.a=.6; K.crack(x0,y0,{r:230,pal:P,life:4.6,grow:.7});
@@ -190,11 +190,12 @@ function ultZero(id){ ultStart(id); const F3ok=n=>window.FX3&&FX3.ready(n), Cn=X
   // four cuts: [centre x (in half-widths), centre y (in half-heights), direction, lean, roll, ccw]
   const cuts=[[-.05,-.34,.22,.62,-.18,0],[.08,.3,Math.PI-.28,.5,.2,1],[-.2,-.12,-.5,.7,-.32,0],[.14,.12,Math.PI/2+.3,.36,.24,1]].map((q,i)=>{ const s=f0>0?1:-1, th=s>0?q[2]:Math.PI-q[2];
     return {x:x0+q[0]*s*hw,y:y0+q[1]*hh,th,lean:q[3],roll:q[4]*s,ccw:s>0?q[5]:1-q[5],reach:hw*(1.2+.1*i),dx:Math.cos(th),dy:Math.sin(th)}; });
+  const STR=[[['gm05',.03],['gm06',.05],['gm07',9]],[['gs05',.03],['gs07',.05],['gs09',9]],[['gm08',.03],['gm09',.05],['gm10',9]],[['gm10',.03],['gm11',.05],['gm12',9]]];
   const pivot=c=>[c.x-c.dx*c.reach*.38,c.y-c.dy*c.reach*.38*FSY], band=(c,fn)=>X.inCircleS(c.x,c.y,c.reach*.62,fn);
   // ---- the draw: one crescent across the whole field, the camera gives it room
   const t0=.85;
   after(t0-.07,()=>{ K.flare(x0+f0*40,y0,BODY*.6,{pal:'silver',s:60,sx:5,sy:.35,dur:.16,gain:5}); Cn.SND.tick(1.4,.3); });
-  after(t0,()=>{ spot.hold=0; spot.life=.25; pl.target='slashU'; plSeq([['gs05',.03],['gs07',.05],['gs09',9]]); const dir=f0>0?0:Math.PI;
+  after(t0,()=>{ spot.hold=0; spot.life=.25; pl.target='slashU'; plSeq([['gc05',.03],['gc06',.05],['gc07',9]]); const dir=f0>0?0:Math.PI;
     K.cres(x0-f0*hw*.25,y0,BODY*.55,{reach:hw*1.12,dir,lean:.58,roll:-.12*f0,tex:'fx3_slash',pal:P,swing:.08,hold:.18,fade:.46,gain:1,sparks:0,ccw:f0<0});
     K.cres(x0-f0*hw*.25,y0,BODY*.55,{reach:hw*1.2,dir,lean:.58,roll:-.12*f0,tex:'v3_slash_thin',pal:P,swing:.07,hold:.12,fade:.34,gain:.95,sparks:0,light:0,ccw:f0<0});
     K.art(x0+f0*90,y0,{tex:'v3_burst_sword',s:hw*.5,z:BODY*.1,dur:.34,pal:P,gain:1,hold:.2,s0:.55,rot:rand(-.3,.3)});
@@ -209,7 +210,7 @@ function ultZero(id){ ultStart(id); const F3ok=n=>window.FX3&&FX3.ready(n), Cn=X
       // where he was: the figure made of the blade's own light, already gone
       const st=GFX.st(0,'add',{c2:[.55,.35,0],c3:[1,.5,.3]}); GFX.add(.26,k=>{ GFX.pose(st,'sword','gs07',was[0]+c.dx*90*k,was[1]+c.dy*50*k,ff,[1,.4,.25],(1-k)*(1-k),{smear:.25+.5*k,sc:1.15}); });
       K.trail([0,.25,.5,.75,1].map(u=>({x:mix(was[0],ex,u),y:mix(was[1],ey,u),z:105})),{w:26,dur:.2,draw:.04,pal:P,gain:.7});
-      tp(ex,ey); prev=[ex,ey]; pl.f=ff; pl.visible=true; pl.target='slashU'; plSeq([['gs05',.03],['gs07',.05],['gs09',9]]);
+      tp(ex,ey); prev=[ex,ey]; pl.f=ff; pl.visible=true; pl.target='slashU'; plSeq(STR[i%4]);
       K.cres(px,py,BODY*.55,{reach:c.reach,dir:c.th,lean:c.lean,roll:c.roll,tex:'fx3_slash',pal:P,swing:.07,hold:.14,fade:.42,gain:1,sparks:0,ccw:c.ccw});
       K.cres(px,py,BODY*.55,{reach:c.reach*1.07,dir:c.th,lean:c.lean,roll:c.roll,tex:'v3_slash_thin',pal:P,swing:.06,hold:.1,fade:.3,gain:.9,sparks:0,light:0,ccw:c.ccw});
       // its shape stays in the floor as embers
@@ -223,7 +224,7 @@ function ultZero(id){ ultStart(id); const F3ok=n=>window.FX3&&FX3.ready(n), Cn=X
   const t1=tt+.16;
   // ---- stillness: he is back where he stood, back turned; the camera comes close and sinks; the circle beats like a heart
   after(t1,()=>{ const was=prev; const st=GFX.st(0,'add',{c2:[.55,.35,0],c3:[1,.5,.3]}); GFX.add(.26,k=>{ GFX.pose(st,'sword','gs07',was[0],was[1],pl.f,[1,.4,.25],(1-k)*(1-k),{smear:.3+.5*k,sc:1.15}); });
-    tp(x0,y0); pl.visible=true; pl.f=f0; plSeq([['gs08',.22],['gs09',.22],['gs11',.3],['gs12',9]]); pl.target='iaiDone'; pl.ps=30; Cn.zoom(1.32); Cn.roll(.035); Cn.cam(x0,hy,3); Cn.tilt(.24,2.2);
+    tp(x0,y0); pl.visible=true; pl.f=f0; plSeq([['gc08',.1],['gc09',.12],['gc10',.14],['gc11',.16],['gc12',9]]); pl.target='iaiDone'; pl.ps=30; Cn.zoom(1.32); Cn.roll(.035); Cn.cam(x0,hy,3); Cn.tilt(.24,2.2);
     GFX.ambient(.44,.5,.62,8); GFX.light(x0,y0-40,480,'#ffe8e0',.8,.3,{hold:.4,z:200});
     K.flare(x0,y0,BODY*.5,{pal:'silver',s:200,dur:.3,gain:2}); SFX.whoosh(1.4,.5); duck(.18,.75); K.dust(x0,y0,{n:10,r:40,sp:[150,380],a:.35}); sig.a=.9; sig2.a=.5; });
   [.08,.22].forEach((d,j)=>after(t1+d,()=>{ sig.kick(); sig2.kick(); SFX.heart(.7+j*.08); GFX.light(x0,y0,hw*1.1,'#c8d4ff',.14+j*.05,.16,{z:100}); K.shock(x0,y0,{r0:hw*.5,r:70,dur:.2,pal:'silver',gain:.35,light:0,dust:0,haze:.3,th:.5,painted:0}); Cn.zoom(1.34+j*.05); }));
@@ -239,13 +240,14 @@ function ultZero(id){ ultStart(id); const F3ok=n=>window.FX3&&FX3.ready(n), Cn=X
       Cn.SND.shing(.7+j*.08,.4); SFX.boom(.9+j*.05,.5); Cn.shake(.5+j*.08); Cn.roll((j%2?1:-1)*.03); }); });
   // ---- the held breath: everything leans in toward the place the blade will land
   const tf=tc+.52, bx=x0, by=y0-RR*FSY*.52;
+  after(tf-.5,()=>{ plSeq([['gw02',.08],['gw03',.1],['gw04',9]]); K.flare(x0,y0,BODY*1.25,{pal:GOLD2,s:70,dur:.3,gain:4}); });
   after(tf-.6,()=>{ K.blade(bx,by,{h:hh*1.45,omen:.52,drop:.28,hold:.42,dur:.95,pal:GOLD2,gain:1,tilt:-.2*f0}); GFX.light(bx,by,hw*.8,'#ffc870',.5,.3,{hold:.5,z:260}); });
   after(tf-.2,()=>{ GFX.gain=.5; Cn.zoom(.78); K.shock(bx,by,{r0:hw*1.7,r:90,dur:.2,pal:GOLD2,gain:.6,light:0,dust:0,painted:0,th:.7}); sig.r*=.86; sig2.r*=.86;
     for(let i=0;i<40;i++){ const a=rand(0,TAU), d=rand(500,1100); GFX.pt({x:bx+Math.cos(a)*d,y:by+Math.sin(a)*d*FSY,z:rand(0,500),tx:bx,ty:by,tz:120,pull:9,life:.24,s:rand(3,6),m:3,len:.06,c:GFX.rgb('#fff0c0'),c2:'#ffa820',L:3}); } });
   after(tf,()=>{ GFX.gain=.7; Cn.zoom(.68); Cn.tilt(.3,9); SFX.whoosh(.5,1); });
   // ---- the peak: the blade lands behind him and the floor breaks
-  after(tf+.2,()=>{ GFX.gain=1.25; hitstop=Math.max(hitstop,.13); Cn.shake(1.9); post.ca=.006; Cn.zoom(.58); Cn.roll(.05); after(.22,()=>Cn.roll(0));
-    K.upheave(bx,by,{r:hw*.4,n:7,s:hw*.32,pal:GOLD2,dur:1.7,a0:Math.PI*.86,a1:Math.PI*2.14}); K.upheave(x0,y0,{r:hw*.95,n:8,s:hw*.24,pal:P,dur:1.25,delay:.06,stagger:.03,a0:Math.PI*.1,a1:Math.PI*.9,jit:.36}); K.upheave(x0,y0,{r:hw*1.05,n:6,s:hw*.2,pal:P,dur:1.25,delay:.12,stagger:.02,a0:Math.PI*1.1,a1:Math.PI*1.9,jit:.3});
+  after(tf+.2,()=>{ plSeq([['gw05',.05],['gw06',.34],['gw09',.14],['gw10',.14],['gw11',.16],['gw12',9]]); GFX.gain=1.25; hitstop=Math.max(hitstop,.13); Cn.shake(1.9); post.ca=.006; Cn.zoom(.58); Cn.roll(.05); after(.22,()=>Cn.roll(0));
+    K.upheave(bx,by,{r:hw*.42,n:6,s:hw*.25,pal:GOLD2,dur:1.2,a0:Math.PI*.9,a1:Math.PI*2.1}); K.upheave(x0,y0,{r:hw*1.05,n:6,s:hw*.17,pal:P,dur:.95,delay:.06,stagger:.03,a0:Math.PI*.12,a1:Math.PI*.88,jit:.22}); K.upheave(x0,y0,{r:hw*1.1,n:5,s:hw*.15,pal:P,dur:.95,delay:.12,stagger:.02,a0:Math.PI*1.1,a1:Math.PI*1.9,jit:.25});
     for(let i=0;i<5;i++){ const a=-Math.PI*(.1+.2*i); K.smoke(bx+Math.cos(a)*rand(120,260),by+Math.sin(a)*rand(40,110),{s:rand(260,380),dur:rand(1.3,1.9),delay:i*.03,c:'#120608',c2:'#4a2418',a:.75,rise:260}); }
     K.flare(bx,by,BODY*.3,{pal:GOLD2,s:hw*.34,dur:.09,gain:7}); K.flare(bx,by,BODY*.3,{pal:GOLD2,s:hw*.7,sx:3.2,sy:.3,dur:.14,gain:4});
     // the cutting wind of it: one gold crescent round the foot of the blade
