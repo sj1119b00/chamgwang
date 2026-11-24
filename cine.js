@@ -59,7 +59,7 @@ C.zoom=z=>{ V.zk=z; };
 C.roll=r=>{ cam.rollT=LOW()?r*.3:r; };
 C.shake=s=>{ trauma=Math.min(1.5,Math.max(trauma,LOW()?s*.35:s)); };
 C.release=(x,y,c,v=.5)=>{ K.ripple(x,y,1400,{life:.5,s:.6}); K.light(x,y,1600,c,.9,.5); C.gSparks(x,y,BODY*.6,22,c,{vz:900}); C.gDebris(x,y,8,{s0:250,s1:800,r:120}); C.flash(.2); C.shake(.7); post.ca=.01; fring(x,y,2600,c,.5,9); fring(x,y,1500,'#ffffff',.3,4); gl0(x,y-BODY,360,c,.3,{a:.8}); SFX.boom(1.4,v); SND.shing(.7,.4); };
-C.flash=a=>{ a=LOW()?a*.35:a; C.flashCap=Math.max(C.flashCap,a); post.flash=Math.max(post.flash,a); };
+C.flash=a=>{ a*=.72; a=LOW()?a*.35:a; C.flashCap=Math.max(C.flashCap,a); post.flash=Math.max(post.flash,a); };
 
 // ---------------------------------------------------------------- cut-in
 // styles: 'slit' (a band that opens like a cut), 'diag' (a slanted band that slides in), 'punch' (zooms in from large)
@@ -105,7 +105,7 @@ C.impact=(x,y,o={})=>{ const c=o.c||'#ffffff', k=rgb01(c), dk=k.map(v=>v*.16), n
   let pal=o.pal||(n<3?[[k,[0,0,0]],[dk,[1,1,1]]]:[[[0,0,0],[1,1,1]],[k,[0,0,0]],[dk,[1,1,1]]]); if(LOW()) pal=pal.map(()=>[dk,k]); if(o.soft) pal=[[k.map(v=>v*.08),k.map(v=>.5+v*.3)],[dk.map(v=>v*.4),k.map(v=>.34+v*.4)]];
   C.imp={x,y,c,t:0,fd,n,pal:pal.slice(0,n),seed:(Math.random()*1e4)|0,style:o.style||'radial',ang:o.ang||0,r:o.r??.2,then:o.then,v:o.v??1,flash:o.flash??.14,blur:o.blur??.06,soft:!!o.soft};
   if(o.hard!==true){ C.imp.soft=true; C.imp.fd=fd*1.5; const T=tone(c), d=n*fd*1.5, stI=gst(14,'add',T,5); C.dark=Math.max(C.dark,.78);
-    K.add(d+.06,k=>K.screen(stI,x,y,T.c,.55*(1-k*.5),.1+.14*k,K.tq(24,3),44,.2)); C.gStar(x,y,BODY*.4,460,'#ffffff',{c2:c,c3:'#ffffff',life:d+.1,n:9}); K.light(x,y,1200,c,1.1,d+.1); }
+    K.add(Math.min(.18,d+.04),k=>K.screen(stI,x,y,T.c,.42*(1-k),.3+.16*k,K.tq(24,3),17,.3)); K.add(d+.08,k=>K.bill(K.st(8,'add',{L:3}),x,y,BODY*.4,300+260*k,300+260*k,0,T.c,.5*(1-k))); if(C.art('fx3_burst').ok) C.gArt('fx3_burst',x,y,c,{add:true,a:.4,c3:c,z:BODY*.4,w:250,h:190,life:d+.1,hold:.2,grow:.5,ease:true,rot:rand(-.6,.6),L:3}); K.light(x,y,1100,c,.9,d+.1); }
   hitstop=Math.max(hitstop,n*C.imp.fd); if(AC) duck(.06,n*C.imp.fd*.9); buzz([0,n*C.imp.fd*1000|0,160]); };
 let seedV=1; const srnd=()=>{ seedV=(seedV*16807)%2147483647; return seedV/2147483647; };
 function drawImp(g){ const m=C.imp; if(!m||m.soft) return; const i=Math.min(m.n-1,Math.floor(m.t/m.fd)), [bg,fg]=m.pal[i], [sx,sy]=w2s(m.x,m.y), col=`rgb(${fg.map(v=>v*255|0)})`, R=Math.hypot(W,H), mn=Math.min(W,H);
@@ -174,7 +174,7 @@ C.waves=(x,y,c,o={})=>{ const s=o.s||1, n=o.n||3;
   { const k=K.rgb(c), mixc=(t,d)=>'#'+k.map((v,i)=>Math.round(255*(v*t+d[i]*(1-t))).toString(16).padStart(2,'0')).join(''), rock=mixc(.22,[.16,.15,.19]), dust=mixc(.3,[.2,.19,.22]);
     K.ripple(x,y,1500*s,{life:.7,s:.9}); K.light(x,y,2000*s,c,.6,.8); C.gCrack(x,y,900*s,c,{life:3.2,n:15,w:.1});
     C.gDebris(x,y,Math.round(14*s),{s0:300,s1:1500*s,vz:2200,size:28,c:rock}); C.gDebris(x,y,Math.round(5*s),{r:260,s0:100,s1:600,v0:1600,vz:3400,sz0:36,size:80,g:2600,c:rock}); C.gSparks(x,y,40,Math.round(26*s),c,{vz:1400}); C.gMotes(x,y,900*s,c,Math.round(50*s),{dur:1.8,life:2.2});
-    for(let i=0;i<3;i++) after(.3+i*.12,()=>C.gPuff(x+rand(-360,360)*s,y+rand(-160,160)*s,rand(20,160),rand(170,240)*s,{c:dust,c2:'#08070a',c3:mixc(.45,[.42,.4,.44]),vz:rand(200,460),life:rand(1.5,2.3),a:.55,grow:120})); } };
+    } };
 
 // ---------------------------------------------------------------- ground scars (live on after the ultimate, glowing down to embers)
 // kinds: crack (radial fractures), gash (a straight cut: rot, len), burn (scorch)
