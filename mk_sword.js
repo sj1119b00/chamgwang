@@ -161,4 +161,75 @@ MK.ultZero=function(id){ const {V,view,ultStart,ultStop,inLine,hitFx,onScreen}=X
   after(tA+.7,()=>mk.play('stand'));
   after(tA+1.3,()=>{ GFX.ambient(1,1,1,1.2); Cn.zoom(1); Cn.tilt(0,2.5); Cn.cam(null); });
   after(tA+1.6,()=>{ for(const e of V.en) e.zl=null; GFX.gain=1.25; ultStop(); mk.free(); }); };
+// ============================================================ SHADOW FLURRY (third ultimate, mannequin only)
+// He is gone. Twelve of his afterimages stand round the whole field, and one after another, faster and faster, each crosses it from
+// edge to edge and leaves its cut hanging there, until the field is a web of them. He is back in the middle with the blade going home;
+// on the click every cut opens along its whole length.
+MK.ultShade=function(id){ const {V,view,ultStart,ultStop,inLine,hitFx,onScreen}=X; ultStart(id);
+  const Cn=X.cine, K=K3, mk=MK, D=80000*A.mul(id), x0=pl.x, y0=pl.gy, VV=view(), hh=VV.hh, hwR=VV.hw, hw=Math.min(hwR,hh*1.15), hy=y0-BODY*.55, f0=pl.f, yaw0=f0>0?0:PI, LS=hwR>hh;
+  const P={d:'#160300',b:'#d23a0c',m:'#ffa838',h:'#fff2c8',l:'#ff5a1e',s:'#ffd9a0'}, HOT={d:'#2a0900',b:'#ff7e16',m:'#ffd070',h:'#ffffff',l:'#ff9a50',s:'#ffe6b8'},
+    CRIM={d:'#080000',b:'#8a1404',m:'#d2400c',h:'#ffb070',l:'#c02a08',s:'#ff7a40'}, EMB={d:'#0a0100',b:'#7a1c08',m:'#d85a22',h:'#ffd8a8',l:'#b83410',s:'#ff9a70'},
+    MOON={d:'#04060e',b:'#7a94e0',m:'#d0dcff',h:'#ffffff',l:'#a8c0ff',s:'#e8eeff'}, SMK={smoke:true,nb:1,a:.85,c:'#201814',c2:'#a07c5c'};
+  const ZO=LS?.56:.66, rx=hwR/ZO*.84, ry=hh/ZO*.74, N=12, cuts=[];
+  // ---- he sinks, and is not there
+  mk.play('iaiReady',{yaw:yaw0,speed:2});
+  GFX.ambient(.34,.4,.56,4); Cn.zoom(1.9); Cn.roll(-.03); Cn.cam(x0,hy,5); Cn.tilt(.1,2); duck(.3,.6); SFX.heart(1); Cn.SND.inhale(1.15,.4);
+  for(let i=0;i<26;i++) after(rand(0,.4),()=>{ const a=rand(0,TAU), d=rand(300,800); GFX.pt({x:x0+Math.cos(a)*d,y:y0+Math.sin(a)*d*FSY,z:rand(0,400),tx:x0,ty:y0,tz:BODY*.5,pull:rand(5,8),life:rand(.3,.45),s:rand(2.5,5),m:3,len:.05,c:GFX.rgb('#ffffff'),c2:'#8aa0d8',L:3}); });
+  const tV=.46;
+  after(tV,()=>{ mk.ghost({life:.4,a:.9,c:'#cfe0ff'}); pl.visible=false; const q=mk.wpt('ch'); K.flare(q[0],q[1],q[2],{pal:MOON,s:150,dur:.1,gain:6}); K.dust(x0,y0,{n:12,r:40,sp:[300,900],a:.45}); K.sparks(x0,y0,BODY*.5,{pal:MOON,n:24,sp:[500,1800],up:500,life:[.2,.5]});
+    GFX.light(x0,y0,hw*.9,'#cfe0ff',.8,.2,{z:160}); Cn.zoom(ZO); Cn.cam(x0,y0-hh*.05,7); Cn.tilt(.14,5); Cn.roll(0); GFX.ambient(.26,.3,.44,6); SFX.whoosh(1.5,.7); Cn.SND.tick(1.3,.3); });
+  // ---- the afterimages take their places round the whole field
+  const sh=[]; for(let i=0;i<N;i++){ const a=i*TAU/N+rand(-.12,.12), b=a+PI+rand(-.45,.45); sh.push({ax:x0+Math.cos(a)*rx,ay:y0+Math.sin(a)*ry,bx:x0+Math.cos(b)*rx,by:y0+Math.sin(b)*ry}); }
+  // the order they go in: never two neighbours in a row
+  const order=[0,5,10,3,8,1,6,11,4,9,2,7]; let tt=tV+.5; const when=[]; order.forEach((k,j)=>{ when[k]=tt; tt+=Math.max(.05,.13-j*.008); }); const tEnd=tt;
+  sh.forEach((s,i)=>{ const yaw=Math.atan2((s.by-s.ay)/FSY,s.bx-s.ax); after(tV+.08+i*.025,()=>mk.shade({x0:s.ax,y0:s.ay,x1:s.bx,y1:s.by,yaw,wait:when[i]-(tV+.08+i*.025),dur:.1,clip:['cutA','cutB','cutD','cutC'][i%4],c:'#bcd0ff'})); });
+  // ---- each crossing: a white line from edge to edge, the cut left hanging on it, everything on the line struck
+  order.forEach((k,j)=>after(when[k],()=>{ const s=sh[k], dx=s.bx-s.ax, dy=s.by-s.ay, L=Math.hypot(dx,dy)||1, ux=dx/L, uy=dy/L, th=Math.atan2(dy/FSY,dx), mx=(s.ax+s.bx)/2, my=(s.ay+s.by)/2;
+    K.trail([0,.2,.4,.6,.8,1].map(u=>({x:s.ax+dx*u,y:s.ay+dy*u,z:BODY*.5})),{w:34,dur:.22,draw:.09,pal:MOON,gain:1.3});
+    const h=K.seam(s.ax+dx*.02,s.ay+dy*.02,s.bx-dx*.02,s.by-dy*.02,{z:BODY*.5,w:20,pal:MOON}); cuts.push({h,s,L,ux,uy,th,mx,my});
+    after(.05,()=>{ for(const u of [.3,.5,.7]) K.sparks(s.ax+dx*u,s.ay+dy*u,BODY*.5,{pal:MOON,n:8,sp:[400,1500],up:400,dir:th,spread:.8,life:[.15,.4]}); GFX.light(mx,my,L*.4,'#cfe0ff',.5,.2,{z:140});
+      let n=0; inLine(s.ax,s.ay,s.bx,s.by,90,e=>{ e.flash=1; e.stun=Math.max(e.stun,6); if(n++<5) hitFx(e,'#ffffff',1.2); const sd=((e.x-mx)*-uy+(e.y-my)*ux)>=0?1:-1; e.kx+=-uy*sd*rand(120,260); e.ky+=ux*sd*rand(70,150); if(!e.d.heavy) e.vz=Math.max(e.vz,rand(300,600)); X.dmg(e,D*.012,{crit:true}); });
+      hitstop=Math.max(hitstop,.018); Cn.shake(.35+j*.04); post.ca=.003; });
+    SFX.slash(1+j*.07,.8); Cn.SND.shing(.9+j*.06,.4); Cn.roll((j%2?1:-1)*.02); GFX.ambient(.26-j*.008,.3-j*.012,.44-j*.014,10); }));
+  // ---- he is back in the middle of it; the field goes the colour of an eclipse while the blade goes home
+  const tR=tEnd+.16, tK=tR+.75;
+  after(tR,()=>{ pl.visible=true; pl.f=f0; mk.play('notoS',{yaw:yaw0}); mk.ghost({life:.3,a:.8,c:'#cfe0ff'}); K.dust(x0,y0,{n:8,r:30,sp:[150,400],a:.35}); Cn.zoom(1.5); Cn.cam(x0,hy,5); Cn.tilt(.24,2.4); Cn.roll(.03); GFX.ambient(.3,.13,.15,5); duck(.16,.75); SFX.whoosh(1.4,.5); });
+  [.2,.42,.6].forEach((d,j)=>after(tR+d,()=>{ SFX.heart(.7+j*.08); Cn.zoom(1.55+j*.1); for(const c of cuts) c.h.kick(); }));
+  after(tK-.2,()=>{ GFX.ambient(.16,.08,.1,16); const q=mk.wpt('sb'); K.flare(q[0],q[1],q[2],{pal:'silver',s:30,sx:4,sy:.4,dur:.22,gain:5}); Cn.zoom(2); });
+  // ---- the click: every cut opens, from the middle of the field outward
+  after(tK,()=>{ const q=mk.wpt('sm'); SFX.click(); Cn.SND.tick(.6,.3); K.flare(q[0],q[1],q[2],{pal:MOON,s:hw*.4,dur:.08,gain:6}); GFX.light(x0,y0,hw*1.6,'#fff0d0',1,.14,{z:200}); hitstop=Math.max(hitstop,.13); Cn.zoom(ZO*.94); Cn.cam(x0,y0-hh*.05,7); Cn.tilt(.16,6); Cn.roll(-.03); GFX.ambient(.34,.14,.2,30); });
+  after(tK+.06,()=>{ Cn.shake(1.9); post.ca=.012; SFX.shatter(1); SFX.slash(.6,1.2); Cn.SND.shing(.6,.8); Cn.SND.hit(1);
+    // no fire here: each cut is a wound of light that tears open red, throws black stone, and is struck by lightning of its own colour
+    const BLOOD={d:'#050006',b:'#b0061e',m:'#ff5a6a',h:'#ffffff',l:'#ff2a4a',s:'#ffb0bc'};
+    cuts.forEach((c,ci)=>{ c.h.end(); const s=c.s, pn=c.th+PI/2, line=u=>[s.ax+(s.bx-s.ax)*u,s.ay+(s.by-s.ay)*u], d0=ci*.014;
+      K.trail([0,.2,.4,.6,.8,1].map(u=>({x:line(u)[0],y:line(u)[1],z:BODY*.4})),{w:70,dur:.18,draw:.03,pal:MOON,gain:1.6,delay:d0});
+      K.trail([0,.2,.4,.6,.8,1].map(u=>({x:line(u)[0],y:line(u)[1],z:BODY*.35})),{w:120,dur:.42,draw:.05,pal:BLOOD,gain:1.1,delay:d0+.05});
+      [rand(.42,.58),rand(.2,.34),rand(.66,.8)].forEach((u,pi)=>{ const [qx,qy]=line(u);
+        after(d0+.04+pi*.04,()=>{ K.flip(qx,qy,{tex:'v3_flip_cut',s:hw*(pi?rand(.16,.24):rand(.26,.34)),z:BODY*.3,dur:.5,pal:pi?BLOOD:MOON,gain:.95});
+          K.sparks(qx,qy,BODY*.5,{pal:BLOOD,n:10,sp:[500,1900],up:700,dir:pn+(pi%2?PI:0),spread:.8,life:[.25,.6]});
+          if(ci%2===0) K.chunks(qx,qy,{n:3,r:70,sp:[300,1000],up:1900,s:[26,60],pal:BLOOD,rock:'#140a12'}); else K.debris(qx,qy,{n:4,r:60,sp:[300,1100],up:1700,size0:8,size:24});
+          if(pi===0) GFX.light(qx,qy,hw*.5,'#ff2a4a',.7,.3,{z:160}); }); });
+      if(ci%3===0){ const [bx,by]=line(rand(.3,.7)); after(d0+.18+rand(0,.2),()=>{ K.bolt(bx,by,{h:hh*1.5,w:120,dur:.3,pal:BLOOD}); GFX.light(bx,by,hw*.6,'#ff5a6a',.8,.2,{z:260}); K.sparks(bx,by,30,{pal:BLOOD,n:14,sp:[500,1700],up:1100,life:[.3,.7]}); }); }
+      after(.06,()=>K.gash(line(.06)[0],line(.06)[1],line(.94)[0],line(.94)[1],{w:90,life:3.2,pal:BLOOD,gain:.7,grow:.3})); });
+    K.art(x0,y0,{tex:'v3_scorch',floor:true,s:hw*.9,dur:2.6,hold:1.6,s0:.6,pal:BLOOD,gain:.5}); K.shock(x0,y0,{r:hw*2.2,dur:.45,pal:BLOOD,gain:.8});
+    let nb=0; for(const e of onScreen(260)){ e.flash=1; e.stun=Math.max(e.stun,1.2); if(nb++<12) K.flip(e.x,e.y,{tex:'v3_flip_cut',s:rand(150,210),z:e.h*.4,dur:.4,pal:MOON,gain:.9,delay:rand(0,.3)}); if(!e.d.heavy){ const a=Math.atan2(e.y-y0,e.x-x0); e.kx+=Math.cos(a)*rand(300,600); e.ky+=Math.sin(a)*rand(180,360); e.vz=Math.max(e.vz,rand(1400,2200)); } }
+    GFX.ripple(x0,y0,hw*2.8,{life:.4,s:.35,w:.06}); for(let i=0;i<6;i++){ const a=i*TAU/6+rand(-.3,.3), d=hw*rand(.25,.5); K.dust(x0+Math.cos(a)*d,y0+Math.sin(a)*d*FSY,{n:6,r:60,sp:[500,1500],dir:a,spread:.6,a:.5}); }
+    after(.03,()=>Cn.sweep(x0,y0,D*1.6,{speed:9000,max:.1})); post.grayT=0; });
+  const tA=tK+.06;
+  after(tA+.5,()=>{ K.petals(x0,y0-hh*.2,hw*1.4,{pal:{d:'#050006',b:'#b0061e',m:'#ff5a6a',h:'#ffffff',l:'#ff2a4a',s:'#ffb0bc'},n:90,z0:300,z1:1600,life:2.6,s:1.6}); for(let i=0;i<cuts.length;i+=3){ const c=cuts[i]; K.dust(c.mx,c.my,{n:8,r:120,sp:[200,600],a:.4}); }
+    GFX.ambient(.6,.52,.52,.8); GFX.light(x0,y0,hw*2,'#ff2a4a',.3,2,{z:200}); Cn.zoom(.84); Cn.tilt(.12,1.6); });
+  after(tA+.62,()=>{ const n=V.ultSum||0; if(n>0){ V.nums.push({x:x0,y:y0-BODY*3.1,t:-.2,txt:n>=1e6?Math.round(n/1e6)+'M':n>=1e3?Math.round(n/1e3)+'K':String(Math.round(n)),big:true}); V.ultSum=0; } });
+  after(tA+.7,()=>mk.play('stand'));
+  after(tA+1.3,()=>{ GFX.ambient(1,1,1,1.2); Cn.zoom(1); Cn.tilt(0,2.5); Cn.cam(null); });
+  after(tA+1.6,()=>{ GFX.gain=1.25; pl.visible=true; ultStop(); mk.free(); }); };
+// ============================================================ the swordsman's ordinary skills, same engine pieces with real fire in them
+// Whatever a sword skill detonates or leaves smoking uses the photographed sheets; each hit throws real sparks and, on the heavier
+// ones, a small fireball of its own; his red burns through orange to a white core, not to pink. Other classes are not touched.
+(()=>{ if(!(window.K3&&window.FX3)) return; const K=K3, isS=()=>pl.cls==='sword';
+  const flip0=K.flip; K.flip=(x,y,o={})=>{ if(isS()){ const t=o.tex||'v3_flip_blast'; if(t==='v3_flip_blast'&&realOK('blast')) o=Object.assign({},o,{tex:RT_.blast}); else if(t==='v3_flip_smoke'&&realOK('smoke')) o=Object.assign({},o,{tex:RT_.smoke}); } return flip0(x,y,o); };
+  const hit0=K.hit; let last=0, n=0; K.hit=(x,y,z,c,pw=1)=>{ hit0(x,y,z,c,pw); if(!isS()||lock) return; if(RT!==last){ last=RT; n=0; } if(n++>5) return;
+    K.sparks(x,y,z,{pal:'crimson',n:Math.round(4+4*pw),sp:[300,1100*pw],up:500,spread:3.14,life:[.15,.45]});
+    if(pw>=1.25&&realOK('blast')) flip0(x,y,{tex:RT_.blast,s:70+50*pw,z:z*.5,dur:.45,pal:'crimson',gain:.85,lift:.5}); };
+  if(K.PAL&&K.PAL.crimson) Object.assign(K.PAL.crimson,{d:'#1a0200',b:'#e6240c',m:'#ffa23a',h:'#fff3cc',l:'#ff3a1a',s:'#ffb890'});
+})();
 })();

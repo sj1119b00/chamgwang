@@ -138,3 +138,25 @@ node _gen/cap/cap.js --eval "…임의 JS…"                                   
 
 ## 원화 생성
 `_gen/run_batch.py <manifest.json> <log.json> 2` (gpt-image 스킬, ChatGPT 로그인 Codex). 실패로 나와도 `~/.codex/generated_images/…`에 생성돼 있는 경우가 많다(log의 error 문자열에 경로). 회색·검정 배경·"No colour, no text"로 요청하고 `_gen/v3/proc2.py`처럼 1024 webp로 가공해 `assets/v3_*.webp`에 둔다. 동시에 여러 세션이 돌리면 429가 나므로 **원화 생성은 엔진 담당이 일괄 처리**한다(필요 목록을 보고서에 적는다).
+
+### 키트 갱신 7 (2026-11-24 밤) — 실제 볼륨 (`vol3.js` + `vkit3.js`)
+지금까지의 불·연기·폭발은 전부 "세워 놓은 그림 판"이었다(검증마다 1순위 지적). 이제 **셰이더가 카메라 광선을 따라 3D 노이즈 밀도장을 적분하는 실제 볼륨**이 있다: 두께가 있고, 자기 뒷면을 가리고, 왼쪽 위 빛에 한쪽만 밝고, 바닥에 잘린다. 저해상도(0.6배) HDR 타깃에 그려 이펙트 층 맨 아래에 깔린다(불티·메시 검기·핵 섬광은 그 위).
+- 자동 전환: `K3.burst`의 화구·연기, `K3.flame`, `K3.smoke`, `K3.wall`은 볼륨으로 바뀌었다(`{vol:0}`이면 예전 그림). `K3.burst`의 그림 섬광은 0.13초만 남는다.
+- 새 조각(전부 `pal` 지원 — 불뿐 아니라 기공·번개·옥빛·마력도 같은 볼륨에 색 램프만 다르게):
+
+| 함수 | 설명 | 주요 옵션 |
+|---|---|---|
+| `K3.vblast(x,y,o)` | 바닥에서 부풀어 오르는 화구 → 틈으로 불이 비치는 덩어리 → 솟는 연기 | `s`(반지름) `z` `pal` `dur` `heat` `smoke`(0이면 연기 없이 사라짐) `rise` `fire`(불이 식는 시간) `delay` |
+| `K3.vsmoke(x,y,o)` | 굴러 오르며 옅어지는 연기 덩어리 | `s` `z` `dur` `rise` `c` `c2` `a` |
+| `K3.vcolumn(x,y,o)` → handle | 꼬이며 솟는 기둥(불기둥·기 기둥·빛 기둥). handle의 `x,y,r,h,a,dead` 변경 가능 | `r` `h` `dur` `rise` `out` `twist` `turb` `taper` `heat` |
+| `K3.vfunnel(x,y,o)` → handle | 속이 빈 회오리(바닥 좁고 위가 넓음). handle `x,y` 이동 가능 | `r`(윗반지름) `r0` `h` `dur` `spin` `sway` `thick` `streak` |
+| `K3.vorb(x,y,z,o)` → handle | 플라스마 구체(맥이 도는 껍질 + 흰 핵). handle `x,y,z,r,a` 이동 가능(투사체·응축) | `r` `dur` `spin` `core` `in` `out` |
+| `K3.vring(x,y,o)` | 바닥을 구르며 퍼지는 먼지/불 도넛 = 충격파의 몸통 | `r` `r0` `dur` `tube` `heat`(>0이면 불) `c` `c2` |
+| `K3.vjet(x,y,z,dir,o)` → handle | 한 방향으로 뿜는 흐름(화염 방사·기공파·빔 몸통). handle `x,y,z,dir,len,pitch` 변경 가능 | `len` `r` `r0` `dur` `pitch`(위아래 기울기) `turb` `speed` `in` `out` |
+| `K3.vsheet(x1,y1,x2,y2,o)` → handle | 바닥 선 위에 서는 불벽(실제 두께, 들쭉날쭉한 윗선) | `h` `thick` `dur` `rise` `out` `turb` |
+
+- 저수준: `VOL.add(kind,x,y,z,{ex,ey,ez,yaw,pitch,pa,pb,dens,gain,cA,cB,cM,cC,cS,cK,…})`, kind = `blast column funnel orb ring jet sheet`. 매 프레임 호출(즉시 모드). `pa/pb` 의미는 `vol3.js` 셰이더 주석.
+- **크기 감각**: 전장 카메라 배율이 약 0.24다. 월드 100 = 화면 24px. 영웅 키 ≈ 월드 250. 일반 스킬의 화구 `s` 250~450, 궁극기 600~1400, 불기둥 `h` 700~2000.
+- **예산**: 한 프레임에 볼륨 40개 상한(넘으면 버려짐). 화면을 크게 덮는 볼륨은 동시에 6개 이하, 작은 것 포함 16개 이하. 볼륨은 픽셀당 비용이 크다 — 같은 자리에 여러 개 겹치지 말 것. `FX3.low`에서는 자동으로 해상도·스텝이 내려간다.
+- **쓰는 법(품질)**: 볼륨은 "몸통"이다. 한 타격 = 볼륨 몸통 1 + 날카로운 그림/메시 핵(섬광 `K3.flare`, 검기 `K3.cres`, 번개 `K3.bolt`) 1 + 바닥 반응(`GFX.light` 필수, 균열·그을음) + 입자(불티·파편). 볼륨만 여러 개 쌓으면 뭉개진다. 회전한(대각) `vsheet`는 두꺼우면 널빤지처럼 보이니 `thick`을 높이의 0.15~0.2로.
+- 볼륨은 영웅·적 스프라이트 위에 그려진다(깊이 정렬 없음). 영웅 바로 위에 큰 불투명 연기를 세우지 말 것(영웅 픽셀은 엔진이 걷어 주지만 주변이 가려진다).

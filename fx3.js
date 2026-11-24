@@ -366,8 +366,11 @@ F.renderGround=G=>{ if(!F.on) return false; F.stats.draws=0;
   F.ground=true; return true; };
 // 2) everything above the scene -> G.gVfx (and refraction -> G.gDist). Called after GFX.render; gfxDrew says whether it left quads in the target.
 F.renderOver=(G,gfxDrew)=>{ if(!F.on) return false; let n=0, nd=0, ng=0; for(const q of F.q){ if(q.L===1) n++; else if(q.L===2) nd++; else ng++; }
-  if(!n&&!nd){ if(ng&&!F.ground){ /* ground layer without a ground target: drop it */ } F.q.length=0; dynN=0; return false; }
-  if(!G.gVfx) return (F.q.length=0,dynN=0,false);
+  const nv=!!(window.VOL&&VOL.pending());
+  if(!n&&!nd&&!nv){ if(ng&&!F.ground){ /* ground layer without a ground target: drop it */ } F.q.length=0; dynN=0; return false; }
+  if(!G.gVfx) return (F.q.length=0,dynN=0,window.VOL&&(VOL.q.length=0),false);
+  // volumes (fire, smoke, plasma) go in first: sparks drawn by GFX stay under them, mesh slashes and cores go over them
+  if(nv){ VOL.render(G,G.gVfx); gl.activeTexture(gl.TEXTURE0); }
   beginMesh();
   if(n){ gl.bindFramebuffer(gl.FRAMEBUFFER,G.gVfx.f); gl.viewport(0,0,G.gVfx.w,G.gVfx.h); drawLayer(1); }
   if(nd){ gl.bindFramebuffer(gl.FRAMEBUFFER,G.gDist.f); gl.viewport(0,0,G.gDist.w,G.gDist.h); gl.blendFuncSeparate(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE); for(const q of F.q) if(q.L===2) drawOne(q); }

@@ -34,6 +34,7 @@ const SK={
   sw_counter:{cls:'sword',type:'skill',name:'카운터',lv:10,cd:10,dmg:5200,desc:'0.8초 동안 자세를 잡는다. 그 사이 공격받으면 막아 내고 큰 반격을 넣는다.',fn:skCounter},
   sw_ult1:{cls:'sword',type:'ult',name:'제로 슬래시',lv:3,desc:'궁극기. 하늘까지 가르는 단 한 번의 베기.',fn:()=>ultMetten()},
   sw_ult2:{cls:'sword',type:'ult',name:'소드 레인',lv:12,desc:'궁극기. 천 자루의 검을 부채꼴로 쏟아붓는다.',fn:()=>ultSwords()},
+  sw_ult3:{cls:'sword',type:'ult',name:'그림자 난무',lv:5,desc:'궁극기. 열두 그림자가 전장 끝에서 끝까지 가로지르고, 납도와 함께 모든 검격이 열린다. (스틱맨 모드 전용 연출)',fn:()=>ultMetten()},
 };
 const ORDER={sword:['sw_basic','sw_dash','sw_rise','sw_wave','sw_spin','sw_fly','sw_plunge','sw_thrust','sw_counter','sw_ult1','sw_ult2']};
 const SLOT_KEYS=['K','L','U','I'];
@@ -240,7 +241,7 @@ function locoPose(rdt,moving){
 }
 // ============================================================ stickman mode (the showcase's original skeleton figure instead of the painted frames)
 // The painted sequences still run (same timing, hits and effects); each step maps its frame to a skeleton pose: wind-up, strike (trail/forward kick steps), recovery.
-const STK=()=>G.mode==='surv'?!!(SV.opt&&SV.opt.stick):SV.stick!==false;   // survival draws the painted class characters unless its own option asks for the skeleton
+const STK=()=>{ if(G.mode!=='surv') return SV.stick!==false; if(!SV.opt) SV.opt={}; if(SV.opt.stick===undefined) SV.opt.stick=true; return !!SV.opt.stick; };   // survival draws the painted class characters unless its own option asks for the skeleton
 const STICK={gs:'slash1',gm:'slash2',gw:'slash3',gu:'slash3',gt:'slashU',gp:'slash2',gk:'slash3',gc:'iaiDone'};
 const plSprites0=plSprites; plSprites=function(){ return STK()?null:plSprites0(); };
 const plSeqNext0=plSeqNext; plSeqNext=function(){ plSeqNext0(); if(!STK()) return; const q=anim.seq;

@@ -5,7 +5,7 @@
 // World: x/y is the floor plane (y = depth), z is height. The hero's floor position is pl.x / pl.gy (the engine draws him at pl.gy).
 'use strict';
 (()=>{
-const G=RPG, A=G.api, SV=()=>A.SV, SK=A.SK, VER=27;
+const G=RPG, A=G.api, SV=()=>A.SV, SK=A.SK, VER=29;
 const ZL=.42, ZP=.5, DUR=300, BOSS_T=240, CAP=340, SPD=430, BODY=170, FAR=1e5;
 const CLS_ORDER=['sword','mage','fist','shaman','pyro'];
 const NAMES={sword:'소드맨',mage:'메이지',fist:'파이터',shaman:'샤먼',pyro:'파이로'};
@@ -34,8 +34,9 @@ const FSY=.58;   // vertical squash of anything lying on the floor (tiles, rings
 
 // ============================================================ small helpers
 const snd={}; function sfx(n,...a){ if(RT-(snd[n]||0)<.055) return; snd[n]=RT; SFX[n](...a); }
-const hm=()=>(1+V.t/75)*CH().hp;                // enemy health grows with time survived (and chapter)
-const dm=()=>(1+V.t/150)*CH().dmg;              // and so does what they hit for
+const DIF={sword:{hp:2.4,dmg:1.7,sp:1.25}}, dif=k=>(DIF[pl.cls]||{})[k]||1;
+const hm=()=>(1+V.t/75)*CH().hp*dif('hp');                // enemy health grows with time survived (and chapter)
+const dm=()=>(1+V.t/150)*CH().dmg*dif('dmg');              // and so does what they hit for
 const alive=()=>V.en.filter(e=>!e.dead);
 const view=()=>({hw:W/(2*S*cam.z),hh:H/(2*S*cam.z)});
 const ACT=()=>(A.ORDER[pl.cls]||[]).filter(id=>SK[id]&&SK[id].type==='skill'&&A.unlocked(id));   // every unlocked skill fires by itself: there are no slots to equip
@@ -64,7 +65,7 @@ const fring=(x,y,v,c,life,w=5)=>ring(x,y,v,c,life,{w,sy:FSY});
 function dmg(e,d,o={}){
   if(e.dead) return; const crit=o.crit||Math.random()<.14; if(crit&&!o.crit) d*=1.9; d=Math.round(d*rand(.92,1.08));
   if(e.d.boss&&o.ult) d=Math.min(d,Math.round(e.max*.2));
-  e.hp-=d; e.flash=1; e.hurtT=.3; combo++; comboT=2.4; comboPop=1; G.stats.dmg+=d; if(lock){ V.ultSum=(V.ultSum||0)+d; } else if(!crit&&!(e.nn&&V.nums.includes(e.nn))){ e.nnT=RT; } else if(e.nn&&RT-e.nnT<.3&&V.nums.includes(e.nn)){ const n=e.nn; n.v+=d; n.txt=fmtN(n.v); n.crit=n.crit||crit; n.t=Math.min(n.t,.08); } else e.nn=num(e.x,e.y-e.h-e.z,d,crit); e.nnT=RT;
+  e.hp-=d; e.flash=1; e.hurtT=.3; combo++; comboT=2.4; comboPop=1; G.stats.dmg+=d; if(lock){ V.ultSum=(V.ultSum||0)+d; } else if(!crit&&!(e.nn&&V.nums.includes(e.nn))&&pl.cls!=='sword'){ e.nnT=RT; } else if(e.nn&&RT-e.nnT<.3&&V.nums.includes(e.nn)){ const n=e.nn; n.v+=d; n.txt=fmtN(n.v); n.crit=n.crit||crit; n.t=Math.min(n.t,.08); } else e.nn=num(e.x,e.y-e.h-e.z,d,crit); e.nnT=RT;
   const sx=o.sx??pl.x, sy=o.sy??pl.gy, dx=e.x-sx, dy=e.y-sy, l=Math.hypot(dx,dy)||1, kb=(o.kb??1)*(e.d.heavy?50:320);
   e.kx+=dx/l*kb; e.ky+=dy/l*kb;
   if(o.launch&&!e.d.heavy) e.vz=Math.max(e.vz,o.launch);
@@ -85,7 +86,7 @@ function die(e){
 }
 function gem(x,y,v){ if(V.gems.length>420){ V.gems[(Math.random()*V.gems.length)|0].v+=v; return; } V.gems.push({x,y,v,s:0,mag:false,ph:rand(0,TAU)}); }
 const fmtN=d=>d>=1e6?(d/1e6).toFixed(d>=1e7?0:1)+'M':d>=1e4?(d/1000).toFixed(d>=1e5?0:1)+'K':String(d);
-function num(x,y,d,crit){ if(lock){ V.ultSum=(V.ultSum||0)+d; return null; } if(V.nums.length>=5) V.nums.shift(); const n={x:x+rand(-30,30),y,t:0,v:d,txt:fmtN(d),crit,dx:rand(-60,60)}; { const hx=n.x-pl.x, hy=n.y-(pl.gy-BODY), hl=Math.hypot(hx,hy); if(hl<330){ const k=330/(hl||1); n.x=pl.x+(hl?hx:1)*k; n.y=pl.gy-BODY+hy*k; } } for(const o of V.nums) if(o.t<.4&&Math.abs(o.x-n.x)<170&&Math.abs(o.y-n.y)<60) n.y=o.y-70; V.nums.push(n); return n; }
+function num(x,y,d,crit){ if(lock){ V.ultSum=(V.ultSum||0)+d; return null; } if(V.nums.length>=(pl.cls==='sword'?12:5)) V.nums.shift(); const n={x:x+rand(-30,30),y,t:0,v:d,txt:fmtN(d),crit,dx:rand(-60,60)}; { const hx=n.x-pl.x, hy=n.y-(pl.gy-BODY), hl=Math.hypot(hx,hy); if(hl<330){ const k=330/(hl||1); n.x=pl.x+(hl?hx:1)*k; n.y=pl.gy-BODY+hy*k; } } for(const o of V.nums) if(o.t<.4&&Math.abs(o.x-n.x)<170&&Math.abs(o.y-n.y)<60) n.y=o.y-70; V.nums.push(n); return n; }
 function hurt(d,src){
   if(V.over||G.inv>0||lock||V.dash||V.god) return;
   const C=CLS[pl.cls]; if(C&&C.onHurt&&C.onHurt(src)) return;
@@ -117,12 +118,12 @@ function spawnPos(){ const {hw,hh}=view(), mx=hw+130, my=hh+200, p=rand(0,2*(mx+
   if(p<2*mx){ x=p-mx; y=Math.random()<.5?-my:my; } else { y=p-2*mx-my; x=Math.random()<.5?-mx:mx; }
   return [cam.x+x,cam.y+y]; }
 function spawn(type,x,y){ const d=EN[type]; if(x==null) [x,y]=spawnPos();
-  const e={id:V.id++,type,d,x,y,z:0,sv:rand(.9,1.1),vz:0,kx:0,ky:0,hp:d.hp*hm(),max:d.hp*hm(),h:d.h*d.sc,f:1,walkT:rand(0,1),flash:0,stun:0,hitCd:0,hurtT:0,atk:rand(1,2.5),castT:0,dead:false};
+  const e={id:V.id++,type,d,x,y,z:0,sv:rand(.9,1.1),vz:0,kx:0,ky:0,hp:d.hp*(d.boss?hm()/dif('hp'):hm()),max:d.hp*(d.boss?hm()/dif('hp'):hm()),h:d.h*d.sc,f:1,walkT:rand(0,1),flash:0,stun:0,hitCd:0,hurtT:0,atk:rand(1,2.5),castT:0,dead:false};
   V.en.push(e); return e; }
 function spawnTick(rdt){
   const t=V.t, n=alive().length, ch=V.ch;
   // they come in packs from just off screen: more packs, and bigger ones, as time goes on
-  V.spawn+=rdt*(.9+t*.03+ch*.15); let live=n;
+  V.spawn+=rdt*(.9+t*.03+ch*.15)*dif('sp'); let live=n;
   while(V.spawn>=1){ V.spawn--; const [px,py]=spawnPos(), k=3+Math.floor(t/60)+(Math.random()*3|0);
     for(let i=0;i<k&&live<CAP;i++,live++){ const r=Math.random(); spawn(t>60-ch*10&&r<.05+t/4000+ch*.015?'brute':t>25-ch*5&&r<.2+ch*.03?'archer':'shard',px+rand(-90,90),py+rand(-90,90)); } }
   // encircling hordes every minute, then the boss
@@ -597,7 +598,7 @@ G.firstSkills=c=>{ const L=(A.ORDER[c]||[]).filter(id=>SK[id]&&SK[id].type==='sk
 const inView=(x,y,k=.5)=>{ const {hw,hh}=view(); return [clamp(x,cam.x-hw*k,cam.x+hw*k),clamp(y,cam.y-hh*k+BODY*.5,cam.y+hh*k+BODY*.5)]; };
 G.sv={V,A,SK,BODY,CH,CLS,CCOL,NAMES,shock1,inView,FSY,draw:(life,fn,delay=0)=>V.draws.push({t0:RT+delay,life,fn}),nearest,countIn,densest,angTo,face,seq,dmg,hitFx,inCircle,inCircleS,inSector,inLine,sfx,view,onScreen,tdV,dropFx,ultStart,ultStop,ultHit,addVfx,burst,fring,heal,hurt,
   reg(c,def){ CLS[c]=def; if(def.sk) Object.assign(SK,def.sk); if(def.order) A.ORDER[c]=def.order; if(G.mode==='menu') A.menuRender(); if(G.mode==='surv'&&c===pl.cls) buildBar(); }};
-for(const f of ['fx3','gfx','vfx3','cine',...CLS_ORDER.map(c=>'sk_'+c),'mk','mk_sword']){ const s=document.createElement('script'); s.src=`${f}.js?v=${VER}`; s.async=false; document.body.appendChild(s); }
+for(const f of ['fx3','vol3','gfx','vfx3','vkit3','cine',...CLS_ORDER.map(c=>'sk_'+c),'mk','mk_sword']){ const s=document.createElement('script'); s.src=`${f}.js?v=${VER}`; s.async=false; document.body.appendChild(s); }
 if(G.mode==='menu') A.menuRender();
 G.survStart=start;
 })();
