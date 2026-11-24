@@ -127,7 +127,7 @@ function ultZero(id){ ultStart(id); ov.lbT=0; const Cn=X.cine, K=GFX, D=80000*A.
       const stP=K.st(0,'alpha',{L:3,c2:[1,0,0]}), stQ=K.st(0,'alpha',{L:2,c2:[.7,.6,0]}), px=c.cx, py=c.cy+BODY*.2, bx=px-ca*dir*230, by=py-sa*dir*230;
       K.add(.42,k=>K.pose(stQ,'sword','gs06',bx,by,f,[1,.1,.2],.75*(1-k),{sc:1.25,smear:.6,er:k*.4,ph:i}));
       K.add(.5,k=>K.pose(stP,'sword','gs07',px,py,f,k<.16?[.93,.99,1]:[1,.06+.5*(1-k),.16+.5*(1-k)],k<.6?1:1-(k-.6)/.4,{sc:1.4,er:Math.max(0,k-.5)*1.2,ph:i*2}));
-      Cn.gSlash(px,py,330,c.a+Math.PI*(dir>0?1.25:-.25),c.a+Math.PI*(dir>0?1.25:-.25)+dir*Math.PI*1.2,STEEL,{c2:'#16305a',c3:'#ffffff',dur:.07,hold:.05,fade:.2,z:BODY*.6,len:.7,L:3});
+      Cn.gArt('fx2_slash',px,py,STEEL,{c2:'#16305a',c3:'#ffffff',z:BODY*.7,w:430*-dir,h:290,rot:c.a,life:.34,hold:.3,L:3,boil:.006});
       Cn.gSlip(c.x1,c.y1,c.x2,c.y2,300,.5,.22);
       Cn.gSparks(c.cx,c.cy,BODY*.3,10,STEEL,{dir:c.a+(dir>0?0:Math.PI),spread:.25,s0:900,s1:2600,vz:300,len:.04});
       for(let q=0;q<6;q++){ const u=rand(-.42,.42); Cn.gPuff(c.cx+ca*L*u,c.cy+sa*L*u,10,rand(34,70),{vx:ca*dir*rand(100,400),vy:sa*dir*rand(100,400),vz:rand(40,150),life:rand(.5,.9),c:'#565a78',a:.6}); }

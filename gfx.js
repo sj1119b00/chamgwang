@@ -83,6 +83,10 @@ void main(){vec4 o=vec4(0.);
   float r=length(v);float th=atan(v.y,v.x)/6.2831853;float wob=(N(vec2(r*1.4+vp.y,th*2.))-.5)*.11;float k=fract((th+wob)*vp.z+.5)-.5;
   float sel=step(.35,M(vec2(floor((th+wob)*vp.z+.5)*.173+vp.y,.4)));float w=vp.w*(1.-r/vp.x)*(.5+N(vec2(r*3.,vp.y)));
   float m=(1.-abs(k)/max(w,.0001))*sel*step(r,vp.x);m=max(m,1.-r/(vp.x*.16));o=cel(m,.5,.05);
+ }else if(mode<15.5&&mode>14.5){ // 15 hand-drawn key art in three grey tones -> rim / body / core colours: x=erode, y=phase, z=warp scale, w=warp amount
+  vec2 w2=(vec2(N(v*vp.z+vp.y),M(v*vp.z-vp.y*1.3))-.5)*vp.w;float L=texture2D(tex,v+w2).g;float n=N(v*1.6+vp.y*.17);
+  float keep=smoothstep(vp.x*1.25-.25,vp.x*1.25-.18,n);float a=smoothstep(.1,.16,L)*keep;
+  vec3 c=mix(c2,vc.rgb,smoothstep(.36,.44,L));c=mix(c,c3,smoothstep(.72,.82,L));o=vec4(c*a,a)*vc.a;
  }else{ // 14 screen-space speed streaks toward a point: x=inner radius, z=count, w=density, y=phase
   float r=length(v);float th=atan(v.y,v.x)/6.2831853;float n=N(vec2(th*vp.z+vp.y,.5));float n2=M(vec2(th*vp.z*3.1+vp.y*1.7,.1));
   float len=vp.x+(1.-vp.x)*n2;float m=(n-(1.-vp.w))/vp.w;m*=smoothstep(len,len+.25,r);o=cel(m,.6,.02);

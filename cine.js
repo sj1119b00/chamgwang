@@ -301,6 +301,33 @@ C.gTrench=(x,y,R,c,o={})=>{ const T=tone(c,o), life=o.life||5, stD=K.st(2,'alpha
 C.gSkid=(x,y,ang,len,c,o={})=>{ const T=tone(c,o), life=o.life||5, stD=K.st(3,'alpha',{c2:[0,0,0],c3:[.03,.02,.02],L:0}), stE=gst(3,'add',T,0), ca=Math.cos(ang), sa=Math.sin(ang)*FSY, sd=Math.random()*9, w=o.w||150;
   K.add(life,(k,t)=>{ const g=easeOut(Math.min(1,t/.18)), a=Math.min(1,(1-k)*3), heat=Math.max(0,1-t/(o.heat||3)); K.line(stD,x,y,0,x+ca*len*g,y+sa*len*g,0,w,[.04,.02,.02],.85*a,0,sd,3,.6); K.line(stE,x,y,0,x+ca*len*g,y+sa*len*g,0,w*.36,T.c,a*(.2+.8*heat),.25,sd+t*.4,4,.6);
     if(heat>.1&&Math.random()<.35*heat){ const u=rand(.05,.95); if(o.fire!==false) C.gFire(x+ca*len*u,y+sa*len*u,6,rand(50,90),{n:2,life:.6,smoke:Math.random()<.3}); } },o.delay||0); };
+// --- drawn key art (assets/fx2_*.webp: three grey tones on black) recoloured per class and animated the way a drawing is:
+// it pops in over two drawings, "boils" (its outline is redrawn slightly differently every other frame), and burns away through noise
+C.ART={}; C.art=n=>C.ART[n]||(C.ART[n]=K.img(n));
+['fx2_burst','fx2_slash','fx2_fire','fx2_bolt','fx2_smoke','fx2_shock','fx2_tornado','fx2_cloud'].forEach(C.art);
+// o: {floor (lie on the floor) | z, w, h (half sizes; h defaults to w), rot, life, hold (fraction of life before it starts to burn away), grow, boil, add, L, delay, flipX}
+C.gArt=(name,x,y,c,o={})=>{ const s=C.art(name), T=tone(c,o), st=gst(15,o.add?'add':'alpha',T,o.L??2,{t:s.im,uv01:true}), life=o.life||.5, hold=o.hold??.35, w=o.w||300, h=o.h||w, sd=Math.random()*9, boil=o.boil??.012, fx_=o.flipX?-1:1;
+  return K.add(life,(k,t)=>{ if(!s.ok) return; const pop=t<.05?.72:t<.1?.92:1, g=pop*(1+(o.grow||0)*(o.ease?easeOut(k):k)), er=k<hold?0:(k-hold)/(1-hold), ph=K.tq(o.fps||12,sd), P=o.at?o.at(k,t):null, px=P?P[0]:x, py=P?P[1]:y, pz=P?P[2]:(o.z||0);
+    if(o.floor) K.floor(st,px,py,w*g*fx_,h*g,o.rot||0,T.c,o.a??1,er,ph,2.2,boil,pz); else K.bill(st,px,py,pz,w*g*fx_,h*g,o.rot||0,T.c,o.a??1,er,ph,2.2,boil); },o.delay||0); };
+// drawn art, one call per frame (for things that are redrawn every frame at a moving place)
+const ARTST={};
+C.artNow=(name,x,y,z,w,h,c,o={})=>{ const s=C.art(name); if(!s.ok) return false; const T=tone(c,o), key=name+c+(o.add?1:0)+(o.L??2)+(o.c2||'')+(o.c3||''), st=ARTST[key]||(ARTST[key]=gst(15,o.add?'add':'alpha',T,o.L??2,{t:s.im,uv01:true}));
+  K.bill(st,x,y,z,w,h,o.rot||0,T.c,o.a??1,o.er||0,o.ph??K.tq(12,0),2.2,o.boil??.012); return true; };
+// where the drawings exist they replace the procedural shapes for anything large enough to be looked at
+{ const star0=C.gStar, ring0=C.gRing, fire0=C.gFire, puff0=C.gPuff, bolt0=C.gBolt;
+  C.gStar=(x,y,z,s,c,o={})=>{ if(s<240||!C.art('fx2_burst').ok) return star0(x,y,z,s,c,o);
+    C.gArt('fx2_burst',x,y,c,{c2:o.c2,c3:o.c3,z:z+s*.25,w:s*1.15,h:s*1.05,life:Math.max(.5,(o.life||.2)*1.7),hold:.3,rot:rand(-.5,.5),grow:.3,ease:true,flipX:Math.random()<.5,L:o.L??3,delay:o.delay}); };
+  C.gRing=(x,y,R,c,o={})=>{ if(o.inward||R<600||!C.art('fx2_shock').ok) return ring0(x,y,R,c,o);
+    C.gArt('fx2_shock',x,y,c,{c2:o.c2,c3:o.c3,floor:true,w:R*.28,grow:2.9,ease:true,life:(o.life||.5)*1.2,hold:.5,rot:rand(0,TAU),a:o.a??1,L:0,delay:o.delay,z:o.z||0,boil:.008}); };
+  C.gFire=(x,y,z,s,o={})=>{ if(!C.art('fx2_fire').ok) return fire0(x,y,z,s,o); const n=Math.max(1,Math.round((o.n||8)/3*QK())), c=o.c||'#ff7a1a';
+    for(let i=0;i<n;i++){ const a=rand(0,TAU), r=n>1?s*rand(.1,.7):0, h=s*rand(1.1,1.7); C.gArt('fx2_fire',x+Math.cos(a)*r,y+Math.sin(a)*r*FSY,c,{c2:o.c2||'#8a1400',c3:o.c3||'#fff2b0',add:true,z:z+h*.92,w:h*.62,h,life:rand(.4,o.life??.8),hold:.35,flipX:Math.random()<.5,grow:.25,boil:.02,delay:rand(0,.1),L:2}); }
+    if(o.smoke!==false) after(.15,()=>C.gPuff(x,y,z+s*.6,Math.max(110,s*.9),{c:'#2a2026',c2:'#08060a',c3:'#55464a',vz:rand(s*.5,s*1.2),life:rand(1.1,1.9),a:.8})); };
+  C.gPuff=(x,y,z,s,o={})=>{ if(s<110||o.add||!C.art('fx2_smoke').ok) return puff0(x,y,z,s,o); const life=o.life||rand(.8,1.4), vx=o.vx||0, vy=o.vy||0, vz=o.vz??rand(60,160), d=o.drag??1.6, mv=t=>(1-Math.exp(-d*t))/d;
+    C.gArt('fx2_smoke',x,y,o.c||'#3a3446',{c2:o.c2||'#0c0a12',c3:o.c3||'#7a7488',w:s*1.25,h:s*1.1,life,hold:.45,grow:.6,boil:.015,a:o.a??.9,flipX:Math.random()<.5,L:o.L??1,at:(k,t)=>[x+vx*mv(t),y+vy*mv(t),z+s*.6+vz*mv(t)]}); };
+  C.gBolt=(x1,y1,z1,x2,y2,z2,c,o={})=>{ const dz=z1-z2; if(dz<1500||!C.art('fx2_bolt').ok) return bolt0(x1,y1,z1,x2,y2,z2,c,o);
+    const len=Math.hypot(x1-x2,dz-(y1-y2)), hh=len/2, rot=Math.atan2(x1-x2,dz-(y1-y2)), w=hh*.52*clamp((o.w||26)/26,.7,1.7), life=o.life||.25, fl=Math.random()<.5;
+    for(let q=0;q<2;q++) C.gArt('fx2_bolt',(x1+x2)/2,(y1+y2)/2,c,{c2:o.c2,c3:o.c3||'#ffffff',add:true,z:(z1+z2)/2,w,h:hh,rot,life:q?life*.7:life,hold:.5,flipX:q?!fl:fl,boil:.01,fps:18,L:o.L??3,delay:(o.delay||0)+q*life*.55,a:q?.8:1}); };
+}
 // ---------------------------------------------------------------- per-frame
 C.step=rdt=>{ C.t+=rdt; GFX.step(rdt); V.hsc=lerp(V.hsc||1,C.hscT||1,1-Math.exp(-rdt*5)); if(LOW()){ trauma=Math.min(trauma,.4); post.flash=Math.min(post.flash,.12); } C.dark=lerp(C.dark,C.darkT,1-Math.exp(-rdt*(C.darkT>C.dark?6:3.2)));
   if(C.veilHold>0) C.veilHold-=rdt; else C.veil*=Math.exp(-rdt*7);

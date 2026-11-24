@@ -96,6 +96,7 @@ const FLM='#ff6a1a', FD='#7a1000', FH='#fff0a8';
 // one drawing of a fire whirl standing at (x,y): a funnel of flame discs that widen as they climb, each turning and leaning its own way
 function twister(x,y,s,ph,a=1){ const K=GFX, st=K.st(5,'add',{c2:K.rgb(FD),c3:K.rgb(FH),L:2}), stG=K.st(8,'add',{L:0}), stR=K.st(2,'add',{c2:K.rgb(FD),c3:K.rgb(FH),L:0}), c=K.rgb(FLM), N=8;
   K.floor(stG,x,y,s*1.5,null,0,c,.5*a); K.floor(stR,x,y,s*.9,null,ph,c,.8*a,.7,K.tq(12,ph),.16,.12); K.floor(K.st(12,'alpha',{L:0}),x,y,s*.8,null,0,[0,0,0],.35*a);
+  if(X.cine.artNow('fx2_tornado',x+Math.sin(RT*5+ph)*s*.12,y,s*1.8,s*1.3*(Math.floor(RT*9+ph)%2?1:-1),s*1.85,FLM,{c2:FD,c3:FH,add:true,a,ph:K.tq(9,ph),boil:.03})) return;
   for(let i=0;i<N;i++){ const u=i/(N-1), z=s*(.15+u*3.1), r=s*(.42+u*.95), w=Math.sin(RT*5+ph+u*4)*s*.28*u; K.bill(st,x+w,y,z,r,r*.62,Math.sin(RT*3+i)*.25,c,a*(1-u*.35),.12+u*.3,K.tq(12,ph+i*1.7)+u,1.3,1.5); } }
 // FIRE STORM: six whirlwinds walk out from his hands, graze the whole field, then come home and become one that fills the screen.
 function ultStorm(id){ ultStart(id); ov.lbT=0; const Cn=X.cine, K=GFX, {hw,hh}=view(), Dm=60000*A.mul(id), x0=pl.x, y0=pl.gy, RM=Math.max(hw,hh)*.68;
