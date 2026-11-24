@@ -15,6 +15,7 @@ const S=(steps,basic)=>{ plSeq(steps); anim.seq.basic=!!basic; };
 const fling=b=>S([['gb03',.04],['gb04',.05],['gb05',.06,{kick:[-.9,.7]}],['gb06',.05,{kick:[1.4,-1]}],['gb07',.08],['gb09',.07],['gb12',.05]],b);
 const raise=()=>S([['gx04',.08,{kick:[-.8,.6]}],['gx07',.25],['gx11',.1,{kick:[-1,.8]}],['gx12',.08,{kick:[2,-1.6]}],['gx13',.25],['gx14',.1]]);
 const pray=()=>S([['gy02',.1],['gy04',.35],['gy06',.08,{kick:[-.8,.6]}],['gy08',.3],['gy11',.1,{kick:[1.6,-1.2]}],['gy12',.2],['gy14',.1]]);
+if(F&&F.on) for(const t of ['v3_boulder','v3_spikes','v3_palmprint','v3_skygate']) F.img(t);
 const SEAL=()=>F.ready('v3_circ_shaman')?'v3_circ_shaman':'fx_circle_seal';
 
 // ============================================================ local kit (candidates for vfx3.js)
@@ -23,21 +24,23 @@ let LM_=null;
 function LM(){ if(LM_) return LM_; const m=F.mat, b=K.mats();
   LM_={
     // the painted boulder: dark rock, jade-lit faces, veins of spirit light where the painting is hot
-    stone:m({tex:'meteor',msk:[.55,.35,0,.22],nz:'fbm',n1:[2.2,2.2,0,0],nk:0,ero:.07,soft:.1,cA:'#030807',cB:'#27413b',cC:'#3dffb0',rk:[.62,1.15],gain:1.7,op:1}),
-    // the same boulder sunk into the floor: only its upper part, the cut edge faded into the rubble
-    sunk:m({tex:'meteor',msk:[.55,.35,0,.22],uvT:[1,.74,0,.26],nz:'fbm',n1:[2.2,2.2,0,0],nk:0,ero:.07,soft:.1,fd:[0,0,.16,0],ord:-2,cA:'#030807',cB:'#27413b',cC:'#3dffb0',rk:[.62,1.15],gain:1.7,op:1}),
+    // the painted boulder (grey mask) through a stone-to-jade ramp: dark rock, lit faces, veins of spirit light in the cracks
+    rock:m({tex:'v3_boulder',nk:0,pw:.6,ero:.05,soft:.07,cA:'#030807',cB:'#3a5750',cM:'#3dffb0',cC:'#d8fff0',rk:[.8,1.06],gain:1.5,op:1}),
     // a small sealing mark on the floor where something is about to land
     mark:m({...b.sig,tex:'fx_circle_seal'}),
     // the tip of the painted crystal as a spike of jade
-    spike:m({tex:'crystal',msk:[.45,.45,.45,.08],uvT:[1,.46,0,.54],nz:'fbm',n1:[2,2,0,0],nk:0,pw:1.6,ero:.05,soft:.1,fd:[0,0,.14,0],cA:'#020d0a',cB:'#12946e',cC:'#bfffe6',rk:[.75,1.15],gain:1.4,op:1}),
+    // the painted cluster of stone spikes, lit faces turning jade
+    spike:m({tex:'v3_spikes',nz:'billow',n1:[2,2,0,-.2],nk:0,pw:.8,ero:.07,soft:.1,fd:[.05,.05,.07,0],cA:'#020d0a',cB:'#3b5f56',cM:'#3fd0a0',cC:'#c8ffe8',rk:[.8,1.25],gain:1.3,op:1}),
     // one talisman banner cut out of the sealing circle drawing, and the dark paper behind it
     charm:m({tex:'v3_circ_shaman',uvT:[.118,.224,.441,.719],nk:0,ero:.15,soft:.3,cA:GD.d,cB:GD.b,cC:GD.h,rk:[.6,1.5],gain:1.2,bgain:1.05}),
     back:m({nz:'fbm',n1:[2,2,0,.3],nk:.35,ero:.02,soft:.2,fd:[.14,.14,.07,.07],cA:'#120600',cB:'#2a0c04',cC:'#5a1408',rk:[.5,1],op:1}),
     fire:m({...b.art,tex:'fx3_fire',layer:'o',nz:'billow',n1:[1.2,1,0,-1.1],n2:[1.3,1,.05,-1],dist:.09,mdist:1,rk:[.55,1.05]}),
     palm:m({kind:2,tex:'palm',nz:'fbm',n1:[2.5,2.5,0,.1],cB:'#78e0cc',cC:PJ.b,gain:.9,op:1}),
     // the hand's print: the painting as a mask, filled with veins of light that cool
-    print:m({tex:'palm',msk:[.5,.5,0,0],nz:'fbm',n1:[3,3,.02,.03],n2:[2,2,.01,0],dist:.015,nk:.25,pw:1.5,ero:.12,soft:.25,cA:PJ.d,cB:PJ.b,cC:PJ.h,rk:[.6,1.1],gain:1.8,bgain:1,layer:'g'}),
-    printD:m({tex:'palm',msk:[0,0,0,1],nk:0,ero:.2,soft:.5,cA:'#000000',cB:'#000000',cC:'#000000',op:1,layer:'g'}),
+    print:m({tex:'v3_palmprint',nz:'fbm',n1:[3,3,.02,.03],n2:[2,2,.01,0],dist:.012,nk:.2,ero:.1,soft:.25,cA:PJ.d,cB:PJ.b,cM:PJ.m,cC:PJ.h,rk:[.55,1.08],gain:1.7,bgain:1,layer:'g'}),
+    printD:m({tex:'v3_palmprint',nk:0,pw:.4,ero:.25,soft:.35,cA:'#000000',cB:'#000000',cC:'#000000',op:1,layer:'g'}),
+    // the opened sky: storm cloud in dark jade, the light pouring through its centre in gold
+    gate:m({tex:'v3_skygate',nz:'billow',n1:[1.5,1.5,.02,.02],n2:[1.2,1.2,.03,-.02],dist:.03,nk:.15,ero:.05,soft:.3,cA:'#010605',cB:'#0a5c46',cM:'#d8a23a',cC:'#fff0c0',rk:[.66,1.12],gain:1.1,bgain:.75,op:.8,ord:-1}),
     king:m({kind:2,tex:'deity',nz:'fbm',n1:[1.1,1.1,0,.06],cB:'#b0f0d4',cC:PJ.b,gain:1,op:1,ord:-5}),
   }; return LM_; }
 // CARD: a paper talisman standing in the air (call every frame it is alive)
@@ -46,25 +49,25 @@ function card(x,y,z,s,rot,a=1,g=1){ const m=LM(); F.bill(m.back,x,y,z,s*.5,s,rot
 function pop(x,y,s=1,z=BODY*.5){ K.art(x,y,{tex:'v3_xburst',s:95*s,z:z-70*s,dur:.2,pal:P,gain:.9,hold:.2,s0:.5}); K.sparks(x,y,z,{pal:P,n:Math.round(6*s),sp:[250,800],up:300,life:[.15,.35]}); GFX.light(x,y,280*s,PJ.l,.6,.25); }
 // STONE: the painted boulder falling out of the sky along a slanted path, dragging a ribbon of spirit light, its shadow and a ring closing under it.
 //  o: {s (half size), h0, dur, vx (sideways start offset), delay, stay (seconds it stays in the ground)}; returns a handle {crumble()}
-function stone(x,y,o={}){ const s=o.s||110, h0=o.h0||2200, dur=o.dur||.42, vx=o.vx??-h0*.22, r0=rand(0,TAU), vr=rand(-2.5,2.5), sd=rand(0,9), d0=o.delay||0, fl=Math.random()<.5, h={x,y,s,t1:-1,fd:o.fd||.4,dead:false,crumble(){ if(h.t1<0) h.t1=RT; }};
+function stone(x,y,o={}){ const s=o.s||110, h0=o.h0||2200, dur=o.dur||.42, vx=o.vx??-h0*.22, r0=rand(-.5,.5), sd=rand(0,9), d0=o.delay||0, uvT=Math.random()<.5?[-1,1,1,0]:[1,1,0,0], h={x,y,s,t1:-1,fd:o.fd||.4,dead:false,crumble(){ if(h.t1<0) h.t1=RT; }};
   if(!F.on) return h; const m=LM(), b=K.mats(), lead=o.lead??.3;
   // the mark writes itself a moment before the stone is seen
   GFX.add(lead+dur,(k,t)=>{ const i=sat(t/(lead+dur*.5)), e=sat((t-lead)/dur); F.quad(b.dark,x,y,s*(1.2+e*1.1),s*(1.2+e*1.1),0,{a:.2+.5*e*e});
     F.quad(m.mark,x,y,s*2.1,s*2.1,t*1.6+sd,{cA:PJ.d,cB:PJ.b,cC:SP.h,a:.35+.65*e,gain:1.1+e,rv:[i*1.5,.25,0,.1]}); },Math.max(0,d0-lead));
-  GFX.add(dur,k=>{ const e=k*k, z=h0*(1-e)+s*.8, px=x+vx*(1-e), pts=[];
-    for(let i=5;i>=0;i--){ const kk=Math.max(0,k-i*.08), ee=kk*kk; pts.push({x:x+vx*(1-ee),y,z:h0*(1-ee)+s*.8,w:s*(1-i*.16)}); }
-    F.ribbon(b.trB,pts,{...C,gain:1.8,a:.8,t0:sd});
-    F.bill(m.stone,px,y,z,s,s,r0+vr*k,{t0:sd}); },d0);
+  GFX.add(dur,k=>{ const e=k*k, z=h0*(1-e)+s*.96, px=x+vx*(1-e), pts=[];
+    for(let i=5;i>=0;i--){ const kk=Math.max(0,k-i*.08), ee=kk*kk; pts.push({x:x+vx*(1-ee),y,z:h0*(1-ee)+s*1.2,w:s*(1-i*.16)}); }
+    F.ribbon(b.trB,pts,{...C,gain:1.8,a:.8*sat(k*5),t0:sd});
+    F.bill(m.rock,px,y,z,s,s,r0*(1-k),{a:sat(k*(o.emerge?6:40)),uvT,t0:sd}); },d0);
   if(o.stay) GFX.add(o.stay,(k,t)=>{ if(h.dead) return; const f=h.t1<0?0:sat((RT-h.t1)/h.fd); if(f>=1){ h.dead=true; return; }
-    const sq=1+.16*Math.exp(-t*16), hh=s*.74*(2-sq);
-    F.quad(b.dark,x,y,s*1.5,s*1.5,0,{a:.7*(1-f)});
-    F.bill(m.sunk,x,y,hh*.96,s*sq,hh,0,{ero:.07+f*.95,gain:1.7+f*3+(o.hot?.9*sat(t/1.1):0),uvT:fl?[-1,.74,1,.26]:null,t0:sd}); },d0+dur);
+    const sq=1+.14*Math.exp(-t*16), hh=s*(2-sq);
+    F.quad(b.dark,x,y,s*1.25,s*1.25,0,{a:.75*(1-f)});
+    F.bill(m.rock,x,y,hh*.9,s*sq,hh,0,{ero:.05+f*.95,gain:1.5+f*3+(o.hot?1.2*sat(t/1.1):0),uvT,ord:-2,t0:sd}); },d0+dur);
   return h; }
 // SPIKE: a jade shard punching up out of the floor, holding, then sinking back as it burns out
-function spike(x,y,o={}){ if(!F.on) return; const m=LM(), b=K.mats(), s=o.s||170, dur=o.dur||.7, lean=o.lean||0, sd=rand(0,9);
-  GFX.add(dur,(k,t)=>{ const up=eo5(sat(t/.07)), f=sat((k-.55)/.45), hh=s*up*(1-f*.5), a=1-f*f;
-    if(o.glow!==0) F.quad(b.glowG,x,y,s*.7,s*.7,0,{...C,a:.8*a,gain:1.2});
-    F.bill(m.spike,x+lean*hh*.4,y,hh*.98,s*.34,hh,lean,{a,ero:.1+f*.7,nk:f*.7,t0:sd}); },o.delay||0); }
+function spike(x,y,o={}){ if(!F.on) return; const m=LM(), b=K.mats(), s=o.s||170, dur=o.dur||.7, sd=rand(0,9), uvT=o.flip?[-1,1,1,0]:[1,1,0,0];
+  GFX.add(dur,(k,t)=>{ const up=eo5(sat(t/.08)), f=sat((k-.55)/.45), hh=s*(.25+.75*up)*(1-f*.35), a=1-f*f;
+    F.quad(b.dark,x,y,s*.75,s*.75,0,{a:.6*a}); F.quad(b.glowG,x,y,s*.8,s*.8,0,{...C,a:.7*a,gain:1.2});
+    F.bill(m.spike,x,y,hh*.97,s*.7,hh,0,{a:sat(t/.04),ero:.07+f*.8,nk:f*.8,uvT,t0:sd}); },o.delay||0); }
 // SOUL: a spirit flame hanging in the air at (x,y,z) (call every frame)
 function soul(x,y,z,s,rot,sd,a=1){ const m=LM(), b=K.mats(); F.quad(b.glowG,x,y,s*.9,s*.9,0,{...C,a:.55*a,gain:1.1});
   F.bill(m.fire,x,y,z+s*.55,s*.58,s,rot,{...C,a,gain:2.6,ero:.12,nk:.4,t0:sd,pm:[4,.5,.004,0]});
@@ -77,8 +80,8 @@ function palmFall(x,y,o={}){ if(!F.on) return; const m=LM(), b=K.mats(), Ln=o.s|
     if(q<1) F.ribbon(b.trB,[{x:px,y,z:z+Ln*3.2,w:Wd*.2},{x:px,y,z:z+Ln*2,w:Wd*.6},{x:px,y,z:z+Ln*.3,w:Wd*.8}],{...C,gain:1.5,a:.55*q,t0:sd});
     F.quad(m.palm,px,y,Wd*pr,Ln*pr,0,{z,M:F.xfw({sx:Wd*pr,sy:Ln*pr,rx:lean,rz}),a:.97,ero:f*1.05-.05,soft:.08,t0:sd}); },d0);
   GFX.add(o.scar||4,(k,t)=>{ const i=sat(t/.08), heat=Math.pow(1-k,1.5);
-    F.quad(m.printD,x,y,Wd*1.04,Ln*1.04,rz,{a:.55*i*sat((1-k)/.5)});
-    F.quad(m.print,x,y,Wd,Ln,rz,{a:Math.min(1,heat*1.6)*i,gain:1.8*(.3+.7*heat),ero:.06+k*.7,t0:sd}); },d0+fall); }
+    F.quad(m.printD,x,y,Ln*.7,Ln*1.05,rz,{a:.8*i*sat((1-k)/.4)});
+    F.quad(m.print,x,y,Ln*.7,Ln*1.05,rz,{a:Math.min(1,heat*1.7)*i,gain:1.7*(.3+.7*heat),ero:.1+k*k*.6,t0:sd}); },d0+fall); }
 // GIF: one of the old painted effect loops drawn as a lit sprite in the effect layer (so it blooms and sits with the kit pieces)
 const GS=new Map();
 function gif(name,t,x,y,z,hw,rot,fy=1,a=1){ const M=VFX[name]; if(!M) return false; const f=M.f[Math.floor(t*1000/M.ms)%M.n]; if(!f||!f.ok) return false;
@@ -130,7 +133,7 @@ const SKILL={
   sh_spike:{fn(id){ const e=nearest(700); if(!e) return false; const a0=angTo(e), d=D(id), dirs=EVO(id)?[-.45,0,.45]:[0]; face(a0); raise();
     for(const da of dirs){ const a=a0+da, cx=Math.cos(a), cy=Math.sin(a); K.gash(pl.x+cx*80,pl.gy+cy*80,pl.x+cx*820,pl.gy+cy*820,{pal:P,w:70,life:2.2,grow:.5,delay:.2});
       for(let i=0;i<6;i++) after(.25+i*.07,()=>{ const r=150+i*120, x=pl.x+cx*r, y=pl.gy+cy*r;
-        spike(x,y,{s:rand(170,210)+i*16,lean:rand(-.14,.14)}); spike(x-rand(40,70),y+rand(14,30),{s:rand(80,120),lean:-rand(.25,.5),dur:.6,glow:0}); if(!da) spike(x+rand(40,70),y+rand(14,30),{s:rand(70,110),lean:rand(.25,.5),dur:.55,glow:0});
+        spike(x,y,{s:rand(190,230)+i*18,flip:i%2});
         if(i%2===0&&!da) K.art(x,y,{tex:'fx3_shock',floor:true,s:230,dur:.45,pal:SP,gain:.7,hold:.3,s0:.3,rot:rand(0,TAU)});
         K.debris(x,y,{n:3,r:30,sp:[150,500],up:900,c:'#4c6a60'}); K.dust(x,y,{n:2,r:30,sp:[120,320],a:.4}); K.sparks(x,y,20,{pal:P,n:5,sp:[200,700],up:1100,life:[.2,.45]}); GFX.light(x,y,420,PJ.l,.8,.3,{z:80}); sfx('shatter',.4);
         inCircle(x,y,110,o=>{ dmg(o,d,{kb:.4,launch:1100,stun:.7,sx:x,sy:y}); hitFx(o,C1,1.1); }); }); } }},
@@ -150,7 +153,7 @@ const SKILL={
   // ROCK FALL: jade-veined boulders out of the sky onto their marks
   sh_rock:{fn(id){ const T=onScreen(-60); if(!T.length) return false; const n=EVO(id)?7:4, d=D(id); raise(); sfx('rumble',.8);
     T.sort(()=>Math.random()-.5).slice(0,n).forEach((e,i)=>{ const x=e.x, y=e.y, at=.3+i*.14, hitAt=at;
-      stone(x,y,{s:135,h0:1900,dur:.3,delay:hitAt-.3,stay:.55,fd:.3}).t1=RT+hitAt+.22;
+      stone(x,y,{s:150,h0:1900,dur:.3,delay:hitAt-.3,stay:.7,fd:.3}).t1=RT+hitAt+.38;
       after(hitAt,()=>{ K.burst(x,y,{s:150,pal:P,scar:2.5,no:['smoke','shock'],dur:.45}); K.shock(x,y,{r:300,dur:.38,pal:P,light:0,dust:6,dc:'#2c3835'}); K.debris(x,y,{n:6,r:40,sp:[200,700],up:1100,c:'#4c6a60'}); trauma=Math.min(1,trauma+.2); sfx('boom',1,.6);
         inCircle(x,y,200,o=>{ dmg(o,d,{kb:1.1,launch:500,big:true,sx:x,sy:y}); hitFx(o,C1,1.2); }); }); }); }},
   // BIND: the sealing circle writes itself under the crowd and six talismans stand guard on its rim
@@ -204,10 +207,15 @@ function ultStones(id){ ultStart(id); const Cn=X.cine, {hw,hh}=view(), Dm=60000*
     K.beam(x0,y0,BODY*1.7,x0,y0,3600,{w:150,dur:.85,pal:P,gain:.7}); K.flare(x0,y0,BODY*1.9,{pal:P,s:220,dur:.35,gain:2.2}); sig.a=.55; K.shock(x0,y0,{r:hw*1.4,dur:.5,pal:P}); GFX.ripple(x0,y0,hw*1.5,{life:.45,s:.6});
     K.sparks(x0,y0,BODY,{pal:P,n:30,sp:[400,1500],up:1700}); K.dust(x0,y0,{n:12,r:80,sp:[400,1000],c:'#2c3835'}); K.debris(x0,y0,{n:8,r:120,sp:[250,800],up:900,c:'#4c6a60'});
     GFX.ambient(.3,.36,.37,5); Cn.shake(.7); post.ca=.01; SFX.boom(1.4,.5); Cn.SND.shing(.7,.4); Cn.SND.gong(.7); Cn.zoom(.86); Cn.cam(null); });
+  // ---- the sky opens above him when the talismans arrive, turns slowly, and closes behind the last stone
+  const gx=x0, gy=y0, gz=1500, GR=940, sky={open:1.82,close:99};
+  if(F.on){ const m=LM(); GFX.add(9,(k,t)=>{ const i=sat((t-sky.open)/.55), c=sat((t-sky.close)/.6); if(i<=0||c>=1) return; const pu=.85+.15*Math.sin(t*5);
+      F.quad(m.gate,gx,gy,GR*(.8+.2*eo3(i))*(1-c*.25),GR*(.8+.2*eo3(i))*(1-c*.25),t*(.3+c*2)+c*c*2,{z:gz,a:(1-c*c)*sat(i*2),gain:1.1*pu,ero:.05+c*.6,rv:[.05+i*1.5,.3,0,.1]}); }); }
+  const lampG=GFX.light(gx,gy,hw*1.3,GD.l,.0,.5,{hold:9,z:400}); after(1.82,()=>{ lampG.a=.45; });
   // ---- the rain
   const T=onScreen(100).sort(()=>Math.random()-.5).slice(0,22), pts=T.map(e=>[e.x,e.y]); while(pts.length<22) pts.push([x0+rand(-hw,hw)*.9,y0+rand(-hh,hh)*.85]);
   let at=2.0, gap=.22;
-  pts.forEach(([x,y],i)=>{ const hitAt=at; stuck.push(stone(x,y,{s:rand(100,130),h0:2300,dur:.42,delay:hitAt-.42,vx:-560,stay:9}));
+  pts.forEach(([x,y],i)=>{ const hitAt=at; const px=gx+rand(-420,420), pz=gz+rand(-200,200); stuck.push(stone(x,y,{s:rand(105,140),h0:Math.max(800,y-gy+pz),dur:.42,delay:hitAt-.42,vx:px-x,emerge:1,stay:9}));
     after(hitAt,()=>{ K.art(x,y,{tex:'v3_xburst',s:240,z:-40,dur:.2,pal:P,gain:.9,hold:.15,s0:.5}); K.art(x,y,{tex:'fx3_burst',s:150,asp:1.39,z:-30,dur:.42,pal:P,gain:.8,hold:.25,s0:.4});
       K.art(x,y,{tex:'fx3_shock',floor:true,s:400,dur:.5,pal:SP,gain:.8,hold:.3,s0:.3,rot:rand(0,TAU)}); if(i%3===0) K.crack(x,y,{r:240,pal:P,life:3});
       K.debris(x,y,{n:5,r:50,sp:[200,700],up:1100,c:'#4c6a60'}); K.dust(x,y,{n:5,r:60,sp:[200,520],a:.4,c:'#2c3835'}); K.sparks(x,y,30,{pal:P,n:8,sp:[300,1100],up:900}); GFX.light(x,y,1000,PJ.l,1,.35,{z:180});
@@ -217,12 +225,12 @@ function ultStones(id){ ultStart(id); const Cn=X.cine, {hw,hh}=view(), Dm=60000*
   const tc=at+.05, mx=x0, my=y0-hh*.2, lead=tc+.72;
   after(tc,()=>{ GFX.ambient(.3,.32,.34,5); Cn.zoom(.8); Cn.SND.inhale(.7,.7); duck(.2,.6);
     K.sigil(mx,my,{r:780,dur:.8,in:.3,out:.15,spin:2.4,pal:P,tex:'fx_circle_seal',gain:.8}); for(let i=0;i<2;i++) K.shock(mx,my,{r0:1100,r:260,dur:.34,pal:P,gain:.6,light:0,dust:0,haze:.4,th:.6,delay:i*.34}); });
-  const big=stone(mx,my,{s:540,h0:3800,dur:.5,delay:lead-.5,vx:-760,stay:9,fd:.6,hot:1});
+  const big=stone(mx,my,{s:560,h0:3800,dur:.5,delay:lead-.5,vx:0,stay:9,fd:.6,hot:1}); after(lead-.12,()=>{ sky.close=lead-.12; lampG.hold=0; });
   after(lead-.13,()=>{ GFX.ambient(.3,.3,.34,40); sig.a=.25; });
   after(lead,()=>{ hitstop=Math.max(hitstop,.11); Cn.shake(1.5); post.ca=.014; Cn.zoom(.86); GFX.ambient(.5,.62,.58,40); after(.14,()=>GFX.ambient(.32,.4,.4,4)); sig.a=1.1; sig.kick(); after(.5,()=>{ sig.a=.6; });
     K.art(mx,my,{tex:'v3_xburst',s:hw*.72,z:-100,dur:.34,pal:GD,gain:.8,hold:.2,s0:.55}); K.art(mx,my,{tex:'fx3_burst',s:640,asp:1.39,z:-120,dur:.7,pal:GD,gain:.75,hold:.25,s0:.4});
     K.art(mx,my,{tex:'fx3_shock',floor:true,s:hw*1.5,dur:.8,pal:SP,gain:.9,hold:.3,s0:.25});
-    for(let i=0;i<9;i++){ const a=i/9*TAU+rand(-.2,.2), d=rand(520,680); stuck.push(stone(mx+Math.cos(a)*d,my+Math.sin(a)*d*FSY+40,{s:rand(45,85),h0:700,dur:.16,delay:rand(0,.08),vx:Math.cos(a)*-260,lead:0,stay:9})); } K.dome(mx,my,{r:hw*.95,dur:.5,pal:P,gain:.8}); K.shock(mx,my,{r:hw*1.8,dur:.6,pal:P,gain:1.2}); K.shock(mx,my,{r:hw*2.6,dur:.9,pal:P,gain:.7,delay:.1,light:0}); GFX.ripple(mx,my,hw*2,{life:.6,s:.9});
+    for(let i=0;i<9;i++){ const a=i/9*TAU+rand(-.2,.2), d=rand(520,680); stuck.push(stone(mx+Math.cos(a)*d,my+Math.sin(a)*d*FSY+40,{s:rand(50,90),h0:700,dur:.16,delay:rand(0,.08),vx:Math.cos(a)*-260,lead:0,stay:9})); } K.dome(mx,my,{r:hw*.95,dur:.5,pal:P,gain:.8}); K.shock(mx,my,{r:hw*1.8,dur:.6,pal:P,gain:1.2}); K.shock(mx,my,{r:hw*2.6,dur:.9,pal:P,gain:.7,delay:.1,light:0}); GFX.ripple(mx,my,hw*2,{life:.6,s:.9});
     K.crack(mx,my,{r:hw*.98,pal:P,life:5.5,grow:.14,gain:1.2});
     K.debris(mx,my,{n:26,r:260,sp:[300,1300],up:1800,size:26,c:'#4c6a60'}); K.dust(mx,my,{n:22,r:300,sp:[500,1500],a:.5,c:'#2c3835'}); K.sparks(mx,my,60,{pal:P,n:50,sp:[500,2200],up:1700,life:[.3,.9]});
     GFX.light(mx,my,hw*2.4,GD.l,1.3,.5,{z:260}); GFX.light(mx,my,hw*2.2,PJ.l,1,.9,{z:200}); for(let i=0;i<3;i++) K.smoke(mx+rand(-380,380),my+rand(-60,80),{s:rand(260,380),dur:rand(1.3,1.8),delay:.15+i*.1,a:.7,c:'#0b1614',c2:'#2a4a40'});
@@ -270,8 +278,8 @@ function ultKing(id){ ultStart(id); const Cn=X.cine, {hw,hh}=view(), Dm=70000*A.
   after(tc+.45,()=>{ GFX.ambient(.3,.3,.34,40); gate.a=.3; });
   after(tc+.58,()=>{ hitstop=Math.max(hitstop,.12); Cn.shake(1.5); post.ca=.014; GFX.ambient(.5,.62,.58,40); after(.14,()=>GFX.ambient(.32,.4,.4,4)); st.pt=RT; gate.a=1.2; gate.kick();
     slamFx(bx,py,1.7); K.art(bx,py,{tex:'v3_xburst',s:620,z:-80,dur:.36,pal:GD,gain:.85,hold:.2,s0:.5}); K.art(bx,py,{tex:'fx3_burst',s:520,asp:1.39,z:-140,dur:.6,pal:GD,gain:.7,hold:.25,s0:.4}); GFX.light(bx,py,hw*2.4,GD.l,1.3,.5,{z:260}); K.dome(bx,py,{r:hw*.95,dur:.5,pal:P,gain:.8}); K.shock(bx,py,{r:hw*2.6,dur:.9,pal:P,gain:.7,delay:.1,light:0});
-    // a wall of light around the hand: tall behind it, low in front, open at the sides (steep walls read as flat lines)
-    for(const [a0,a1,h0,h1,dy] of [[3.5,5.92,700,1050,-1],[.36,2.78,260,420,1]]){ const pts=[]; for(let j=0;j<=8;j++){ const a=mix(a0,a1,j/8); pts.push({x:bx+Math.cos(a)*820,y:py+Math.sin(a)*820*FSY,h:rand(h0,h1)*(.6+.4*Math.sin(Math.PI*j/8))}); } K.wall(pts,{pal:P,dur:rand(1.1,1.4),gain:.6,delay:.05,ord:dy}); }
+    // a wall of light standing round the hand: tall behind it, low in front
+    if(K.arcwall) K.arcwall(bx,py,{r:840,h:1050,hb:1,hf:.22,dur:1.3,pal:P,gain:.6,delay:.05});
     Cn.sweep(bx,by,Dm,{speed:3200,push:1.2}); Cn.SND.hit(1); SFX.boom(1.6,1); SFX.shatter(1); });
   // ---- afterglow: it goes back up as light; the bell again
   after(tc+1.3,()=>{ st.out=RT; SFX.bell(.7); K.embers(bx,by,hw*.9,{pal:P,n:50,life:2.4}); K.embers(kx,ky,500,{pal:P,n:24,life:2.4,z:1400,up:420}); GFX.ambient(.8,.9,.86,1.6); Cn.zoom(1); Cn.cam(null); gate.a=.5; });

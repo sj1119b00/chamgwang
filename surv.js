@@ -52,7 +52,7 @@ function inCircleS(x,y,r,fn){ for(const e of V.en){ if(e.dead) continue; const d
 function inSector(x,y,a,r,half,fn){ inCircleS(x,y,r,e=>{ const dx=e.x-x, dy=e.y-y, l=Math.hypot(dx,dy); let d=Math.atan2(dy,dx)-a; d=Math.atan2(Math.sin(d),Math.cos(d)); if(l<e.d.r+40||Math.abs(d)<half+e.d.r/Math.max(l,1)) fn(e); }); }
 function inLine(x0,y0,x1,y1,w,fn){ const dx=x1-x0, dy=y1-y0, L2=dx*dx+dy*dy||1; for(const e of V.en){ if(e.dead) continue; const t=clamp(((e.x-x0)*dx+(e.y-y0)*dy)/L2,0,1), px=x0+dx*t, py=y0+dy*t, rr=w+e.d.r; if((e.x-px)**2+(e.y-py)**2<rr*rr) fn(e); } }
 function seq(p,fr,o={}){ const [w,s,h]=fr; plSeq([[p+w,o.w??.035],[p+s,o.s??.05,{tr:1,kick:[2.2,-1.8]}],[p+h,o.h??.12],[p+(o.end||'12'),.06]]); anim.seq.basic=!!o.basic; }
-function hitFx(e,c,pw=1){ if(V.fxB<=0) return; V.fxB--; const x=e.x, y=e.y-e.h*.45-e.z;
+function hitFx(e,c,pw=1){ if(V.fxB<=0) return; V.fxB--; if(window.K3&&window.FX3&&FX3.on){ K3.hit(e.x,e.y,e.h*.45+e.z,c,pw); return; } const x=e.x, y=e.y-e.h*.45-e.z;
   gl0(x,y,55*pw,c,.16,{a:.7}); for(let i=0;i<1;i++) spark(x,y,rand(0,TAU),rand(300,900)*pw,{c:Math.random()<.5?'#ffffff':c,life:rand(.12,.25),w:2,g:0});
   if(pw>1.1&&Math.random()<.6) vfx('impact',x,y,{sc:.28*pw,rot:rand(0,TAU)}); }
 // crystal fragments that fly up and settle on the floor (deaths, slams)

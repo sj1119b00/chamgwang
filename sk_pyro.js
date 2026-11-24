@@ -36,6 +36,8 @@ function mats(){ if(MT) return MT; const m=F.mat, k=K.mats(); MT={
   // the dragon: painted colour art
   dH:m({kind:2,tex:'dragon_head',nz:'fbm',n1:[2.5,2.5,0,.1],cB:'#ffffff',cC:'#ffd070',gain:1.2,op:1,layer:'o'}),
   dB:m({kind:2,tex:'dragon_body',nz:'fbm',n1:[4,1,0,0],cB:'#ffffff',cC:'#ffd070',gain:1.15,op:1,layer:'o'}),
+  // the scar a walking whirl leaves: a charred, ember-veined track
+  arm:m({nz:'cells',n1:[9,1.4,.01,0],n2:[3,1,0,0],dist:.03,nk:.85,pw:1.3,ero:.04,soft:.25,pm:[2,1.1,0,0],cA:'#000000',rk:[.45,1.15],op:1,layer:'g'}),
   dS:m({kind:2,tex:'dragon_head',nz:'fbm',n1:[2.5,2.5,0,.1],cB:'#ff3a10',cC:'#ffb040',gain:1,op:0,layer:'g'}),
   dC:m({kind:2,tex:'dragon_body',nz:'fbm',n1:[3,1,0,0],cB:'#ff3008',cC:'#ffb040',gain:1,op:0,layer:'g'}),
 }; return MT; }
@@ -47,11 +49,12 @@ function scorch(x,y,r,o={}){ if(!F.on) return; const m=mats(), P=o.pal||PF, life
     F.quad(m.sc,x,y,rr,rr*.72,rot,{cB:'#e03a04',cC:P.s,a:.92*out,bgain:1.5*heat,gain:2.4*heat,t0:sd}); },o.delay||0); }
 
 // FIRELINE: flames standing on a floor path for a while (what a dash, a ring or a dragon leaves burning). pts: [{x,y,h?}]
-function fireLine(pts,o={}){ if(!F.on) return; const km=K.mats(), P=o.pal||PF, C=col(P), dur=o.dur||2, h=o.h||150, sd=rand(0,9), g=o.gain||1, tin=o.in??.14, tout=o.out??.5; let len=0;
+function fireLine(pts,o={}){ if(!F.on) return; const km=K.mats(), P=o.pal||PF, C=col(P), dur=o.dur||2, h=o.h||150, sd=rand(0,9), g=o.gain||1, tin=o.in??.14, tout=o.out??.5, nt=o.tongues||0; let len=0;
   for(let i=1;i<pts.length;i++) len+=Math.hypot(pts[i].x-pts[i-1].x,(pts[i].y-pts[i-1].y)/FSY); const ur=o.closed?Math.max(1,Math.round(len/(h*2.2))):Math.max(.5,len/(h*2.2));
   GFX.add(dur,(k,t)=>{ const up=eo3(sat(t/tin)), f=sat(1-(dur-t)/tout), a=1-f*f, hh=h*up*(1-.35*f)*(1+.06*Math.sin(t*13+sd));
     F.wall(km.waB,pts,{h:hh,...C,a,gain:2.3*g,ero:.12+f*.6,uvT:[ur,1,sd,0],t0:sd});
-    F.wall(km.waC,pts,{h:hh*.55,...C,a,gain:3*g,ero:.26+f*.6,uvT:[ur*(o.closed?2:1.3),1,sd+.37,0],t0:sd}); },o.delay||0); }
+    F.wall(km.waC,pts,{h:hh*.55,...C,a,gain:3*g,ero:.26+f*.6,uvT:[ur*(o.closed?2:1.3),1,sd+.37,0],t0:sd});
+    for(let q=0;q<nt;q++){ const u=(q+.5)/nt*(pts.length-1), i0=Math.floor(u), fr=u-i0, A_=pts[i0], B_=pts[Math.min(pts.length-1,i0+1)], fs=hh*(.62+.2*Math.sin(q*2.4+sd)+.07*Math.sin(t*9+q)); tongue(mix(A_.x,B_.x,fr),mix(A_.y,B_.y,fr),0,fs,0,-1,{...C,a,t0:sd+q,ero:.12+f*.6,gain:2.3*g}); } },o.delay||0); }
 const ringPts=(x,y,r,n=32,ky=FSY)=>{ const p=[]; for(let i=0;i<=n;i++){ const b=i/n*TAU; p.push({x:x+Math.cos(b)*r,y:y+Math.sin(b)*r*ky,bx:Math.cos(b),by:Math.sin(b)*ky}); } return p; };
 
 // RINGFIRE: a wall of flame racing outward over the floor from a point. o: {r0, r, h, dur, pal, gain}
@@ -72,9 +75,9 @@ function whirl(x,y,o={}){ const h={x,y,s:o.s||1,a:1,lean:0,dead:false,L:null}; i
     F.quad(km.dark,h.x,h.y,R*1.15,R*1.15,0,{a:.55*a});
     F.quad(km.glowG,h.x,h.y,R*1.6,R*1.6,0,{...C,a:.85*a,gain:1.3});
     // eye: the foot opens round whoever stands in it - the fire turns above and about him, not over him
-    if(o.eye){ F.lathe(m.whB,h.x,h.y,0,{r0:R*.62,r1:R*.5,h0:0,h1:Hh*.3,M:M1,...CD,a:a*.8,gain:1.5*g,ero:.24+f*.6,fd:[0,0,.2,.5],t0:sd}); F.lathe(m.whB,h.x,h.y,0,{r0:R*.4,r1:R*1.05,h0:Hh*.24,h1:Hh,M:M2,...C,a,gain:1.7*g,ero:.2+f*.6,fd:[0,0,.3,.35],t0:sd+4});
+    if(o.eye){ F.lathe(m.whB,h.x,h.y,0,{r0:R*.62,r1:R*.5,h0:0,h1:Hh*.3,M:M1,...CD,a:a*.45,gain:1.3*g,ero:.24+f*.6,fd:[0,0,.2,.5],t0:sd}); F.lathe(m.whB,h.x,h.y,0,{r0:R*.4,r1:R*1.05,h0:Hh*.24,h1:Hh,M:M2,...C,a,gain:1.7*g,ero:.2+f*.6,fd:[0,0,.3,.35],t0:sd+4});
       F.bill(m.tor,h.x+tx*.55,h.y,Hh*.6,Hh*.37,Hh*.48,0,{...C,a:a*.95,gain:2.3*g,ero:.14+f*.6,nk:.35+f*.5,t0:sd,fd:[0,0,.3,0],uvT:(Math.floor(t*8+sd)&1)?[-1,1,1,0]:[1,1,0,0]});
-      const re=R*.66; for(const p of sk){ p.x=h.x+p.bx*re; p.y=h.y+p.by*re; } F.wall(km.waB,sk,{h:R*.55,...C,a:a*.9,gain:2*g,ero:.14+f*.6,uvT:[4,1,sd+t*.9,0],t0:sd}); return; }
+      const re=R*.66; for(const p of sk){ p.x=h.x+p.bx*re; p.y=h.y+p.by*re; } F.wall(km.waB,sk,{h:R*.85,...C,a:a*.9,gain:2*g,ero:.14+f*.6,uvT:[4,1,sd+t*.9,0],t0:sd}); return; }
     F.lathe(m.whB,h.x,h.y,0,{r0:R*.2,r1:R*.6,h0:0,h1:Hh*.72,M:M1,...CD,a,gain:1.7*g,ero:.2+f*.6,fd:[0,0,.12,.5],t0:sd});
     F.lathe(m.whB,h.x,h.y,0,{r0:R*.36,r1:R,h0:Hh*.28,h1:Hh,M:M2,...C,a,gain:1.7*g,ero:.2+f*.6,fd:[0,0,.35,.35],t0:sd+4});
     F.lathe(m.whC,h.x,h.y,0,{r0:R*.08,r1:R*.34,h0:0,h1:Hh*.82,M:M1,...CG,a,gain:2*g,ero:.32+f*.5,t0:sd+2});
@@ -85,7 +88,7 @@ function whirl(x,y,o={}){ const h={x,y,s:o.s||1,a:1,lean:0,dead:false,L:null}; i
   return h; }
 
 // TONGUE: one painted flame whose root sits at a point in the air and whose tip streams along a screen direction (ux right, uy down)
-function tongue(x,y,z,s,ux,uy,o){ const m=mats(); F.bill(m.fire,x+ux*s*.86,y,z-uy*s*.86,s*.56,s,Math.atan2(ux,-uy),{pm:[4,.5,.004,0],nk:.4,ero:.12,gain:2.6,...o}); }
+function tongue(x,y,z,s,ux,uy,o){ const m=mats(); F.bill(m.fire,x+ux*s*.86,y,z-uy*s*.86,s*(o.wk||.56),s,Math.atan2(ux,-uy),{pm:[4,.5,.004,0],nk:.4,ero:.12,gain:2.6,...o}); }
 
 // COMET: the look of a fire projectile - a gold heart, a painted flame streaming behind it, embers, its light on the floor. Reads p every frame.
 function comet(p,o={}){ if(!F.on) return; const km=K.mats(), s=o.s||64, sd=rand(0,9), z=o.z??BODY*.6, C=col(PF), CG=col(PG), Lt=GFX.light(p.x,p.y,s*7,PF.l,.75,.18,{hold:p.life,z});
@@ -98,7 +101,7 @@ function comet(p,o={}){ if(!F.on) return; const km=K.mats(), s=o.s||64, sd=rand(
 // a fire explosion on a floor point (s 1 = a fireball going off)
 function blast(x,y,s=1,o={}){ const big=s>=1.2, R=150*s; K.burst(x,y,{s:R,pal:PF,z:o.z||0,smoke:o.smoke??(big?2:1),no:o.no||(s>=2?[]:big?['crack']:['crack','debris']),scar:4}); if(o.scorch!==0) scorch(x,y,R*1.2,{life:big?4.5:2.8}); }
 function fireball(x0,y0,a,d,o={}){ const sp=o.sp??1500, p={x:x0,y:y0,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,life:o.life??1,d,r:o.r??80,home:o.home,turn:o.turn??5,c:C1,pw:1.1};
-  comet(p,{s:o.big?90:62});
+  comet(p,{s:o.big?96:74});
   p.onHit=(e,p)=>{ p.hitAny=true; blast(p.x,p.y,o.big?1.4:.8); sfx('fire',.4,.4); inCircle(p.x,p.y,o.big?220:140,q=>{ if(q!==e) dmg(q,d*.5,{kb:.8,sx:p.x,sy:p.y}); }); };
   p.onEnd=p=>{ if(!p.hitAny) blast(p.x,p.y,.7); };
   V.pj.push(p); return p; }
@@ -131,7 +134,7 @@ const SKILL={
     V.dash={x0,y0,x1,y1,t:0,dur:.12}; G.inv=Math.max(G.inv,.35); sfx('fire',.8,.6);
     const tp=[], fp=[]; for(let i=0;i<=8;i++){ const u=i/8; tp.push({x:mix(x0,x1,u),y:mix(y0,y1,u),z:BODY*.5}); fp.push({x:mix(x0,x1,u)+rand(-8,8),y:mix(y0,y1,u)+rand(-6,6)}); }
     K.trail(tp,{w:74,dur:.42,pal:PF,draw:.1,hold:.06}); K.trail(tp,{w:30,dur:.3,pal:PG,draw:.1,gain:1.2});
-    fireLine(fp,{h:165,dur:T,in:.2,out:.6}); K.gash(x0,y0,x1,y1,{pal:PF,life:T+1.2,w:74,grow:.12});
+    fireLine(fp,{h:150,dur:T,in:.2,out:.6,tongues:6}); K.gash(x0,y0,x1,y1,{pal:PF,life:T+1.2,w:74,grow:.12});
     GFX.light((x0+x1)/2,(y0+y1)/2,Ld*1.1,PF.l,.95,.5,{hold:T-.4,z:80,flick:.2});
     K.shock(x0,y0,{r:210,dur:.3,pal:PF,gain:.6,light:0,dust:0}); K.dust(x0,y0,{n:7,dir:a+PI,spread:.7,sp:[200,560],a:.4});
     after(.1,()=>{ K.art(x1,y1,{tex:'v3_xburst',s:130,z:BODY*.25,dur:.22,pal:PG,hold:.15,s0:.5}); K.sparks(x1,y1,BODY*.5,{pal:PF,n:14,dir:a,spread:.9,sp:[400,1400],up:500}); });
@@ -141,8 +144,8 @@ const SKILL={
   py_pillar:{fn(id){ const T=onScreen(-60); if(!T.length) return false; const n=EVO(id)?5:3, d=D(id); push(); sfx('fire',.9,.6);
     T.sort(()=>Math.random()-.5).slice(0,n).forEach((e,i)=>after(.15+i*.1,()=>{ const x=e.x, y=e.y;
       K.shock(x,y,{r0:190,r:36,dur:.16,pal:PF,gain:.7,light:0,dust:0,haze:0,th:.6}); GFX.light(x,y,360,PF.l,.7,.2);
-      after(.15,()=>{ K.pillar(x,y,{r:62,h:1000,dur:.62,pal:PF,gain:.95}); K.flame(x,y,{s:330,dur:.7,pal:PF,light:0}); K.flame(x,y,{s:170,dur:.55,pal:PG,light:0,gain:1.1});
-        ringFire(x,y,{r0:30,r:175,h:90,dur:.32}); scorch(x,y,170,{life:3}); K.sparks(x,y,20,{pal:PF,n:12,sp:[150,600],up:1500,life:[.3,.7]}); K.dust(x,y,{n:6,r:40,sp:[200,480],a:.35});
+      after(.15,()=>{ K.pillar(x,y,{r:50,h:760,dur:.42,pal:PD,gain:.55}); K.flame(x,y,{s:430,dur:.75,pal:PF,light:0}); K.flame(x,y,{s:250,dur:.6,pal:PG,light:0}); K.art(x,y,{tex:'v3_xburst',s:150,z:20,dur:.2,pal:PG,hold:.15,s0:.5});
+        K.shock(x,y,{r:230,dur:.32,pal:PF,gain:.8,light:0}); scorch(x,y,170,{life:3}); K.sparks(x,y,20,{pal:PF,n:12,sp:[150,600],up:1500,life:[.3,.7]}); K.dust(x,y,{n:6,r:40,sp:[200,480],a:.35});
         trauma=Math.min(1,trauma+.15); sfx('fire',.5,.5);
         inCircle(x,y,150,o=>{ dmg(o,d,{kb:.3,launch:1200,stun:.7,sx:x,sy:y}); hitFx(o,C1,1.2); }); }); })); }},
   // FLAME RING: a wall of fire leaves him in every direction
@@ -160,21 +163,21 @@ const SKILL={
       if(EVO(id)) for(let i=0;i<5;i++) after(.15+i*.1,()=>{ const b=rand(0,TAU), r=rand(150,380), bx=x+Math.cos(b)*r, by=y+Math.sin(b)*r*.75; blast(bx,by,1); inCircle(bx,by,160,o=>dmg(o,d*.4,{kb:.8,sx:bx,sy:by})); }); }); }},
   // FIRE RAIN: burning rocks come down out of the sky, each trailing its own flame
   py_rain:{fn(id){ const T=onScreen(-40); if(!T.length) return false; const n=EVO(id)?12:8, d=D(id); raise(); sfx('fireball',1);
-    for(let i=0;i<n;i++) after(.3+i*.1,()=>{ const e=T[(Math.random()*T.length)|0], x=e?e.x+rand(-60,60):pl.x+rand(-500,500), y=e?e.y+rand(-40,40):pl.gy+rand(-400,400), h0=1500, vx=-260, sd=rand(0,9);
-      GFX.add(.35,k=>{ const q=k*k, z=h0*(1-q)+60, px=x+vx*(1-q), ln=Math.hypot(vx,h0), ux=vx/ln, uy=-h0/ln; tongue(px,y,z,300,ux,uy,{...col(PF),t0:sd,a:sat(k*6)}); tongue(px,y,z,170,ux,uy,{...col(PG),t0:sd+2,gain:3,a:sat(k*6)}); });
+    for(let i=0;i<n;i++) after(.3+i*.1,()=>{ const e=T[(Math.random()*T.length)|0], x=e?e.x+rand(-60,60):pl.x+rand(-500,500), y=e?e.y+rand(-40,40):pl.gy+rand(-400,400), h0=1500, vx=-520, sd=rand(0,9);
       GFX.light(x,y,420,PF.l,.5,.35);
-      K.drop(x,y,{img:'meteor',s:58,h0,dur:.35,vx,rot:rand(0,TAU),tint:'#ffd8a8',gain:1.4,land:()=>{ blast(x,y,1.3); sfx('boom',.9,.5); inCircle(x,y,190,o=>{ dmg(o,d,{kb:1,launch:400,sx:x,sy:y}); hitFx(o,C1,1.1); }); }}); }); }},
+      K.drop(x,y,{img:'meteor',s:70,h0,dur:.35,vx,rot:rand(0,TAU),tint:'#ffd8a8',gain:1.4,land:()=>{ blast(x,y,1.3); sfx('boom',.9,.5); inCircle(x,y,190,o=>{ dmg(o,d,{kb:1,launch:400,sx:x,sy:y}); hitFx(o,C1,1.1); }); }});
+      if(F.on){ const km=K.mats(), ln=Math.hypot(vx,h0), ux=vx/ln, uy=-h0/ln; GFX.add(.35,k=>{ const q=k*k, z=h0*(1-q)+70, px=x+vx*(1-q), al=sat(k*8);
+          tongue(px-ux*40,y,z+uy*40,330,ux,uy,{...col(PF),t0:sd,a:al,wk:.3}); tongue(px-ux*30,y,z+uy*30,190,ux,uy,{...col(PG),t0:sd+2,gain:3,a:al,wk:.34}); F.bill(km.glowO,px,y,z,120,120,0,{...col(PF),a:.6*al,gain:1.6}); }); } }); }},
   // FLAME THROWER: two seconds of a fan of fire from his hand
   py_breath:{fn(id){ const e=nearest(520); if(!e) return false; const flat=b=>{ const c=Math.cos(b)>=0?0:Math.PI, d=Math.atan2(Math.sin(b-c),Math.cos(b-c)); return c+clamp(d,-.6,.6); }; let a=flat(angTo(e)); const d=D(id), R=EVO(id)?640:520, half=EVO(id)?.55:.42; face(a);
     S([['gb03',.05],['gb05',.05],['gb06',2,{kick:[1.2,-1]}],['gb10',.08],['gb12',.06]]); sfx('fire',2,.8);
-    if(F.on){ const km=K.mats(), C=col(PF), CG=col(PG), sd=rand(0,9), dur=2, KY=1.3, Mx=F.xf({sy:KY}), Lt=GFX.light(pl.x,pl.gy,R*1.3,PF.l,.95,.3,{hold:dur,z:90,flick:.25});
-      GFX.add(dur+.25,(k,t)=>{ const i=eo3(sat(t/.2)), out=sat((dur+.25-t)/.25), f=1-out, J=pl.j, ox=J&&J.rh?J.rh[0]:pl.x+pl.f*50, z=J&&J.rh?Math.max(40,pl.gy-J.rh[1]):BODY*.55, la=Math.atan2(Math.sin(a)/(FSY*KY),Math.cos(a)), r1=R*(.2+.8*i)*1.08, mx=pl.x+Math.cos(a)*R*.55, my=pl.gy+Math.sin(a)*R*.55, fl=1+.05*Math.sin(t*31);
-        Lt.x=mx; Lt.y=my;
-        F.quad(km.glowG,mx,my,R*.6,R*.46,0,{...C,a:.75*out*i,gain:1.3});
-        F.lathe(km.waB,ox,pl.gy,z,{r0:24,r1:r1*fl,a0:la-half*1.25,a1:la+half*1.25,M:Mx,...C,a:out,gain:2.5,ero:.1+f*.6,uvT:[1.6,1,sd,0],t0:sd});
-        F.lathe(km.waC,ox,pl.gy,z,{r0:24,r1:r1*.8,a0:la-half*.95,a1:la+half*.95,M:Mx,...C,a:out,gain:3,ero:.22+f*.6,uvT:[2.4,1,sd+.4,0],t0:sd});
-        F.lathe(km.waC,ox,pl.gy,z,{r0:20,r1:r1*.5,a0:la-half*.6,a1:la+half*.6,M:Mx,...CG,a:out,gain:3.4,ero:.2+f*.6,uvT:[1.4,1,sd+.7,0],t0:sd+3});
-        F.bill(km.glowO,ox,pl.gy,z,70,70,0,{...CG,a:out,gain:2.6});
+    if(F.on){ const km=K.mats(), C=col(PF), CD=col(PD), CG=col(PG), sd=rand(0,9), dur=2, Lt=GFX.light(pl.x,pl.gy,R*1.3,PF.l,.95,.3,{hold:dur,z:90,flick:.25}), fan=[[-.62,.9,CD],[.62,.9,CD],[-.26,1,C],[.26,1,C],[0,.78,CG]], rev={n1:[1.2,1,0,1.3],n2:[1.3,1,.05,1.1],pm:[1,.3,.02,0],fd:[0,0,.3,0]};
+      // painted flames laid tip-to-hand, so the fire widens away from him and streams outward
+      GFX.add(dur+.25,(k,t)=>{ const i=eo3(sat(t/.22)), out=sat((dur+.25-t)/.25), f=1-out, J=pl.j, ox=J&&J.rh?J.rh[0]:pl.x+pl.f*50, z=J&&J.rh?Math.max(40,pl.gy-J.rh[1]):BODY*.55, mx=pl.x+Math.cos(a)*R*.55, my=pl.gy+Math.sin(a)*R*.55;
+        Lt.x=mx; Lt.y=my; F.quad(km.glowG,mx,my,R*.62,R*.5,0,{...C,a:.8*out*i,gain:1.3});
+        for(let q=0;q<5;q++){ const [fa,fl,cc]=fan[q], b=a+half*fa+Math.sin(t*6+q*1.7)*.05, s=R*.54*fl*(.25+.75*i)*(1+.05*Math.sin(t*21+q*2.3)), ux=Math.cos(b), uy=Math.sin(b);
+          tongue(ox+ux*s*1.86,pl.gy,z-uy*s*1.86,s,-ux,-uy,{...cc,...rev,t0:sd+q*1.3,a:out*(q<4?.9:1),gain:q<4?2.3:2.9,ero:.12+f*.6,wk:q<4?.5:.4}); }
+        F.bill(km.glowO,ox,pl.gy,z,64,64,0,{...CG,a:out,gain:2.6});
         if(out>=1) for(let q=0;q<2;q++){ const b=a+rand(-half,half)*.8, sp=rand(700,1300); GFX.pt({x:ox,y:pl.gy,z:z+rand(-10,10),vx:Math.cos(b)*sp,vy:Math.sin(b)*sp,vz:rand(-40,200),g:-120,drag:1.5,life:rand(.3,.6),s:rand(2.5,5),m:3,len:.04,c:GFX.rgb(Math.random()<.4?PF.h:PF.s),c2:PF.b,L:3}); } }); }
     V.zones.push({follow:true,r:0,life:2,tick:.1,onTick:()=>{ const t=nearest(R+60); if(t){ const b=flat(angTo(t)); a+=Math.atan2(Math.sin(b-a),Math.cos(b-a))*.25; face(a); }
       if(Math.random()<.3){ const b=a+rand(-half,half)*.7, r=rand(.5,.95)*R; scorch(pl.x+Math.cos(b)*r,pl.gy+Math.sin(b)*r,rand(70,110),{life:1.8}); }
@@ -228,6 +231,8 @@ function ultStorm(id){ ultStart(id); const Cn=X.cine, {hw,hh}=view(), Dm=60000*A
       if(Math.random()<.3) inCircle(z.x,z.y,210,o=>ultHit(o,Dm*.12,z.x,z.y));
       if((z.sc+=dt)>.11&&!home){ z.sc=0; z.path.push({x:z.x,y:z.y,t}); if(z.path.length%4===(z.n&3)) scorch(z.x,z.y,210,{life:4.4,heat:1.2}); } } };
   // the arms: each whirl's path stays alight behind it, so the field carries a burning spiral
+  if(F.on){ const m=mats(); GFX.add(6.3,(k,tt)=>{ if(!tor[0].path.length) return; const heat=t<4.42?1.15:Math.max(.12,1-(t-4.42)/1.3), fade=sat((1-k)/.2);
+      for(const z of tor) if(z.path.length>1) F.ribbon(m.arm,z.path,{w:58,cB:'#e03a04',cC:PF.s,a:.9*fade,bgain:1.5*heat,gain:2.4*heat,t0:z.n}); },1.82); }
   if(F.on){ const km=K.mats(), C=col(PF), sd=rand(0,9); GFX.add(9,()=>{ if(done||!tor[0].path.length) return; const blown=sat(1-(t-4.42)/.45); if(blown<=0) return;
       for(const z of tor){ const P_=z.path, n=P_.length; if(n<2) continue; for(const p of P_){ const age=t-p.t; p.h=170*sat(age/.2)*sat(1.15-(age-1.5)/1.2)*(1+.12*Math.sin(p.t*37+t*9)); }
         F.wall(km.waB,P_,{...C,a:blown,gain:2.1,ero:.14+(1-blown)*.6,ulen:380,fd:[0,0,0,.35],uvT:[1,1,z.n*.37,0],t0:sd+z.n}); F.wall(km.waC,P_,{...C,a:blown*.8,gain:2.4,ero:.34+(1-blown)*.6,ulen:300,fd:[0,0,0,.6],uvT:[1,1,z.n*.61,0],t0:sd+z.n+3}); } }); }
@@ -282,7 +287,7 @@ function ultDragon(id){ ultStart(id); const Cn=X.cine, {hw,hh}=view(), Dm=70000*
   // path of the head: floor position and height, lt seconds after it leaves the circle
   const lap=lt=>{ const a=-PI/2+lt*3.0, R=RR*Math.min(1,lt/.45); return [x0+Math.cos(a)*R,y0+Math.sin(a)*R*.75]; };
   const pos=lt=>{ if(lt<=0) return {x:x0,y:y0,z:0}; if(lt<TD){ const [x,y]=lap(lt); return {x,y,z:ZF*eo3(sat(lt/.35))+Math.sin(lt*6)*34}; }
-    const k=sat((lt-TD)/DD), e=k*k, z0=ZF+Math.sin(TD*6)*34, [lx,ly]=lap(TD+(lt-TD)*(1-k*.7)); return {x:lerp(lx,cx,e),y:lerp(ly,cy,e),z:(z0+820*k)*(1-k*k*k)}; };
+    const k=sat((lt-TD)/DD), e=k*k, z0=ZF+Math.sin(TD*6)*34, [lx,ly]=lap(TD+(lt-TD)*(1-k*.7)); return {x:lerp(lx,cx,e),y:lerp(ly,cy,e),z:(z0+440*k)*(1-Math.pow(k,2.4))}; };
   let t=0, sc=0, fl=0, dive=0, done=false;
   V.ultTick=dt=>{ t+=dt; sig.r=lerp(30,330,easeOut(Math.min(1,t/1))); Cn.shake(t<1.8?.1+t*.1:0);
     if(t<T0){ if((sc+=dt)>.09){ sc=0; const a=rand(0,TAU), r=rand(200,330); K.flame(x0+Math.cos(a)*r,y0+Math.sin(a)*r*FSY,{s:rand(50,110)*(.5+t*.4),dur:.5,pal:PD,light:0}); } return; }
@@ -297,22 +302,27 @@ function ultDragon(id){ ultStart(id); const Cn=X.cine, {hw,hh}=view(), Dm=70000*
   if(F.on){ const m=mats(), km=K.mats(), C=col(PF), CD=col(PD), CG=col(PG), sd=rand(0,9), pts=[], au=[];
     const L1=GFX.light(x0,y0,820,'#ff6a1c',0,.3,{hold:9,z:220,flick:.12}), L2=GFX.light(x0,y0,600,'#ff3410',0,.3,{hold:9,z:160,flick:.12});
     const shape=u=>u<.1?mix(.72,1,u/.1):Math.pow(Math.max(0,1-(u-.1)/.9),.75);
-    GFX.add(9,()=>{ const lt0=t-T0; if(done||lt0>END+TB*.4){ L1.hold=L2.hold=0; return; } if(lt0<=0) return; const lt=lt0+Math.max(0,lt0-END)*1.5;   /* once the head is in, the rest pours after it */
-      pts.length=0; au.length=0;
-      for(let i=0;i<N;i++){ const u=i/(N-1), q=lt-u*TB, p=pos(Math.min(q,END)), wv=Math.sin(lt*10-u*8)*24*Math.min(1,u*4);
-        pts.push({x:p.x,y:p.y,z:Math.max(0,p.z+wv),w:WB*shape(u)*(q>END?0:sat(q/.05))}); }
+    const LB=1900, SL=LB/(N-1), SD=.0125;
+    GFX.add(9,()=>{ const lt0=t-T0, gone=Math.max(0,lt0-END)*7000; if(done||gone>LB){ L1.hold=L2.hold=0; return; } if(lt0<=0) return; const lt=Math.min(lt0,END);
+      // lay the body along the path the head has flown, at even spacing (so it never stretches); once the head is in the floor the rest pours after it
+      pts.length=0; au.length=0; const i0=Math.ceil(gone/SL); let prev=pos(lt), acc=0, tgt=i0*SL-gone, q=lt;
+      for(let i=0;i<i0&&i<N;i++) pts.push({x:prev.x,y:prev.y,z:0,w:0});
+      for(let j=1;j<=220&&pts.length<N&&q>0;j++){ q=lt-j*SD; const p=pos(q), d=Math.hypot(p.x-prev.x,(p.y-p.z)-(prev.y-prev.z));
+        while(pts.length<N&&d>0&&acc+d>=tgt){ const f=(tgt-acc)/d, i=pts.length, u=i/(N-1), wv=Math.sin(lt0*10-u*8)*24*Math.min(1,u*4); pts.push({x:mix(prev.x,p.x,f),y:mix(prev.y,p.y,f),z:Math.max(0,mix(prev.z,p.z,f)+wv),w:WB*shape(u)*sat((tgt+gone*.0+40)/90)*sat(lt0/.08)}); tgt+=SL; }
+        acc+=d; prev=p; }
+      while(pts.length<N) pts.push({x:x0,y:y0,z:0,w:0});
       for(let i=N-1;i>=0;i--){ const p=pts[i]; au.push({x:p.x,y:p.y,z:p.z,w:p.w*2.5}); }
-      const hp=pts[0], hq=pts[2], dx=hp.x-hq.x, dy=(hp.y-hp.z)-(hq.y-hq.z), dl=Math.hypot(dx,dy)||1, ux=dx/dl, uy=dy/dl, th=Math.atan2(dy,dx), right=dx>=0, head=lt<END, hk=sat(lt/.25), mid=pts[N>>1], live=head?1:sat(1-(lt0-END)/(TB*.4));
+      const hp=pts[0], hq=pts[2], dx=hp.x-hq.x, dy=(hp.y-hp.z)-(hq.y-hq.z), dl=Math.hypot(dx,dy)||1, ux=dx/dl, uy=dy/dl, th=Math.atan2(dy,dx), right=dx>=0, head=lt0<END, hk=sat(lt0/.25), mid=pts[Math.min(N-1,i0+(N>>1))], live=head?1:sat(1-gone/LB);
       L1.x=hp.x; L1.y=hp.y; L1.a=1.2*live; L2.x=mid.x; L2.y=mid.y; L2.a=.85*live*sat(lt/.4);
       // on the floor: its shadow, and the light it throws down
       if(head){ F.quad(km.dark,hp.x,hp.y,260,260,0,{a:.5*hk}); F.quad(km.glowG,hp.x,hp.y,460,460,0,{...C,a:.85*hk,gain:1.4}); }
       if(mid.w>1){ F.quad(km.dark,mid.x,mid.y,220,220,0,{a:.42}); F.quad(km.glowG,mid.x,mid.y,330,330,0,{...CD,a:.6,gain:1.2}); }
       // the fire it wears, streaming back along the body
-      F.ribbon(km.trB,au,{...CD,gain:1.7,ero:.1,t0:sd,a:.85,n1:[2,.8,1.6,0],n2:[2,1,.8,0],fd:[.2,.02,0,0]});
+      F.ribbon(km.trB,au,{...CD,gain:1.7,ero:.1,t0:sd,a:.85*live,n1:[2,.8,1.6,0],n2:[2,1,.8,0],fd:[.2,.02,0,0]});
       // the mane: painted flames rooted along the spine, blown back and up
       for(let i=1;i<N-5;i+=3){ const p=pts[i], q=pts[i+2], bx=q.x-p.x, by=(q.y-q.z)-(p.y-p.z), bl=Math.hypot(bx,by)||1; if(p.w<6) continue; const tx_=bx/bl*.75, ty_=by/bl*.75-.66, tl=Math.hypot(tx_,ty_)||1; tongue(p.x,p.y,p.z+p.w*.2,p.w*(2.9-i*.04),tx_/tl,ty_/tl,{...(i%2?C:CD),t0:sd+i,a:.9,gain:2.2}); }
       // the body: two lengths of scales
-      const h2=N>>1; F.ribbon(m.dB,pts.slice(0,h2+1),{ero:-1,a:1,gain:1.25}); F.ribbon(m.dB,pts.slice(h2),{ero:-1,a:1,gain:1.25});
+      const h2=N>>1; F.ribbon(m.dB,pts.slice(0,h2+1),{ero:-1,a:live,gain:1.25}); F.ribbon(m.dB,pts.slice(h2),{ero:-1,a:live,gain:1.25});
       // the head
       if(head){ const rot=right?th-.22:th-PI+.22, s=HS*(1+hp.z/1500), HW=s*HA, ax=(right?-.6:.6)*HW, az=-.5*s, co=Math.cos(rot), si=Math.sin(rot), ox=ax*co+az*si, oy=ax*si-az*co;
         const hx=hp.x-ox, hz=hp.z+oy;
@@ -330,7 +340,7 @@ function ultDragon(id){ ultStart(id); const Cn=X.cine, {hw,hh}=view(), Dm=70000*
   after(4.1,()=>{ dive=t; Cn.cam(cx,cy-BODY,9); Cn.zoom(.9); GFX.ambient(.3,.3,.38,8); SFX.roar(1.2,1); Cn.SND.inhale(.42,.7);
     K.sigil(cx,cy,{r:440,dur:1.5,in:.3,out:.4,spin:1.4,pal:PS,tex:CIRC()}); GFX.light(cx,cy,700,PF.l,.7,.2,{hold:.4,z:60});
     for(let i=0;i<2;i++) K.shock(cx,cy,{r0:760-i*220,r:60,dur:.36,delay:i*.12,pal:PF,gain:.6,light:0,dust:0,haze:.5,th:.7});
-    fireLine(ringPts(x0,y0,RR,40,.75),{h:120,dur:2.6,in:.3,out:.9,closed:true,pal:PD,gain:.9}); });
+    fireLine(ringPts(x0,y0,RR,40,.75),{h:120,dur:2.6,in:.3,out:.9,closed:true,pal:PD,gain:.9,tongues:12}); });
   // ---- climax: it pours into the floor and the floor gives it back
   after(4.44,()=>{ GFX.ambient(.3,.3,.36,40); hitstop=Math.max(hitstop,.07); });
   after(4.52,()=>{ hitstop=Math.max(hitstop,.12); Cn.shake(1.5); post.ca=.014; Cn.zoom(.8); SFX.boom(2.2,1); Cn.SND.hit(1); SFX.roar(1.6,.8);

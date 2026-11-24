@@ -160,13 +160,15 @@ K.wall=(pts,o={})=>{ if(!F.on) return; const m=mats(), P=pal(o.pal), h=o.h||900,
 
 // ARCWALL: fire standing on an arc of a floor circle round (x,y): a true curved wall, so its foot draws the same ellipse as a sigil
 // under it. Height is graded round the ring: hb x at the far side (top of the screen), hf x at the near side, so it never hides its centre.
-//  o: {r, a0, a1 (radians; -PI/2 is the far side), h, hb, hf, dur, pal, rise, gain, delay}
-K.arcwall=(x,y,o={})=>{ if(!F.on) return; const m=mats(), P=pal(o.pal), r=o.r||400, h=o.h||900, dur=o.dur||1.2, C=col(P), g=o.gain||1, sd=Math.random()*9, rise=o.rise??.16, a0=o.a0??0, a1=o.a1??TAU_, lh=[o.hb??1,o.hf??.2], arc=Math.abs(a1-a0)*r, ur=Math.max(.35,arc/(h*1.9)), am=(a0+a1)/2, hm=h*mix(lh[0],lh[1],.5+.5*Math.sin(am));
-  GFX.add(dur,(k,t)=>{ const up=eo3(sat(t/rise)), f=sat((k-.3)/.7), a=1-f*f, hk=up*(1+.1*Math.sin(k*9+sd));
-    F.ring(m.shL,x,y,r-22,r+22,{a0,a1,...C,a:a*.9,gain:2.2*g,layer:'g',fd:[.08,.08,0,0],t0:sd});
-    F.lathe(m.waS,x,y,0,{r0:r*1.03,r1:r*1.03,h0:0,h1:h*hk*1.18,a0,a1,lh,a:a*(o.smoke??1),ero:.1+f*.5,uvT:[ur*.8,1,sd+.5,0],t0:sd,ord:-1});
-    F.lathe(m.waB,x,y,0,{r0:r,r1:r,h0:0,h1:h*hk,a0,a1,lh,...C,a,gain:2.4*g,ero:.12+f*.7,uvT:[ur,1,sd,0],t0:sd,ord:0});
-    F.lathe(m.waC,x,y,0,{r0:r*.985,r1:r*.985,h0:0,h1:h*hk*.6,a0,a1,lh,...C,a,gain:2.8*g,ero:.25+f*.6,uvT:[ur*1.3,1,sd+.37,0],t0:sd,ord:.1});
+//  o: {r, a0, a1 (radians; -PI/2 is the far side), h, hb, hf, lean (outward flare of the top, .1), dur, pal, rise, gain, delay}
+K.arcwall=(x,y,o={})=>{ if(!F.on) return; const m=mats(), P=pal(o.pal), r=o.r||400, h=o.h||900, dur=o.dur||1.2, C=col(P), g=o.gain||1, sd=Math.random()*9, rise=o.rise??.16, a0=o.a0??0, a1=o.a1??TAU_, lh=[o.hb??1,o.hf??.2], arc=Math.abs(a1-a0)*r, ur=Math.max(.35,arc/(h*1.9)), am=(a0+a1)/2, hm=h*mix(lh[0],lh[1],.5+.5*Math.sin(am)), jx=R(.8,1.25), over=1.12;
+  GFX.add(dur,(k,t)=>{ const u0=sat(t/rise), up=eo3(u0)*(1+(over-1)*Math.sin(PI*Math.min(1,u0*1.15))), f=sat((k-.3)/.7), a=1-f*f, hk=up*(1+.1*Math.sin(k*9+sd));
+    const ln=1+(o.lean??.1), bi=(1-up)*.45;
+    F.ring(m.shW,x,y,r*.82,r*1.2,{a0,a1,...C,a:a*.7,gain:1.2*g,layer:'g',fd:[.1,.1,.3,.3],pm:[2,1,0,0],t0:sd});
+    F.ring(m.shL,x,y,r-16,r+16,{a0,a1,...C,a:a*.7,gain:1.5*g,layer:'g',fd:[.1,.1,0,0],t0:sd});
+    F.lathe(m.waS,x,y,0,{r0:r*1.03,r1:r*1.03*ln,h0:0,h1:h*hk*1.18,a0,a1,lh,a:a*(o.smoke??1),ero:.1+f*.5+bi,uvT:[ur*.8,1,sd+.5,0],t0:sd,ord:-1});
+    F.lathe(m.waB,x,y,0,{r0:r,r1:r*ln,h0:0,h1:h*hk,a0,a1,lh,...C,a,gain:2.4*g,ero:.12+f*.7+bi,uvT:[ur*jx,1,sd,0],t0:sd,ord:0,fd:[.06,.06,.05,.35]});
+    F.lathe(m.waC,x,y,0,{r0:r*.985,r1:r*.985*ln,h0:0,h1:h*hk*.6,a0,a1,lh,...C,a,gain:2.8*g,ero:.25+f*.6+bi,uvT:[ur*1.3*jx,1,sd+.37,0],t0:sd,ord:.1});
     if(o.licks!==0&&k<.6&&Math.random()<.8){ const an=mix(a0,a1,Math.random()), hh=h*hk*mix(lh[0],lh[1],.5+.5*Math.sin(an)); GFX.pt({x:x+Math.cos(an)*r,y:y+Math.sin(an)*r*FSY,z:hh*R(.45,.85),vz:R(300,800),vx:R(-60,60),g:-200,drag:.6,life:R(.35,.7),s:R(20,46)*Math.min(1,hh/500+.4),m:5,b:'add',c:GFX.rgb(P.b),c2:P.d,c3:P.m||P.h,er:1,ns:R(1,1.6),w:1.6,a:.9,L:1}); } },o.delay||0);
   const fx=()=>{ if(o.light!==0) GFX.light(x+Math.cos(am)*r*.8,y+Math.sin(am)*r*.8*FSY,Math.max(arc,hm)*.9,P.l,o.light??.7,dur*.8,{z:160}); };
   if(o.delay) after(o.delay,fx); else fx(); };
@@ -177,24 +179,26 @@ K.dome=(x,y,o={})=>{ if(!F.on) return; const m=mats(), P=pal(o.pal), Rm=o.r||500
     F.lathe(m.doB,x,y,0,{r0:r,r1:0,h0:0,h1:r*(o.hk??.8),dome:true,...C,a,gain:2.6*g,ero:.1+k*.6,t0:sd}); },o.delay||0); };
 
 // SIGIL: a magic circle that writes itself onto the floor behind a leading spark, turns, and burns out.
-//  o: {r, dur, in, out, spin, pal, tex}; returns a handle: r, a (brightness), pal (may be changed while alive), kick(), dead
+//  o: {r, dur, in, out, spin, pal, tex, hole (0..1: clear the middle)}; returns a handle: r, a (brightness), pal (may be changed while alive), kick(), dead
 K.sigil=(x,y,o={})=>{ const h={x,y,r:o.r||400,a:1,pal:o.pal,pk:-9,dead:false,kick(){ h.pk=RT; }}; if(!F.on) return h; const m=mats(), dur=o.dur||3, tin=o.in??.5, tout=o.out??.5, spin=o.spin??.25, g=o.gain||1, rot0=o.rot||0;
   const ma=o.tex?F.mat({...m.sig,tex:o.tex}):m.sig, mb=o.tex?F.mat({...m.sigN,tex:o.tex}):m.sigN;
   GFX.add(dur,(k,t)=>{ if(h.dead) return; const P=pal(h.pal), C=col(P), i=sat(t/tin), out=sat((dur-t)/tout), pk=Math.max(0,1-(RT-h.pk)/.3), a=h.a*out*(1+pk*.8), rr=h.r*(.9+.1*eo3(i));
     F.quad(m.dark,h.x,h.y,rr*1.2,rr*1.2,0,{a:.7*Math.min(1,a)*i});
     F.quad(m.glowG,h.x,h.y,rr*1.3,rr*1.3,0,{...C,a:(.2+.5*pk)*a*i,gain:.6,bgain:.5});
-    F.quad(ma,h.x,h.y,rr,rr,rot0+t*spin,{...C,a:a*.9,gain:2.2*g,rv:[i*1.5,.25,0,.1]});
-    F.quad(mb,h.x,h.y,rr,rr,rot0+t*spin,{...C,a:a*(.45+.3*Math.sin(t*5)),gain:2.6*g,rv:[i*1.5,.25,0,.1]});
+    const hole=o.hole||0;
+    F.quad(ma,h.x,h.y,rr,rr,rot0+t*spin,{...C,a:a*.9,gain:2.2*g,rv:[i*1.5,.25,hole,.14]});
+    F.quad(mb,h.x,h.y,rr,rr,rot0+t*spin,{...C,a:a*(.45+.3*Math.sin(t*5)),gain:2.6*g,rv:[i*1.5,.25,hole,.14]});
     if(i<1){ const an=t*11+rot0, lr=rr*i*.98; F.quad(m.glowG,h.x+Math.cos(an)*lr,h.y+Math.sin(an)*lr*FSY,rr*.16,rr*.16,0,{...C,a:1,gain:3,bgain:2,rk:[.3,.7]}); if(Math.random()<.5) K.sparks(h.x+Math.cos(an)*lr,h.y+Math.sin(an)*lr*FSY,6,{pal:P,n:1,sp:[100,400],up:400,life:[.2,.4],s:2}); } },o.delay||0);
   return h; };
 
 // CRACK: the floor breaks open around a point: dark fracture, light inside it that cools over the life.
 K.crack=(x,y,o={})=>{ if(!F.on) return; const m=mats(), P=pal(o.pal), r=o.r||420, life=o.life||4, C=col(P), rot=o.rot??R(0,TAU_), grow=o.grow??.18, g=o.gain||1, sd=[R(0,1),R(0,1)];
   GFX.add(life,(k,t)=>{ const i=eo3(sat(t/grow)), heat=Math.pow(1-k,1.6), out=sat((1-k)/.25);
-    F.quad(m.soot,x,y,r*.95,r*.95,rot,{a:.6*out*i});
-    F.quad(m.crD,x,y,r,r,rot,{a:out,rv:[i*1.3,.3,0,.1]});
-    F.quad(m.crG,x,y,r,r,rot,{...C,a:heat*.8,rv:[i*1.25,.35,0,.1]});
-    F.quad(m.crE,x,y,r,r,rot,{...C,a:Math.min(1,heat*1.4),gain:2.6*g*(.5+.5*heat),ero:.12+.5*(1-heat),rv:[i*1.25,.35,0,.1]}); },o.delay||0); };
+    F.quad(m.soot,x,y,r*.95,r*.95,rot,{a:.6*out*i,rv:[1,.35,0,.1]});
+    F.quad(m.crD,x,y,r,r,rot,{a:out,rv:[i*1.02,.3,0,.1]});
+    const cl=(1.02-.5*k)*i;
+    F.quad(m.crG,x,y,r,r,rot,{...C,a:heat*.8,rv:[cl,.35,0,.1]});
+    F.quad(m.crE,x,y,r,r,rot,{...C,a:Math.min(1,heat*1.4),gain:2.6*g*(.5+.5*heat),ero:.12+.5*(1-heat),rv:[cl,.35,0,.1]}); },o.delay||0); };
 
 // GASH: a straight wound in the floor between two points: soot around it, a deep dark split, light at its lips that cools from the ends inward.
 K.gash=(x1,y1,x2,y2,o={})=>{ if(!F.on) return; const m=mats(), P=pal(o.pal), life=o.life||4, w=(o.w||60)*R(.85,1.2), C=col(P), dx=x2-x1, dy=(y2-y1)/FSY, L=Math.hypot(dx,dy), rot=Math.atan2(dy,dx)+(Math.random()<.5?PI:0), cx=(x1+x2)/2, cy=(y1+y2)/2, grow=o.grow??.1, g=o.gain||1, uv=Math.random()<.5?[1,-1,0,1]:[1,1,0,0];
@@ -295,6 +299,13 @@ K.pic=(x,y,z,o={})=>{ const h={x,y,z,s:o.s||300,a:1,rot:o.rot||0,dead:false}; if
     if(o.floor) F.quad(mt,h.x,h.y,h.s*asp,h.s,h.rot,{a:h.a,ero,soft:.08});
     else F.bill(mt,h.x,h.y,h.z,h.s*asp,h.s,h.rot,{a:h.a,ero,soft:.08,uvT:o.flip?[-1,1,1,0]:[1,1,0,0]}); },o.delay||0);
   return h; };
+
+// HIT: the small mark of one blow landing on a body: a needle flash in the blow's colour and a few sparks. c is a '#rrggbb'.
+const HP={}; function hpal(c){ let P=HP[c]; if(!P){ const r=GFX.rgb(c), hx=v=>('0'+Math.round(Math.max(0,Math.min(1,v))*255).toString(16)).slice(-2), mk=(k,w)=>'#'+hx(r[0]*k+w)+hx(r[1]*k+w)+hx(r[2]*k+w); P=HP[c]={d:mk(.18,0),b:mk(1,0),m:mk(.6,.4),h:'#ffffff',l:c,s:mk(.7,.3)}; } return P; }
+K.hpal=hpal;
+K.hit=(x,y,z,c,pw=1)=>{ if(!F.on) return; const P=hpal(c||'#ffffff'), m=mats(), mt=m.hitA||(m.hitA=F.mat({...m.art,tex:'v3_xburst',rk:[.5,1]})), C=col(P), rot=R(0,TAU_), s=46*pw;
+  GFX.add(.16,k=>{ const e=eo3(k); F.bill(mt,x,y,z,s*(.5+.7*e),s*(.5+.7*e),rot,{...C,a:1-k*k,gain:2.6,ero:.1+k*.5}); });
+  K.sparks(x,y,z,{pal:P,n:pw>1.1?4:2,sp:[300,900*pw],up:300,life:[.12,.3],s:2}); };
 
 // FLARE: a soft hot glow in the air (the muzzle of a cut, a glint on the hilt)
 K.flare=(x,y,z,o={})=>{ if(!F.on) return; const m=mats(), P=pal(o.pal), dur=o.dur||.25, s=o.s||160, C=col(P);

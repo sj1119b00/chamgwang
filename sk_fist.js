@@ -104,7 +104,7 @@ function aura(T){ if(!F.on) return; const m=K.mats(), q=mm(), C=col(PG), sd=Math
   GFX.add(T,(k,t)=>{ const x=pl.x, y=pl.gy, a=sat(t/.25)*sat((T-t)/.4), pu=.85+.15*Math.sin(t*9);
     F.quad(m.glowG,x,y,250,250,0,{...C,a:.35*a,gain:.8});
     F.ring(m.shL,x,y,196,236,{...C,a:.6*a*pu,gain:1.8,t0:sd});
-    F.lathe(q.funnel,x,y,0,{r0:112,r1:128,h0:0,h1:400,...C,a:.7*a*pu,gain:2.2,t0:sd});
+    F.lathe(q.funnel,x,y,0,{r0:150,r1:176,h0:0,h1:330,...C,a:.3*a*pu,gain:1.1,rk:[.7,1.4],t0:sd});
     Lt.x=x; Lt.y=y; }); }
 
 const SKILL={
@@ -155,7 +155,7 @@ const SKILL={
   fs_giga:{fn(id){ const e=nearest(700); if(!e) return false; const a=angTo(e), d=D(id), Lg=900, ca=Math.cos(a), sa=Math.sin(a), z=BODY*.6; face(a); charge(); sfx('rise',1,.6);
     gather(pl.x+ca*50,pl.gy+sa*50,z,20,PG,.35,200,520); GFX.add(.45,k=>orbDraw(pl.x+ca*50,pl.gy+sa*50,z,10+60*k,PG,1,.85)); K.shock(pl.x,pl.gy,{r0:440,r:60,dur:.42,pal:PG,gain:.6,light:0,dust:0,haze:.4,th:.6});
     after(.45,()=>{ const px=pl.x, py=pl.gy, x1=px+ca*Lg, y1=py+sa*Lg;
-      lance(px,py,z,a,Lg+80,{pal:PG,dur:.42,h:230,gain:1.1}); K.beam(px+ca*60,py+sa*60,z,x1,y1,z,{w:105,dur:.34,pal:PG,gain:.9});
+      lance(px,py,z,a,Lg+80,{pal:PG,dur:.42,h:300,gain:1.1}); K.beam(px+ca*60,py+sa*60,z,x1,y1,z,{w:175,dur:.36,pal:PG,gain:.85});
       K.art(px+ca*150,py+sa*150,{tex:'v3_xburst',s:250,z,lift:0,dur:.26,pal:PG,gain:.9,s0:.5}); K.gash(px+ca*120,py+sa*120,x1,y1,{pal:PG,life:2.8,w:120});
       K.shock(px,py,{r:420,dur:.4,pal:PG}); K.dust(px,py,{n:8,dir:a+PI,spread:.7,sp:[300,800]}); for(let i=1;i<=4;i++) K.debris(px+ca*Lg*i/5,py+sa*Lg*i/5,{n:3,sp:[150,500],up:900});
       GFX.light(px+ca*Lg*.5,py+sa*Lg*.5,Lg*.9,PG.l,1.1,.4,{z}); trauma=1; hitstop=.06; sfx('boom',1.8,1);
@@ -173,7 +173,7 @@ function ultBeam(id){ ultStart(id); warm(); const Cn=X.cine, {hw,hh}=view(), Dm=
   const T=2.5, t0=1.85, tF=t0+.09, dir=pl.f>0?1:-1, hx=x0+pl.f*46;
   // ---- omen
   GFX.ambient(.3,.36,.52,3.2); const spot=GFX.light(x0,y0,520,P.l,.5,.6,{hold:9,z:130,flick:.12});
-  const sig=K.sigil(x0,y0,{r:hw*.6,dur:9,in:1.3,out:.5,spin:.2,pal:PVS,tex:SEAL(),gain:.6});
+  const sig=K.sigil(x0,y0,{r:hw*.6,dur:9,in:1.3,out:.5,spin:.2,pal:PVS,tex:SEAL(),gain:.45});
   K.crack(x0,y0,{r:250,pal:P,life:6,grow:1.4});
   Cn.zoom(1.4); Cn.cam(x0,y0-BODY*.6,4.5); Cn.roll(.03); const dr=Cn.drone(52,.4); SFX.rumble(1.7); Cn.SND.inhale(1.7,.4);
   for(let i=0;i<4;i++) after(.12+i*.4,()=>K.shock(x0,y0,{r0:hw*(1.1-i*.15),r:70,dur:.5,pal:P,gain:.5+.1*i,light:0,dust:0,haze:.5,th:.6}));
@@ -202,7 +202,7 @@ function ultBeam(id){ ultStart(id); warm(); const Cn=X.cine, {hw,hh}=view(), Dm=
     let sc=0; const tick=()=>{ bt+=.05; lastT=RT; if(bt>T||RPG.mode!=='surv'||!lock){ return; } ang=a0+TAU*easeIO(Math.min(1,bt/T))*dir; face(ang); const ca=Math.cos(ang), sa=Math.sin(ang), x1=x0+ca*Lb, y1=y0+sa*Lb;
       Cn.shake(.55); post.ca=.006;
       if(Math.random()<.6){ const r=rand(300,Lb*.6), x=x0+ca*r, y=y0+sa*r; K.sparks(x,y,40,{pal:P,n:5,dir:ang,spread:.4,sp:[600,1800],up:500,life:[.15,.4]}); K.debris(x,y,{n:2,sp:[150,500],up:900}); }
-      if((sc+=.05)>=.2){ sc=0; const g0=rand(150,260), g1=Lb*rand(.45,.66); K.gash(x0+ca*g0,y0+sa*g0,x0+ca*g1,y0+sa*g1,{pal:P,life:2.8,w:rand(120,180),grow:.08}); for(let j=0;j<2;j++){ const r=rand(350,g1); K.flame(x0+ca*r,y0+sa*r,{s:rand(150,230),dur:rand(.5,.75),pal:P,light:0,delay:.06+j*.08}); } K.dust(x0+ca*500,y0+sa*500,{n:3,r:60,sp:[150,420],a:.35}); }
+      if((sc+=.05)>=.25){ sc=0; const g0=rand(150,260), g1=Lb*rand(.45,.66); K.gash(x0+ca*g0,y0+sa*g0,x0+ca*g1,y0+sa*g1,{pal:P,life:2.3,w:rand(130,190),grow:.08}); for(let j=0;j<2;j++){ const r=rand(350,g1); K.flame(x0+ca*r,y0+sa*r,{s:rand(150,230),dur:rand(.5,.75),pal:P,light:0,delay:.06+j*.08}); } K.dust(x0+ca*500,y0+sa*500,{n:3,r:60,sp:[150,420],a:.35}); }
       K.dust(x0,y0,{n:1,r:40,dir:ang+PI,spread:.5,sp:[300,700],a:.35});
       V.blast={x:x0,y:y0,p:1.4}; let nf=0; inLine(x0,y0,x1,y1,210,o=>{ if((o.beamT||0)>RT) return; o.beamT=RT+.3; if(nf++<3) blow(o.x,o.y,1.3,P); ultHit(o,Dm*.5,x0,y0); });
       after(.05,tick); }; tick(); });
@@ -215,7 +215,7 @@ function ultBeam(id){ ultStart(id); warm(); const Cn=X.cine, {hw,hh}=view(), Dm=
       F.bill(m.glowO,x0,y0,hz,(160+240*e),(160+240*e),0,{...C,a:.8,gain:2.4}); }); });
   after(tN,()=>{ firing=false; beamSnd.stop(); beamSnd=NOP; hitstop=Math.max(hitstop,.11); Cn.shake(1.5); post.ca=.014;
     GFX.ambient(.5,.6,.8,40); after(.16,()=>GFX.ambient(.36,.42,.56,3)); sig.a=1.5; sig.kick();
-    for(let i=0;i<10;i++){ const a=ang+(i+.5)*TAU/10+rand(-.1,.1), ca=Math.cos(a), sa=Math.sin(a), big=i%2, ln=Lb*(big?rand(.62,.8):rand(.36,.5)); K.beam(x0+ca*170,y0+sa*170,hz,x0+ca*ln,y0+sa*ln,hz,{w:big?rand(190,240):rand(110,150),dur:big?.62:.46,pal:P,gain:.8,delay:big?0:.05}); if(i%5!==2) K.gash(x0+ca*200,y0+sa*200,x0+ca*ln*.8,y0+sa*ln*.8,{pal:P,life:4.6,w:big?170:120,gain:1.1,grow:.06}); }
+    for(let i=0;i<10;i++){ const a=ang+(i+.5)*TAU/10+rand(-.1,.1), ca=Math.cos(a), sa=Math.sin(a), big=i%2, ln=Lb*(big?rand(.62,.8):rand(.36,.5)); K.beam(x0+ca*170,y0+sa*170,hz,x0+ca*ln,y0+sa*ln,hz,{w:big?rand(190,240):rand(110,150),dur:big?.62:.46,pal:P,gain:.8,delay:big?0:.05}); if(big) K.gash(x0+ca*200,y0+sa*200,x0+ca*ln*.8,y0+sa*ln*.8,{pal:P,life:4.6,w:180,gain:1.1,grow:.06}); }
     { const CG=col(PG), sd=Math.random()*9; GFX.add(.75,(k,tt)=>{ const up=eo3(sat(tt/.08)), f=sat((k-.45)/.55), r=105*(1+.25*Math.sin(k*PI))*(1-f*.7), al=1-f*f;
       F.lathe(m.piB,x0,y0,0,{r0:r,r1:r*1.1,h0:400,h1:400+2000*up,...CG,a:al,gain:2.2,ero:.1+f*.5,t0:sd,fd:[0,0,.12,.7]}); F.lathe(m.piC,x0,y0,0,{r0:r*.4,r1:r*.4,h0:400,h1:400+2000*up,...CG,a:al,gain:3.2,t0:sd,fd:[0,0,.12,.85]}); }); }
     K.art(x0,y0,{tex:'fx3_shock',floor:true,s:hw*.8,dur:.6,pal:PG,gain:.8,hold:.3,s0:.25}); K.art(x0,y0,{tex:'v3_xburst',floor:true,s:hw*.75,dur:.4,pal:PG,gain:.6,hold:.2,s0:.4}); K.dome(x0,y0,{r:hw*.85,dur:.5,pal:PG,gain:.8}); K.shock(x0,y0,{r:hw*.9,dur:.45,pal:PG,gain:1,dust:0});

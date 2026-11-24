@@ -62,10 +62,13 @@ function skySigil(x,y,z,o={}){ const h={x,y,z,r:o.r||500,a:1,g:1,eye:0,dead:fals
     F.quad(ma,h.x,h.y,rr,rr,rot,{z:h.z,...C,a:a*.85,gain:2*h.g,rv:[i*1.5,.25,0,.1]});
     F.quad(mb,h.x,h.y,rr,rr,rot,{z:h.z,...C,a:a*(.4+.3*Math.sin(t*6)),gain:2.6*h.g,rv:[i*1.5,.25,0,.1]}); },o.delay||0);
   return h; }
+// RING: one cheap ring thrown over the floor (a single draw; K.shock is three) for hits that come in crowds
+function ring1(x,y,r,o={}){ if(!F.on) return; const m=mm().m, C=col(K.pal(o.pal||ARC)), dur=o.dur||.28, sd=rand(0,9);
+  GFX.add(dur,k=>{ const e=eo3(k), rr=mix(r*.15,r,e), th=r*mix(.28,.1,k); F.ring(m.shL,x,y,rr-th,rr,{...C,a:Math.min(1,(1-k)*(1-k)*1.6),gain:2.4*(o.gain||1),t0:sd}); },o.delay||0); }
 // STRIKE: one bolt out of the sky: the painted bolt with real height, the burn it leaves, a small ring thrown over the floor
 function strike(x,y,o={}){ const P=K.pal(o.pal||ARC), s=o.s||1, h=o.h||1150*s;
   K.bolt(x,y,{pal:P,h,w:o.w||h*.3,dur:o.dur||.3,crack:0,gain:o.gain||1}); scorch(x,y,{r:(o.r||160)*s,pal:P,life:o.scar||1.8});
-  if(o.shock!==0) K.shock(x,y,{r:190*s,dur:.28,pal:P,gain:.8,dust:3,light:0,haze:.4}); }
+  if(o.shock!==0){ ring1(x,y,200*s,{pal:P}); K.dust(x,y,{n:3,r:30,sp:[120,380],a:.35}); } }
 // COMET: a painted thing coming down a slanted path onto a floor point: a tail of fire behind it, its shadow closing under it.
 //  o: {img, asp, s (half height on landing), s0 (size far away, fraction), h0, dx (how far to the side it starts), dur, ease, tail, spin, rot, pal, tint, big, land()}
 function comet(x,y,o={}){ const dur=o.dur||.5; if(!F.on){ if(o.land) after((o.delay||0)+dur,o.land); return; }
@@ -128,7 +131,7 @@ function rayFx(ang,k,Lb,dur){ const h={life:1}; if(!F.on) return h; const m=mm()
     F.ribbon(m.arc,ps,{...C,a,gain:2.2,ero:.05,t0:sd,n1:[2,1,-6,0]});
     F.bill(m.m.glowO,tp.x,tp.y,tp.z,90,90,0,{...C,a,gain:3}); F.bill(m.core,x1,y1,z1,150,150,t*9,{...C,a,gain:2.4});
     lt.x=mix(pl.x,x1,.6); lt.y=mix(pl.gy,y1,.6);
-    if(t>=next){ next=t+.07; const u=rand(.35,1), sx=mix(pl.x,x1,u), sy=mix(pl.gy,y1,u); K.sparks(x1,y1,z1,{pal:ARC,n:3,sp:[300,900],up:500,life:[.15,.35]}); scorch(sx,sy,{r:95,life:.9,gain:.9}); K.dust(x1,y1,{n:1,dir:b,spread:1,sp:[150,400],a:.3,s:.8}); } });
+    if(t>=next){ next=t+.13; const u=rand(.35,1), sx=mix(pl.x,x1,u), sy=mix(pl.gy,y1,u); K.sparks(x1,y1,z1,{pal:ARC,n:3,sp:[300,900],up:500,life:[.15,.35]}); scorch(sx,sy,{r:120,life:.9,gain:.9}); K.dust(x1,y1,{n:1,dir:b,spread:1,sp:[150,400],a:.3,s:.8}); } });
   return h; }
 
 const sk={
@@ -160,7 +163,7 @@ const SKILL={
   // LIGHTNING: painted bolts with real height on a few enemies, each leaving its burn on the stone
   mg_bolt:{fn(id){ const T=onScreen(-80); if(!T.length) return false; const n=3+L(id)-1, d=D(id); quick(); sfx('thunder',.6);
     T.sort(()=>Math.random()-.5).slice(0,n).forEach((e,i)=>after(.08+i*.07,()=>{ if(e.dead) return; strike(e.x,e.y,{pal:i%2?AZV:ARC,h:1000,shock:i%2?0:1}); dmg(e,d,{stun:.4}); hitFx(e,C2,1.3);
-      if(EVO(id)) after(.15,()=>{ K.shock(e.x,e.y,{r:240,dur:.3,pal:ARC,gain:.9,dust:4}); scorch(e.x,e.y,{r:230,life:.6,gain:1.3}); K.sparks(e.x,e.y,30,{pal:ARC,n:10,sp:[300,1000],up:600}); inCircle(e.x,e.y,160,o=>dmg(o,d*.5,{kb:.6,sx:e.x,sy:e.y})); }); })); }},
+      if(EVO(id)) after(.15,()=>{ ring1(e.x,e.y,250,{pal:AZV,dur:.3}); scorch(e.x,e.y,{r:230,life:.6,gain:1.3,pal:AZV}); K.sparks(e.x,e.y,30,{pal:ARC,n:10,sp:[300,1000],up:600}); inCircle(e.x,e.y,160,o=>dmg(o,d*.5,{kb:.6,sx:e.x,sy:e.y})); }); })); }},
   // ARCANE ORB: gyroscope orbs circling her, throwing a spark at whatever they touch
   mg_orb:{fn(id){ if(V.orbs.some(o=>o.mage)||!nearest(700)) return false; const n=EVO(id)?5:3, d=D(id); raise(); sfx('rise',.5,.4);
     for(let i=0;i<n;i++){ const o={mage:true,a:i/n*TAU,life:5,d,R:EVO(id)?330:270,w:3.4,hitR:85,c:C1,h:BODY*.8,rot:false,v:{x:pl.x,y:pl.gy-BODY}};
@@ -203,7 +206,7 @@ const SKILL={
     T.sort(()=>Math.random()-.5).slice(0,n).forEach((e,i)=>{ const x=e.x+rand(-40,40), y=e.y+rand(-30,30), hitAt=Math.max(.3,.25+i*.12), fall=Math.min(.42,hitAt);
       mark({x,y},{r:150,dur:hitAt+.05,pal:STA,glow:0});
       comet(x,y,{img:'crystal',asp:.43,s:105,s0:.8,h0:1500,dx:480,dur:fall,delay:hitAt-fall,pal:STA,spin:0,rot:-.3,tail:.4,gain:1.5});
-      after(hitAt,()=>{ K.burst(x,y,{s:150,pal:STA,no:['smoke','crack','debris'],dur:.45,gain:.8}); scorch(x,y,{r:180,pal:STA,life:1.6}); K.debris(x,y,{n:4,r:30,sp:[200,600],up:800,size:11,c:'#5a4c7a'}); sfx('boom',.8,.5);
+      after(hitAt,()=>{ K.burst(x,y,{s:150,pal:STA,no:['smoke','crack','debris','shock'],dur:.45,gain:.8}); ring1(x,y,330,{pal:STA,dur:.4}); scorch(x,y,{r:180,pal:STA,life:1.6}); K.debris(x,y,{n:4,r:30,sp:[200,600],up:800,size:11,c:'#5a4c7a'}); sfx('boom',.8,.5);
         inCircle(x,y,190,o=>{ dmg(o,d,{kb:1,launch:600,sx:x,sy:y}); hitFx(o,C1,1.2); }); }); }); }},
   // ARCANE RAY: a painted beam swept once round her, scoring the floor as it goes
   mg_beam:{fn(id){ const e=nearest(700); if(!e) return false; const d=D(id), a0=angTo(e), n=EVO(id)?2:1, Lb=950, dir=Math.random()<.5?1:-1; face(a0);
@@ -254,11 +257,11 @@ function ultThunder(id){ ultStart(id); const Cn=X.cine, x0=pl.x, y0=pl.gy, {hw,h
     Cn.shake(.7); post.ca=.01; SFX.boom(1.4,.5); Cn.SND.shing(.7,.4); if(sky) sky.g=1.5; });
   // bolts that land on top of one another are thinned so a crowd is struck by lightning, not by a white wall
   const done=[], hit=(x,y,i)=>{ const near=done.filter(q=>RT-q.t<.28&&Math.hypot(q.x-x,q.y-y)<230).length; done.push({x,y,t:RT});
-    strike(x,y,{pal:P,h:Hs*rand(.95,1.1),w:Hs*(near?.2:.3),gain:near>1?.45:near?.6:.9,r:near?120:175,shock:near?0:i%2}); };
+    strike(x,y,{pal:P,dur:.42,h:Hs*rand(.95,1.1),w:Hs*(near?.2:.3),gain:near>1?.45:near?.6:.9,r:near?120:175,shock:near?0:i%2}); };
   T.forEach((e,i)=>after(2.86+i*(1.0/nT),()=>{ if(e.dead) return; hit(e.x,e.y,i); ultHit(e,Dm*.4,e.x,e.y+200);
     if(i%4===0){ sfx('thunder',.5); Cn.shake(.45); K.debris(e.x,e.y,{n:4,r:30,sp:[200,600],up:900,size:12}); GFX.ambient(.48,.44,.76,40); after(.07,()=>GFX.ambient(.3,.28,.5,9)); } }));
   // the storm is the same size whether the field is full or nearly empty: the rest of it falls on bare stone, spiralling outward
-  { const nF=Math.max(6,20-T.length), a0=rand(0,TAU); for(let i=0;i<nF;i++){ const u=(i+.5)/nF, a=a0+i*2.4, r=Math.sqrt(u); after(2.86+u*.98+rand(-.03,.03),()=>hit(x0+Math.cos(a)*r*hw*.9,y0-hh*.08+Math.sin(a)*r*hh*.5,i+1)); } }
+  { const nF=Math.max(8,26-T.length), a0=rand(0,TAU); for(let i=0;i<nF;i++){ const u=(i+.5)/nF, a=a0+i*2.4, r=Math.sqrt(u); after(2.86+u*.98+rand(-.03,.03),()=>hit(x0+Math.cos(a)*r*hw*.9,y0-hh*.08+Math.sin(a)*r*hh*.5,i+1)); } }
   // ---- climax omen: everything left in the sky is drawn to the one circle; a leader feels its way down
   after(3.95,()=>{ Cn.roll(0); Cn.cam(bx,by-Hs*.42,7); Cn.zoom(.82); GFX.ambient(.3,.3,.42,6); Cn.SND.inhale(.6,.6); duck(.25,.5); if(sky) sky.g=1.9;
     GFX.add(.6,k=>{ if(sky) sky.eye=k*k*1.2; });
@@ -273,7 +276,7 @@ function ultThunder(id){ ultStart(id); const Cn=X.cine, x0=pl.x, y0=pl.gy, {hw,h
     // the column: a painted beam standing from the floor to the sky circle, and the bolts that ride it
     K.beam(bx,by,Hs,bx,by,0,{pal:COLM,w:Hs*.42,dur:.8,gain:.55}); K.beam(bx,by,Hs,bx,by,0,{pal:AZV,w:Hs*.14,dur:.6,gain:.7});
     if(F.on){ const mt=mm().gyro, Cc=col(AZV), sd=rand(0,9); GFX.add(.6,k=>{ for(let q=0;q<3;q++){ const u=sat(k*1.25-q*.12), r=80+Hs*.36*eo3(u); if(u>0&&u<1) F.ring(mt,bx,by,r*.82,r,{z:Hs*(.82-q*.27),...Cc,a:(1-u)*(1-u),gain:2.4,t0:sd+q}); } }); }
-    K.bolt(bx,by,{pal:AZV,h:Hs*1.03,w:Hs*.62,dur:.8,gain:.8,crack:0}); K.bolt(bx+rand(-60,60),by,{pal:AZV,h:Hs*1.03,w:Hs*.44,dur:.5,delay:.16,gain:.75,crack:0}); K.bolt(bx+rand(-80,80),by,{pal:AZV,h:Hs*1.03,w:Hs*.5,dur:.5,delay:.34,gain:.75,crack:0});
+    K.bolt(bx,by,{pal:AZV,h:Hs*1.03,w:Hs*.62,dur:.8,gain:.72,crack:0}); K.bolt(bx+rand(-60,60),by,{pal:AZV,h:Hs*1.03,w:Hs*.44,dur:.5,delay:.16,gain:.75,crack:0}); K.bolt(bx+rand(-80,80),by,{pal:AZV,h:Hs*1.03,w:Hs*.5,dur:.5,delay:.34,gain:.75,crack:0});
     K.art(bx,by,{tex:'v3_xburst',s:hw*.42,lift:.3,dur:.3,pal:AZV,gain:.9,hold:.2,s0:.5});
     K.dome(bx,by,{r:hw*.6,dur:.45,pal:AZV,gain:.8,hk:.6}); K.shock(bx,by,{r:hw*1.7,dur:.6,pal:AZV,gain:1.2}); K.shock(bx,by,{r:hw*2.3,dur:.85,pal:AZV,gain:.7,delay:.1,light:0});
     K.crack(bx,by,{r:hw*.75,pal:P,life:4.2,grow:.14,gain:1.1}); scorch(bx,by,{r:hw*.95,pal:AZV,life:3.6,grow:.2,gain:1.2});
