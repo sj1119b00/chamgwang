@@ -39,14 +39,15 @@ const dm=()=>(1+V.t/150)*CH().dmg;              // and so does what they hit for
 const alive=()=>V.en.filter(e=>!e.dead);
 const view=()=>({hw:W/(2*S*cam.z),hh:H/(2*S*cam.z)});
 const ACT=()=>(A.ORDER[pl.cls]||[]).filter(id=>SK[id]&&SK[id].type==='skill'&&A.unlocked(id));   // every unlocked skill fires by itself: there are no slots to equip
-function nearest(R){ let b=null,bd=R*R; for(const e of V.en){ if(e.dead) continue; const d=(e.x-pl.x)**2+((e.y-pl.gy)/FSY)**2; if(d<bd){ bd=d; b=e; } } return b; }
-function countIn(R){ let n=0; for(const e of V.en) if(!e.dead&&(e.x-pl.x)**2+((e.y-pl.gy)/FSY)**2<R*R) n++; return n; }
+function nearest(R){ let b=null,bd=R*R; for(const e of V.en){ if(e.dead) continue; const d=(e.x-pl.x)**2+((e.y-pl.gy)/HY)**2; if(d<bd){ bd=d; b=e; } } return b; }
+function countIn(R){ let n=0; for(const e of V.en) if(!e.dead&&(e.x-pl.x)**2+((e.y-pl.gy)/HY)**2<R*R) n++; return n; }
 // the point (an enemy's position) with the most enemies around it, among those within R of the hero
-function densest(R,r=260){ let b=null,bn=0; const L=V.en.filter(e=>!e.dead&&(e.x-pl.x)**2+((e.y-pl.gy)/FSY)**2<R*R);
+function densest(R,r=260){ let b=null,bn=0; const L=V.en.filter(e=>!e.dead&&(e.x-pl.x)**2+((e.y-pl.gy)/HY)**2<R*R);
   for(let i=0;i<L.length;i+=Math.max(1,L.length/40|0)){ const e=L[i]; let n=0; for(const o of L) if((o.x-e.x)**2+(o.y-e.y)**2<r*r) n++; if(n>bn){ bn=n; b=e; } } return b; }
 const angTo=e=>Math.atan2(e.y-pl.gy,e.x-pl.x);
 function face(a){ const c=Math.cos(a); if(Math.abs(c)>.05) pl.f=c>0?1:-1; V.leanT=clamp(Math.atan2(Math.sin(a),Math.abs(c)),-1.2,1.2)*.1*pl.f; V.leanHold=.28; }
-function inCircle(x,y,r,fn){ for(const e of V.en){ if(e.dead) continue; const dx=e.x-x, dy=(e.y-y)/FSY, rr=r+e.d.r; if(dx*dx+dy*dy<rr*rr) fn(e); } }
+const HY=.76;   // the hero's floor attacks reach a little further up and down the screen than the drawn ellipse (FSY .58): a near miss counts for the player
+function inCircle(x,y,r,fn){ for(const e of V.en){ if(e.dead) continue; const dx=e.x-x, dy=(e.y-y)/HY, rr=r+e.d.r; if(dx*dx+dy*dy<rr*rr) fn(e); } }
 function inCircleS(x,y,r,fn){ for(const e of V.en){ if(e.dead) continue; const dx=e.x-x, dy=e.y-y, rr=r+e.d.r; if(dx*dx+dy*dy<rr*rr) fn(e); } }
 function inSector(x,y,a,r,half,fn){ inCircleS(x,y,r,e=>{ const dx=e.x-x, dy=e.y-y, l=Math.hypot(dx,dy); let d=Math.atan2(dy,dx)-a; d=Math.atan2(Math.sin(d),Math.cos(d)); if(l<e.d.r+40||Math.abs(d)<half+e.d.r/Math.max(l,1)) fn(e); }); }
 function inLine(x0,y0,x1,y1,w,fn){ const dx=x1-x0, dy=y1-y0, L2=dx*dx+dy*dy||1; for(const e of V.en){ if(e.dead) continue; const t=clamp(((e.x-x0)*dx+(e.y-y0)*dy)/L2,0,1), px=x0+dx*t, py=y0+dy*t, rr=w+e.d.r; if((e.x-px)**2+(e.y-py)**2<rr*rr) fn(e); } }

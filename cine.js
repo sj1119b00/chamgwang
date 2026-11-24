@@ -51,8 +51,7 @@ C.reset=()=>{ C.end(); V.hsc=1; GFX.reset(); C.st=null; C.dark=0; C.veil=0; C.sc
 C.drone=(f,v)=>{ const d=SND.drone(f,v); C.drones.push(d); return d; };
 
 // darkness over the field and the enemies (effects and the hero stay bright); spot = a lit patch of floor
-C.setDark=(a,o={})=>{ if(o.c) C.dc=o.c; if(o.spot!==undefined) C.spot=o.spot; const d=Math.min(a,.9)*(LOW()?.5:.72), k=C.dc.split(',').map(Number), m=Math.max(1,...k); GFX.ambient(1-d*(1-k[0]/m*.5),1-d*(1-k[1]/m*.5),1-d*(1-k[2]/m*.5),a>0?5:2.6);
-  if(C.spotL){ C.spotL.hold=0; C.spotL.life=.3; C.spotL=null; } if(a>0&&C.spot) C.spotL=GFX.light(C.spot.x,C.spot.y,C.spot.r*.7,'#ffffff',.55,.4,{hold:30}); };
+C.setDark=(a,o={})=>{ C.darkT=Math.min(a,LOW()?.55:.74); if(o.c) C.dc=o.c; C.spot=o.spot===undefined?C.spot:o.spot; };
 // a full-screen colour wash that fades by itself (white-outs, coloured breaths)
 C.wash=(c,a,hold=0,x,y)=>{ a*=.45; C.veilC=c; C.veil=LOW()?a*.4:a; C.veilHold=hold; C.veilP=x==null?null:[x,y]; };
 C.cam=(x,y,k=7)=>{ V.camT=x==null?null:{x,y}; V.camK=k; };
@@ -105,7 +104,8 @@ function rgb01(h){ const n=parseInt(h.slice(1),16); return [(n>>16&255)/255,(n>>
 C.impact=(x,y,o={})=>{ const c=o.c||'#ffffff', k=rgb01(c), dk=k.map(v=>v*.16), n=o.n||3, fd=o.fd||.045;
   let pal=o.pal||(n<3?[[k,[0,0,0]],[dk,[1,1,1]]]:[[[0,0,0],[1,1,1]],[k,[0,0,0]],[dk,[1,1,1]]]); if(LOW()) pal=pal.map(()=>[dk,k]); if(o.soft) pal=[[k.map(v=>v*.08),k.map(v=>.5+v*.3)],[dk.map(v=>v*.4),k.map(v=>.34+v*.4)]];
   C.imp={x,y,c,t:0,fd,n,pal:pal.slice(0,n),seed:(Math.random()*1e4)|0,style:o.style||'radial',ang:o.ang||0,r:o.r??.2,then:o.then,v:o.v??1,flash:o.flash??.14,blur:o.blur??.06,soft:!!o.soft};
-  if(o.hard!==true){ C.imp.soft=true; C.imp.amb=GFX.amb.slice(); GFX.amb=[.46,.46,.54]; C.imp.fd=fd*1.5; }
+  if(o.hard!==true){ C.imp.soft=true; C.imp.fd=fd*1.5; const T=tone(c), d=n*fd*1.5, stI=gst(14,'add',T,5); C.dark=Math.max(C.dark,.78);
+    K.add(d+.06,k=>K.screen(stI,x,y,T.c,.55*(1-k*.5),.1+.14*k,K.tq(24,3),44,.2)); C.gStar(x,y,BODY*.4,460,'#ffffff',{c2:c,c3:'#ffffff',life:d+.1,n:9}); K.light(x,y,1200,c,1.1,d+.1); }
   hitstop=Math.max(hitstop,n*C.imp.fd); if(AC) duck(.06,n*C.imp.fd*.9); buzz([0,n*C.imp.fd*1000|0,160]); };
 let seedV=1; const srnd=()=>{ seedV=(seedV*16807)%2147483647; return seedV/2147483647; };
 function drawImp(g){ const m=C.imp; if(!m||m.soft) return; const i=Math.min(m.n-1,Math.floor(m.t/m.fd)), [bg,fg]=m.pal[i], [sx,sy]=w2s(m.x,m.y), col=`rgb(${fg.map(v=>v*255|0)})`, R=Math.hypot(W,H), mn=Math.min(W,H);
@@ -171,9 +171,10 @@ C.waves=(x,y,c,o={})=>{ const s=o.s||1, n=o.n||3;
   if(!LOW()&&X.shock1) X.shock1(x,y-BODY*.4,Math.min(.95,.75*s),1.15);
   const nd=Math.round((o.dust??16)*QK()); for(let i=0;i<nd;i++){ const a=i/nd*TAU+rand(-.2,.2), sp=rand(500,1100)*s; smoke(x+Math.cos(a)*120*s,y+Math.sin(a)*90*s,rand(50,110)*s,{vx:Math.cos(a)*sp,vy:Math.sin(a)*sp*.7-40,a:.38,life:rand(1.2,2.2),grow:rand(60,140),c:o.dc||'40,34,52'}); }
   light(x,y-BODY,2600*s,c,1,.6);
-  K.ripple(x,y,1500*s,{life:.7,s:.9}); K.light(x,y,2200*s,c,1,.8); C.gCrack(x,y,900*s,c,{life:3.2,n:15,w:.1});
-  C.gStar(x,y,70,760*s,c,{life:.42,L:2}); C.gRing(x,y,1700*s,c,{life:.75}); for(let i=0;i<5;i++) after(.25+i*.08,()=>C.gPuff(x+rand(-360,360)*s,y+rand(-160,160)*s,rand(20,160),rand(170,260)*s,{c:'#3a3138',c2:'#0a0709',c3:'#8a7a80',vz:rand(200,460),life:rand(1.5,2.3),a:.7,grow:120}));
-  C.gDebris(x,y,Math.round(22*s),{s0:300,s1:1500*s,vz:2200,size:32}); C.gDebris(x,y,Math.round(8*s),{r:260,s0:100,s1:600,v0:1600,vz:3400,sz0:40,size:90,g:2600}); C.gSparks(x,y,40,Math.round(26*s),c,{vz:1400}); C.gMotes(x,y,900*s,c,Math.round(50*s),{dur:1.8,life:2.2}); };
+  { const k=K.rgb(c), mixc=(t,d)=>'#'+k.map((v,i)=>Math.round(255*(v*t+d[i]*(1-t))).toString(16).padStart(2,'0')).join(''), rock=mixc(.22,[.16,.15,.19]), dust=mixc(.3,[.2,.19,.22]);
+    K.ripple(x,y,1500*s,{life:.7,s:.9}); K.light(x,y,2000*s,c,.6,.8); C.gCrack(x,y,900*s,c,{life:3.2,n:15,w:.1});
+    C.gDebris(x,y,Math.round(14*s),{s0:300,s1:1500*s,vz:2200,size:28,c:rock}); C.gDebris(x,y,Math.round(5*s),{r:260,s0:100,s1:600,v0:1600,vz:3400,sz0:36,size:80,g:2600,c:rock}); C.gSparks(x,y,40,Math.round(26*s),c,{vz:1400}); C.gMotes(x,y,900*s,c,Math.round(50*s),{dur:1.8,life:2.2});
+    for(let i=0;i<3;i++) after(.3+i*.12,()=>C.gPuff(x+rand(-360,360)*s,y+rand(-160,160)*s,rand(20,160),rand(170,240)*s,{c:dust,c2:'#08070a',c3:mixc(.45,[.42,.4,.44]),vz:rand(200,460),life:rand(1.5,2.3),a:.55,grow:120})); } };
 
 // ---------------------------------------------------------------- ground scars (live on after the ultimate, glowing down to embers)
 // kinds: crack (radial fractures), gash (a straight cut: rot, len), burn (scorch)
@@ -250,9 +251,9 @@ C.gStar=(x,y,z,s,c,o={})=>{ const T=tone(c,o), st=gst(4,o.alpha?'alpha':'add',T,
 C.gPuff=(x,y,z,s,o={})=>{ const T=tone(o.c||'#3a3446',{c2:o.c2||'#0c0a12',c3:o.c3||'#7a7488'}); K.pt({x,y,z,vx:o.vx||0,vy:o.vy||0,vz:o.vz??rand(60,160),drag:o.drag??1.6,life:o.life||rand(.8,1.4),s,grow:o.grow??s*.7,c:T.c,m:5,b:o.add?'add':'alpha',st:null,er:1,ns:o.ns||rand(.8,1.3),w:o.rise??1,fk:6,a:o.a??.9,c2:o.c2||'#0c0a12',c3:o.c3||'#7a7488',L:o.L??1}); };
 // rock torn out of the floor: thrown up, falls under gravity, bounces, casts a shadow
 C.gDebris=(x,y,n,o={})=>{ n=Math.round(n*QK()); for(let i=0;i<n;i++){ const a=o.dir!=null?o.dir+rand(-(o.spread??.6),o.spread??.6):rand(0,TAU), sp=rand(o.s0??200,o.s1??900);
-    K.pt({x:x+rand(-1,1)*(o.r||30),y:y+rand(-1,1)*(o.r||30)*FSY,z:rand(4,30),vx:Math.cos(a)*sp,vy:Math.sin(a)*sp*FSY,vz:rand(o.v0??500,o.vz??1500),g:o.g??3000,life:rand(1,1.9),s:rand(o.sz0??8,o.size??24),c:K.rgb(o.c||'#5d5470'),c2:'#0b0910',m:11,b:'alpha',rot:rand(0,TAU),vr:rand(-12,12),bounce:.35,shadow:true,fk:5,ph:rand(0,9)}); } };
+    K.pt({x:x+rand(-1,1)*(o.r||30),y:y+rand(-1,1)*(o.r||30)*FSY,z:rand(4,30),vx:Math.cos(a)*sp,vy:Math.sin(a)*sp*FSY,vz:rand(o.v0??500,o.vz??1500),g:o.g??3000,life:rand(1,1.9),s:rand(o.sz0??8,o.size??24),c:K.rgb(o.c||'#3d3944'),c2:'#0b0910',m:11,b:'alpha',rot:rand(0,TAU),vr:rand(-12,12),bounce:.35,shadow:true,fk:5,ph:rand(0,9)}); } };
 // stones that lift off the floor and hang there (the air before a strike); returns a release function that drops them
-C.gLevitate=(x,y,R,n,o={})=>{ const L=[]; n=Math.round(n*QK()); for(let i=0;i<n;i++){ const a=rand(0,TAU), r=R*Math.sqrt(rand(.05,1)), p={x:x+Math.cos(a)*r,y:y+Math.sin(a)*r*FSY,z:2,vz:rand(60,220),drag:1.5,life:o.life||4,s:rand(6,o.size??17),c:K.rgb(o.c||'#5d5470'),c2:'#0b0910',m:11,b:'alpha',rot:rand(0,TAU),vr:rand(-1.5,1.5),shadow:true,fk:8,ph:rand(0,9)}; L.push(p); after(rand(0,o.dur||.8),()=>K.pt(p)); }
+C.gLevitate=(x,y,R,n,o={})=>{ const L=[]; n=Math.round(n*QK()); for(let i=0;i<n;i++){ const a=rand(0,TAU), r=R*Math.sqrt(rand(.05,1)), p={x:x+Math.cos(a)*r,y:y+Math.sin(a)*r*FSY,z:2,vz:rand(60,220),drag:1.5,life:o.life||4,s:rand(6,o.size??17),c:K.rgb(o.c||'#3d3944'),c2:'#0b0910',m:11,b:'alpha',rot:rand(0,TAU),vr:rand(-1.5,1.5),shadow:true,fk:8,ph:rand(0,9)}; L.push(p); after(rand(0,o.dur||.8),()=>K.pt(p)); }
   return (vz=0)=>{ for(const p of GFX.pts) if(L.includes(p)){ p.g=3200; p.vz=vz?rand(vz*.4,vz):0; p.drag=0; p.bounce=.3; p.life=p.t+1.4; if(vz){ const a=Math.atan2(p.y-y,p.x-x); p.vx=Math.cos(a)*rand(200,700); p.vy=Math.sin(a)*rand(200,700)*FSY; } } }; };
 // sparks: short hot streaks thrown from a point
 C.gSparks=(x,y,z,n,c,o={})=>{ const k=K.rgb(c); n=Math.round(n*QK()); for(let i=0;i<n;i++){ const a=o.dir!=null?o.dir+rand(-(o.spread??.5),o.spread??.5):rand(0,TAU), sp=rand(o.s0??500,o.s1??1700);
@@ -345,7 +346,7 @@ C.step=rdt=>{ C.t+=rdt; GFX.step(rdt); V.hsc=lerp(V.hsc||1,C.hscT||1,1-Math.exp(
   if(C.lines){ C.lines.t+=rdt; if(C.lines.t>=C.lines.dur) C.lines=null; }
   if(C.st){ C.st.t+=rdt; if(C.st.t>=C.st.dur) C.st=null; }
   if(C.imp){ const m=C.imp; m.t+=rdt; const i=Math.min(m.n-1,Math.floor(m.t/m.fd)), [a,b]=m.pal[i];
-    if(m.soft&&m.t<m.n*m.fd){ GFX.amb=[.46,.46,.54]; }
+    if(m.soft&&m.t<m.n*m.fd){ }
     else if(m.t>=m.n*m.fd){ if(m.amb) GFX.amb=m.amb; C.imp=null; post.invT=0; post.inv=0; SND.hit(m.v); C.shake(1.3*m.v); C.flash(m.flash??.42); post.ca=.012; post.blur=LOW()?0:(m.blur??.09); if(m.then) m.then(); }
     else { post.inkA=a; post.inkB=b; post.invT=Math.max(post.invT,.03); post.inv=1; } }
   for(let i=C.scars.length-1;i>=0;i--){ const s=C.scars[i]; s.t+=rdt; if(s.t>=s.life) C.scars.splice(i,1); }

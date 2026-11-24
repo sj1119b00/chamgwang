@@ -69,103 +69,41 @@ const basicCd=()=>.8*(1-.05*(A.sLv('sw_basic')-1));
 
 
 // ---- ultimates. Each is one staged sequence: omen -> release -> climax -> afterglow (director: cine.js)
-const RED='#ff2a4a', GOLD='#ffcf4a', CRIM='#f0102e';
+const RED='#ff2a4a', GOLD='#ffcf4a';
 function cutFx(c,thick){ const K=VFX.td_cutline, k=K?c.L/K.w:1;   // stretched along the cut, kept thin across it
   if(tdV('td_cutline',c.cx,c.cy-BODY*.5,{rot:c.a,sc:k,sy:K?300*thick/(K.h*k):1,a:1})) return;
   const y=-BODY*.5; add({k:'line',x1:c.x1,y1:c.y1+y,x2:c.x2,y2:c.y2+y,life:.45,c:'#ff3355',w:22*thick,grow:true}); add({k:'line',x1:c.x1,y1:c.y1+y,x2:c.x2,y2:c.y2+y,life:.3,c:'#ffffff',w:5*thick,grow:true}); }
-// ZERO SLASH: the field holds its breath, one drawn cut opens the air, seven more nobody sees leave seams hanging in space -
-// he is already putting the blade away. The guard clicks home, the first cut answers in gold, and every seam tears open after it.
-const DEEP='#4a0014', HOT='#eafaff', STEEL='#bfeaff';
-function ultZero(id){ ultStart(id); ov.lbT=0; const Cn=X.cine, K=GFX, D=80000*A.mul(id), x0=pl.x, y0=pl.gy, {hw,hh}=view(), hy=y0-BODY*.55, N=7, L=Math.hypot(hw,hh)*2.5;
-  const TR=Cn.tone(CRIM,{c2:DEEP,c3:HOT}), TG=Cn.tone(GOLD,{c2:'#7a2a00',c3:'#fffbe8'}), f0=pl.f;
-  // the cuts: each through a target, slanted either way, never straight up the screen (a wall needs a base to stand on)
-  const T=onScreen(60), cuts=[];
-  for(let i=0;i<N;i++){ let cx, cy; for(let g=0;g<12;g++){ const e=T.length&&g<8?T[(Math.random()*T.length)|0]:null; cx=e?e.x:x0+rand(-hw,hw)*.7; cy=e?e.y:y0+rand(-hh,hh)*.7; if(Math.hypot(cx-x0,(cy-y0)*.6)>hw*.3&&!cuts.some(c=>Math.hypot(c.cx-cx,(c.cy-cy)*.6)<hw*.42)) break; }
-    const a=(i%2?-1:1)*rand(.14,1.02);
-    cuts.push({cx,cy,a,x1:cx-Math.cos(a)*L/2,y1:cy-Math.sin(a)*L/2,x2:cx+Math.cos(a)*L/2,y2:cy+Math.sin(a)*L/2,t0:0,on:false,k:1}); }
-  // the master cut: the draw itself, straight through where he stands. It is the one that answers first, and in gold.
-  const ma=f0>0?-.2:.2, MC={cx:x0,cy:y0,a:ma,x1:x0-Math.cos(ma)*L/2,y1:y0-Math.sin(ma)*L/2,x2:x0+Math.cos(ma)*L/2,y2:y0+Math.sin(ma)*L/2,t0:0,on:false,k:1.25,gold:false};
-  // ---- omen (0 - 1.1): colour drains to indigo, the air and the small stones are drawn to the hilt, the floor cracks under his stance
-  plSeq([['gs02',.16],['gs03',.2],['gs04',9]]); pl.target='iaiReady'; pl.ps=18;
-  K.ambient(.4,.42,.66,4); post.grayT=.45; Cn.zoom(1.62); Cn.roll(-.04); Cn.cam(x0,hy,4.5); duck(.3,.7); SFX.heart(1); after(.5,()=>SFX.heart(.9));
-  const drop=Cn.gLevitate(x0,y0,640,26,{dur:.8,life:9});
-  Cn.SND.inhale(1,.4); const dr=Cn.drone(46,.22);
-  Cn.gRing(x0,y0,hw*1.2,STEEL,{c2:'#16305a',inward:true,life:.95,delay:.05,w:.07,jag:.05,a:.8});
-  Cn.gCrack(x0,y0,330,STEEL,{c2:'#16305a',life:1.3,n:9,w:.1,a:.8});
-  for(let i=0;i<10;i++) after(.1+i*.08,()=>{ const a=rand(0,TAU); Cn.gPuff(x0+Math.cos(a)*hw*.9,y0+Math.sin(a)*hw*.9*FSY,6,rand(30,56),{vx:-Math.cos(a)*520,vy:-Math.sin(a)*520*FSY,vz:rand(20,90),life:.7,c:'#565a78',a:.5,drag:.6}); });
-  const stS=Cn.gst(3,'add',Cn.tone(STEEL,{c2:'#16305a'}),3), stG=K.st(8,'add',{L:3}), rays=[]; for(let i=0;i<22;i++) rays.push({a:rand(0,TAU),d:rand(0,.75),r:rand(520,980),z:rand(0,260)});
-  K.add(1.02,(k,t)=>{ for(const s of rays){ const q=(t-s.d)/.3; if(q<=0||q>=1) continue; const r1=s.r*(1-q*q), r0=Math.min(s.r,r1+s.r*.34*(1-q*.6)), ca=Math.cos(s.a), sa=Math.sin(s.a)*FSY;
-        K.line(stS,x0+ca*r0,y0+sa*r0,BODY*.55+s.z*(r0/s.r),x0+ca*r1,y0+sa*r1,BODY*.55+s.z*(r1/s.r),7,K.rgb(STEEL),.9*Math.sin(q*Math.PI),0,s.a,2,.3); }
-    K.bill(stG,x0+f0*20,y0,BODY*.6,150+k*130,150+k*130,0,TR.c,.25+.5*k*k); });
-  const Lh=K.light(x0,y0,520,RED,0,1.1); K.add(1.05,k=>{ Lh.a=k*k*1.1; Lh.t=0; });
-  // ---- the held breath (1.0): everything stops; a glint on the guard
-  after(1.0,()=>{ dr.stop(.05); Cn.SND.tick(1.4,.3); Cn.gStar(x0+f0*34,y0,BODY*.62,90,'#ffffff',{c2:STEEL,life:.16,n:4}); });
-  // ---- release (1.14): the draw. Two inked frames, a crescent wider than the screen, and he is gone
-  const a00=f0>0?Math.PI*.82:Math.PI*.18;
-  const draw=()=>{ plSeq([['gs06',.05],['gs07',9]]); Cn.zoom(.92); Cn.roll(.03); Cn.cam(x0,hy,9);
-      Cn.gSlash(x0,y0,hw*1.28,a00,a00+f0*Math.PI*1.72,CRIM,{c2:DEEP,c3:HOT,dur:.13,hold:.07,fade:.34,z:BODY*.55,len:.62});
-      Cn.gSlash(x0,y0,hw*.86,a00+f0*.5,a00+f0*Math.PI*1.5,STEEL,{c2:'#16305a',c3:'#ffffff',dur:.1,hold:.02,fade:.2,z:BODY*.55,len:.5,delay:.02});
-      Cn.gRing(x0,y0,hw*1.7,CRIM,{c2:DEEP,life:.5,w:.07,jag:.08,a:.8}); K.ripple(x0,y0,hw*1.8,{life:.5,s:.7});
-      Cn.gCrack(x0,y0,620,CRIM,{c2:DEEP,life:1.8,n:11,w:.12});
-      Cn.gSparks(x0,y0,BODY*.5,26,STEEL,{s0:700,s1:2400,vz:500}); Cn.gDebris(x0,y0,12,{s0:300,s1:900,r:120});
-      for(let i=0;i<14;i++){ const a=i/14*TAU; Cn.gPuff(x0+Math.cos(a)*200,y0+Math.sin(a)*200*FSY,8,rand(50,90),{vx:Math.cos(a)*rand(700,1200),vy:Math.sin(a)*rand(700,1200)*FSY,vz:rand(30,120),life:rand(.6,1),c:'#565a78',a:.6,drag:2.4}); }
-      K.light(x0,y0,1300,RED,.7,.5); post.ca=.012; Cn.shake(.8); drop(900); MC.on=true; MC.t0=RT;
-      inCircle(x0,y0,hw*1.2,e=>{ e.flash=1; const d=Math.hypot(e.x-x0,e.y-y0)||1; e.kx+=(e.x-x0)/d*900; e.ky+=(e.y-y0)/d*900; hitFx(e,RED,1); });
-      SFX.slash(.7,1.2); Cn.SND.shing(.8,.7); SFX.boom(1.2,.6); };
-  after(1.14,()=>Cn.impact(x0,hy,{style:'slash',ang:a00+f0*.9,c:STEEL,n:2,v:.5,flash:.1,blur:.03,soft:true,then:draw}));
-  after(1.42,()=>{ pl.visible=false; Cn.zoom(.84); Cn.cam(null); K.ambient(.6,.58,.82,6); Cn.gSpeed(1.25,STEEL,{c2:'#16305a',a:.2,r:.62,n:70,w:.1}); Cn.gStar(x0,y0,BODY*.6,150,'#ffffff',{c2:STEEL,life:.14}); });
-  // ---- the cuts (1.5 - 2.5): each one a drawn blade for a few frames, then a seam left hanging in the air
-  const stBlade=Cn.gst(3,'alpha',TR,3), stBladeG=Cn.gst(3,'alpha',TG,3), stSeam=K.st(7,'alpha',{c2:K.rgb('#16000c'),c3:K.rgb(HOT),L:1}), stSeamG=K.st(7,'alpha',{c2:K.rgb('#1c0c00'),c3:K.rgb('#fffbe8'),L:1}), stCast=K.st(8,'add',{L:0});
-  let open=.1, glowK=1, dim=1;
-  const seams=K.add(30,()=>{ const ph=K.tq(10,3);
-    for(const c of [MC,...cuts]){ if(!c.on) continue; const age=RT-c.t0, T_=c.gold?TG:TR, kk=c.gold?1:dim;
-      K.line(c.gold?stSeamG:stSeam,c.x1,c.y1,BODY*.3,c.x2,c.y2,BODY*.3,110*c.k,T_.c,kk,(c.open??open)*(.75+.25*Math.sin(RT*9+c.a*7)),c.a*31+ph*.02,9,glowK);
-      if(age<.42){ const k=age/.42, g=Math.min(1,age/.05), w=lerp(210,18,easeOut(k))*c.k; K.line(c.gold?stBladeG:stBlade,c.x1,c.y1,BODY*.3,lerp(c.x1,c.x2,g),lerp(c.y1,c.y2,g),BODY*.3,w,T_.c,1,k*k*.9,ph+c.a,2.2,.55); } } });
-  let tt=1.5; const gaps=[.2,.17,.14,.11,.09,.075,.06];
-  cuts.forEach((c,i)=>{ after(tt,()=>{ c.on=true; c.t0=RT; const dir=i%2?1:-1, ca=Math.cos(c.a), sa=Math.sin(c.a), f=ca*dir>=0?1:-1;
-      // where he passed: one hard silhouette in the cutting pose with its blade arc, and a smeared one behind it
-      const stP=K.st(0,'alpha',{L:3,c2:[1,0,0]}), stQ=K.st(0,'alpha',{L:2,c2:[.7,.6,0]}), px=c.cx, py=c.cy+BODY*.2, bx=px-ca*dir*230, by=py-sa*dir*230;
-      K.add(.42,k=>K.pose(stQ,'sword','gs06',bx,by,f,[1,.1,.2],.75*(1-k),{sc:1.25,smear:.6,er:k*.4,ph:i}));
-      K.add(.5,k=>K.pose(stP,'sword','gs07',px,py,f,k<.16?[.93,.99,1]:[1,.06+.5*(1-k),.16+.5*(1-k)],k<.6?1:1-(k-.6)/.4,{sc:1.4,er:Math.max(0,k-.5)*1.2,ph:i*2}));
-      Cn.gArt('fx3_slash',px,py,CRIM,{add:true,c2:'#4a0014',c3:'#ffe9ee',z:BODY*.7,w:430*-dir,h:290,rot:c.a,life:.34,hold:.3,L:3,boil:.006});
-      Cn.gSlip(c.x1,c.y1,c.x2,c.y2,300,.5,.22);
-      Cn.gSparks(c.cx,c.cy,BODY*.3,10,STEEL,{dir:c.a+(dir>0?0:Math.PI),spread:.25,s0:900,s1:2600,vz:300,len:.04});
-      for(let q=0;q<6;q++){ const u=rand(-.42,.42); Cn.gPuff(c.cx+ca*L*u,c.cy+sa*L*u,10,rand(34,70),{vx:ca*dir*rand(100,400),vy:sa*dir*rand(100,400),vz:rand(40,150),life:rand(.5,.9),c:'#565a78',a:.6}); }
-      K.light(c.cx,c.cy,900,RED,1.1,.3);
-      inLine(c.x1,c.y1,c.x2,c.y2,70,e=>{ e.cut=(e.cut||0)+1; e.flash=1; const s=((e.x-c.cx)*-sa+(e.y-c.cy)*ca)>=0?1:-1; e.kx+=-sa*s*260; e.ky+=ca*s*260; Cn.gStar(e.x,e.y,e.h*.5,rand(60,95),'#ffffff',{c2:STEEL,life:.14,n:4}); });
-      Cn.SND.shing(1+i*.08,.45); SFX.slash(1.2+i*.07,.8); Cn.roll(dir*.03); Cn.shake(.3+i*.03); post.ca=.008; }); tt+=gaps[i]; });
-  const t1=tt+.22;
-  // ---- stillness (t1): he is back where he stood, turned away, in the one pool of light; the seams breathe wider as the blade goes home
-  after(t1,()=>{ pl.visible=true; pl.f=-f0; plSeq([['gs09',.2],['gs10',.26],['gs11',.34],['gs12',9]]); pl.target='iaiDone'; pl.ps=30; Cn.zoom(1.7); Cn.roll(.035); Cn.cam(x0,hy,3.6);
-    K.ambient(.34,.3,.5,3); post.grayT=.5; K.light(x0,y0,430,'#e6f4ff',1.4,.6,{hold:1.1}); SFX.whoosh(1.4,.5); duck(.16,.9); Cn.drone(38,.2); SFX.heart(1); after(.42,()=>SFX.heart(1));
-    Cn.gStar(x0,y0,BODY*.6,120,'#ffffff',{c2:STEEL,life:.14}); K.add(.8,k=>{ open=.1+.3*k*k; dim=1-.35*k; }); });
-  // ---- the click (t1+.82), a frame of nothing, then the world notices - the master cut first
-  after(t1+.82,()=>{ SFX.click(); Cn.SND.tick(.6,.35); Cn.gStar(x0-f0*30,y0,BODY*.62,110,'#ffffff',{c2:GOLD,life:.2,n:4}); for(const d of Cn.drones) d.stop(.04); });
-  after(t1+1.0,()=>{ Cn.impact(x0,hy,{style:'slash',ang:ma,c:GOLD,n:2,soft:true,flash:.07,blur:.04,then:()=>{
-      Cn.zoom(.8); Cn.roll(0); Cn.cam(null); cutScreen(x0,hy,ma,.026,.24); post.grayT=0; K.ambient(.42,.34,.46,10); after(.7,()=>K.ambient(1,1,1,1.8));
-      // gold: the first cut opens under him, a wall twice the height of the rest, one burst where he stands
-      MC.gold=true; MC.k=1.9; K.add(.14,k=>{ MC.open=.4+.6*easeOut(k); }); after(.75,()=>K.add(.8,k=>{ MC.open=1-k*.9; }));
-      Cn.gWall(MC.x1,MC.y1,MC.x2,MC.y2,2300,GOLD,{c2:'#7a2a00',c3:'#fffbe8',life:1.5,rise:.08,a:.5,cell:70});
-      Cn.gStar(x0,y0,BODY*.5,300,GOLD,{c2:'#7a2a00',c3:'#fff3c8',life:.3,n:7}); Cn.gSlip(MC.x1,MC.y1,MC.x2,MC.y2,520,1,.45);
-      K.ripple(x0,y0,hw*2.2,{life:.7,s:.9}); Cn.gImpact('sword',x0,y0,hw*.95,{c3:GOLD,rot:ma}); Cn.gSlab(MC.x1,MC.y1,MC.x2,MC.y2,GOLD,{c2:'#7a2a00',w:80,life:5.5}); for(const c of cuts) Cn.gSlab(c.x1,c.y1,c.x2,c.y2,CRIM,{c2:DEEP,c3:HOT,w:rand(38,60),life:rand(4,5),delay:.1+Math.hypot(c.cx-x0,c.cy-y0)/6000});
-      
-      K.light(x0,y0,2000,GOLD,.9,.9); Cn.gDebris(x0,y0,16,{r:hw*.7,s0:100,s1:500,v0:1500,vz:3400,sz0:34,size:90,g:2600}); Cn.gDebris(x0,y0,22,{s0:300,s1:1300,vz:1900,size:30});
-      // crimson: the others follow outward from him, lower and dimmer
-      K.add(.16,k=>{ open=.4+.6*easeOut(k); glowK=1+k; dim=.65+.35*k; },.1); after(.7,()=>K.add(.9,k=>{ open=1-k*.88; glowK=2-k; }));
-      const ord=cuts.map(c=>[c,Math.hypot(c.cx-x0,c.cy-y0)]).sort((a,b)=>a[1]-b[1]);
-      ord.forEach(([c],i)=>{ const dl=.1+i*.075, ca=Math.cos(c.a), sa=Math.sin(c.a);
-        Cn.gWall(c.x1,c.y1,c.x2,c.y2,rand(700,1100),CRIM,{c2:DEEP,c3:HOT,delay:dl,life:rand(.9,1.2),rise:.1,a:.6,cell:70});
-        Cn.gSlip(c.x1,c.y1,c.x2,c.y2,420,.8,.4,dl);
-        K.add(1.1,k=>K.line(stCast,c.x1,c.y1,0,c.x2,c.y2,0,330,TR.c,.34*(1-k)),dl);   // the wall's light on the floor either side of it
-        after(dl,()=>{ for(let q=0;q<4;q++){ const u=rand(-.36,.36), px=c.cx+ca*L*u, py=c.cy+sa*L*u; Cn.gDebris(px,py,5,{s0:200,s1:800,vz:1700,size:26}); Cn.gPuff(px,py,20,rand(80,150),{vz:rand(150,320),life:rand(1,1.7),a:.75}); Cn.gSparks(px,py,20,6,RED,{vz:1500,s0:200,s1:900}); }
-          Cn.scar({kind:'gash',x:c.cx,y:c.cy,rot:c.a,len:L*.62,w:460,c:RED,life:7,heat:3.2}); K.light(c.cx,c.cy,1300,RED,1.2,.6); if(i%2===0) SFX.boom(1+i*.1,.5); }); });
-      Cn.scar({kind:'gash',x:x0,y:y0,rot:ma,len:L*.7,w:640,c:GOLD,life:8,heat:3.6});
+// ZERO SLASH: stillness, one drawn breath, nine cuts nobody sees, the blade goes home - and only then does the world notice.
+function ultZero(id){ ultStart(id); const Cn=X.cine, D=80000*A.mul(id), x0=pl.x, y0=pl.gy, {hw,hh}=view(), N=9, L=Math.hypot(hw,hh)*2.4, hy=y0-BODY*.55;
+  // omen: the colour drains, the air is drawn to the hilt
+  plSeq([['gs03',.12],['gs04',9]]); pl.target='iaiReady'; pl.ps=18;
+  Cn.setDark(.84,{c:'4,2,10',spot:{x:x0,y:hy,r:820,a:.18}}); post.grayT=.9; Cn.zoom(1.55); Cn.roll(-.045); Cn.cam(x0,hy,5); duck(.3,.7); SFX.heart(1); after(.5,()=>SFX.heart(.9));
+  Cn.gather(x0,hy,{c:RED,dur:.85,r:760,n:34,cs:[RED,'#ffffff','#ff9aa8'],v:.28});
+  const T=onScreen(100), cuts=[];
+  for(let i=0;i<N;i++){ const e=T.length?T[(Math.random()*T.length)|0]:null, cx=e?e.x:x0+rand(-hw,hw)*.6, cy=e?e.y:y0+rand(-hh,hh)*.6, a=i*Math.PI/N*1.7+rand(-.22,.22);
+    cuts.push({cx,cy,a,L,x1:cx-Math.cos(a)*L/2,y1:cy-Math.sin(a)*L/2,x2:cx+Math.cos(a)*L/2,y2:cy+Math.sin(a)*L/2}); }
+  // release: the draw is a single impact frame; after it he is simply gone and the cuts arrive faster and faster
+  const t0=1.78; let tt=t0+.13; const gaps=[.17,.14,.11,.09,.07,.06,.05,.045,.04];
+  after(t0,()=>Cn.impact(x0,hy,{style:'slash',ang:cuts[0].a,c:RED,n:2,v:.55,then:()=>{ pl.visible=false; Cn.zoom(.9); Cn.cam(null); Cn.setDark(.88,{spot:null}); Cn.speed(.95,{c:'#ffb3c0',a:.3,n:22}); gl0(x0,hy,320,'#ffffff',.22,{a:.9}); }}));
+  cuts.forEach((c,i)=>{ after(tt,()=>{ add({k:'ghost',j:shiftJ(pl.j,c.cx-pl.x,c.cy-pl.gy),life:.42,c:RED}); cutFx(c,.75); V.cuts.push(c);
+      inLine(c.x1,c.y1,c.x2,c.y2,60,e=>{ e.cut=(e.cut||0)+1; e.flash=1; hitFx(e,RED,1.2); });
+      Cn.SND.shing(1+i*.07,.45); SFX.slash(1.2+i*.06,.8); Cn.roll((i%2?1:-1)*.035); Cn.shake(.32+i*.03); post.ca=.008; }); tt+=gaps[i]; });
+  const t1=tt+.16;
+  // climax: he is back where he stood, back turned; the guard clicks home; one held breath; everything he cut comes apart at once
+  after(t1,()=>{ pl.visible=true; plSeq([['gs08',.22],['gs09',.22],['gs11',.3],['gs12',9]]); pl.target='iaiDone'; pl.ps=30; Cn.zoom(1.5); Cn.roll(.04); Cn.cam(x0,hy,6);
+    Cn.setDark(.92,{spot:{x:x0,y:hy,r:700,a:.12}}); gl0(x0,hy,240,RED,.3,{a:.8}); SFX.whoosh(1.4,.5); duck(.18,.75); });
+  after(t1+.62,()=>{ pl.target='sheath'; pl.ps=14; SFX.click(); Cn.SND.tick(.6,.3); });
+  after(t1+.9,()=>{ const m=cuts[0]; Cn.impact(m.cx,m.cy-BODY*.5,{style:'slash',ang:m.a,c:RED,n:3,then:()=>{
+      Cn.zoom(.86); Cn.roll(0); Cn.cam(null); cutScreen(m.cx,m.cy-BODY*.5,m.a,.028,.2);
+      for(const c of V.cuts) cutFx(c,1.7); V.cuts=[];
+      const zb=VFX.td_zeroburst; tdV('td_zeroburst',x0,hy,{sc:zb?hw*1.9/zb.w:1});
+      cuts.forEach((c,i)=>{ if(i<5) tdV('td_zeroburst',c.cx,c.cy-BODY*.5,{sc:zb?760/zb.w:1,rot:rand(0,TAU),a:.85}); Cn.scar({kind:'gash',x:c.cx,y:c.cy,rot:c.a,len:L*.62,w:300,c:RED,life:4.2,heat:2.2}); });
+      Cn.waves(x0,y0,RED,{n:3,dc:'60,20,30'}); Cn.wash('255,40,70',.3,0,x0,y0);
       for(const e of onScreen(300)) if(e.cut) e.flash=1;
-      Cn.sweep(x0,y0,D*1.5,{speed:4200,max:.45}); SFX.shatter(1); Cn.SND.gong(.6);
-      Cn.gMotes(x0,y0,hw*1.3,RED,60,{fall:true,dur:1.4,life:2.6,m:3,s0:4,s1:9}); Cn.gMotes(x0,y0,hw*1.2,GOLD,60,{dur:1.8,life:2.2}); }}); });
-  // ---- afterglow: the seams close slowly into scars that smoke; red and gold motes sink through the returning colour
-  after(t1+2.0,()=>{ Cn.zoom(1); for(const c of [MC,...cuts]) for(let q=0;q<4;q++){ const u=rand(-.3,.3); Cn.gPuff(c.cx+Math.cos(c.a)*L*u,c.cy+Math.sin(c.a)*L*u,10,rand(60,110),{vz:rand(80,200),life:rand(1.4,2.2),a:.5}); } });
-  after(t1+3.1,()=>{ K.add(.5,k=>{ open=.12*(1-k); MC.open=.1*(1-k); dim=1-k; }); after(.5,()=>{ seams.dead=true; }); ultStop(); }); }
+      Cn.sweep(x0,y0,D*1.5,{speed:4200,max:.45}); Cn.setDark(.4,{spot:null}); post.grayT=0; SFX.shatter(1); Cn.ashFall(2.8,'#ff5a78',44,{glow:true}); }}); });
+  // afterglow: red motes fall through the returning colour, the gashes cool on the floor
+  after(t1+1.75,()=>{ Cn.setDark(0); Cn.zoom(1); Cn.embers(x0,y0,700,RED,{n:36,dur:1.6}); });
+  after(t1+2.35,ultStop); }
 
 // SWORD RAIN: a blade raised to a sky that answers - rings of falling swords walk outward from him, stay standing in the earth, and the last one is the size of a tower.
 function ultRain(id){ ultStart(id); const Cn=X.cine, D=9000*A.mul(id), x0=pl.x, y0=pl.gy, {hw,hh}=view(), R=hw*.92, stuck=[], sw=spr('sword');
