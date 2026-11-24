@@ -152,7 +152,8 @@ F.mkRT=(w,h,hdr)=>{ const t=gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D,t);
 // assets/<name>.<ext>; raw = data texture (no premultiply), repeat needs a power-of-two image
 function loadTex(name,ext,o={}){ const s={im:new Image(),ok:false,t:null,o,name}; s.im.onload=()=>{ s.ok=true; }; s.im.onerror=()=>{ s.bad=true; }; s.im.src='assets/'+name+'.'+ext+'?v='+(typeof ASSET_V!=='undefined'?ASSET_V:'')+'3'; return s; }
 function glTex(s){ if(!s) return white; if(s.t) return s.t; if(!s.ok) return null;
-  const t=gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D,t); if(s.o.raw){ gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL,false); gl.pixelStorei(gl.UNPACK_COLORSPACE_CONVERSION_WEBGL,gl.NONE); }
+  // always create on unit 0: mid-pass the active unit is one of the noise atlases, and binding there would replace it for the frame
+  gl.activeTexture(gl.TEXTURE0); const t=gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D,t); if(s.o.raw){ gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL,false); gl.pixelStorei(gl.UNPACK_COLORSPACE_CONVERSION_WEBGL,gl.NONE); }
   gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,s.im);
   if(s.o.raw){ gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL,true); gl.pixelStorei(gl.UNPACK_COLORSPACE_CONVERSION_WEBGL,gl.BROWSER_DEFAULT_WEBGL); }
   const pot=v=>(v&(v-1))===0, rep=s.o.repeat&&pot(s.im.naturalWidth)&&pot(s.im.naturalHeight);

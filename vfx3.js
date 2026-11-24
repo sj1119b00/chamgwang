@@ -19,7 +19,7 @@ K.PAL={
 };
 const pal=p=>typeof p==='string'?K.PAL[p]:(p||K.PAL.crimson);
 K.pal=pal;
-const TEX=['v3_pillar','v3_scorch','v3_dustring','v3_orb','v3_circ_mage','v3_circ_fist','v3_circ_shaman','v3_circ_pyro','fx_circle_arcane','fx_circle_seal','v3_slash_thin','v3_slash_heavy','v3_thrust','v3_spin_ring','v3_circ_blade','v3_fissure','v3_gash','v3_xburst','fx3_burst','fx3_shock','fx3_smoke','fx3_slash','fx3_fire','fx3_bolt','fx3_tornado','fx3_beam','fx_crack','fx_gash'];
+const TEX=['v3_boulder','v3_spikes','v3_palmprint','v3_skygate','v3_bolt_b','v3_bolt_fork','v3_arc_h','v3_frost_ring','v3_crater','v3_comet_tail','v3_greatsword','v3_cres_up','v3_pillar','v3_scorch','v3_dustring','v3_orb','v3_circ_mage','v3_circ_fist','v3_circ_shaman','v3_circ_pyro','fx_circle_arcane','fx_circle_seal','v3_slash_thin','v3_slash_heavy','v3_thrust','v3_spin_ring','v3_circ_blade','v3_fissure','v3_gash','v3_xburst','fx3_burst','fx3_shock','fx3_smoke','fx3_slash','fx3_fire','fx3_bolt','fx3_tornado','fx3_beam','fx_crack','fx_gash'];
 K.pre=()=>{ if(F&&F.on){ for(const t of TEX) F.img(t); F.img('v3_curtain',{repeat:true}); for(const t of ['meteor','sword']) F.img(t); } };
 // a point of a tilted local frame in world coordinates (x, floor y, height)
 K.at=(M,x,y,z,lx,ly,lz)=>[x+M[0]*lx+M[4]*ly+M[8]*lz,y+(M[1]*lx+M[5]*ly+M[9]*lz)*FSY,z+M[2]*lx+M[6]*ly+M[10]*lz];
@@ -51,8 +51,8 @@ function mats(){ if(MT) return MT; const m=F.mat; MT={
   // dome shell
   doB:m({nz:'veins',n1:[4,1.2,.15,-.5],n2:[3,2,0,.3],dist:.06,nk:1,ero:.1,soft:.25,pm:[4,1.1,.015,0],rk:[.4,.85],gain:2.6}),
   // floor decals
-  sig:m({tex:'v3_circ_blade',nk:0,ero:.12,soft:.3,rk:[.55,1.25],gain:2.2,bgain:1.15,layer:'g'}),
-  sigN:m({tex:'v3_circ_blade',nz:'veins',n1:[3,3,.05,.03],nk:.9,pw:1.3,ero:.1,soft:.3,rk:[.35,.8],gain:2.6,bgain:1.2,layer:'g'}),
+  sig:m({tex:'v3_circ_blade',nk:0,ero:.12,soft:.3,rk:[.6,1.35],gain:1.5,bgain:1.05,layer:'g'}),
+  sigN:m({tex:'v3_circ_blade',nz:'veins',n1:[3,3,.05,.03],nk:.9,pw:1.3,ero:.1,soft:.3,rk:[.35,.8],gain:1.8,bgain:1.1,layer:'g'}),
   glowG:m({pm:[3,1.6,0,0],nk:0,ero:.0,soft:.6,rk:[.6,1],gain:1.2,layer:'g'}),
   glowO:m({pm:[3,2,0,0],nk:0,ero:.0,soft:.5,rk:[.35,.8],gain:3}),
   dark:m({pm:[3,.7,0,0],nk:0,ero:0,soft:.5,cA:'#000000',cB:'#000000',cC:'#000000',op:1,layer:'g'}),

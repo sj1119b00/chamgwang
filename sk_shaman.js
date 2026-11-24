@@ -61,7 +61,7 @@ function stone(x,y,o={}){ const s=o.s||110, h0=o.h0||2200, dur=o.dur||.42, vx=o.
   if(o.stay) GFX.add(o.stay,(k,t)=>{ if(h.dead) return; const f=h.t1<0?0:sat((RT-h.t1)/h.fd); if(f>=1){ h.dead=true; return; }
     const sq=1+.14*Math.exp(-t*16), hh=s*(2-sq);
     F.quad(b.dark,x,y,s*1.25,s*1.25,0,{a:.75*(1-f)});
-    F.bill(m.rock,x,y,hh*.9,s*sq,hh,0,{ero:.05+f*.95,gain:1.5+f*3+(o.hot?1.2*sat(t/1.1):0),uvT,ord:-2,t0:sd}); },d0+dur);
+    F.bill(m.rock,x,y,hh*.78,s*sq,hh,0,{ero:.05+f*.95,gain:1.5+f*1.2+(o.hot?1.2*sat(t/1.1):0),uvT,fd:[0,0,.13,0],ord:-2,t0:sd}); },d0+dur);
   return h; }
 // SPIKE: a jade shard punching up out of the floor, holding, then sinking back as it burns out
 function spike(x,y,o={}){ if(!F.on) return; const m=LM(), b=K.mats(), s=o.s||170, dur=o.dur||.7, sd=rand(0,9), uvT=o.flip?[-1,1,1,0]:[1,1,0,0];

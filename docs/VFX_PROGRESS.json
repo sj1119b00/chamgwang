@@ -1,7 +1,7 @@
 {
  "updated": "2026-11-24",
  "representative": "sw_ult1",
- "iteration": 24,
+ "iteration": 29,
  "project_complete": false,
  "independent_review": [
   {
@@ -76,52 +76,61 @@
  "ults": {
   "sw_ult1": {
    "status": "rewritten_on_v3",
-   "iterations_v3": 6,
+   "iterations_v3": 12,
    "verified_run": true,
    "state_restore": true,
-   "sheet": "z2_5.jpg"
+   "sheet": "z7_big.jpg",
+   "video": "_gen/review/zero_slash_v8.mp4",
+   "source": "_gen/v3/zero_v3.js (installed by _gen/v3/p7.py)"
   },
   "sw_ult2": {
-   "status": "old_engine_pending_v3",
-   "iterations": 2,
+   "status": "rewritten_on_v3_by_agent",
    "verified_run": true,
-   "state_restore": true
+   "state_restore": true,
+   "sheet": "sword_u2_r6.jpg",
+   "checked_by_main": true
   },
   "mg_ult1": {
-   "status": "old_engine_pending_v3",
-   "iterations": 2,
+   "status": "rewritten_on_v3_by_agent",
    "verified_run": true,
-   "state_restore": true
+   "state_restore": true,
+   "sheet": "mage_u1_final.jpg",
+   "checked_by_main": true
   },
   "mg_ult2": {
-   "status": "old_engine_pending_v3",
-   "iterations": 1,
+   "status": "rewritten_on_v3_by_agent",
    "verified_run": true,
-   "state_restore": true
+   "state_restore": true,
+   "sheet": "mage_u2_final.jpg",
+   "checked_by_main": true
   },
   "fs_ult1": {
-   "status": "old_engine_pending_v3",
-   "iterations": 2,
+   "status": "rewritten_on_v3_by_agent",
    "verified_run": true,
-   "state_restore": true
+   "state_restore": true,
+   "sheet": "fist_u1_final.jpg",
+   "checked_by_main": true
   },
   "fs_ult2": {
-   "status": "old_engine_pending_v3",
-   "iterations": 2,
+   "status": "rewritten_on_v3_by_agent",
    "verified_run": true,
-   "state_restore": true
+   "state_restore": true,
+   "sheet": "fist_u2_final.jpg",
+   "checked_by_main": true
   },
   "sh_ult1": {
-   "status": "old_engine_pending_v3",
-   "iterations": 2,
+   "status": "rewritten_on_v3_by_agent",
    "verified_run": true,
-   "state_restore": true
+   "state_restore": true,
+   "sheet": "shaman_u1_final.jpg",
+   "checked_by_main": true
   },
   "sh_ult2": {
-   "status": "old_engine_pending_v3",
-   "iterations": 2,
+   "status": "rewritten_on_v3_by_agent",
    "verified_run": true,
-   "state_restore": true
+   "state_restore": true,
+   "sheet": "shaman_u2_final.jpg",
+   "checked_by_main": true
   },
   "py_ult1": {
    "status": "old_engine_pending_v3",
@@ -159,7 +168,41 @@
  },
  "engine": "v3 (fx3.js lit ground + mesh HDR renderer, vfx3.js kit)",
  "skills_v3": {
-  "done": [],
-  "pending": "all normal skills and basics of 5 classes"
- }
+  "done": [
+   "sword",
+   "mage",
+   "fist",
+   "shaman"
+  ],
+  "pending": [
+   "pyro"
+  ],
+  "note": "all normal skills and basics rebuilt on K3 by per-class agents; sheets <cls>_s_*.jpg"
+ },
+ "independent_review_v3": [
+  {
+   "n": 6,
+   "score": 53,
+   "old_same_reviewer": 38,
+   "sheet": "z3"
+  },
+  {
+   "n": 7,
+   "score": 63,
+   "old_same_reviewer": 46,
+   "sheet": "z4"
+  },
+  {
+   "n": 8,
+   "score": 64,
+   "old_same_reviewer": 44,
+   "sheet": "z5"
+  },
+  {
+   "n": 9,
+   "score": 60,
+   "old_same_reviewer": 41,
+   "sheet": "z6"
+  }
+ ]
 }

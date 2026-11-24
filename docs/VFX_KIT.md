@@ -73,6 +73,7 @@
 
 ## 쓸 수 있는 원화 (`assets/`)
 - 회색 마스크(램프로 채색, `art`/`cres`/`sigil`의 `tex`): `fx3_burst`(폭발 1.39:1) `fx3_shock`(충격 고리) `fx3_smoke` `fx3_slash` `fx3_fire`(세로) `fx3_bolt`(세로) `fx3_tornado`(세로) `fx3_beam`(가로 띠) `v3_xburst`(임팩트 바늘) `v3_curtain`(불꽃 장막, 가로 반복) `v3_fissure` `v3_gash` `v3_slash_thin` `v3_slash_heavy` `v3_thrust`(가로 3.7:1) `v3_spin_ring` `fx_crack` `fx_lightning`
+- 추가 회색 마스크(2026-11-24 오후): `v3_pillar`(세로 빛기둥, 나선 리본) `v3_scorch`(그을음, 위에서 본) `v3_dustring`(먼지 고리) `v3_orb`(에너지 구체) `v3_boulder`(각진 바위) `v3_spikes`(돌가시 무리, 세로) `v3_palmprint`(연꽃 손자국, 세로) `v3_skygate`(소용돌이 구름 문) `v3_bolt_b`(갈라지는 낙뢰, 세로) `v3_bolt_fork`(거대 다발 낙뢰, 세로) `v3_arc_h`(가로 번개 아크 4:1) `v3_frost_ring`(얼음 가시 고리) `v3_crater`(분화구+분출 줄기) `v3_comet_tail`(운석 불꼬리, 머리가 오른쪽, 4:1) `v3_greatsword`(아래를 향한 대검, 1:2 세로) `v3_cres_up`(세로로 선 가는 초승달, 볼록한 쪽이 왼쪽)
 - 마법진 선화(`sigil`의 `tex`): `v3_circ_blade`(검사) `v3_circ_mage` `v3_circ_fist` `v3_circ_shaman` `v3_circ_pyro` `fx_circle_arcane` `fx_circle_seal`
 - 채색 그림(`pic`/`drop`의 `img`): `meteor` `sword` `deity` `palm` `crystal` `dragon_head` `dragon_body` `fx_sun`
 - 기존 GIF 프레임 이펙트(`vfx('이름',…)`, `tdV`)는 2D 캔버스 위에 그려진다. 새로 만드는 연출에는 쓰지 않는 것을 원칙으로 하되, 화룡 몸통처럼 대체가 어려운 것은 유지해도 된다.
