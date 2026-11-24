@@ -50,6 +50,7 @@
 | `flame(x,y,o)` → handle | 서 있는 불꽃 | `s` `dur` |
 | `beam(x1,y1,z1,x2,y2,z2,o)` → handle | 두 점 사이 그림 빔(끝점을 매 프레임 바꿔도 됨) | `w` `dur` |
 | `drop(x,y,o)` | 하늘에서 떨어지는 그림(운석·검)+조여드는 그림자 | `img` `s` `h0` `dur` `land()` |
+| `pic(x,y,z,o)` → handle | **채색 그림(알파 있음)** 한 장을 세우거나(`floor:true`면 눕힘) 노이즈로 타 들어오고 나가게: 소환물·무기 (`deity`,`palm`,`meteor`,`sword`,`dragon_head`,`crystal` 등 `assets/*.webp`). handle의 `x,y,z,s,a,rot`를 매 프레임 바꿔 움직임 | `img` `s` `asp` `dur` `in` `out` `tint` `edge` `flip` |
 | `smoke(x,y,o)` | 피어오르는 어두운 연기 | `s` `dur` `c` |
 | `flare(x,y,z,o)` | 공중의 뜨거운 빛(칼집의 번쩍임 `sx:5,sy:.3`) | `s` `dur` `gain` |
 | `sparks(x,y,z,o)` | 불티(줄무늬, 중력) | `n` `sp:[lo,hi]` `up` `dir` `spread` |
@@ -58,6 +59,12 @@
 조명·환경: `GFX.light(x,y,r,'#색',세기,수명,{z,hold,flick})`, `GFX.ambient(r,g,b,속도)`(끝날 때 `GFX.ambient(1,1,1,2)`), `GFX.ripple(x,y,R,{life,s})`.
 연출: `Cn.zoom(z)`, `Cn.roll(r)`, `Cn.cam(x,y,k)`/`Cn.cam(null)`, `Cn.shake(s)`, `hitstop=Math.max(hitstop,.08)`, `post.ca=.012`, `Cn.sweep(x,y,D,{speed})`(피해 파동).
 저수준(새 조각이 꼭 필요할 때, 자기 `sk_<cls>.js` 안에서): `FX3.mat({...})`, `FX3.lathe/ring/quad/bill/ribbon/wall`, `GFX.add(life,(k,t)=>{…})`, `GFX.pt({...})`. 재질 매개변수는 `fx3.js` 상단 주석과 `vfx3.js`의 `mats()` 참고.
+
+## 쓸 수 있는 원화 (`assets/`)
+- 회색 마스크(램프로 채색, `art`/`cres`/`sigil`의 `tex`): `fx3_burst`(폭발 1.39:1) `fx3_shock`(충격 고리) `fx3_smoke` `fx3_slash` `fx3_fire`(세로) `fx3_bolt`(세로) `fx3_tornado`(세로) `fx3_beam`(가로 띠) `v3_xburst`(임팩트 바늘) `v3_curtain`(불꽃 장막, 가로 반복) `v3_fissure` `v3_gash` `v3_slash_thin` `v3_slash_heavy` `v3_thrust`(가로 3.7:1) `v3_spin_ring` `fx_crack` `fx_lightning`
+- 마법진 선화(`sigil`의 `tex`): `v3_circ_blade`(검사) `v3_circ_mage` `v3_circ_fist` `v3_circ_shaman` `v3_circ_pyro` `fx_circle_arcane` `fx_circle_seal`
+- 채색 그림(`pic`/`drop`의 `img`): `meteor` `sword` `deity` `palm` `crystal` `dragon_head` `dragon_body` `fx_sun`
+- 기존 GIF 프레임 이펙트(`vfx('이름',…)`, `tdV`)는 2D 캔버스 위에 그려진다. 새로 만드는 연출에는 쓰지 않는 것을 원칙으로 하되, 화룡 몸통처럼 대체가 어려운 것은 유지해도 된다.
 
 ## 주의 (실제로 밟은 함정)
 - `GFX.add` 콜백은 "그린 프레임"마다 불린다. 위치는 `t`의 함수로 계산하고 프레임마다 누적하지 않는다.

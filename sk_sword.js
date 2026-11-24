@@ -74,69 +74,80 @@ function cutFx(c,thick){ const K=VFX.td_cutline, k=K?c.L/K.w:1;   // stretched a
   if(tdV('td_cutline',c.cx,c.cy-BODY*.5,{rot:c.a,sc:k,sy:K?300*thick/(K.h*k):1,a:1})) return;
   const y=-BODY*.5; add({k:'line',x1:c.x1,y1:c.y1+y,x2:c.x2,y2:c.y2+y,life:.45,c:'#ff3355',w:22*thick,grow:true}); add({k:'line',x1:c.x1,y1:c.y1+y,x2:c.x2,y2:c.y2+y,life:.3,c:'#ffffff',w:5*thick,grow:true}); }
 // ZERO SLASH: a sigil writes itself under him; one drawn breath; a crescent the width of the field; eight cuts nobody sees,
-// left hanging in the air as humming seams; the blade goes home in silence - and only then does every seam tear open at once.
+// left hanging in the air as humming seams; the blade goes home in silence - and only then does every seam tear open, one after another.
 function ultZero(id){ ultStart(id); const Cn=X.cine, K=K3, D=80000*A.mul(id), x0=pl.x, y0=pl.gy, {hw,hh}=view(), N=8, hy=y0-BODY*.55, P='crimson', f0=pl.f;
-  // ---- omen: the light leaves the field, the circle writes itself, the air is drawn to the hilt
+  // ---- omen: the light cools and drops, the circle writes itself, the air is drawn to the hilt
   plSeq([['gs03',.12],['gs04',9]]); pl.target='iaiReady'; pl.ps=18;
-  GFX.ambient(.34,.3,.44,3.5); const spot=GFX.light(x0,y0,520,'#ff3a55',.75,.6,{hold:9,z:120});
-  const sig=K.sigil(x0,y0,{r:hw*.62,dur:9,in:1.05,out:.5,spin:.32,pal:P});
-  K.crack(x0,y0,{r:230,pal:P,life:5.5,grow:1.1});
+  GFX.ambient(.44,.42,.6,3.5); const spot=GFX.light(x0,y0,520,'#ff3a55',.75,.6,{hold:9,z:120});
+  const sig=K.sigil(x0,y0,{r:hw*.6,dur:9,in:1.05,out:.3,spin:.32,pal:P}), sig2=K.sigil(x0,y0,{r:hw*.86,dur:9,in:1.2,out:.3,spin:-.2,pal:P,gain:.55});
+  sig2.a=.5; K.crack(x0,y0,{r:230,pal:P,life:5.5,grow:1.1});
   Cn.zoom(1.42); Cn.roll(-.04); Cn.cam(x0,hy,4.5); duck(.3,.7); SFX.heart(1); after(.5,()=>SFX.heart(.9)); Cn.SND.inhale(1.15,.5);
   for(let i=0;i<3;i++) after(.15+i*.32,()=>K.shock(x0,y0,{r0:hw*(1.05-i*.12),r:60,dur:.42,pal:P,gain:.5,light:0,dust:0,haze:.5,th:.6}));
   for(let i=0;i<46;i++) after(rand(0,.95),()=>{ const a=rand(0,TAU), d=rand(380,860); GFX.pt({x:x0+Math.cos(a)*d,y:y0+Math.sin(a)*d*FSY,z:rand(0,420),tx:x0+f0*30,ty:y0,tz:BODY*.55,pull:rand(4.5,7),life:rand(.4,.6),s:rand(2.5,5),m:3,len:.05,vx:-Math.sin(a)*500,vy:Math.cos(a)*300,c:GFX.rgb(Math.random()<.4?'#ffffff':'#ff7a90'),c2:'#ff0a28',L:3}); });
   for(let i=0;i<10;i++) after(rand(.2,1),()=>{ const a=rand(0,TAU), d=rand(120,420); GFX.pt({x:x0+Math.cos(a)*d,y:y0+Math.sin(a)*d*FSY,z:2,vz:rand(120,300),g:-60,life:rand(.7,1.1),s:rand(5,12),rot:rand(0,TAU),vr:rand(-3,3),m:11,b:'alpha',c:GFX.rgb('#6a6276'),c2:'#0c0a10',shadow:true,fk:4,L:2}); });
-  // the eight cuts: lines through the crowd at spread angles, each offset from him
-  const T=onScreen(100), cuts=[], L=Math.hypot(hw,hh)*1.9;
-  for(let i=0;i<N;i++){ const e=T.length?T[(Math.random()*T.length)|0]:null, cx=clamp(e?e.x:x0+rand(-hw,hw)*.5,x0-hw*.5,x0+hw*.5), cy=clamp(e?e.y:y0+rand(-hh,hh)*.45,y0-hh*.5,y0+hh*.5), a=(i*5%N)*Math.PI/N+.31+rand(-.1,.1);
+  // the eight cuts: finite strokes through the crowd at spread angles
+  const T=onScreen(100), cuts=[], L=hw*1.95;
+  for(let i=0;i<N;i++){ const e=T.length?T[(Math.random()*T.length)|0]:null, cx=clamp(e?e.x:x0+rand(-hw,hw)*.6,x0-hw*.62,x0+hw*.62), cy=clamp(e?e.y:y0+rand(-hh,hh)*.5,y0-hh*.6,y0+hh*.6), a=(i*5%N)*Math.PI/N+.31+rand(-.1,.1);
     cuts.push({cx,cy,a,L,x1:cx-Math.cos(a)*L/2,y1:cy-Math.sin(a)*L/2,x2:cx+Math.cos(a)*L/2,y2:cy+Math.sin(a)*L/2,seam:null}); }
-  // ---- the draw: one crescent across the whole field
+  // ---- the draw: one crescent across the whole field, the camera gives it room
   const t0=1.3;
   after(t0-.07,()=>{ K.flare(x0+f0*40,y0,BODY*.6,{pal:P,s:60,sx:5,sy:.35,dur:.16,gain:5}); Cn.SND.tick(1.4,.3); });
-  after(t0,()=>{ spot.hold=0; spot.life=.25; pl.target='slashU'; plSeq([['gs05',.03],['gs07',.05],['gs09',9]]);
-    K.cres(x0,y0,BODY*.55,{reach:hw*.9,dir:f0>0?0:Math.PI,lean:.42,roll:-.14*f0,tex:'v3_slash_heavy',pal:P,swing:.08,hold:.16,fade:.46,gain:1.1,sparks:0,ccw:f0<0});
-    K.art(x0+f0*90,y0,{tex:'v3_xburst',s:hw*.5,z:BODY*.1,dur:.34,pal:P,gain:1.1,hold:.2,s0:.6});
+  after(t0,()=>{ spot.hold=0; spot.life=.25; pl.target='slashU'; plSeq([['gs05',.03],['gs07',.05],['gs09',9]]); const dir=f0>0?0:Math.PI;
+    K.cres(x0,y0,BODY*.55,{reach:hw*.8,dir,lean:.5,roll:-.12*f0,tex:'fx3_slash',pal:P,swing:.08,hold:.18,fade:.46,gain:1.05,sparks:0,ccw:f0<0});
+    K.cres(x0,y0,BODY*.55,{reach:hw*.88,dir,lean:.5,roll:-.12*f0,tex:'v3_slash_thin',pal:P,swing:.07,hold:.12,fade:.34,gain:1.4,sparks:0,light:0,ccw:f0<0});
+    K.art(x0+f0*90,y0,{tex:'v3_xburst',s:hw*.36,z:BODY*.1,dur:.3,pal:P,gain:1.05,hold:.2,s0:.6});
     K.shock(x0,y0,{r:hw*1.5,dur:.5,pal:P}); GFX.ripple(x0,y0,hw*1.6,{life:.45,s:.7});
-    K.sparks(x0+f0*60,y0,BODY*.6,{pal:P,n:40,sp:[500,1900],up:500,dir:f0>0?0:Math.PI,spread:1.5});
+    K.sparks(x0+f0*60,y0,BODY*.6,{pal:P,n:40,sp:[500,1900],up:500,dir,spread:1.5});
     K.dust(x0,y0,{n:14,r:80,sp:[400,1000]}); K.debris(x0,y0,{n:10,r:120,sp:[200,700],up:900});
-    GFX.ambient(.5,.3,.36,30); after(.12,()=>GFX.ambient(.3,.27,.4,5));
-    hitstop=Math.max(hitstop,.085); Cn.shake(1); post.ca=.012; Cn.zoom(.94); Cn.cam(null); Cn.roll(.03); SFX.slash(.8,1.2); Cn.SND.shing(.8,.7); SFX.whoosh(.7,1);
-    X.inCircleS(x0,y0,hw*1.1,e=>{ e.flash=1; e.stun=Math.max(e.stun,3.2); hitFx(e,RED,1); }); });
-  after(t0+.11,()=>{ pl.visible=false; K.flare(x0,y0,BODY*.6,{pal:P,s:150,dur:.2,gain:2.5}); });
-  // ---- the flurry: he is gone; each cut stays in the air where it was made, faster and faster
+    hitstop=Math.max(hitstop,.085); Cn.shake(1); post.ca=.005; Cn.zoom(.9); Cn.cam(null); Cn.roll(.03); SFX.slash(.8,1.2); Cn.SND.shing(.8,.7); SFX.whoosh(.7,1);
+    X.inCircleS(x0,y0,hw*1.1,e=>{ e.flash=1; e.stun=Math.max(e.stun,3.2); e.kx+=(e.x-x0>0?1:-1)*120; hitFx(e,RED,1); }); });
+  after(t0+.11,()=>{ pl.visible=false; K.flare(x0,y0,BODY*.6,{pal:P,s:150,dur:.2,gain:2.5}); sig.a=.4; sig2.a=.25; });
+  // ---- the flurry: he is gone; each cut is a thrown crescent, and stays in the air where it was made
   let tt=t0+.26; const gaps=[.17,.15,.13,.11,.09,.075,.06,.05];
   cuts.forEach((c,i)=>{ after(tt,()=>{ const dx=Math.cos(c.a), dy=Math.sin(c.a);
-      c.seam=K.seam(c.x1,c.y1,c.x2,c.y2,{z:105,w:30+i*1.5,pal:P});
-      // where he passed: a blurred figure mid-stroke, already fading
-      const ax=c.cx+dx*rand(-120,120), ay=c.cy+dy*rand(-120,120), ff=dx>=0?1:-1, st=GFX.st(0,'add',{c2:[.82,0,0],c3:[1,.2,.3]});
-      GFX.add(.36,k=>{ GFX.pose(st,'sword',i%2?'gs07':'gu06',ax+dx*60*k,ay+dy*60*k,ff,[1,.16,.26],(1-k)*(1-k)*.95,{smear:.5*(1-k),sc:1.25}); });
+      c.seam=K.seam(c.x1,c.y1,c.x2,c.y2,{z:105,w:22,pal:P});
+      K.cres(c.cx-dx*hw*.3,c.cy-dy*hw*.3,105,{reach:hw*rand(.75,.95),dir:c.a,lean:rand(.25,.7),roll:(i%2?1:-1)*rand(.15,.55),tex:i%2?'v3_slash_thin':'fx3_slash',pal:P,swing:.05,hold:.04,fade:.26,gain:.95,light:0,sparks:6,ccw:i%2});
+      // where he passed: the figure mid-stroke, lit by his own blade, already fading
+      const ax=c.cx+dx*rand(-120,120), ay=c.cy+dy*rand(-120,120), ff=dx>=0?1:-1, st=GFX.st(0,'add',{c2:[.3,0,0],c3:[1,.3,.4]});
+      GFX.add(.4,k=>{ GFX.pose(st,'sword',i%2?'gs07':'gu06',ax+dx*70*k,ay+dy*70*k,ff,[1,.42,.5],(1-k)*(1-k)*.9,{smear:.45*(1-k),sc:1.25}); });
       GFX.light(c.cx,c.cy,L*.5,'#ff2440',.8,.28,{z:105});
-      K.cres(c.cx-dx*hw*.25,c.cy-dy*hw*.25,105,{reach:hw*rand(.7,.95),dir:c.a,lean:rand(.25,.7),roll:(i%2?1:-1)*rand(.15,.55),tex:i%2?'v3_slash_thin':'fx3_slash',pal:P,swing:.05,hold:.04,fade:.26,gain:.95,light:0,sparks:6,ccw:i%2});
       inLine(c.x1,c.y1,c.x2,c.y2,60,e=>{ e.cut=(e.cut||0)+1; e.flash=1; e.stun=Math.max(e.stun,3); K.sparks(e.x,e.y,e.h*.5,{pal:P,n:5,dir:c.a+(Math.random()<.5?0:Math.PI),spread:.5,sp:[400,1300],up:300,life:[.15,.35]}); });
-      for(let q=0;q<5;q++){ const u=rand(.2,.8), px=mix(c.x1,c.x2,u), py=mix(c.y1,c.y2,u); K.dust(px,py,{n:2,dir:c.a+(q%2?1:-1)*Math.PI/2,spread:.4,sp:[150,420],a:.38,s:.8}); K.sparks(px,py,105,{pal:P,n:3,dir:c.a,spread:.25,sp:[900,2400],up:120,life:[.12,.3],g:500}); }
-      Cn.SND.shing(1+i*.07,.45); SFX.slash(1.2+i*.06,.8); Cn.roll((i%2?1:-1)*.035); Cn.shake(.34+i*.035); post.ca=.008; Cn.zoom(.94-i*.012); }); tt+=gaps[i]; });
+      for(let q=0;q<4;q++){ const u=rand(.2,.8), px=mix(c.x1,c.x2,u), py=mix(c.y1,c.y2,u); K.dust(px,py,{n:2,dir:c.a+(q%2?1:-1)*Math.PI/2,spread:.4,sp:[150,420],a:.38,s:.8}); }
+      Cn.SND.shing(1+i*.07,.45); SFX.slash(1.2+i*.06,.8); Cn.roll((i%2?1:-1)*.045); Cn.shake(.34+i*.035); post.ca=.003; Cn.zoom(.9-i*.008); }); tt+=gaps[i]; });
   const t1=tt+.2;
-  // ---- stillness: he is back where he stood, back turned; the guard clicks home
-  after(t1,()=>{ pl.visible=true; pl.f=f0; plSeq([['gs08',.22],['gs09',.22],['gs11',.3],['gs12',9]]); pl.target='iaiDone'; pl.ps=30; Cn.zoom(1.36); Cn.roll(.035); Cn.cam(x0,hy,6);
-    GFX.ambient(.3,.26,.38,6); GFX.light(x0,y0,460,'#ffe8e0',.7,.4,{hold:.75,z:160}); K.flare(x0,y0,BODY*.5,{pal:P,s:200,dur:.3,gain:2}); SFX.whoosh(1.4,.5); duck(.18,.75); K.dust(x0,y0,{n:10,r:40,sp:[150,380],a:.35}); });
+  // ---- stillness: he is back where he stood, back turned; the seams pulse like a heartbeat, faster and faster; the guard clicks home
+  after(t1,()=>{ pl.visible=true; pl.f=f0; plSeq([['gs08',.22],['gs09',.22],['gs11',.3],['gs12',9]]); pl.target='iaiDone'; pl.ps=30; Cn.zoom(1.3); Cn.roll(.035); Cn.cam(x0,hy,3);
+    GFX.ambient(.4,.38,.56,6); GFX.light(x0,y0,460,'#ffe8e0',.7,.4,{hold:.75,z:160}); K.flare(x0,y0,BODY*.5,{pal:P,s:200,dur:.3,gain:2}); SFX.whoosh(1.4,.5); duck(.18,.75); K.dust(x0,y0,{n:10,r:40,sp:[150,380],a:.35}); sig.a=.8; sig2.a=.4; });
+  [.12,.34,.52,.66,.76].forEach((d,j)=>after(t1+d,()=>{ for(const c of cuts) if(c.seam) c.seam.kick(); SFX.heart(.7+j*.08); GFX.light(x0,y0,hw*1.2,'#ff2440',.25+j*.07,.2,{z:100}); K.shock(x0,y0,{r0:hw*.5,r:70,dur:.2,pal:P,gain:.35,light:0,dust:0,haze:.3,th:.5}); Cn.zoom(1.3+j*.025); }));
   after(t1+.6,()=>{ pl.target='sheath'; pl.ps=14; SFX.click(); Cn.SND.tick(.6,.3); K.flare(x0-f0*30,y0,BODY*.62,{pal:P,s:46,sx:6,sy:.3,dur:.22,gain:6}); });
-  // ---- climax: every seam tears open, nearest first, into a wall of fire; the floor under him gives way
-  after(t1+.86,()=>{ hitstop=Math.max(hitstop,.11); Cn.shake(1.5); post.ca=.014; Cn.zoom(.84); Cn.roll(0); Cn.cam(null); const m=cuts[0]; cutScreen(m.cx,m.cy-BODY*.5,m.a,.012,.14);
-    GFX.ambient(.46,.28,.34,40); after(.16,()=>GFX.ambient(.36,.27,.36,3)); sig.a=1.6;
-    const ord=cuts.map(c=>[c,Math.hypot(c.cx-x0,c.cy-y0)]).sort((a,b)=>a[1]-b[1]);
-    ord.forEach(([c],j)=>{ after(j*.032,()=>{ if(c.seam) c.seam.end(); const dx=Math.cos(c.a), dy=Math.sin(c.a), n=7, pts=[], big=j===0;
-        for(let q=0;q<n;q++){ const u=q/(n-1); pts.push({x:mix(c.x1,c.x2,.08+u*.84),y:mix(c.y1,c.y2,.08+u*.84),h:(big?1500:rand(700,1100))*(.45+.55*Math.sin(Math.PI*u))}); }
-        K.wall(pts,{pal:P,dur:big?1.5:rand(.95,1.25),gain:big?1.15:.9});
-        K.gash(c.x1+dx*L*.1,c.y1+dy*L*.1,c.x2-dx*L*.1,c.y2-dy*L*.1,{pal:P,life:5.5,w:big?190:130,gain:1.15,grow:.05});
-        GFX.light(c.cx,c.cy,L*.4,'#ff2440',.7,.9,{z:200}); K.sparks(c.cx,c.cy,60,{pal:P,n:14,sp:[500,1800],up:1500,life:[.3,.8]}); if(j<4) K.debris(c.cx,c.cy,{n:6,r:200,sp:[200,800],up:1400}); Cn.SND.shing(.7+j*.05,.3); }); });
-    K.crack(x0,y0,{r:hw*.95,pal:P,life:5.5,grow:.14,gain:1.2}); K.shock(x0,y0,{r:hw*1.7,dur:.6,pal:P,gain:1.2}); K.shock(x0,y0,{r:hw*2.3,dur:.85,pal:P,gain:.7,delay:.1,light:0});
-    GFX.ripple(x0,y0,hw*2,{life:.6,s:.9}); K.dome(x0,y0,{r:hw*.9,dur:.45,pal:P,gain:.8}); K.debris(x0,y0,{n:22,r:160,sp:[300,1200],up:1700,size:22}); K.dust(x0,y0,{n:20,r:120,sp:[500,1400],a:.5});
-    for(const e of onScreen(300)) if(e.cut){ e.flash=1; K.sparks(e.x,e.y,e.h*.5,{pal:P,n:4,sp:[300,1100],up:900}); }
+  // ---- climax: the seams tear open nearest first, each into a wall of fire that throws what it cut into the air
+  const tc=t1+.86, ord=cuts.map(c=>[c,Math.hypot(c.cx-x0,c.cy-y0)]).sort((a,b)=>a[1]-b[1]), step=.055;
+  after(tc,()=>{ hitstop=Math.max(hitstop,.07); Cn.shake(1.1); post.ca=.005; Cn.zoom(.86); Cn.roll(-.03); Cn.cam(null); GFX.ambient(.5,.36,.44,30); sig.a=1.5; sig2.a=1; SFX.shatter(.8); });
+  ord.forEach(([c],j)=>{ after(tc+j*step,()=>{ if(c.seam) c.seam.end(); const dx=Math.cos(c.a), dy=Math.sin(c.a), n=7, pts=[], big=j===0, nx=-dy, ny=dx;
+      for(let q=0;q<n;q++){ const u=q/(n-1); pts.push({x:mix(c.x1,c.x2,.04+u*.92),y:mix(c.y1,c.y2,.04+u*.92),h:(big?1700:rand(1000,1400))*(.4+.6*Math.sin(Math.PI*u))}); }
+      K.wall(pts,{pal:P,dur:big?2:rand(1.5,1.85),gain:big?1.1:.9,rise:.16,ord:c.cy});
+      K.gash(c.x1,c.y1,c.x2,c.y2,{pal:P,life:6,w:big?200:150,gain:1.15,grow:.07});
+      // light spills to one side of the wall, so the floor shows which way it faces
+      GFX.light(c.cx+nx*160,c.cy+ny*160*FSY+60,L*.42,'#ff2440',.75,1,{z:160});
+      K.sparks(c.cx,c.cy,60,{pal:P,n:16,sp:[500,1800],up:1700,life:[.3,.9]}); K.debris(c.cx,c.cy,{n:big?10:6,r:L*.3,sp:[200,800],up:1500,size0:8,size:26});
+      K.dust(c.cx,c.cy,{n:6,r:L*.2,sp:[200,600],a:.4});
+      // what stood on the line is thrown clear of it
+      inLine(c.x1,c.y1,c.x2,c.y2,90,e=>{ const sd=((e.x-c.cx)*nx+(e.y-c.cy)*ny)>=0?1:-1; e.flash=1; e.stun=Math.max(e.stun,1.2); if(!e.d.heavy){ e.vz=Math.max(e.vz,rand(700,1150)); e.kx+=nx*sd*rand(260,520); e.ky+=ny*sd*rand(160,320); } K.sparks(e.x,e.y,e.h*.5,{pal:P,n:4,sp:[300,1100],up:900}); });
+      Cn.SND.shing(.7+j*.05,.4); SFX.boom(.9+j*.04,.5); Cn.shake(.5+j*.06); Cn.roll((j%2?1:-1)*.03); }); });
+  // the last beat: the circle itself bursts and the floor under him gives way
+  const tf=tc+N*step+.04;
+  after(tf,()=>{ hitstop=Math.max(hitstop,.11); Cn.shake(1.5); post.ca=.006; Cn.zoom(.82); Cn.roll(0);
+    sig.dead=true; sig2.dead=true; K.art(x0,y0,{tex:'v3_xburst',s:hw*.8,floor:true,dur:.4,pal:P,gain:.7,hold:.2,s0:.5}); K.art(x0,y0,{tex:'v3_circ_blade',s:hw*.78,floor:true,dur:.55,pal:P,gain:.6,hold:.05,s0:.8});
+    K.crack(x0,y0,{r:hw*1.1,pal:P,life:6,grow:.14,gain:1.2}); K.shock(x0,y0,{r:hw*1.8,dur:.6,pal:P,gain:1.1}); K.shock(x0,y0,{r:hw*2.4,dur:.9,pal:P,gain:.6,delay:.1,light:0});
+    GFX.ripple(x0,y0,hw*2,{life:.6,s:.9}); K.dome(x0,y0,{r:hw*.95,dur:.45,pal:P,gain:.7}); K.debris(x0,y0,{n:26,r:200,sp:[300,1300],up:1900,size0:9,size:28}); K.dust(x0,y0,{n:22,r:120,sp:[500,1400],a:.5});
+    GFX.light(x0,y0,hw*2,'#ff5a6a',1,.6,{z:200}); GFX.ambient(.4,.3,.4,3);
     Cn.sweep(x0,y0,D*1.5,{speed:4200,max:.45}); post.grayT=0; SFX.shatter(1); Cn.SND.hit(1); SFX.boom(1.6,1);
-    K.petals(x0,y0-hh*.2,hw*1.1,{pal:P,n:70,z0:300,z1:1500,life:3}); });
-  // ---- afterglow: petals of light come down through the returning colour; the wounds in the floor cool
-  after(t1+1.5,()=>{ K.petals(x0,y0,hw*1.1,{pal:P,n:50,z0:500,z1:1300,life:2.6}); K.embers(x0,y0,hw*.9,{pal:P,n:40,life:2.2}); GFX.ambient(.8,.72,.78,1.6); Cn.zoom(.95); });
-  after(t1+2.15,()=>{ GFX.ambient(1,1,1,2); Cn.zoom(1); sig.a=.6; });
-  after(t1+2.55,()=>{ sig.dead=true; ultStop(); }); }
+    K.petals(x0,y0-hh*.2,hw*1.2,{pal:P,n:90,z0:300,z1:1600,life:3.2,s:1.25}); });
+  // ---- afterglow: smoke stands where the walls were, petals of light come down, the wounds in the floor cool
+  after(tf+.35,()=>{ ord.slice(0,5).forEach(([c],j)=>K.smoke(c.cx,c.cy,{s:rand(240,340),dur:rand(1.6,2.2),delay:j*.07,c:'#1c0a12',c2:'#5a2030',a:.6,rise:300})); });
+  after(tf+.6,()=>{ K.petals(x0,y0,hw*1.2,{pal:P,n:70,z0:500,z1:1400,life:2.8,s:1.25}); K.embers(x0,y0,hw*.95,{pal:P,n:46,life:2.4,s:1.3}); GFX.ambient(.72,.64,.72,1.1); Cn.zoom(.94); });
+  after(tf+1.45,()=>{ GFX.ambient(1,1,1,1.3); Cn.zoom(1); });
+  after(tf+1.9,()=>ultStop()); }
 
 // SWORD RAIN: a blade raised to a sky that answers - rings of falling swords walk outward from him, stay standing in the earth, and the last one is the size of a tower.
 function ultRain(id){ ultStart(id); const Cn=X.cine, D=9000*A.mul(id), x0=pl.x, y0=pl.gy, {hw,hh}=view(), R=hw*.92, stuck=[], sw=spr('sword');

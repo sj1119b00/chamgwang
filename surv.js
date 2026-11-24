@@ -98,7 +98,7 @@ function heal(k){ const h=Math.round(A.maxHp()*k); G.hp=Math.min(A.maxHp(),G.hp+
 // ============================================================ ultimates: shared beats (each class stages its own in sk_<class>.js)
 const tdV=(n,x,y,o)=>VFX[n]&&VFX[n].f[0].ok?vfx(n,x,y,o):null;
 function onScreen(m=0){ const {hw,hh}=view(); return V.en.filter(e=>!e.dead&&Math.abs(e.x-cam.x)<hw+m&&Math.abs(e.y-BODY*.5-cam.y)<hh+m); }
-function ultStart(id){ lock=true; V.ug=0; anim.seq=null; V.dash=null; pl.air=pl.airT=0;   /* the stick stays held through the ultimate: he moves again the moment it ends */ ov.lbT=0; V.ultId=id; V.nums.length=0; if(G.sv.cine) G.sv.cine.begin(); }
+function ultStart(id){ lock=true; V.ug=0; anim.seq=null; V.dash=null; pl.air=pl.airT=0; for(const o of V.orbs.splice(0)) if(o.fx) o.fx.life=0;   /* the stick stays held through the ultimate: he moves again the moment it ends */ ov.lbT=0; V.ultId=id; V.nums.length=0; if(G.sv.cine) G.sv.cine.begin(); }
 const stamp1=stamp; stamp=function(t,o={}){ if(G.mode==='surv'&&lock&&!o.keep) return null; return stamp1(t,o); };
 function ultStop(){ if(G.sv.cine) G.sv.cine.end(); if(V.ultSum){ V.nums.push({x:pl.x,y:pl.gy-BODY*3.1,t:-.4,txt:fmtN(V.ultSum),big:true}); V.ultSum=0; } lock=false; ov.lbT=0; ov.dimT=0; post.grayT=0; V.zk=1; V.ultTick=null; V.cuts=[]; V.shadow=null; V.ultDraw=null; G.inv=.8; pl.visible=true; pl.target=IDLE(); pl.ps=12; pl.air=pl.airT=0; anim.seq=null; }
 function ultHit(e,D,sx,sy){ dmg(e,e.d.boss?D*2:Math.max(D,e.hp*1.05),{crit:true,kb:1.8,big:true,launch:700,sx,sy}); }
@@ -310,9 +310,14 @@ function eFrame(e){ const F=A.EFR[e.d.img]; if(!F) return null; let a='walk', i=
   if(F.hurt&&(e.z>0||e.stun>0||e.hurtT>0)){ a='hurt'; const n=F.hurt.length; i=e.z>0?2:Math.min(n-1,Math.floor((1-Math.max(0,e.hurtT)/.3)*n)); }
   else if(F.attack&&e.castT>0){ a='attack'; const dur=e.d.boss?.9:.55; i=clamp(Math.floor((1-e.castT/dur)*F.attack.length),0,F.attack.length-1); }
   else { const n=F.walk.length-1, k=Math.floor(e.walkT/(e.d.heavy?.14:.1))%n; i=1+k; }
-  const L=F[a], s=L&&spr(`enemy_${e.d.img}_${a}${A.fr2(i+1)}`); return s?{s,d:L[i]}:null; }
+  const L=F[a], s=L&&spr(`enemy_${e.d.img}_${a}${A.fr2(i+1)}`); if(s) return {s,d:L[i]};
+  // a frame that has not arrived yet: stand in with the walk frame instead of a blob
+  const w=a!=='walk'&&spr(`enemy_${e.d.img}_walk02`); return w?{s:w,d:F.walk[1]}:null; }
 function drawE(e){ const D=e.d, sc=D.sc, x=e.x, y=e.y, fr=eFrame(e), ac=CH().acc;
   ctx.fillStyle='rgba(0,0,0,.55)'; ctx.beginPath(); ctx.ellipse(x,y+2,D.r*1.55*(1-Math.min(.5,e.z/600)),D.r*.55,0,0,TAU); ctx.fill();
+  // the strongest effect light throws his shadow away from it
+  if(V.kl){ const L=V.kl, dx=x-L.x, dy=(y-L.y)/FSY, d=Math.hypot(dx,dy)||1, f=Math.max(0,1-d/(L.r*1.5)); if(f>.05&&d>40){ const k=L.s*f, len=D.r*(1.2+3.2*k), ux=dx/d, uy=dy/d*FSY, ul=Math.hypot(ux,uy)||1;
+      ctx.fillStyle=`rgba(0,0,0,${Math.min(.5,.55*k)})`; ctx.beginPath(); ctx.ellipse(x+ux/ul*len*.85,y+2+uy/ul*len*.85,len,D.r*.5,Math.atan2(uy,ux),0,TAU); ctx.fill(); } }
   if(fr){ const [fw,fh,fa]=fr.d; ctx.save(); ctx.translate(x,y-e.z+4); ctx.scale(e.f*sc*e.sv,sc*e.sv); if(e.z>0) ctx.rotate(-.3); ctx.drawImage(tinted(fr.s,D.img==='brute'?55:0),-fa*fw,-fh,fw,fh); ctx.restore(); }
   else { ctx.fillStyle='#3d1458'; ctx.beginPath(); ctx.ellipse(x,y-e.h*.5-e.z,D.r,e.h*.5,0,0,TAU); ctx.fill(); }
   if(e.flash>0) glow(fx,x,y-e.h*.5-e.z,e.h*.45,'#ffffff',e.flash*.55);
@@ -351,6 +356,7 @@ drawEnemy=function(){ if(G.mode!=='surv') return drawEnemy1();
   for(const q of V.dying){ const [fw,fh,fa]=q.fr.d, D=q.e.d, k=q.t/q.life, t=q.t, fly=q.vx!=null; ctx.save(); ctx.globalAlpha=fly?Math.min(1,(1-k)*2.5):1-k; if(fly){ ctx.translate(q.e.x+q.vx*t,q.e.y+q.vy*t-(q.vz*t-1400*t*t)-fh*D.sc*.5); ctx.rotate(q.spin*t); ctx.translate(0,fh*D.sc*.5); } else ctx.translate(q.e.x,q.e.y-q.e.z+4-k*40); ctx.scale(q.e.f*D.sc*(1+k*.25),D.sc*(1+k*.25)); ctx.drawImage(tinted(q.fr.s,D.img==='brute'?55:0),-fa*fw,-fh,fw,fh); ctx.restore();
     if(!lock) glow(fx,q.e.x,q.e.y-D.h*D.sc*.5,D.h*D.sc*.4,'#ffffff',(1-k)*.25); }
   ctx.globalAlpha=1;
+  V.kl=null; if(window.GFX&&GFX.lights.length){ let b=.3; for(const l of GFX.lights){ const k=l.t<l.hold?1:Math.max(0,1-(l.t-l.hold)/l.life), v=Math.min(1.2,l.a*k*k); if(v>b&&l.r>300){ b=v; V.kl={x:l.x,y:l.y,r:l.r,s:v}; } } }
   V.sorted=V.en.filter(e=>!e.dead).sort((a,b)=>a.y-b.y);
   for(const e of V.sorted) if(e.y<=(pl.gy??pl.y)) drawE(e);
 };
