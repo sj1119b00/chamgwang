@@ -45,7 +45,7 @@ function countIn(R){ let n=0; for(const e of V.en) if(!e.dead&&(e.x-pl.x)**2+((e
 function densest(R,r=260){ let b=null,bn=0; const L=V.en.filter(e=>!e.dead&&(e.x-pl.x)**2+((e.y-pl.gy)/FSY)**2<R*R);
   for(let i=0;i<L.length;i+=Math.max(1,L.length/40|0)){ const e=L[i]; let n=0; for(const o of L) if((o.x-e.x)**2+(o.y-e.y)**2<r*r) n++; if(n>bn){ bn=n; b=e; } } return b; }
 const angTo=e=>Math.atan2(e.y-pl.gy,e.x-pl.x);
-function face(a){ const c=Math.cos(a); if(Math.abs(c)>.05) pl.f=c>0?1:-1; }
+function face(a){ const c=Math.cos(a); if(Math.abs(c)>.05) pl.f=c>0?1:-1; V.leanT=clamp(Math.atan2(Math.sin(a),Math.abs(c)),-1.2,1.2)*.3*pl.f; V.leanHold=.28; }
 function inCircle(x,y,r,fn){ for(const e of V.en){ if(e.dead) continue; const dx=e.x-x, dy=(e.y-y)/FSY, rr=r+e.d.r; if(dx*dx+dy*dy<rr*rr) fn(e); } }
 function inCircleS(x,y,r,fn){ for(const e of V.en){ if(e.dead) continue; const dx=e.x-x, dy=e.y-y, rr=r+e.d.r; if(dx*dx+dy*dy<rr*rr) fn(e); } }
 function inSector(x,y,a,r,half,fn){ inCircleS(x,y,r,e=>{ const dx=e.x-x, dy=e.y-y, l=Math.hypot(dx,dy); let d=Math.atan2(dy,dx)-a; d=Math.atan2(Math.sin(d),Math.cos(d)); if(l<e.d.r+40||Math.abs(d)<half+e.d.r/Math.max(l,1)) fn(e); }); }
@@ -148,7 +148,8 @@ function pre(rdt){
     pl.x=x; pl.gy=y; for(const p of [...pl.scarf,...pl.coat]){ p.x+=dx; p.y+=dy; if(p.px!=null){ p.px+=dx; p.py+=dy; } } if(k>=1) V.dash=null; }
   else if(moving){ pl.x+=mx*SPD*dt; pl.gy+=my*SPD*.86*dt; if(!anim.seq&&Math.abs(mx)>.1){ const f=mx>0?1:-1; if(f!==pl.f){ pl.f=f; anim.bv-=1.4; anim.cv+=1.6; } } /* turning throws the trunk and the cloth */
     V.stepT=(V.stepT||0)+rdt*Math.hypot(mx,my); if(V.stepT>.3){ V.stepT=0; smoke(pl.x-mx*24,pl.gy+2,rand(12,18),{vx:-mx*70,vy:-my*40-10,a:.28,life:.45,grow:24}); } }
-  if(V.wasMv&&!moving&&!anim.seq) anim.bv+=1.1; V.wasMv=!!moving; /* stopping: the weight catches up */
+  if(V.wasMv&&!moving&&!anim.seq) anim.bv+=1.1; V.wasMv=!!moving;
+  V.leanHold=(V.leanHold||0)-rdt; if(V.leanHold<=0) V.leanT=moving?my*.12*pl.f:0; V.lean=lerp(V.lean||0,V.leanT||0,1-Math.exp(-rdt*16)); /* stopping: the weight catches up */
   if(V.boss&&!V.boss.dead){ /* the boss is a wall, not a ghost */ const b=V.boss, dx=pl.x-b.x, dy=pl.gy-b.y, l=Math.hypot(dx,dy)||1, m=b.d.r+50; if(l<m){ pl.x=b.x+dx/l*m; pl.gy=b.y+dy/l*m; } }
   if(!(anim.seq&&anim.seq.steps.some(s=>s[2]&&s[2].air))) pl.airT=0;   // only a leap holds him in the air
   G.jz=0; G.pose=A.locoPose(rdt*(.5+.62*Math.hypot(mx,my)),moving&&!anim.seq);   // painted run cycle (falls back to the idle loop where a class has none)
@@ -251,6 +252,7 @@ function spike(m){ fring(m.x,m.y,800,'#c06bff',.35,6); gl0(m.x,m.y-80,160,'#b06b
 
 // whole-screen flashes are capped so an ultimate never washes the field to white
 function post_cap(){ post.flash=Math.min(post.flash,G.sv.cine?G.sv.cine.flashCap:.22); ov.dimT=Math.min(ov.dimT,.3); }
+const dps1=drawPlSpr; drawPlSpr=function(g,mul){ if(G.mode!=='surv'||lock||Math.abs(V.lean||0)<.004) return dps1(g,mul); const s=plFrame(), b=plSprBox(s); g.save(); g.translate(b.cx,b.base-b.h*.35); g.rotate(V.lean); g.translate(-b.cx,-(b.base-b.h*.35)); dps1(g,mul); g.restore(); };
 const dp1=drawParts; drawParts=function(L){ dp1(L); if(L===2&&G.mode==='surv'&&pl.visible&&plSprites()){ fx.save(); fx.globalCompositeOperation='destination-out'; drawPlSpr(fx,.9); fx.restore(); fx.globalCompositeOperation='lighter'; } };
 const upd1=update;
 update=function(rdt){ if(G.mode!=='surv') return upd1(rdt); if(G.paused) return;

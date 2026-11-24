@@ -137,7 +137,7 @@ function ultDragon(id){ ultStart(id); ov.lbT=0; const Cn=X.cine, K=GFX, {hw,hh}=
   const hd=spr('dragon_head'), RR=Math.min(hw,hh)*.7, c=K.rgb(FLM);
   S([['gy01',.12],['gy02',.2],['gy03',.4,{kick:[-.8,.6]}],['gy04',1.1],['gy05',.1],['gy06',.1],['gy07',.12,{kick:[-1.4,1]}],['gy08',.8],['gy09',.8],['gy10',.8],['gy11',.12,{kick:[1.8,-1.4]}],['gy12',.6],['gy13',.7],['gy14',9]]);
   K.ambient(.42,.32,.34,3); Cn.zoom(1.28); Cn.cam(x0,y0-BODY,5); SFX.fire(5,.6); const dr=Cn.drone(41,.4); SFX.rumble(1.7); duck(.3,.6);
-  Cn.gCircle('fx_circle_seal',x0,y0,{c:FLM,r:30,life:2.6,tick:(s,t)=>{ s.r=lerp(30,360,easeOut(Math.min(1,t))); s.rot=-t*.8; s.a=t>2.2?Math.max(0,1-(t-2.2)/.4):.9; }});
+  Cn.gCircle('fx2_circ_pyro',x0,y0,{c:FLM,r:30,life:2.6,tick:(s,t)=>{ s.r=lerp(30,360,easeOut(Math.min(1,t))); s.rot=-t*.8; s.a=t>2.2?Math.max(0,1-(t-2.2)/.4):.9; }});
   Cn.gCrack(x0,y0,380,FLM,{c2:FD,c3:FH,life:2.2,n:10,w:.12}); K.add(1.85,k=>{ if(Math.random()<.5) Cn.gFire(x0+rand(-240,240),y0+rand(-90,90),4,rand(40,80),{n:2,life:.5,smoke:false}); Cn.shake(.08+k*.12); });
   Cn.gather(x0,y0-BODY*.4,{c:FLM,dur:.9,r:860,n:24,cs:[FLM,'#ffd28a','#ff3a10'],rings:0,streaks:0});
   // the dragon: a head and the path it has flown; the body is drawn along that path, thinning to the tail

@@ -94,6 +94,7 @@ function ultBeam(id){ ultStart(id); ov.lbT=0; const Cn=X.cine, K=GFX, {hw,hh}=vi
   const S0=[['gx01',.1],['gx02',.14],['gx03',.2],['gx04',1.35,{kick:[-.8,.6]}],['gx08',.1,{kick:[2.2,-1.8]}]]; for(let i=0;i<9;i++) S0.push(['gx'+String(9+i%4).padStart(2,'0'),.3]); S0.push(['gx13',.6],['gx14',9]); S(S0);
   K.ambient(.4,.46,.6,3); Cn.zoom(1.55); Cn.cam(x0,hy,5); Cn.roll(.03); const dr=Cn.drone(52,.4); SFX.rumble(1.7); duck(.3,.6);
   // omen: three rings of air close on him, each harder than the last; the floor gives
+  Cn.gCircle('fx2_circ_fist',x0,y0,{c:KI,r:60,life:1.9,tick:(s,t)=>{ s.r=lerp(hw*.9,260,easeOut(Math.min(1,t/1.7))); s.rot=t*t*2.2; s.a=Math.min(1,t/.3)*(t>1.7?Math.max(0,1-(t-1.7)/.2):1)*.9; }});
   const drop=Cn.gLevitate(x0,y0,620,30,{dur:1.2,life:6,size:26});
   for(let i=0;i<3;i++){ Cn.gRing(x0,y0,hw*(1.3-i*.2),KI,{c2:KD,inward:true,life:.5,delay:.15+i*.5,w:.05+i*.03,jag:.05}); after(.6+i*.5,()=>{ Cn.gCrack(x0,y0,220+i*130,KI,{c2:KD,life:1.4,n:8+i*2,w:.13}); Cn.shake(.25+i*.15); sfx('boom',.6+i*.2,.4); Cn.gDebris(x0,y0,4,{s0:100,s1:400,vz:900,r:150}); }); }
   Cn.gather(x0+pl.f*46,hy,{c:KI,dur:1.6,r:820,n:50,cs:[KI,'#ffffff','#bff4ff'],rings:0,streaks:0});
@@ -146,6 +147,7 @@ function ultSun(id){ ultStart(id); ov.lbT=0; const Cn=X.cine, K=GFX, {hw,hh}=vie
     if(fly) Cn.gPuff(sun.x,sun.y,sun.z,r*.7,{c:SUN,c2:'#7a1c00',c3:'#fffbe0',add:true,vz:200,life:.4,a:.8,L:2}); });
   // everything on the field throws a long shadow away from it (2D floor layer)
   V.ultDraw=()=>{ if(!sun.on) return; const L=V.sorted||[]; ctx.fillStyle='rgba(0,0,0,.5)'; let n=0; for(const e of L){ if(n++>90) break; const dx=e.x-sun.x, dy=e.y-sun.y, l=Math.hypot(dx,dy)||1, len=Math.min(460,90+l*.3)*Math.min(1,sun.r/200); ctx.save(); ctx.translate(e.x,e.y); ctx.rotate(Math.atan2(dy,dx)); ctx.beginPath(); ctx.ellipse(len*.5,0,len*.5,e.d.r*.5,0,0,TAU); ctx.fill(); ctx.restore(); } };
+  Cn.gCircle('fx2_circ_fist',x0,y0,{c:SUN,r:60,life:2.4,tick:(s,t)=>{ s.r=lerp(200,hw*.75,easeOut(Math.min(1,t/1.6))); s.rot=-t*1.6; s.a=Math.min(1,t/.3)*(t>2?Math.max(0,1-(t-2)/.4):1)*.8; }});
   Cn.gather(x0,y0-SZ,{c:SUN,dur:1.6,r:1000,n:50,cs:[SUN,'#ff8a1a','#ffffff'],fy:y0,rings:0,streaks:0});
   for(let i=0;i<4;i++) after(.3+i*.4,()=>{ Cn.gRing(x0,y0,hw*1.2,SUN,{c2:'#7a1c00',inward:true,life:.45,w:.05,jag:.05,a:.7}); });
   // release: he goes up to it

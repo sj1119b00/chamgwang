@@ -175,8 +175,8 @@ function ultRain(id){ ultStart(id); ov.lbT=0; const Cn=X.cine, K=GFX, D=9000*A.m
   // ---- omen (0 - 1.3): dusk falls, the circle under him spreads, its twin opens far above the field
   plSeq([['gs03',.1],['gs04',.18],['gs05',9]]); pl.target='cast'; pl.ps=10;
   K.ambient(.46,.44,.62,3); Cn.zoom(1.4); Cn.cam(x0,y0-BODY*1.2,4.5); duck(.3,.6);
-  const c1=Cn.gCircle('fx_circle_arcane',x0,y0,{c:GOLD,r:40,life:7,tick:(s,t)=>{ s.r=lerp(40,R,easeOut(Math.min(1,t/1.3))); s.rot=t*.5; s.a=t>4.6?Math.max(0,1-(t-4.6)/.6):1; }});
-  const c2=Cn.gCircle('fx_circle_arcane',x0,y0,{c:SKY,r:40,z:ZS,life:7,L:4,delay:.35,tick:(s,t)=>{ s.r=lerp(100,R*1.7,easeOut(Math.min(1,t/1.2))); s.rot=-t*.3; s.a=(t>4.1?Math.max(0,1-(t-4.1)/.5):Math.min(1,t/.5))*.5; }});
+  const c1=Cn.gCircle('fx2_circ_sword',x0,y0,{c:GOLD,r:40,life:7,tick:(s,t)=>{ s.r=lerp(40,R,easeOut(Math.min(1,t/1.3))); s.rot=t*.5; s.a=t>4.6?Math.max(0,1-(t-4.6)/.6):1; }});
+  const c2=Cn.gCircle('fx2_circ_sword',x0,y0,{c:SKY,r:40,z:ZS,life:7,L:4,delay:.35,tick:(s,t)=>{ s.r=lerp(100,R*1.7,easeOut(Math.min(1,t/1.2))); s.rot=-t*.3; s.a=(t>4.1?Math.max(0,1-(t-4.1)/.5):Math.min(1,t/.5))*.5; }});
   Cn.gather(x0,y0-BODY*2,{c:GOLD,dur:.9,r:900,n:30,fy:y0,rings:0,streaks:0}); Cn.SND.inhale(1.1,.4); SFX.choir(3);
   const drop=Cn.gLevitate(x0,y0,700,20,{dur:.9,life:6,c:'#6d6470'});
   // the column from the raised blade to the circle overhead

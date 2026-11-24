@@ -94,8 +94,8 @@ function ultThunder(id){ ultStart(id); ov.lbT=0; const Cn=X.cine, K=GFX, x0=pl.x
   K.ambient(.36,.38,.6,3); Cn.zoom(1.35); Cn.cam(x0,y0-BODY*1.2,5); SFX.thunder(.35); Cn.drone(46,.3); duck(.3,.6);
   // the ceiling: slabs of cloud sliding in over the camera, and the ring of light in them
   for(let i=0;i<8;i++){ const a=i/8*TAU, r=rand(1.15,1.6)*hw; X.cine.gArt('fx2_cloud',x0+Math.cos(a)*r*2.2,y0+Math.sin(a)*r*1.5,'#2e2658',{c2:'#090618',c3:'#5d4fa6',z:ZC+rand(-200,300),w:rand(700,1000),h:rand(260,360),life:5.2,hold:.86,boil:.006,fps:6,a:.5,L:4,delay:rand(0,.7),flipX:i%2===0,at:(k,t)=>[x0+Math.cos(a)*r*(2.2-.6*Math.min(1,t/1.6)),y0+Math.sin(a)*r*(1.5-.4*Math.min(1,t/1.6)),ZC+(i%3)*160]}); }
-  Cn.gCircle('fx_circle_arcane',x0,y0,{c:VIO,r:50,life:4.6,tick:(s,t)=>{ s.r=lerp(50,hw*.55,easeOut(Math.min(1,t/1.2))); s.rot=-t*.5; s.a=t>3.9?Math.max(0,1-(t-3.9)/.6):.9; }});
-  Cn.gCircle('fx_circle_arcane',x0,y0,{c:ICE,r:100,z:ZC,L:4,life:5.2,delay:.3,tick:(s,t)=>{ s.r=lerp(200,hw*1.9,easeOut(Math.min(1,t/1.3))); s.rot=t*.25; s.a=(t>4.5?Math.max(0,1-(t-4.5)/.6):Math.min(1,t/.5))*.55; }});
+  Cn.gCircle('fx2_circ_mage',x0,y0,{c:VIO,r:50,life:4.6,tick:(s,t)=>{ s.r=lerp(50,hw*.55,easeOut(Math.min(1,t/1.2))); s.rot=-t*.5; s.a=t>3.9?Math.max(0,1-(t-3.9)/.6):.9; }});
+  Cn.gCircle('fx2_circ_mage',x0,y0,{c:ICE,r:100,z:ZC,L:4,life:5.2,delay:.3,tick:(s,t)=>{ s.r=lerp(200,hw*1.9,easeOut(Math.min(1,t/1.3))); s.rot=t*.25; s.a=(t>4.5?Math.max(0,1-(t-4.5)/.6):Math.min(1,t/.5))*.55; }});
   Cn.gather(x0,y0-BODY*2,{c:VIO,dur:.9,r:900,n:30,cs:[VIO,'#ffffff',C2],fy:y0,rings:0,streaks:0});
   // heat lightning in the ceiling: the whole field is lit for a frame
   let fl=RT+.5; K.add(4.2,()=>{ if(RT>=fl){ fl=RT+rand(.3,.75); const x=x0+rand(-hw,hw), y=y0+rand(-hh,hh)*.6; K.light(x,y,2600,'#b9a8ff',.5,.18,{z:ZC}); Cn.gBolt(x,y,ZC,x+rand(-700,700),y+rand(-200,200),ZC-rand(0,200),ICE,{c2:'#1c0a5a',w:14,life:.14,forks:1,L:4}); } });
@@ -136,7 +136,7 @@ function ultMeteor(id){ ultStart(id); ov.lbT=0; const Cn=X.cine, K=GFX, {hw,hh}=
   const ms=spr('meteor'), TE=Cn.tone(EMB,{c2:'#6a1000',c3:'#fff2b0'}), HOT='#ffd08a';
   S([['gy03',.14],['gy05',.5],['gy06',1.5],['gy07',1.2],['gy09',.14,{kick:[1.2,-1]}],['gy10',.6],['gy13',.9],['gy14',9]]);
   K.ambient(.5,.4,.42,3); Cn.zoom(1.3); Cn.cam(x0,y0-BODY*1.4,5); SFX.rumble(1.6); Cn.drone(40,.3); duck(.3,.6);
-  Cn.gCircle('fx_circle_arcane',cx,cy,{c:EMB,r:30,life:3.5,tick:(s,t)=>{ s.r=lerp(30,640,easeOut(Math.min(1,t/1.3))); s.rot=t*1.1; s.a=t>3?Math.max(0,1-(t-3)/.4):.85; }});
+  Cn.gCircle('fx2_circ_mage',cx,cy,{c:EMB,r:30,life:3.5,tick:(s,t)=>{ s.r=lerp(30,640,easeOut(Math.min(1,t/1.3))); s.rot=t*1.1; s.a=t>3?Math.max(0,1-(t-3)/.4):.85; }});
   Cn.gather(x0,y0-BODY*2,{c:EMB,dur:.9,r:900,n:30,cs:[EMB,HOT,'#ffffff'],fy:y0,rings:0,streaks:0});
   const drop=Cn.gLevitate(cx,cy,820,24,{dur:1.6,life:5,c:'#6a5a58'});
   // a small one: comes in on the same slant as the big one will

@@ -87,7 +87,7 @@ function ultStones(id){ ultStart(id); ov.lbT=0; const Cn=X.cine, K=GFX, {hw,hh}=
   const TJ=Cn.tone(JADE,{c2:JD,c3:JW});
   S([['gx04',.12,{kick:[-.8,.6]}],['gx07',1.6],['gx11',.12,{kick:[-1,.8]}],['gx12',.1,{kick:[2,-1.6]}],['gx13',2.6],['gx14',9]]);
   K.ambient(.4,.5,.48,3); Cn.zoom(1.3); Cn.cam(x0,y0-BODY,5); SFX.bell(); Cn.SND.gong(.8); SFX.rumble(1.7); duck(.3,.6);
-  Cn.gCircle('fx_circle_seal',x0,y0,{c:JADE,r:40,life:6,tick:(s,t)=>{ s.r=lerp(40,R,easeOut(Math.min(1,t/1.5))); s.rot=t*.3; s.a=t>4.6?Math.max(0,1-(t-4.6)/.6):t>1.9?.6:.95; }});
+  Cn.gCircle('fx2_circ_shaman',x0,y0,{c:JADE,r:40,life:6,tick:(s,t)=>{ s.r=lerp(40,R,easeOut(Math.min(1,t/1.5))); s.rot=t*.3; s.a=t>4.6?Math.max(0,1-(t-4.6)/.6):t>1.9?.6:.95; }});
   for(let i=0;i<8;i++) add({k:'talis',mode:'orbit',cx:x0,cy:y0-BODY*1.1,r:230,a:i/8*TAU,w:3.2,rot:0,x:x0,y:y0,life:1.75});
   const drop=Cn.gLevitate(x0,y0,hw*.9,34,{dur:1.4,life:5,c:'#56645c'});
   Cn.gather(x0,y0-BODY*1.1,{c:JADE,dur:.9,r:900,n:30,cs:[JADE,C2,'#ffffff'],fy:y0,rings:0,streaks:0});
@@ -125,7 +125,7 @@ function ultKing(id){ ultStart(id); ov.lbT=0; const Cn=X.cine, K=GFX, {hw,hh}=vi
   const TJ=Cn.tone(JADE,{c2:JD,c3:JW});
   S([['gx04',.14,{kick:[-.8,.6]}],['gx07',1.75],['gx11',.12,{kick:[-1,.8]}],['gx12',.1,{kick:[2,-1.6]}],['gx13',3.6],['gx14',9]]);   /* the old prayer frames have a small spirit painted into them; the king is its own drawing now */
   K.ambient(.3,.4,.4,3); Cn.zoom(1.28); Cn.cam(x0,y0-BODY*2.4,4); SFX.choir(5.2); SFX.bell(); Cn.drone(49,.3); duck(.3,.6);
-  Cn.gCircle('fx_circle_seal',x0,y0,{c:JADE,r:40,life:6.4,tick:(s,t)=>{ s.r=lerp(40,hw*.7,easeOut(Math.min(1,t/1.5))); s.rot=-t*.25; s.a=t>5.6?Math.max(0,1-(t-5.6)/.6):.8; }});
+  Cn.gCircle('fx2_circ_shaman',x0,y0,{c:JADE,r:40,life:6.4,tick:(s,t)=>{ s.r=lerp(40,hw*.7,easeOut(Math.min(1,t/1.5))); s.rot=-t*.25; s.a=t>5.6?Math.max(0,1-(t-5.6)/.6):.8; }});
   Cn.gMotes(x0,y0,hw*.8,JADE,90,{dur:5,life:2.2,white:.3});
   // the king: burns into being out of noise, tall as the field, breathing; its eyes are the light
   let eyes=0, gone=0, t00=RT; const KH=1700, KW=KH*1.09, TKg=Cn.tone('#2fbf8a',{c2:'#06352a',c3:'#eafff6'}), stK=dv&&Cn.gst(15,'alpha',TKg,1,{t:Cn.art('fx2_deity').im,uv01:true}), stG=K.st(8,'add',{L:1});
@@ -151,7 +151,7 @@ function ultKing(id){ ultStart(id); ov.lbT=0; const Cn=X.cine, K=GFX, {hw,hh}=vi
   after(tc,()=>{ Cn.zoom(.8); Cn.cam(bx,by-BODY,6); K.ambient(.18,.26,.25,4); Cn.SND.inhale(.6,.7); eyes=1; duck(.2,.5); K.add(.6,k=>K.floor(K.st(12,'alpha',{L:0}),bx,by,300+1000*k,null,0,[0,0,0],.3+.5*k)); Cn.gRing(bx,by,1000,JW,{c2:JADE,inward:true,life:.58,w:.05,jag:.04}); });
   palm(bx,by,2500,6200,.44,tc+.16,()=>{},3);
   after(tc+.6,()=>Cn.impact(bx,by-60,{style:'paper',c:JADE,n:2,r:.18,soft:true,flash:.1,blur:.06,then:()=>{ K.ambient(.6,.72,.66,10); after(.8,()=>K.ambient(1,1,1,1.8)); for(const d of Cn.drones) d.stop(.05);
-      Cn.gCircle('fx_circle_seal',bx,by,{c:JW,r:200,life:1.6,L:0,tick:(s,t)=>{ s.r=lerp(260,hw*1.25,easeOut(Math.min(1,t/.3))); s.a=Math.max(0,1-t/1.6)*1.4; s.rot=.4; }}); for(let i=0;i<5;i++){ const a=-Math.PI/2+(i-2)*.42; Cn.gWall(bx+Math.cos(a)*200,by+Math.sin(a)*200*FSY,bx+Math.cos(a)*hw*1.25,by+Math.sin(a)*hw*1.25*FSY,rand(500,800),JADE,{c2:JD,c3:JW,life:1,rise:.08,a:.5,cell:90}); }
+      Cn.gCircle('fx2_circ_shaman',bx,by,{c:JW,r:200,life:1.6,L:0,tick:(s,t)=>{ s.r=lerp(260,hw*1.25,easeOut(Math.min(1,t/.3))); s.a=Math.max(0,1-t/1.6)*1.4; s.rot=.4; }}); for(let i=0;i<5;i++){ const a=-Math.PI/2+(i-2)*.42; Cn.gWall(bx+Math.cos(a)*200,by+Math.sin(a)*200*FSY,bx+Math.cos(a)*hw*1.25,by+Math.sin(a)*hw*1.25*FSY,rand(500,800),JADE,{c2:JD,c3:JW,life:1,rise:.08,a:.5,cell:90}); }
       K.ripple(bx,by,hw*2.3,{life:.8,s:1.1}); Cn.gCrack(bx,by,hw*1.5,JADE,{c2:JD,c3:JW,life:4,n:15,w:.1}); Cn.gImpact('shaman',bx,by,hw*1.02,{c:'#3e5a50',c3:'#bfffe6',rot:0});
       Cn.gDebris(bx,by,30,{s0:400,s1:1500,vz:2200,size:32,c:'#56645c'}); Cn.gDebris(bx,by,12,{r:320,s0:100,s1:600,v0:1700,vz:3600,sz0:44,size:100,g:2600,c:'#56645c'});
       K.light(bx,by,2700,JADE,1.4,1.1); Cn.sweep(bx,by,Dm,{speed:3200,push:1.2}); Cn.shake(1.3); Cn.gMotes(bx,by,hw*1.2,JADE,90,{dur:2,life:2.4,white:.4}); }}));
