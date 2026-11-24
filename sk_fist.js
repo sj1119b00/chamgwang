@@ -121,7 +121,7 @@ function ultBeam(id){ ultStart(id); ov.lbT=0; const Cn=X.cine, K=GFX, {hw,hh}=vi
   // climax: the last of it goes out in every direction at once
   after(t0+.1+T,()=>{ wide=.5; nova=RT; Cn.SND.inhale(.3,.5); Cn.zoom(.8); });
   after(t0+.1+T+.32,()=>Cn.impact(x0,hy,{style:'fist',c:KI,n:2,r:.14,soft:true,flash:.1,blur:.06,then:()=>{ firing=false; beamFx.dead=true; beamSnd.stop(); beamSnd=NOP; K.ambient(.6,.66,.8,10); after(.5,()=>K.ambient(1,1,1,2));
-      Cn.gStar(x0,y0,HZ,760,KI,{c2:KD,c3:'#ffffff',life:.36,n:10}); for(let i=0;i<3;i++) Cn.gRing(x0,y0,hw*(1.3+i*.5),i===1?'#ffffff':KI,{c2:KD,life:.55+i*.12,w:.13-i*.03,jag:.1,delay:i*.07});
+      Cn.gStar(x0,y0,HZ,480,KI,{c2:KD,c3:'#dff8ff',life:.3,n:10}); for(let i=0;i<3;i++) Cn.gRing(x0,y0,hw*(1.3+i*.5),i===1?'#ffffff':KI,{c2:KD,life:.55+i*.12,w:.13-i*.03,jag:.1,delay:i*.07});
       K.ripple(x0,y0,hw*2.2,{life:.7,s:1}); Cn.gCrack(x0,y0,hw*1.4,KI,{c2:KD,life:3,n:20,w:.09}); Cn.scar({kind:'crater',x:x0,y:y0,r:700,c:KI,life:9,heat:3.4});
       Cn.gDebris(x0,y0,28,{s0:300,s1:1500,vz:2200,size:32}); K.light(x0,y0,2600,KI,1.3,.9); Cn.sweep(x0,y0,Dm,{speed:3600}); Cn.gMotes(x0,y0,hw,KI,60,{dur:1.5,life:2,white:.5}); }}));
   // afterglow: steam off the floor, his hands still lit

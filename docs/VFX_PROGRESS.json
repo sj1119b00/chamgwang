@@ -1,0 +1,107 @@
+{
+ "updated": "2026-11-24",
+ "representative": "sw_ult1",
+ "iteration": 9,
+ "project_complete": false,
+ "independent_review": [
+  {
+   "round": 1,
+   "scope": "sw_ult1",
+   "baseline": 39,
+   "score": 58,
+   "sheet": "z5.jpg"
+  },
+  {
+   "round": 2,
+   "scope": "all ten",
+   "score": 59.0,
+   "sheets": "fin_<ult>.jpg",
+   "per_ult": {
+    "sh_ult2": 72,
+    "sw_ult2": 68,
+    "sw_ult1": 66,
+    "fs_ult2": 64,
+    "mg_ult2": 63,
+    "sh_ult1": 62,
+    "py_ult2": 61,
+    "fs_ult1": 55,
+    "py_ult1": 54,
+    "mg_ult1": 52
+   }
+  }
+ ],
+ "target": 95,
+ "ults": {
+  "sw_ult1": {
+   "status": "rebuilt_on_gpu",
+   "iterations": 9,
+   "verified_run": true,
+   "state_restore": true
+  },
+  "sw_ult2": {
+   "status": "rebuilt_on_gpu",
+   "iterations": 2,
+   "verified_run": true,
+   "state_restore": true
+  },
+  "mg_ult1": {
+   "status": "rebuilt_on_gpu",
+   "iterations": 2,
+   "verified_run": true,
+   "state_restore": true
+  },
+  "mg_ult2": {
+   "status": "rebuilt_on_gpu",
+   "iterations": 1,
+   "verified_run": true,
+   "state_restore": true
+  },
+  "fs_ult1": {
+   "status": "rebuilt_on_gpu",
+   "iterations": 2,
+   "verified_run": true,
+   "state_restore": true
+  },
+  "fs_ult2": {
+   "status": "rebuilt_on_gpu",
+   "iterations": 2,
+   "verified_run": true,
+   "state_restore": true
+  },
+  "sh_ult1": {
+   "status": "rebuilt_on_gpu",
+   "iterations": 2,
+   "verified_run": true,
+   "state_restore": true
+  },
+  "sh_ult2": {
+   "status": "rebuilt_on_gpu",
+   "iterations": 2,
+   "verified_run": true,
+   "state_restore": true
+  },
+  "py_ult1": {
+   "status": "rebuilt_on_gpu",
+   "iterations": 1,
+   "verified_run": true,
+   "state_restore": true
+  },
+  "py_ult2": {
+   "status": "rebuilt_on_gpu",
+   "iterations": 3,
+   "verified_run": true,
+   "state_restore": true
+  }
+ },
+ "not_verified": [
+  "real phone performance",
+  "audio by ear",
+  "motion in video (sheets only)",
+  "changes after review round 2 not re-scored"
+ ],
+ "git": {
+  "repo": "_gen/deploy",
+  "pushed": false
+ },
+ "next": "VFX_NEXT_TASK.md"
+}

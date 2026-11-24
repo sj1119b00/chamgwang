@@ -109,7 +109,7 @@ function ultStones(id){ ultStart(id); ov.lbT=0; const Cn=X.cine, K=GFX, {hw,hh}=
   // climax: the one that takes the light with it - and then the earth's own teeth, ring after ring
   const tc=at+.05, mx=x0, my=y0-hh*.2, BH=1500;
   after(tc,()=>{ Cn.zoom(.8); K.ambient(.2,.26,.26,4); Cn.SND.inhale(.75,.7); duck(.2,.6); K.add(.8,k=>K.floor(K.st(12,'alpha',{L:0}),mx,my,300+900*k,null,0,[0,0,0],.3+.5*k)); Cn.gRing(mx,my,900,JW,{c2:JADE,inward:true,life:.75,w:.05,jag:.04}); });
-  if(rim) Cn.gDrop(mx,my,{img:rim,h:BH,w:BH*1.05,z0:6500,dur:.7,c:[.62,.78,.7],spin:.9,trail:JADE,tw:.4,tl:3,delay:tc+.1,sink:.5,pz:.0004,L:3,stick:1.2,fade:.6,burn:1});
+  if(rim) Cn.gDrop(mx,my,{img:rim,h:BH*1.7,w:BH*.8,z0:6500,dur:.7,c:[.62,.78,.7],rot:.06,trail:JADE,tw:.4,tl:2,delay:tc+.1,sink:.14,pz:.0004,L:3,stick:1.7,fade:.5,burn:.7});
   after(tc+.8,()=>Cn.impact(mx,my-80,{style:'paper',c:JADE,n:2,r:.16,soft:true,flash:.1,blur:.06,then:()=>{ K.ambient(.6,.7,.64,10); after(.8,()=>K.ambient(1,1,1,1.8)); drop(1500); Cn.SND.gong(1);
       Cn.gStar(mx,my,80,900,JADE,{c2:JD,c3:'#ffffff',life:.4,n:8}); for(let i=0;i<4;i++) Cn.gRing(mx,my,hw*(1.1+i*.45),i%2?JW:JADE,{c2:JD,life:.55+i*.12,w:.14-i*.03,jag:.11,delay:i*.06});
       K.ripple(mx,my,hw*2.3,{life:.8,s:1.1}); Cn.gCrack(mx,my,hw*1.5,JADE,{c2:JD,c3:JW,life:4,n:17,w:.1}); Cn.scar({x:mx,y:my,r:900,c:JADE,life:10,heat:3.4});

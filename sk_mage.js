@@ -103,7 +103,7 @@ function ultThunder(id){ ultStart(id); ov.lbT=0; const Cn=X.cine, K=GFX, x0=pl.x
   const T=onScreen(120).sort((a,b)=>Math.hypot(a.x-x0,a.y-y0)-Math.hypot(b.x-x0,b.y-y0)).slice(0,30), stM=Cn.gst(2,'add',TV,0);
   after(1.25,()=>{ Cn.zoom(.9); Cn.cam(null); Cn.roll(-.03); });
   T.forEach((e,i)=>after(1.3+i*(.8/Math.max(1,T.length)),()=>{ if(e.dead) return; e.mark=RT; Cn.SND.tick(.8+i*.03,.16); e.flash=.6;
-    Cn.gBolt(x0+pl.f*30,y0,BODY*1.9,e.x,e.y,e.h*.5,VIO,{c2:'#1c0a5a',w:9,life:.16,forks:0,jag:.05}); Cn.gRing(e.x,e.y,210,VIO,{c2:'#1c0a5a',inward:true,life:.3,w:.12,jag:.04}); }));
+    Cn.gBolt(x0+pl.f*30,y0,BODY*1.9,e.x,e.y,e.h*.5,VIO,{c2:'#1c0a5a',w:9,life:.16,forks:0,jag:.05}); Cn.gRing(e.x,e.y,190,VIO,{c2:'#1c0a5a',c3:'#cdb8ff',inward:true,life:.3,w:.06,jag:.04,a:.6}); }));
   K.add(2.6,()=>{ for(const e of T){ if(e.dead||!e.mark) continue; const k=Math.min(1,(RT-e.mark)/.2); K.floor(stM,e.x,e.y,105,null,RT*2+e.x,TV.c,.55*k,.74+.05*Math.sin(RT*18+e.x),K.tq(12,e.x),.045,.05); } },1.3);
   // release: the staff comes down; the ceiling answers every mark, one after another, faster
   after(2.36,()=>Cn.impact(x0,y0-BODY,{style:'bolt',c:VIO,n:2,soft:true,flash:.06,blur:.03,v:.5,then:()=>{ Cn.roll(.03); Cn.zoom(.84); K.ambient(.44,.42,.66,6); Cn.gRing(x0,y0,hw*1.5,VIO,{c2:'#1c0a5a',life:.5,w:.07,jag:.08}); K.ripple(x0,y0,hw*1.5,{life:.5,s:.6}); }}));

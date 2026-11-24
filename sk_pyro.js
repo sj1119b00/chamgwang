@@ -148,11 +148,12 @@ function ultDragon(id){ ultStart(id); ov.lbT=0; const Cn=X.cine, K=GFX, {hw,hh}=
   const posP=T=>dive&&T>=dive?diveP(T):rise&&T>=rise?riseP(T):lapP(T);
   const drag=K.add(9,()=>{ if(!D.on) return; const PZ=.0004, P=D.P; P.length=0; for(let i=0;i<60;i++){ const T=RT-i*.02; if(T<tS) break; P.push(posP(T)); }
     [D.x,D.y,D.z]=P[0]; Ld.x=D.x; Ld.y=D.y; Ld.a=1.1; Ld.t=0; const n=P.length;
-    for(let i=n-1;i>=0;i-=2){ const p=P[i], u=i/60, sc=1+p[2]*PZ, r=(230*(1-u*.8)+40*Math.sin(RT*9-i*.5))*sc; K.floor(stSh,p[0],p[1],r*.8,null,0,[0,0,0],.3*(1-u)/(1+p[2]*.002));
-      if(i+2<n){ const q=P[i+2]; K.line(stSp,p[0],p[1],p[2],q[0],q[1],q[2],r*.62,c,.95*(1-u*.5),u*.5,K.tq(12,i),-2,.5); }
+    for(let i=n-1;i>=0;i--){ const p=P[i], u=i/60, sc=1+p[2]*PZ, r=(320*(1-u*.82)+40*Math.sin(RT*9-i*.5))*sc; K.floor(stSh,p[0],p[1],r*.8,null,0,[0,0,0],.3*(1-u)/(1+p[2]*.002));
+      if(i%2===0&&i+2<n){ const q=P[i+2]; K.line(stSp,p[0],p[1],p[2],q[0],q[1],q[2],r*.62,c,.95*(1-u*.5),u*.5,K.tq(12,i),-2,.5); }
       K.bill(stB,p[0],p[1],p[2]+r*.3,r,r,RT*2+i,c,.8*(1-u*.6),.1+u*.55,K.tq(12,i*.7),1.2,1.5); }
     const p=P[0], q=P[Math.min(3,n-1)], sc=1+p[2]*PZ, ang=Math.atan2((p[1]-p[2])-(q[1]-q[2]),p[0]-q[0]); K.bill(stG,p[0],p[1],p[2],420*sc,420*sc,0,c,.7);
-    if(stH){ const h=640*sc, w=h*hd.w/hd.h, fl=Math.cos(ang)<0?-1:1; K.bill(stH,p[0],p[1],p[2],w*.5,h*.5*fl,ang,[1,1,1],1,0,0,1,0); }
+    if(stH){ const h=900*sc, w=h*hd.w/hd.h, fl=Math.cos(ang)<0?-1:1, stN=K.st(5,'add',{c2:K.rgb(FD),c3:K.rgb(FH),L:4}); K.bill(stH,p[0],p[1],p[2],w*.5,h*.5*fl,ang,[1,1,1],1,0,0,1,0);
+      for(let j=0;j<4;j++){ const d=w*(.26+j*.1); K.bill(stN,p[0]-Math.cos(ang)*d,p[1],p[2]+Math.sin(ang)*d,h*(.42+j*.03),h*(.42+j*.03),RT*3+j,c,.95,.12+j*.06,K.tq(12,j*2.3),1.2,1.5); } }
     if(!dive&&!rise){ if(RT-D.sc>.11){ D.sc=RT; Cn.gFire(D.x+rand(-40,40),D.y+rand(-20,20),4,rand(60,100),{n:3,life:.8}); Cn.scar({kind:'burn',x:D.x,y:D.y,r:150,c:FLM,life:6,heat:2.6}); }
       if(Math.random()<.35){ V.blast={x:D.x,y:D.y,p:.8}; inCircle(D.x,D.y,270,o=>ultHit(o,Dm*.15,D.x,D.y)); } } });
   // release: the roar; it comes up out of the floor
