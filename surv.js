@@ -467,6 +467,7 @@ const css=document.createElement('style'); css.textContent=`
 #rmenu.mob .tb button{padding:10px;border-radius:10px;font:800 14px "Malgun Gothic",sans-serif}
 #rmenu.mob .tb button.on{background:rgba(255,51,85,.45);border-color:#ff3355}
 #rmenu.mob .bd{-webkit-mask-image:linear-gradient(#000 85%,transparent);mask-image:linear-gradient(#000 85%,transparent);flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;padding-bottom:10px}
+@media (orientation:landscape){ #rmenu.mob .mm{display:block;width:min(760px,100%);overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;overscroll-behavior:contain} #rmenu.mob .bd{overflow:visible;-webkit-mask-image:none;mask-image:none;padding-bottom:28px} }
 #rmenu.mob .chp{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:12px;border-radius:12px;margin-bottom:6px;border:1px solid rgba(255,255,255,.15);background:rgba(20,14,34,.75)}
 #rmenu.mob .chp i{width:8px;align-self:stretch;border-radius:4px;background:var(--c)} #rmenu.mob .chp div{flex:1} #rmenu.mob .chp b{font:900 15px "Malgun Gothic",sans-serif;display:block}
 #rmenu.mob .chp small{font-size:11px;color:#b9b3d0} #rmenu.mob .chp em{font-style:normal;font-size:11px;color:#ffcf4a}
