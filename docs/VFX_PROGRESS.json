@@ -1,7 +1,7 @@
 {
  "updated": "2026-11-24 (evening)",
  "representative": "sw_ult1",
- "iteration": 40,
+ "iteration": 43,
  "project_complete": false,
  "independent_review": [
   {
@@ -155,12 +155,12 @@
  ],
  "git": {
   "deploy_repo": "_gen/deploy",
-  "last_local_commit": "11e361e + docs commit",
+  "last_local_commit": "20ee26d + records",
   "pushed": false
  },
  "next": "VFX_NEXT_TASK.md",
  "plateau": true,
- "plateau_note": "Four cross reviews 68/66/63/68.3 and six solo reviews of the representative ultimate 56-63: no upward trend across four class passes and ten engine/kit iterations; no ultimate has ever passed 75. Reviewers agree on what is missing: lit volumetric meshes with shadows, bespoke hero animation synced to the beats, 5-8 layers per beat, visible enemy reactions. Shared kit pieces become the new sameness each time.",
+ "plateau_note": "Five cross reviews 68/66/63/68.3/65.3 and eight solo reviews of the representative ultimate 56-63. Hero pose sets and painted flipbooks (the two untried approaches) did not move the band. No ultimate has passed 75. Untried: real 3D meshes with lighting and shadows; re-made 3/4-view character and enemy art.",
  "gameplay": {
   "all_skills_auto": true,
   "joystick_follow": true,
@@ -256,6 +256,10 @@
    {
     "sheet": "z18_big",
     "score": 56
+   },
+   {
+    "sheet": "z24_big",
+    "score": 61
    }
   ],
   "cross": [
@@ -326,6 +330,24 @@
      "mg_ult2": 66,
      "sw_ult2": 62
     }
+   },
+   {
+    "round": 5,
+    "avg": 65.3,
+    "sheets": "x6_<ult>.jpg",
+    "per_ult": {
+     "py_ult2": 69,
+     "sw_ult1": 68,
+     "mg_ult2": 67,
+     "sh_ult2": 67,
+     "mg_ult1": 66,
+     "fs_ult2": 66,
+     "sh_ult1": 64,
+     "sw_ult2": 63,
+     "fs_ult1": 62,
+     "py_ult1": 61
+    },
+    "note": "after hero pose sets and eight flipbooks"
    }
   ]
  },
