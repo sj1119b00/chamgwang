@@ -256,5 +256,78 @@
   ],
   "floor": "fx2_floor (640px, 거울 타일)",
   "blend": "모드 15 톤 치환(소환물·충돌=알파, 마법진·불=가산)"
+ },
+ "v3": {
+  "note": "engine v3 assets (2026-11-24). Grey masks are coloured through the ramp; prompts are in _gen/g4*.json, raw renders in _gen/gen4/, processing in _gen/v3/proc2.py and inline scripts",
+  "procedural": {
+   "v3_nzA.png": "tileable noise atlas: R fbm, G billow, B streaks, A energy veins (_gen/v3/noise_atlas.py)",
+   "v3_nzB.png": "R crack lines, G cells, B grain, A wisps"
+  },
+  "generated": {
+   "v3_circ_blade": {
+    "bytes": 268646,
+    "use": "swordsman sigil"
+   },
+   "v3_circ_fist": {
+    "bytes": 251936,
+    "use": "fist sigil"
+   },
+   "v3_circ_mage": {
+    "bytes": 272340,
+    "use": "mage sigil"
+   },
+   "v3_circ_pyro": {
+    "bytes": 246164,
+    "use": "pyro sigil"
+   },
+   "v3_circ_shaman": {
+    "bytes": 243260,
+    "use": "shaman sigil"
+   },
+   "v3_curtain": {
+    "bytes": 126992,
+    "use": "flame curtain, repeats horizontally (K3.wall)"
+   },
+   "v3_fissure": {
+    "bytes": 161010,
+    "use": "radial ground fracture (K3.crack)"
+   },
+   "v3_gash": {
+    "bytes": 25972,
+    "use": "straight ground wound and hanging seam (K3.gash, K3.seam)"
+   },
+   "v3_gnd": {
+    "bytes": 475398,
+    "use": "floor albedo (flagstones), with v3_gnd_n normal map derived from it"
+   },
+   "v3_gnd_n": {
+    "bytes": 260542,
+    "use": ""
+   },
+   "v3_slash_heavy": {
+    "bytes": 165474,
+    "use": "heavy crescent (K3.cres)"
+   },
+   "v3_slash_strip": {
+    "bytes": 24592,
+    "use": "thin trail strip (unused so far)"
+   },
+   "v3_slash_thin": {
+    "bytes": 42628,
+    "use": "thin crescent (K3.cres)"
+   },
+   "v3_spin_ring": {
+    "bytes": 167110,
+    "use": "spinning slash ring"
+   },
+   "v3_thrust": {
+    "bytes": 28282,
+    "use": "thrust lance"
+   },
+   "v3_xburst": {
+    "bytes": 197372,
+    "use": "impact needles (K3.art, K3.burst)"
+   }
+  }
  }
 }

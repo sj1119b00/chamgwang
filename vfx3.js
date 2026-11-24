@@ -19,7 +19,7 @@ K.PAL={
 };
 const pal=p=>typeof p==='string'?K.PAL[p]:(p||K.PAL.crimson);
 K.pal=pal;
-const TEX=['v3_circ_mage','v3_circ_fist','v3_circ_shaman','v3_circ_pyro','fx_circle_arcane','fx_circle_seal','v3_slash_thin','v3_slash_heavy','v3_thrust','v3_spin_ring','v3_circ_blade','v3_fissure','v3_gash','v3_xburst','fx3_burst','fx3_shock','fx3_smoke','fx3_slash','fx3_fire','fx3_bolt','fx3_tornado','fx3_beam','fx_crack','fx_gash'];
+const TEX=['v3_pillar','v3_scorch','v3_dustring','v3_orb','v3_circ_mage','v3_circ_fist','v3_circ_shaman','v3_circ_pyro','fx_circle_arcane','fx_circle_seal','v3_slash_thin','v3_slash_heavy','v3_thrust','v3_spin_ring','v3_circ_blade','v3_fissure','v3_gash','v3_xburst','fx3_burst','fx3_shock','fx3_smoke','fx3_slash','fx3_fire','fx3_bolt','fx3_tornado','fx3_beam','fx_crack','fx_gash'];
 K.pre=()=>{ if(F&&F.on){ for(const t of TEX) F.img(t); F.img('v3_curtain',{repeat:true}); for(const t of ['meteor','sword']) F.img(t); } };
 // a point of a tilted local frame in world coordinates (x, floor y, height)
 K.at=(M,x,y,z,lx,ly,lz)=>[x+M[0]*lx+M[4]*ly+M[8]*lz,y+(M[1]*lx+M[5]*ly+M[9]*lz)*FSY,z+M[2]*lx+M[6]*ly+M[10]*lz];
@@ -42,6 +42,12 @@ function mats(){ if(MT) return MT; const m=F.mat; MT={
   waB:m({tex:'v3_curtain',texO:{repeat:true},nz:'wisp',n1:[1,.5,0,-1.2],n2:[1.2,.9,.05,-.9],dist:.08,mdist:1,nk:.5,ero:.12,soft:.35,fd:[.06,.06,0,.35],pm:[4,.8,.003,0],rk:[.62,1.15],gain:2.4,bgain:1.05,op:.55}),
   waC:m({tex:'v3_curtain',texO:{repeat:true},nz:'billow',n1:[2,.6,0,-2],n2:[1.6,1.2,-.04,-1.5],dist:.06,mdist:1,nk:.6,pw:1.8,ero:.3,soft:.25,fd:[.1,.1,0,.5],pm:[4,3,.003,0],rk:[.4,1],gain:2.8,bgain:1.4,op:.25}),
   waS:m({tex:'v3_curtain',texO:{repeat:true},nz:'wisp',n1:[1,.5,0,-.7],n2:[1.1,.8,.04,-.6],dist:.1,mdist:1,nk:.6,ero:.1,soft:.4,fd:[.06,.06,0,.3],cA:'#000000',cB:'#000000',cC:'#000000',op:1,a:.62}),
+  plS:m({tex:'v3_pillar',nz:'wisp',n1:[1,.6,0,-.8],n2:[1.2,.7,.03,-.7],dist:.06,mdist:1,nk:.4,pw:.6,ero:.1,soft:.4,cA:'#000000',cB:'#000000',cC:'#000000',op:1,a:.5}),
+  plB:m({tex:'v3_pillar',nz:'wisp',n1:[1,.5,0,-1.6],n2:[1.3,.6,.04,-1.4],dist:.05,mdist:1,nk:.35,pw:.8,ero:.08,soft:.3,rk:[.5,1.15],gain:2.6,bgain:1.1}),
+  plC:m({tex:'v3_pillar',nz:'streak',n1:[.5,2,0,-2.6],n2:[1.5,.8,.02,-2],dist:.03,mdist:1,nk:.25,pw:1.6,ero:.16,soft:.25,rk:[.2,.75],gain:3.4,bgain:1.6}),
+  shP:m({tex:'fx3_shock',nz:'wisp',n1:[2,2,.1,.1],n2:[1.5,1.5,.05,.04],dist:.03,mdist:1,nk:.3,ero:.1,soft:.3,rk:[.55,1.1],gain:2.4,bgain:1.1,layer:'g'}),
+  shDu:m({tex:'v3_dustring',nz:'billow',n1:[2,2,.03,.02],n2:[1.5,1.5,.04,.03],dist:.04,mdist:1,nk:.35,ero:.16,soft:.35,cA:'#0c0a10',cB:'#2a2630',cC:'#6a6272',rk:[.4,1],gain:1,op:1,a:.62,layer:'g'}),
+  soot:m({tex:'v3_scorch',nk:0,pw:.7,ero:.1,soft:.5,cA:'#000000',cB:'#000000',cC:'#000000',op:1,layer:'g'}),
   // dome shell
   doB:m({nz:'veins',n1:[4,1.2,.15,-.5],n2:[3,2,0,.3],dist:.06,nk:1,ero:.1,soft:.25,pm:[4,1.1,.015,0],rk:[.4,.85],gain:2.6}),
   // floor decals
@@ -116,22 +122,29 @@ K.cres=(x,y,z,o={})=>{ if(!F.on) return; const m=mats(), P=pal(o.pal), tex=o.tex
     if(o.sparks!==0) K.sparks(x+Math.cos(dir)*s*.8,y+Math.sin(dir)*s*.8*FSY,z,{pal:P,n:o.sparks||10,dir,spread:1.1,sp:[400,1500],up:400,life:[.15,.45]}); };
   if(o.delay) after(o.delay,fx); else fx(); };
 
-// SHOCK: a ring racing over the floor (under the characters), its streaked wake, heat haze, dust.
-K.shock=(x,y,o={})=>{ if(!F.on) return; const m=mats(), P=pal(o.pal), Rm=o.r||600, dur=o.dur||.55, C=col(P), g=o.gain||1, sd=Math.random()*9;
+// SHOCK: a wave racing over the floor (under the characters): the painted front, a sharp leading ring, its wake, rolling dust, heat haze.
+//  o: {r, r0 (start; larger than r = implosion), dur, pal, gain, dust (0 = none), painted (0 = lines only), light, haze, th}
+K.shock=(x,y,o={})=>{ if(!F.on) return; const m=mats(), P=pal(o.pal), Rm=o.r||600, dur=o.dur||.55, C=col(P), g=o.gain||1, sd=Math.random()*9, rot=R(0,TAU_), big=o.painted!==0&&Rm>(o.r0||30)&&Rm>=260;
   GFX.add(dur,(k)=>{ const e=eo3(k), r=mix(o.r0||30,Rm,e), th=mix(.3,.1,k)*Rm*(o.th||1), a=(1-k)*(1-k);
+    if(big&&o.dust!==0) F.quad(m.shDu,x,y,r*1.16,r*1.16,rot+1,{a:Math.min(1,a*2.2)*.62,ero:.16+k*.5,t0:sd});
     F.ring(m.shW,x,y,Math.max(0,r-th*2.6),r,{...C,a:a*.75,gain:1.4*g,t0:sd});
+    if(big) F.quad(m.shP,x,y,r*1.12,r*1.12,rot,{...C,a:Math.min(1,a*1.8),gain:2.4*g,ero:.1+k*.55,t0:sd});
     F.ring(m.shL,x,y,r-th*.3,r+th*.12,{...C,a:Math.min(1,a*1.6),gain:2.6*g,t0:sd});
     if(!(GFX.calm&&GFX.calm())) F.ring(m.shD,x,y,Math.max(0,r-th*2),r+th,{a:a*(o.haze??.8),gain:.06}); },o.delay||0);
   if(o.light!==0) GFX.light(x,y,Rm*1.1,P.l,o.light??.9,dur*.8);
   if(o.dust!==0) K.dust(x,y,{n:o.dust||12,r:(o.r0||30)+20,sp:[Rm*.5,Rm*1.2],c:o.dc}); };
 
-// PILLAR: a column of light standing on the floor, tall enough to leave the screen.
-K.pillar=(x,y,o={})=>{ if(!F.on) return; const m=mats(), P=pal(o.pal), r=o.r||80, h=o.h||1400, dur=o.dur||.7, C=col(P), g=o.gain||1, sd=Math.random()*9, rise=o.rise??.08;
-  GFX.add(dur,(k,t)=>{ const up=eo3(sat(t/rise)), f=sat((k-.45)/.55), rr=r*(1+.25*Math.sin(k*PI))*(1-f*.75), a=1-f*f;
-    F.quad(m.glowG,x,y,rr*3.2,rr*3.2,0,{...C,a:a*.9,gain:1.4*g});
-    F.lathe(m.piB,x,y,0,{r0:rr,r1:rr*1.08,h0:0,h1:h*up,...C,a,gain:2.6*g,ero:.1+f*.5,t0:sd});
-    F.lathe(m.piC,x,y,0,{r0:rr*.42,r1:rr*.42,h0:0,h1:h*up,...C,a,gain:4.5*g,t0:sd}); },o.delay||0);
-  if(o.light!==0) GFX.light(x,y,r*9,P.l,o.light??1,dur*.9,{z:160}); };
+// PILLAR: a painted column of light standing on the floor: dark smoke edge, coloured sheath with ribbons spiralling up, white-hot core,
+// a flare and scorch at its foot. It holds for a breath, then burns away from the ground upward. o: {r (core half width), h, dur, hold, pal, rise}
+K.pillar=(x,y,o={})=>{ if(!F.on) return; const m=mats(), P=pal(o.pal), r=o.r||80, h=o.h||1400, dur=o.dur||.7, hold=o.hold??dur*.35, C=col(P), g=o.gain||1, sd=Math.random()*9, rise=o.rise??.07, hw=r*4.2, flip=Math.random()<.5?[-1,1,1,0]:[1,1,0,0];
+  GFX.add(dur,(k,t)=>{ const up=eo5(sat(t/rise)), f=sat((t-rise-hold)/Math.max(.01,dur-rise-hold)), hh=h*(.25+.75*up)/2, a=1-f*f*f, w=hw*(1+.12*Math.sin(t*40+sd))*(1-.35*f), cut=[0,0,f*1.1,.12];
+    F.quad(m.soot,x,y,r*5,r*5,sd,{a:.6*sat(t*10)});
+    F.quad(m.glowG,x,y,r*5.5,r*5.5,0,{...C,a:a*(.5+.5*up),gain:1.6*g,bgain:1});
+    F.bill(m.plS,x,y,hh,w*1.5,hh*1.04,0,{a:a*.5,fd:cut,t0:sd,uvT:flip});
+    F.bill(m.plB,x,y,hh,w*1.15,hh,0,{...C,a,gain:2.6*g,ero:.08+f*.35,fd:cut,t0:sd,uvT:flip});
+    F.bill(m.plC,x,y,hh,w*.8,hh,0,{...C,a,gain:3.4*g,ero:.16+f*.5,fd:cut,t0:sd}); },o.delay||0);
+  const fx=()=>{ if(o.light!==0) GFX.light(x,y,r*11,P.l,o.light??1.1,dur*.9,{z:200}); K.sparks(x,y,20,{pal:P,n:Math.round(r/5),sp:[200,900],up:h*.9,life:[.4,.9]}); };
+  if(o.delay) after(o.delay,fx); else fx(); };
 
 // WALL: fire erupting from a line on the floor (a cut opening): dark smoke behind, the flame curtain, a hot inner sheet, light
 // spilling on the floor at its foot. pts: [{x,y,h}], o: {h, dur, pal, delay, rise, ord}
@@ -144,6 +157,19 @@ K.wall=(pts,o={})=>{ if(!F.on) return; const m=mats(), P=pal(o.pal), h=o.h||900,
     F.wall(m.waS,P1,{a:a*(o.smoke??1),ero:.1+f*.5,uvT:[ur*.8,1,sd+.5,0],t0:sd,ord:ord-.2});
     F.wall(m.waB,P2,{...C,a,gain:2.4*g,ero:.12+f*.7,uvT:[ur,1,sd,0],t0:sd,ord});
     F.wall(m.waC,P3,{...C,a,gain:2.8*g,ero:.25+f*.6,uvT:[ur*1.3,1,sd+.37,0],t0:sd,ord:ord+.1}); },o.delay||0); };
+
+// ARCWALL: fire standing on an arc of a floor circle round (x,y): a true curved wall, so its foot draws the same ellipse as a sigil
+// under it. Height is graded round the ring: hb x at the far side (top of the screen), hf x at the near side, so it never hides its centre.
+//  o: {r, a0, a1 (radians; -PI/2 is the far side), h, hb, hf, dur, pal, rise, gain, delay}
+K.arcwall=(x,y,o={})=>{ if(!F.on) return; const m=mats(), P=pal(o.pal), r=o.r||400, h=o.h||900, dur=o.dur||1.2, C=col(P), g=o.gain||1, sd=Math.random()*9, rise=o.rise??.16, a0=o.a0??0, a1=o.a1??TAU_, lh=[o.hb??1,o.hf??.2], arc=Math.abs(a1-a0)*r, ur=Math.max(.35,arc/(h*1.9)), am=(a0+a1)/2, hm=h*mix(lh[0],lh[1],.5+.5*Math.sin(am));
+  GFX.add(dur,(k,t)=>{ const up=eo3(sat(t/rise)), f=sat((k-.3)/.7), a=1-f*f, hk=up*(1+.1*Math.sin(k*9+sd));
+    F.ring(m.shL,x,y,r-22,r+22,{a0,a1,...C,a:a*.9,gain:2.2*g,layer:'g',fd:[.08,.08,0,0],t0:sd});
+    F.lathe(m.waS,x,y,0,{r0:r*1.03,r1:r*1.03,h0:0,h1:h*hk*1.18,a0,a1,lh,a:a*(o.smoke??1),ero:.1+f*.5,uvT:[ur*.8,1,sd+.5,0],t0:sd,ord:-1});
+    F.lathe(m.waB,x,y,0,{r0:r,r1:r,h0:0,h1:h*hk,a0,a1,lh,...C,a,gain:2.4*g,ero:.12+f*.7,uvT:[ur,1,sd,0],t0:sd,ord:0});
+    F.lathe(m.waC,x,y,0,{r0:r*.985,r1:r*.985,h0:0,h1:h*hk*.6,a0,a1,lh,...C,a,gain:2.8*g,ero:.25+f*.6,uvT:[ur*1.3,1,sd+.37,0],t0:sd,ord:.1});
+    if(o.licks!==0&&k<.6&&Math.random()<.8){ const an=mix(a0,a1,Math.random()), hh=h*hk*mix(lh[0],lh[1],.5+.5*Math.sin(an)); GFX.pt({x:x+Math.cos(an)*r,y:y+Math.sin(an)*r*FSY,z:hh*R(.45,.85),vz:R(300,800),vx:R(-60,60),g:-200,drag:.6,life:R(.35,.7),s:R(20,46)*Math.min(1,hh/500+.4),m:5,b:'add',c:GFX.rgb(P.b),c2:P.d,c3:P.m||P.h,er:1,ns:R(1,1.6),w:1.6,a:.9,L:1}); } },o.delay||0);
+  const fx=()=>{ if(o.light!==0) GFX.light(x+Math.cos(am)*r*.8,y+Math.sin(am)*r*.8*FSY,Math.max(arc,hm)*.9,P.l,o.light??.7,dur*.8,{z:160}); };
+  if(o.delay) after(o.delay,fx); else fx(); };
 
 // DOME: a shell of energy swelling from a point on the floor.
 K.dome=(x,y,o={})=>{ if(!F.on) return; const m=mats(), P=pal(o.pal), Rm=o.r||500, dur=o.dur||.5, C=col(P), g=o.gain||1, sd=Math.random()*9;
@@ -165,17 +191,18 @@ K.sigil=(x,y,o={})=>{ const h={x,y,r:o.r||400,a:1,pal:o.pal,pk:-9,dead:false,kic
 // CRACK: the floor breaks open around a point: dark fracture, light inside it that cools over the life.
 K.crack=(x,y,o={})=>{ if(!F.on) return; const m=mats(), P=pal(o.pal), r=o.r||420, life=o.life||4, C=col(P), rot=o.rot??R(0,TAU_), grow=o.grow??.18, g=o.gain||1, sd=[R(0,1),R(0,1)];
   GFX.add(life,(k,t)=>{ const i=eo3(sat(t/grow)), heat=Math.pow(1-k,1.6), out=sat((1-k)/.25);
-    F.quad(m.dark,x,y,r*.75,r*.75,0,{a:.5*out*i});
+    F.quad(m.soot,x,y,r*.95,r*.95,rot,{a:.6*out*i});
     F.quad(m.crD,x,y,r,r,rot,{a:out,rv:[i*1.3,.3,0,.1]});
     F.quad(m.crG,x,y,r,r,rot,{...C,a:heat*.8,rv:[i*1.25,.35,0,.1]});
     F.quad(m.crE,x,y,r,r,rot,{...C,a:Math.min(1,heat*1.4),gain:2.6*g*(.5+.5*heat),ero:.12+.5*(1-heat),rv:[i*1.25,.35,0,.1]}); },o.delay||0); };
 
-// GASH: a straight wound in the floor between two points.
-K.gash=(x1,y1,x2,y2,o={})=>{ if(!F.on) return; const m=mats(), P=pal(o.pal), life=o.life||4, w=o.w||60, C=col(P), dx=x2-x1, dy=(y2-y1)/FSY, L=Math.hypot(dx,dy), rot=Math.atan2(dy,dx), cx=(x1+x2)/2, cy=(y1+y2)/2, grow=o.grow??.1, g=o.gain||1, sd=R(0,1);
-  GFX.add(life,(k,t)=>{ const i=eo3(sat(t/grow)), heat=Math.pow(1-k,1.5), out=sat((1-k)/.25);
-    F.quad(m.gaD,cx,cy,L/2*i,w,rot,{a:out*.9});
-    F.quad(m.gaG,cx,cy,L/2*i,w,rot,{...C,a:heat*.8});
-    F.quad(m.gaE,cx,cy,L/2*i,w,rot,{...C,a:Math.min(1,heat*1.4),gain:2.8*g*(.5+.5*heat),ero:.12+.5*(1-heat)}); },o.delay||0); };
+// GASH: a straight wound in the floor between two points: soot around it, a deep dark split, light at its lips that cools from the ends inward.
+K.gash=(x1,y1,x2,y2,o={})=>{ if(!F.on) return; const m=mats(), P=pal(o.pal), life=o.life||4, w=(o.w||60)*R(.85,1.2), C=col(P), dx=x2-x1, dy=(y2-y1)/FSY, L=Math.hypot(dx,dy), rot=Math.atan2(dy,dx)+(Math.random()<.5?PI:0), cx=(x1+x2)/2, cy=(y1+y2)/2, grow=o.grow??.1, g=o.gain||1, uv=Math.random()<.5?[1,-1,0,1]:[1,1,0,0];
+  GFX.add(life,(k,t)=>{ const i=eo3(sat(t/grow)), heat=Math.pow(1-k,1.5), out=sat((1-k)/.25), cool=.1+.38*k;
+    F.quad(m.soot,cx,cy,L*.56*i,w*1.5,rot,{a:.55*out});
+    F.quad(m.gaD,cx,cy,L/2*i,w,rot,{a:out,uvT:uv});
+    F.quad(m.gaG,cx,cy,L/2*i,w,rot,{...C,a:heat*.8,uvT:uv,fd:[cool,cool,0,0]});
+    F.quad(m.gaE,cx,cy,L/2*i,w,rot,{...C,a:Math.min(1,heat*1.4),gain:2.8*g*(.5+.5*heat),ero:.1+.5*(1-heat),uvT:uv,fd:[cool,cool,0,0]}); },o.delay||0); };
 
 // ART: painted key art (grey on black) coloured by the palette; upright by default, o.floor lays it on the ground.
 //  o: {tex, s (half size), dur, pal, z, rot, floor, layer, asp, s0, hold}

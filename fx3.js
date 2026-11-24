@@ -13,12 +13,12 @@ window.FX3=F;
 
 // ---------------------------------------------------------------- shaders
 const VS=`attribute vec3 p;attribute vec2 uv;
-uniform mat4 M;uniform vec3 org;uniform vec4 camP;uniform vec2 hf;uniform vec4 la;uniform vec4 lb;
+uniform mat4 M;uniform vec3 org;uniform vec4 camP;uniform vec2 hf;uniform vec4 la;uniform vec4 lb;uniform vec2 lh;
 varying vec2 v;varying vec2 vd;
 void main(){vec3 q=p;vd=vec2(0.,1.);
  if(lb.w>.5){float a=mix(lb.x,lb.y,p.x);float t=p.y;float r=mix(la.x,la.y,t);float h=mix(la.z,la.w,t);
   if(lb.z>.5){float e=t*1.5707963;r=la.x*cos(e)+la.y*(1.-cos(e));h=la.z+(la.w-la.z)*sin(e);}
-  q=vec3(cos(a)*r,sin(a)*r,h);vd=vec2(cos(a),sin(a)*${FSY});}
+  h*=mix(lh.x,lh.y,.5+.5*sin(a));q=vec3(cos(a)*r,sin(a)*r,h);vd=vec2(cos(a),sin(a)*${FSY});}
  vec3 w=(M*vec4(q,1.)).xyz;
  float wx=org.x+w.x;float wy=org.y+w.y*${FSY}-(org.z+w.z);
  float px=(wx+camP.x)*camP.z;float py=(wy+camP.y)*camP.z;float c=cos(camP.w);float s=sin(camP.w);
@@ -118,7 +118,7 @@ function uni(P,names){ const U={}; for(const n of names) U[n]=gl.getUniformLocat
 
 function init(){ if(typeof gl==='undefined'||!gl||!GLX) return;
   try{
-    Pm=prog(VS,FS,['p','uv']); Um=uni(Pm,['M','org','camP','hf','la','lb','tex','nzA','nzB','kind','time','uvT','n1','n2','ch1','ch1b','pr','fd','pw','pm','rv','cA','cB','cC','cM','rk','msk','gn','aw','aw2']);
+    Pm=prog(VS,FS,['p','uv']); Um=uni(Pm,['M','org','camP','hf','la','lb','lh','tex','nzA','nzB','kind','time','uvT','n1','n2','ch1','ch1b','pr','fd','pw','pm','rv','cA','cB','cC','cM','rk','msk','gn','aw','aw2']);
     Pg=prog(GVS,GFS,['p']); Ug=uni(Pg,['alb','nrm','nzA','res','camU','gOff','amb','tint','lp','lc','time','gk','hp']);
     // lathe grid: p = (u around 0..1, t along the profile 0..1, 0), uv = (u, t)
     { const vtx=new Float32Array((LN+1)*(LT+1)*5), idx=new Uint16Array(LN*LT*6); let o=0;
@@ -218,7 +218,7 @@ function bindGeo(geo){ if(cur===geo) return; cur=geo; const b=geo==='lathe'?lath
 const v4=(u,a)=>gl.uniform4f(u,a[0],a[1],a[2],a[3]);
 function drawOne(q){ const m=q.mat, o=q.ov; let t=m.tex?glTex(m.tex):white; if(!t) return;
   bindGeo(q.geo); gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D,t);
-  gl.uniformMatrix4fv(Um.M,false,q.M); gl.uniform3f(Um.org,q.org[0],q.org[1],q.org[2]); v4(Um.la,q.la||NOLB); v4(Um.lb,q.lb||NOLB);
+  gl.uniformMatrix4fv(Um.M,false,q.M); gl.uniform3f(Um.org,q.org[0],q.org[1],q.org[2]); v4(Um.la,q.la||NOLB); v4(Um.lb,q.lb||NOLB); { const lh=q.ov.lh; gl.uniform2f(Um.lh,lh?lh[0]:1,lh?lh[1]:1); }
   gl.uniform1f(Um.kind,q.L===2?1:m.kind); gl.uniform1f(Um.time,(o.time??RT)+(o.t0||0));
   const uvT=o.uvT||m.uvT, n1=o.n1||m.n1, n2=o.n2||m.n2, fd=o.fd||m.fd, pm=o.pm||m.pm, rv=o.rv||m.rv, rk=o.rk||m.rk, nz=m.nz;
   v4(Um.uvT,uvT); v4(Um.n1,n1); v4(Um.n2,n2); gl.uniform4f(Um.ch1,nz[0],nz[1],nz[2],nz[3]); gl.uniform4f(Um.ch1b,nz[4],nz[5],nz[6],nz[7]);
