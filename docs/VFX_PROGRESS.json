@@ -1,7 +1,7 @@
 {
  "updated": "2026-11-24",
  "representative": "sw_ult1",
- "iteration": 9,
+ "iteration": 12,
  "project_complete": false,
  "independent_review": [
   {
@@ -27,6 +27,30 @@
     "fs_ult1": 55,
     "py_ult1": 54,
     "mg_ult1": 52
+   }
+  },
+  {
+   "round": 3,
+   "scope": "all ten",
+   "score": 58.2,
+   "sheets": "fin3_<ult>.jpg"
+  },
+  {
+   "round": 4,
+   "scope": "all ten",
+   "score": 55,
+   "sheets": "fin4_<ult>.jpg",
+   "per_ult": {
+    "sh_ult2": 67,
+    "mg_ult2": 66,
+    "sw_ult2": 64,
+    "sw_ult1": 62,
+    "fs_ult2": 60,
+    "py_ult2": 58,
+    "py_ult1": 55,
+    "mg_ult1": 52,
+    "fs_ult1": 50,
+    "sh_ult1": 48
    }
   }
  ],
@@ -97,11 +121,13 @@
   "real phone performance",
   "audio by ear",
   "motion in video (sheets only)",
-  "changes after review round 2 not re-scored"
+  "changes after review round 4 not re-scored"
  ],
  "git": {
   "repo": "_gen/deploy",
   "pushed": false
  },
- "next": "VFX_NEXT_TASK.md"
+ "next": "VFX_NEXT_TASK.md",
+ "plateau": true,
+ "plateau_note": "4 reviews 55-59 across three approaches; remaining cause is mixed art styles, not effect parts"
 }

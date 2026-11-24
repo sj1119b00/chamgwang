@@ -315,7 +315,7 @@ C.artNow=(name,x,y,z,w,h,c,o={})=>{ const s=C.art(name); if(!s.ok) return false;
   K.bill(st,x,y,z,w,h,o.rot||0,T.c,o.a??1,o.er||0,o.ph??K.tq(12,0),2.2,o.boil??.012); return true; };
 // where the drawings exist they replace the procedural shapes for anything large enough to be looked at
 { const star0=C.gStar, ring0=C.gRing, fire0=C.gFire, puff0=C.gPuff, bolt0=C.gBolt;
-  C.gStar=(x,y,z,s,c,o={})=>{ if(s<240||!C.art('fx2_burst').ok) return star0(x,y,z,s,c,o);
+  C.gStar=(x,y,z,s,c,o={})=>{ if(s<600||!C.art('fx2_burst').ok) return star0(x,y,z,s,c,o);
     C.gArt('fx2_burst',x,y,c,{c2:o.c2,c3:o.c3,z:z+s*.25,w:s*1.15,h:s*1.05,life:Math.max(.5,(o.life||.2)*1.7),hold:.3,rot:rand(-.5,.5),grow:.3,ease:true,flipX:Math.random()<.5,L:o.L??3,delay:o.delay}); };
   C.gRing=(x,y,R,c,o={})=>{ if(o.inward||R<600||!C.art('fx2_shock').ok) return ring0(x,y,R,c,o);
     C.gArt('fx2_shock',x,y,c,{c2:o.c2,c3:o.c3,floor:true,w:R*.28,grow:2.9,ease:true,life:(o.life||.5)*1.2,hold:.5,rot:rand(0,TAU),a:o.a??1,L:0,delay:o.delay,z:o.z||0,boil:.008}); };

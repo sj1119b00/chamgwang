@@ -1,5 +1,5 @@
 {
- "note": "2026-11-24 세션에서는 새 이미지/GIF를 생성하지 않았다. 새 모양은 gfx.js 셰이더의 절차적 필드이고, 아래 기존 텍스처를 GPU 레이어에서 재사용한다. 생성 도구(gpt-image 스킬, ChatGPT 웹 GIF)는 사용 가능하며 다음 후보는 pending 항목 참고.",
+ "note": "2026-11-24: 1차 세션은 절차적 셰이더만 썼고, 3차 검증 정체 후 gpt-image 스킬로 손그림풍 이펙트 원화 8장(fx2_*)을 생성해 넣었다.",
  "procedural": [
   {
    "mode": 0,
@@ -178,5 +178,54 @@
    "prompt": "hand-drawn anime slash crescent VFX silhouette, pure white on pure black, sharp tapered tips, streaky trailing edge, no glow, 1024x1024",
    "blend": "mode 0 + 디졸브"
   }
- ]
+ ],
+ "generated_2026_11_24": {
+  "tool": "gpt-image 스킬(Codex CLI, ChatGPT 로그인) — 8잡 중 4잡은 저장 실패로 Codex 캐시에서 잡 순서·종횡비로 대조해 복구, 눈으로 확인함",
+  "manifest": "_gen/v1.json",
+  "export": "_gen/fx2_export.py (근흑 제거, 트림, 가장자리 페이드, WebP)",
+  "style_prompt": "Hand-drawn 2D anime effects key drawing ... exactly three flat tones (white core / mid grey body / dark grey rim), hard edges, no gradients, greyscale, pure black background, one centred subject (전문은 _gen/v1.json)",
+  "blend": "GFX 모드 15: 밝기 3단계를 직업별 테두리/본색/핵 색으로 치환. 2드로잉에 걸쳐 튀어나오고, 외곽이 12fps로 '끓고', 노이즈로 타 사라짐",
+  "files": [
+   {
+    "file": "assets/fx2_burst.webp",
+    "size": "1024x949",
+    "used_by": "gStar(크기 240 이상) → 전 직업 절정 폭발"
+   },
+   {
+    "file": "assets/fx2_shock.webp",
+    "size": "1024x1024",
+    "used_by": "gRing(반지름 600 이상, 바깥으로) → 바닥 충격파"
+   },
+   {
+    "file": "assets/fx2_fire.webp",
+    "size": "640x1024",
+    "used_by": "gFire → 불기둥"
+   },
+   {
+    "file": "assets/fx2_smoke.webp",
+    "size": "1024x908",
+    "used_by": "gPuff(크기 110 이상) → 연기"
+   },
+   {
+    "file": "assets/fx2_bolt.webp",
+    "size": "545x1024",
+    "used_by": "gBolt(낙차 1500 이상) → 하늘 낙뢰"
+   },
+   {
+    "file": "assets/fx2_tornado.webp",
+    "size": "687x1024",
+    "used_by": "파이어 스톰 회오리(2드로잉마다 좌우 반전)"
+   },
+   {
+    "file": "assets/fx2_cloud.webp",
+    "size": "1024x341",
+    "used_by": "헤븐 썬더 구름 천장"
+   },
+   {
+    "file": "assets/fx2_slash.webp",
+    "size": "1024x676",
+    "used_by": "제로 슬래시 통과 참격"
+   }
+  ]
+ }
 }
