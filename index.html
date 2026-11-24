@@ -227,11 +227,12 @@ void main(){vec2 w=toWorld(v);float qa[16];float ws=0.,rs=0.,sm=0.;
  float sa=clamp(sm*(sn*2.6-.7)*1.15+soot,0.,.78)*(1.-clamp(tf*1.5,0.,1.));
  vec3 scol=vec3(.03,.026,.025)+vec3(.45,.14,.03)*clamp(tf*2.5,0.,1.)*.5;
  gl_FragColor=vec4((e+scol*sa)*.5,sa);}`;
-const DOWNFS=`uniform sampler2D a,b;void main(){gl_FragColor=vec4((texture2D(a,v).rgb+texture2D(b,v).rgb*1.2)*.5,1.);}`;
+const DOWNFS=`uniform sampler2D a,b,c;uniform float ck;void main(){gl_FragColor=vec4((texture2D(a,v).rgb+texture2D(b,v).rgb*1.2+texture2D(c,v).rgb*ck)*.5,1.);}`;
 const BLURFS=`uniform sampler2D a;uniform vec2 dir;void main(){vec3 c=texture2D(a,v).rgb*.227027;c+=(texture2D(a,v+dir*1.384615).rgb+texture2D(a,v-dir*1.384615).rgb)*.316216;c+=(texture2D(a,v+dir*3.230769).rgb+texture2D(a,v-dir*3.230769).rgb)*.07027;gl_FragColor=vec4(c,1.);}`;
-const FINFS=`uniform sampler2D tex,bgT,fireT,b1,b2,b3;
+const FINFS=`uniform sampler2D tex,bgT,fireT,b1,b2,b3,vfxT,dstT;uniform vec4 glp[4];uniform vec3 glc[4];uniform vec3 amb;uniform float vfxK,dstK;
 uniform float ca,inv,flash,blur,gray,vig,grain,bloomK,lbox;uniform vec3 ray;uniform vec2 bc;uniform vec4 sh[4];uniform vec4 cut;uniform vec3 inkA,inkB;
 void main(){vec2 p=v;float asp=res.x/res.y;
+ if(dstK>0.){vec2 dd=texture2D(dstT,p).rg-.5;p+=dd*step(.006,abs(dd.x)+abs(dd.y))*.14*dstK;}
  for(int i=0;i<4;i++){vec4 s=sh[i];if(s.w>.001){vec2 d=p-s.xy;d.x*=asp;float r=length(d);float x=(r-s.z)/.055;
   float f=exp(-x*x)*s.w*smoothstep(.08,.16,v.y)*smoothstep(.92,.84,v.y);vec2 n=d/(r+1e-4);n.x/=asp;p-=n*f*.045;}}
  float seam=0.,gap=0.;
@@ -246,6 +247,9 @@ void main(){vec2 p=v;float asp=res.x/res.y;
   vec3 c=vec3(bg.r*(1.-sr.a)+sr.r,bg.g*(1.-s0.a)+s0.g,bg.b*(1.-sb.a)+sb.b);
   col+=c*(1.-fr.a)+fr.rgb*2.;nn+=1.;}
  col/=nn;
+ vec4 vx=vec4(0.);vec3 scn=col;
+ if(vfxK>0.){vec3 lit=amb;vec3 hz=vec3(0.);for(int i=0;i<4;i++){if(glp[i].w>.001){vec2 d=(v-glp[i].xy)*vec2(asp,1.);float f=glp[i].w/(1.+dot(d,d)/(glp[i].z*glp[i].z));f*=f;lit+=glc[i]*f*1.6;hz+=glc[i]*f*.035;}}
+  col=col*lit+hz;scn=col;vx=texture2D(vfxT,p);col=col*(1.-vx.a)+vx.rgb*vfxK;}
  vec3 B3=texture2D(b3,p).rgb;
  vec3 bloom=(texture2D(b1,p).rgb*.32+texture2D(b2,p).rgb*.3+B3*.26)*2.*bloomK;
  vec3 st=vec3(0.);for(int i=-2;i<=2;i++){st+=max(texture2D(b3,vec2(p.x+float(i)*.05,p.y)).rgb*2.-.3,0.);}
@@ -259,14 +263,14 @@ void main(){vec2 p=v;float asp=res.x/res.y;
  col=mix(col*vec3(.9,.97,1.1),col*vec3(1.06,1.,.92),smoothstep(.08,.6,l));
  col=max(mix(vec3(l),col,1.1),0.);
  col=mix(col,vec3(l)*vec3(1.08,1.,1.12),gray);
- vec3 ifr=mix(inkA,inkB,smoothstep(.14,.24,l));col=mix(col,ifr,inv);
+ float li=vfxK>0.?dot(scn,vec3(.299,.587,.114)):l;vec3 ifr=mix(inkA,inkB,smoothstep(.14,.24,li));col=mix(col,ifr*(1.-vx.a)+vx.rgb*vfxK,inv);
  col=col*(1.+flash*2.6)+flash*.1;
  col=mix(col,vec3(1.,.93,.96),gap);col+=seam*vec3(1.,.75,.85);
  float vd=length((v-.5)*vec2(asp,1.));col*=1.-vig*smoothstep(.4,1.2,vd);
  float gn=h12(gl_FragCoord.xy+fract(time*7.31)*vec2(131.7,71.3))-.5;col+=gn*grain*(1.15-l);
  col*=step(lbox,v.y)*step(v.y,1.-lbox);
  gl_FragColor=vec4(col,1.);}`;
-let GLX=null;
+let GLX=null; const RPG_SURV=()=>typeof RPG!=='undefined'&&RPG.mode==='surv';
 function mkRT(w,h){ const t=gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D,t); gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,w,h,0,gl.RGBA,gl.UNSIGNED_BYTE,null); texParams();
   const f=gl.createFramebuffer(); gl.bindFramebuffer(gl.FRAMEBUFFER,f); gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,t,0); gl.bindFramebuffer(gl.FRAMEBUFFER,null); return {t,f,w,h}; }
 function texParams(){ gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
@@ -330,13 +334,16 @@ function glFrame(){
   const nf=packFires();
   if(nf){ P=G.pFire; rtTarget(G.fire); common(P); gl.uniform4fv(U_(P,'fa'),FAA); gl.uniform4fv(U_(P,'fb'),FBA); gl.drawArrays(gl.TRIANGLES,0,3); G.fClr=false; }
   else if(!G.fClr){ rtTarget(G.fire); gl.clearColor(0,0,0,0); gl.clear(gl.COLOR_BUFFER_BIT); G.fClr=true; }
-  P=G.pDown; rtTarget(G.b1a); gl.useProgram(P.p); bindTex(0,G.tFx); bindTex(1,G.fire.t); gl.uniform1i(U_(P,'a'),0); gl.uniform1i(U_(P,'b'),1); gl.drawArrays(gl.TRIANGLES,0,3);
+  const gfxOn=!!(window.GFX&&GFX.on&&RPG_SURV()&&GFX.render(G)), gfxLit=gfxOn||!!(window.GFX&&GFX.on&&RPG_SURV()&&GFX.active());
+  P=G.pDown; rtTarget(G.b1a); gl.useProgram(P.p); bindTex(0,G.tFx); bindTex(1,G.fire.t); bindTex(2,gfxOn?G.gVfx.t:G.fire.t); gl.uniform1i(U_(P,'a'),0); gl.uniform1i(U_(P,'b'),1); gl.uniform1i(U_(P,'c'),2); gl.uniform1f(U_(P,'ck'),gfxOn?.9:0); gl.drawArrays(gl.TRIANGLES,0,3);
   blurPass(G.b1a,G.b1b,1,0); blurPass(G.b1b,G.b1a,0,1);
   blurPass(G.b1a,G.b2a,1,0); blurPass(G.b2a,G.b2b,0,1);
   blurPass(G.b2b,G.b3a,1,0); blurPass(G.b3a,G.b3b,0,1);
   P=G.pFin; gl.bindFramebuffer(gl.FRAMEBUFFER,null); gl.viewport(0,0,W,H); common(P);
   [G.tScene,G.bg.t,G.fire.t,G.b1a.t,G.b2b.t,G.b3b.t].forEach((t,i)=>bindTex(i,t));
   ['tex','bgT','fireT','b1','b2','b3'].forEach((n,i)=>gl.uniform1i(U_(P,n),i));
+  bindTex(6,gfxLit&&G.gVfx?G.gVfx.t:G.fire.t); bindTex(7,gfxLit&&G.gDist?G.gDist.t:G.fire.t); gl.uniform1i(U_(P,'vfxT'),6); gl.uniform1i(U_(P,'dstT'),7);
+  if(gfxLit) GFX.finUniforms(P,U_); else { gl.uniform1f(U_(P,'vfxK'),0); gl.uniform1f(U_(P,'dstK'),0); }
   gl.uniform1f(U_(P,'ca'),Math.min(post.caMax||.003,post.ca)); gl.uniform1f(U_(P,'inv'),post.inv); gl.uniform1f(U_(P,'flash'),Math.min(1,post.flash)); gl.uniform1f(U_(P,'blur'),post.blur*.5);
   gl.uniform1f(U_(P,'gray'),post.gray); gl.uniform1f(U_(P,'vig'),.5+ov.dim*.3); gl.uniform1f(U_(P,'grain'),.028); gl.uniform1f(U_(P,'bloomK'),window.BLOOMK??1); { const L0=LIGHTS[0]; if(L0){ const [rx,ry]=w2s(L0[0],L0[1]); gl.uniform3f(U_(P,'ray'),rx/W,1-ry/H,clamp(L0[3]-.4,0,1)*.9); } else gl.uniform3f(U_(P,'ray'),.5,.5,0); } gl.uniform1f(U_(P,'lbox'),ov.lb>.01?(window.LBK??.11)*ov.lb:0); gl.uniform2f(U_(P,'bc'),post.bc[0],post.bc[1]);
   gl.uniform3fv(U_(P,'inkA'),post.inkA); gl.uniform3fv(U_(P,'inkB'),post.inkB);
@@ -3207,6 +3214,6 @@ function begin(cls){
 }
 initGL(); addEventListener('resize',resize); resize(); requestAnimationFrame(frame);
 </script>
-<script src="rpg.js?v=42"></script>
+<script src="rpg.js?v=43"></script>
 </body>
 </html>
