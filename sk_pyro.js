@@ -20,7 +20,7 @@ const PS=K.PAL.silver||{d:'#070a14',b:'#aab8d8',m:'#e4ecff',h:'#ffffff',l:'#b9c6
 const col=P=>({cA:P.d,cB:P.b,cC:P.h,cM:P.m||P.b});
 const IDENT=[1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1];
 const CIRC=()=>F.ready('v3_circ_pyro')?'v3_circ_pyro':'fx_circle_arcane';
-if(F&&F.on){ for(const n of ['dragon_head','dragon_body','fx_sun','meteor','fx3_tornado','fx3_fire','fx3_smoke','v3_circ_pyro','v3_comet_tail','v3_crater','v3_scorch']) F.img(n); }
+if(F&&F.on){ for(const n of ['dragon_head','dragon_body','fx_sun','meteor','fx3_tornado','fx3_fire','fx3_smoke','v3_circ_pyro','v3_comet_tail','v3_crater','v3_scorch','v3_flame_cone','v3_vortex_wisps']) F.img(n); F.img('v3_groundfire',{repeat:true}); }
 
 // ---------------------------------------------------------------- local materials (built once)
 let MT=null;
@@ -37,6 +37,12 @@ function mats(){ if(MT) return MT; const m=F.mat, k=K.mats(); MT={
   // the dragon: painted colour art
   dH:m({kind:2,tex:'dragon_head',nz:'fbm',n1:[2.5,2.5,0,.1],cB:'#ffffff',cC:'#ffd070',gain:1.2,op:1,layer:'o'}),
   dB:m({kind:2,tex:'dragon_body',nz:'fbm',n1:[4,1,0,0],cB:'#ffffff',cC:'#ffd070',gain:1.15,op:1,layer:'o'}),
+  // low fire running along a floor path (the painted strip repeats along it)
+  gf:m({tex:'v3_groundfire',texO:{repeat:true},nz:'wisp',n1:[1,.5,0,-1.2],n2:[1.2,.9,.05,-.9],dist:.07,mdist:1,nk:.35,ero:.1,soft:.35,fd:[0,0,0,.12],rk:[.55,1.15],gain:2.4,bgain:1.05,op:.5}),
+  // a jet of fire: nozzle at u=0, billowing wide at u=1
+  fc:m({...k.art,tex:'v3_flame_cone',layer:'o',nz:'wisp',n1:[1.4,1,-1.5,0],n2:[1.3,1,-1,.05],dist:.06,mdist:1,nk:.3,rk:[.55,1.2]}),
+  // separate ribbons of a whirlwind with black between them
+  vx:m({...k.art,tex:'v3_vortex_wisps',layer:'o',nz:'wisp',n1:[1.5,1,-.9,-.5],n2:[1.4,1,-.7,-.5],dist:.05,mdist:1,nk:.25,rk:[.5,1.15]}),
   // comet tail (its head flare is at u=1): fire streaming back, and the black-crimson smoke it drags
   ct:m({...k.art,tex:'v3_comet_tail',layer:'o',nz:'streak',n1:[1.5,1,1.8,0],n2:[1.4,1,1.1,.05],dist:.05,mdist:1,nk:.3,rk:[.55,1.2]}),
   ctS:m({...k.art,tex:'v3_comet_tail',layer:'o',nz:'billow',n1:[1.5,1,.7,0],n2:[1.3,1,.5,.04],dist:.07,mdist:1,nk:.4,pw:.7,ero:.12,soft:.4,cA:'#000000',cB:'#140202',cC:'#3c0a04',rk:[.5,1.1],op:1,gain:1,bgain:1}),
@@ -61,11 +67,10 @@ function crater(x,y,r,o={}){ if(!F.on) return; const m=mats(), C=col(o.pal||PF),
     F.quad(m.crtE,x,y,r,r,rot,{...C,a:Math.min(1,heat*1.5),gain:2.6*(.35+.65*heat),bgain:1.2*(.45+.55*heat),ero:.16+.5*(1-heat),rv:[i*1.45*(1.02-.4*k),.3,0,.1],t0:sd}); },o.delay||0); }
 
 // FIRELINE: flames standing on a floor path for a while (what a dash, a ring or a dragon leaves burning). pts: [{x,y,h?}]
-function fireLine(pts,o={}){ if(!F.on) return; const km=K.mats(), P=o.pal||PF, C=col(P), dur=o.dur||2, h=o.h||150, sd=rand(0,9), g=o.gain||1, tin=o.in??.14, tout=o.out??.5, nt=o.tongues||0; let len=0;
-  for(let i=1;i<pts.length;i++) len+=Math.hypot(pts[i].x-pts[i-1].x,(pts[i].y-pts[i-1].y)/FSY); const ur=o.closed?Math.max(1,Math.round(len/(h*2.2))):Math.max(.5,len/(h*2.2));
+function fireLine(pts,o={}){ if(!F.on) return; const m=mats(), P=o.pal||PF, C=col(P), CG=col(PG), dur=o.dur||2, h=o.h||150, sd=rand(0,9), g=o.gain||1, tin=o.in??.14, tout=o.out??.5, nt=o.tongues||0;
   GFX.add(dur,(k,t)=>{ const up=eo3(sat(t/tin)), f=sat(1-(dur-t)/tout), a=1-f*f, hh=h*up*(1-.35*f)*(1+.06*Math.sin(t*13+sd));
-    F.wall(km.waB,pts,{h:hh,...C,a,gain:2.3*g,ero:.12+f*.6,uvT:[ur,1,sd,0],t0:sd});
-    F.wall(km.waC,pts,{h:hh*.55,...C,a,gain:3*g,ero:.26+f*.6,uvT:[ur*(o.closed?2:1.3),1,sd+.37,0],t0:sd});
+    F.wall(m.gf,pts,{h:hh,...C,a,gain:2.4*g,ero:.1+f*.6,ulen:h*3.2,uvT:[1,1,sd,0],t0:sd});
+    if(!F.low) F.wall(m.gf,pts,{h:hh*.6,...CG,a:a*.9,gain:2.6*g,ero:.2+f*.6,ulen:h*2.1,uvT:[1,1,sd+.4,0],t0:sd+2});
     for(let q=0;q<nt;q++){ const u=(q+.5)/nt*(pts.length-1), i0=Math.floor(u), fr=u-i0, A_=pts[i0], B_=pts[Math.min(pts.length-1,i0+1)], fs=hh*(.62+.2*Math.sin(q*2.4+sd)+.07*Math.sin(t*9+q)); tongue(mix(A_.x,B_.x,fr),mix(A_.y,B_.y,fr),0,fs,0,-1,{...C,a,t0:sd+q,ero:.12+f*.6,gain:2.3*g}); } },o.delay||0); }
 const ringPts=(x,y,r,n=32,ky=FSY)=>{ const p=[]; for(let i=0;i<=n;i++){ const b=i/n*TAU; p.push({x:x+Math.cos(b)*r,y:y+Math.sin(b)*r*ky,bx:Math.cos(b),by:Math.sin(b)*ky}); } return p; };
 
@@ -74,7 +79,7 @@ const ringPts=(x,y,r,n=32,ky=FSY)=>{ const p=[]; for(let i=0;i<=n;i++){ const b=
 //  o: {r0, r, h, dur, pal, gain, lean, hb, hf, smoke (0 = none)}
 function ringFire(x,y,o={}){ if(!F.on) return; const km=K.mats(), P=o.pal||PF, C=col(P), R0=o.r0||60, R1=o.r||500, dur=o.dur||.5, h=o.h||220, sd=rand(0,9), g=o.gain||1, ln=1+(o.lean??.2), lh=[o.hb??1.15,o.hf??.5];
   GFX.add(dur,(k)=>{ const e=eo3(k), r=mix(R0,R1,e), f=sat((k-.6)/.4), a=1-f*f, hh=h*(.5+.5*sat(k*6))*(1-.4*f), ur=Math.max(2,Math.round(TAU*r/(h*2.4)));
-    if(o.smoke!==0) F.lathe(km.waS,x,y,0,{r0:r*1.03,r1:r*1.03*ln,h0:0,h1:hh*1.22,lh,a:a*.85,ero:.1+f*.5,uvT:[ur,1,sd+.5,0],fd:[0,0,0,.3],t0:sd,ord:-1});
+    if(o.smoke!==0&&!F.low) F.lathe(km.waS,x,y,0,{r0:r*1.03,r1:r*1.03*ln,h0:0,h1:hh*1.22,lh,a:a*.85,ero:.1+f*.5,uvT:[ur,1,sd+.5,0],fd:[0,0,0,.3],t0:sd,ord:-1});
     F.lathe(km.waB,x,y,0,{r0:r,r1:r*ln,h0:0,h1:hh,lh,...C,a,gain:2.4*g,ero:.12+f*.7,uvT:[ur,1,sd,0],fd:[0,0,.04,.35],t0:sd});
     F.lathe(km.waC,x,y,0,{r0:r*.985,r1:r*.985*ln,h0:0,h1:hh*.6,lh,...C,a,gain:2.8*g,ero:.25+f*.6,uvT:[ur*2,1,sd+.37,0],fd:[0,0,0,.5],t0:sd}); },o.delay||0); }
 
@@ -87,21 +92,21 @@ function whirl(x,y,o={}){ const h={x,y,s:o.s||1,a:1,lean:0,dead:false,L:null}; i
     // it bends: the stem leans one way, the crown trails and sways the other
     const s1=h.lean+Math.sin(t*2.9+sd)*.1, s2=h.lean*1.8-Math.sin(t*2.9+sd+.9)*.17; M1[8]=s1; M2[8]=s2; M2[12]=(s1-s2)*Hh*.45; const tx=s1*Hh*.45+s2*Hh*.55;
     if(h.L){ h.L.x=h.x; h.L.y=h.y; h.L.r=R0*s*3.6; }
-    F.quad(km.dark,h.x,h.y,R*1.15,R*1.15,0,{a:.55*a});
+    if(!F.low) F.quad(km.dark,h.x,h.y,R*1.15,R*1.15,0,{a:.55*a});
     F.quad(km.glowG,h.x,h.y,R*1.6,R*1.6,0,{...C,a:.85*a,gain:1.3});
     // eye: the foot opens round whoever stands in it - the fire turns above and about him, not over him
     if(o.eye){ const re=R*.64, lh=[1.15,.3];
-      F.lathe(km.waS,h.x,h.y,0,{r0:R*.5,r1:R*1.22,h0:Hh*.2,h1:Hh*1.04,M:M2,lh:[1,.75],a:a*.7,ero:.14+f*.5,uvT:[3,1,sd+t*.25,0],fd:[0,0,.25,.3],t0:sd,ord:-1});
       F.lathe(km.waB,h.x,h.y,0,{r0:re,r1:re*1.16,h0:0,h1:Hh*.34,lh,...CD,a:a*.95,gain:2.2*g,ero:.12+f*.6,uvT:[5,1,sd+t*.55,0],fd:[0,0,.03,.35],t0:sd});
       F.lathe(km.waC,h.x,h.y,0,{r0:re*.97,r1:re*1.1,h0:0,h1:Hh*.2,lh,...C,a:a*.9,gain:2.6*g,ero:.26+f*.6,uvT:[8,1,sd+t*.8,0],fd:[0,0,0,.5],t0:sd});
-      F.lathe(m.whB,h.x,h.y,0,{r0:R*.42,r1:R*1.05,h0:Hh*.3,h1:Hh,M:M2,...C,a,gain:1.7*g,ero:.2+f*.6,fd:[0,0,.4,.35],t0:sd+4});
+      F.lathe(m.whB,h.x,h.y,0,{r0:R*.42,r1:R*1.05,h0:Hh*.3,h1:Hh,M:M2,...CD,a:a*.7,gain:1.5*g,ero:.24+f*.6,fd:[0,0,.4,.35],t0:sd+4});
+      F.bill(m.vx,h.x+tx*.5,h.y,Hh*.62,Hh*.3,Hh*.44,0,{...CG,a:a*.95,gain:2.5*g,ero:.12+f*.6,nk:.25+f*.5,t0:sd+2,fd:[0,0,.2,0],uvT:(Math.floor(t*11+sd)&1)?[-1,1,1,0]:[1,1,0,0]});
       F.bill(m.tor,h.x+tx*.55,h.y,Hh*.6,Hh*.37,Hh*.48,0,{...C,a:a*.95,gain:2.3*g,ero:.14+f*.6,nk:.35+f*.5,t0:sd,fd:[0,0,.3,0],uvT:(Math.floor(t*8+sd)&1)?[-1,1,1,0]:[1,1,0,0]}); return; }
     F.lathe(m.whB,h.x,h.y,0,{r0:R*.2,r1:R*.6,h0:0,h1:Hh*.72,M:M1,...CD,a,gain:1.7*g,ero:.2+f*.6,fd:[0,0,.12,.5],t0:sd});
     F.lathe(m.whB,h.x,h.y,0,{r0:R*.36,r1:R,h0:Hh*.28,h1:Hh,M:M2,...C,a,gain:1.7*g,ero:.2+f*.6,fd:[0,0,.35,.35],t0:sd+4});
-    F.lathe(m.whC,h.x,h.y,0,{r0:R*.08,r1:R*.34,h0:0,h1:Hh*.82,M:M1,...CG,a,gain:2*g,ero:.32+f*.5,t0:sd+2});
+    F.bill(m.vx,h.x+tx*.4,h.y,Hh*.5,Hh*.27,Hh*.5,0,{...C,a:a*.85,gain:1.9*g,ero:.14+f*.6,nk:.25+f*.5,t0:sd+2,uvT:(Math.floor(t*11+sd)&1)?[-1,1,1,0]:[1,1,0,0]});
     F.bill(m.tor,h.x+tx*.55,h.y,Hh*.53,Hh*.37,Hh*.55,0,{...C,a:a*.95,gain:2.3*g,ero:.14+f*.6,nk:.35+f*.5,t0:sd,uvT:(Math.floor(t*8+sd)&1)?[-1,1,1,0]:[1,1,0,0]});
     // the skirt: low flames in a ring round its foot
-    const rs=R*.62; for(const p of sk){ p.x=h.x+p.bx*rs; p.y=h.y+p.by*rs; } F.wall(km.waB,sk,{h:R*.8,...C,a:a*.9,gain:2*g,ero:.14+f*.6,uvT:[3,1,sd+t*.9,0],t0:sd});
+    const rs=R*.62; for(const p of sk){ p.x=h.x+p.bx*rs; p.y=h.y+p.by*rs; } if(!F.low) F.wall(km.waB,sk,{h:R*.8,...C,a:a*.9,gain:2*g,ero:.14+f*.6,uvT:[3,1,sd+t*.9,0],t0:sd});
     if(Math.random()<.55*(GFX.QK||1)){ const b=rand(0,TAU), rr=R*rand(.3,.9); GFX.pt({x:h.x+Math.cos(b)*rr,y:h.y+Math.sin(b)*rr*FSY,z:rand(10,Hh*.5),vx:-Math.sin(b)*rand(300,700)*s,vy:Math.cos(b)*rand(200,400)*s,vz:rand(300,900),g:-200,drag:1.4,life:rand(.4,.9),s:rand(2.5,5),m:3,len:.05,c:GFX.rgb(Math.random()<.4?P.h:P.s),c2:P.b,L:3}); } },o.delay||0);
   return h; }
 
@@ -110,7 +115,7 @@ function tongue(x,y,z,s,ux,uy,o){ const m=mats(); F.bill(m.fire,x+ux*s*.86,y,z-u
 
 // TAIL: the painted comet tail laid behind a moving point: smoke, fire, a gold heart. (ux,uy) = unit screen heading, L = length, w = half width
 function tail(x,y,z,ux,uy,L,w,sd,a=1){ const m=mats(), th=Math.atan2(uy,ux), hl=L/2, cx=x-ux*hl*.88, cz=z+uy*hl*.88;
-  F.bill(m.ctS,cx-ux*hl*.2,y,cz+uy*hl*.2,hl*1.2,w*1.45,th,{a:.75*a,t0:sd});
+  if(!F.low) F.bill(m.ctS,cx-ux*hl*.2,y,cz+uy*hl*.2,hl*1.2,w*1.45,th,{a:.75*a,t0:sd});
   F.bill(m.ct,cx,y,cz,hl,w,th,{...col(PF),a,gain:2.5,ero:.1,t0:sd});
   F.bill(m.ct,cx+ux*hl*.34,y,cz-uy*hl*.34,hl*.66,w*.6,th,{...col(PG),a:.95*a,gain:2.9,ero:.14,t0:sd+3}); }
 // COMET: the look of a fire projectile - a gold heart, the painted tail of fire and smoke behind it, embers, its light on the floor. Reads p every frame.
@@ -194,12 +199,13 @@ const SKILL={
   // FLAME THROWER: two seconds of a fan of fire from his hand
   py_breath:{fn(id){ const e=nearest(520); if(!e) return false; const flat=b=>{ const c=Math.cos(b)>=0?0:Math.PI, d=Math.atan2(Math.sin(b-c),Math.cos(b-c)); return c+clamp(d,-.6,.6); }; let a=flat(angTo(e)); const d=D(id), R=EVO(id)?640:520, half=EVO(id)?.55:.42; face(a);
     S([['gb03',.05],['gb05',.05],['gb06',2,{kick:[1.2,-1]}],['gb10',.08],['gb12',.06]]); sfx('fire',2,.8);
-    if(F.on){ const km=K.mats(), C=col(PF), CD=col(PD), CG=col(PG), sd=rand(0,9), dur=2, Lt=GFX.light(pl.x,pl.gy,R*1.3,PF.l,.95,.3,{hold:dur,z:90,flick:.25}), fan=[[-.62,.9,CD],[.62,.9,CD],[-.26,1,C],[.26,1,C],[0,.78,CG]], rev={n1:[1.2,1,0,1.3],n2:[1.3,1,.05,1.1],pm:[1,.3,.02,0],fd:[0,0,.3,0]};
-      // painted flames laid tip-to-hand, so the fire widens away from him and streams outward
-      GFX.add(dur+.25,(k,t)=>{ const i=eo3(sat(t/.22)), out=sat((dur+.25-t)/.25), f=1-out, J=pl.j, ox=J&&J.rh?J.rh[0]:pl.x+pl.f*50, z=J&&J.rh?Math.max(40,pl.gy-J.rh[1]):BODY*.55, mx=pl.x+Math.cos(a)*R*.55, my=pl.gy+Math.sin(a)*R*.55;
+    if(F.on){ const m=mats(), km=K.mats(), C=col(PF), CG=col(PG), sd=rand(0,9), dur=2, Lt=GFX.light(pl.x,pl.gy,R*1.3,PF.l,.95,.3,{hold:dur,z:90,flick:.25}), wk=Math.tan(half)*.8;
+      // the painted jet, laid from his hand along the aim: a red-orange body, a gold heart, both flickering
+      GFX.add(dur+.25,(k,t)=>{ const i=eo3(sat(t/.22)), out=sat((dur+.25-t)/.25), f=1-out, J=pl.j, ox=J&&J.rh?J.rh[0]:pl.x+pl.f*50, z=J&&J.rh?Math.max(40,pl.gy-J.rh[1]):BODY*.55, mx=pl.x+Math.cos(a)*R*.55, my=pl.gy+Math.sin(a)*R*.55, ca=Math.cos(a), sa=Math.sin(a);
         Lt.x=mx; Lt.y=my; F.quad(km.glowG,mx,my,R*.62,R*.5,0,{...C,a:.8*out*i,gain:1.3});
-        for(let q=0;q<5;q++){ const [fa,fl,cc]=fan[q], b=a+half*fa+Math.sin(t*6+q*1.7)*.05, s=R*.54*fl*(.25+.75*i)*(1+.05*Math.sin(t*21+q*2.3)), ux=Math.cos(b), uy=Math.sin(b);
-          tongue(ox+ux*s*1.86,pl.gy,z-uy*s*1.86,s,-ux,-uy,{...cc,...rev,t0:sd+q*1.3,a:out*(q<4?.9:1),gain:q<4?2.3:2.9,ero:.12+f*.6,wk:q<4?.5:.4}); }
+        const L1=R*1.14*(.25+.75*i)*(1+.04*Math.sin(t*21)), L2=L1*.62, fl=(Math.floor(t*12)&1)?[1,-1,0,1]:[1,1,0,0], fl2=(Math.floor(t*12+.5)&1)?[1,-1,0,1]:[1,1,0,0];
+        F.bill(m.fc,ox+ca*L1*.5,pl.gy,z-sa*L1*.5,L1*.5,L1*wk,a,{...C,a:out,gain:2.5,ero:.1+f*.6,t0:sd,uvT:fl});
+        F.bill(m.fc,ox+ca*L2*.5,pl.gy,z-sa*L2*.5,L2*.5,L2*wk*.8,a,{...CG,a:out,gain:2.9,ero:.16+f*.6,t0:sd+3,uvT:fl2});
         F.bill(km.glowO,ox,pl.gy,z,64,64,0,{...CG,a:out,gain:2.6});
         if(out>=1) for(let q=0;q<2;q++){ const b=a+rand(-half,half)*.8, sp=rand(700,1300); GFX.pt({x:ox,y:pl.gy,z:z+rand(-10,10),vx:Math.cos(b)*sp,vy:Math.sin(b)*sp,vz:rand(-40,200),g:-120,drag:1.5,life:rand(.3,.6),s:rand(2.5,5),m:3,len:.04,c:GFX.rgb(Math.random()<.4?PF.h:PF.s),c2:PF.b,L:3}); } }); }
     V.zones.push({follow:true,r:0,life:2,tick:.1,onTick:()=>{ const t=nearest(R+60); if(t){ const b=flat(angTo(t)); a+=Math.atan2(Math.sin(b-a),Math.cos(b-a))*.25; face(a); }
@@ -256,9 +262,9 @@ function ultStorm(id){ ultStart(id); const Cn=X.cine, {hw,hh}=view(), Dm=60000*A
   // the arms: each whirl's path stays alight behind it, so the field carries a burning spiral
   if(F.on){ const m=mats(); GFX.add(6.3,(k,tt)=>{ if(!tor[0].path.length) return; const heat=t<4.42?1.15:Math.max(.12,1-(t-4.42)/1.3), fade=sat((1-k)/.2);
       for(const z of tor) if(z.path.length>1) F.ribbon(m.arm,z.path,{w:58,cB:'#e03a04',cC:PF.s,a:.9*fade,bgain:1.5*heat,gain:2.4*heat,t0:z.n}); },1.82); }
-  if(F.on){ const km=K.mats(), C=col(PF), CDk=col(PD), sd=rand(0,9); GFX.add(9,()=>{ if(done||!tor[0].path.length) return; const blown=sat(1-(t-4.42)/.45); if(blown<=0) return;
-      for(const z of tor){ const P_=z.path, n=P_.length; if(n<2) continue; for(const p of P_){ const age=t-p.t; p.h=170*sat(age/.2)*sat(1.15-(age-1.5)/1.2)*(1+.12*Math.sin(p.t*37+t*9)); }
-        F.wall(km.waB,P_,{...C,a:blown,gain:2.3,ero:.14+(1-blown)*.6,ulen:380,fd:[0,0,0,.35],uvT:[1,1,z.n*.37,0],t0:sd+z.n});
+  if(F.on){ const gm=mats().gf, C=col(PF), CDk=col(PD), sd=rand(0,9); GFX.add(9,()=>{ if(done||!tor[0].path.length) return; const blown=sat(1-(t-4.42)/.45); if(blown<=0) return;
+      for(const z of tor){ const P_=z.path, n=P_.length; if(n<2) continue; for(const p of P_){ const age=t-p.t; p.h=200*sat(age/.2)*sat(1.15-(age-1.5)/1.2)*(1+.12*Math.sin(p.t*37+t*9)); }
+        F.wall(gm,P_,{...C,a:blown,gain:2.4,ero:.1+(1-blown)*.6,ulen:560,uvT:[1,1,z.n*.37,0],t0:sd+z.n});
         for(let i=2;i<n-1;i+=3){ const p=P_[i], dx=P_[i+1].x-P_[i-1].x, dy=P_[i+1].y-P_[i-1].y; if(p.h>40&&Math.abs(dy)>Math.abs(dx)*.9) tongue(p.x,p.y,0,p.h*1.3,0,-1,{...((i+z.n)%2?C:CDk),a:blown,t0:sd+i+z.n,ero:.12+(1-blown)*.6,gain:2.3}); } } }); }
   // ---- release: the six flames twist up and walk out
   after(1.82,()=>{ out=true; sig.pal=PF; if(sig.kick) sig.kick(); spot.hold=0; spot.life=.3; Cn.zoom(.84); Cn.cam(null); Cn.shake(.8); post.ca=.01; hitstop=Math.max(hitstop,.05); SFX.boom(1.4,.5); Cn.SND.shing(.7,.4);
@@ -268,7 +274,7 @@ function ultStorm(id){ ultStart(id); const Cn=X.cine, {hw,hh}=view(), Dm=60000*A
     for(const z of tor){ K.flame(z.cx,z.cy,{s:300,dur:.45,pal:PG,light:0}); z.w=whirl(z.x,z.y,{s:z.s1*.4,h:640,r:185,dur:2.6,in:.4,out:.25}); } });
   // ---- development: the field erupts between the whirls
   for(let i=0;i<16;i++) after(2.1+i*.1,()=>{ const x=x0+rand(-hw,hw)*.9, y=y0+rand(-hh,hh)*.85;
-    K.burst(x,y,{s:200,pal:PF,smoke:i%3?0:1,no:['crack','debris','shock']}); K.flame(x,y,{s:rand(280,360),dur:.75,pal:i%2?PF:PD,light:0}); if(i%2) scorch(x,y,230,{life:3.2});
+    K.burst(x,y,{s:200,pal:PF,smoke:i%3?0:1,no:['crack','debris','shock']}); K.flame(x,y,{s:rand(280,360),dur:.75,pal:i%2?PF:PD,light:0});
     sfx('boom',.8,.4); Cn.shake(.3); inCircle(x,y,200,o=>ultHit(o,Dm*.3,x,y)); });
   // ---- they come home and wind into one
   after(3.75,()=>{ home=t; Cn.zoom(1.05); Cn.SND.inhale(.5,.7); GFX.ambient(.3,.3,.4,8); sig.a=1.5;
@@ -316,16 +322,17 @@ function ultDragon(id){ ultStart(id); const Cn=X.cine, {hw,hh}=view(), Dm=70000*
   K.arcwall(x0,y0,{r:SR*1.02,h:330,hb:1,hf:.28,dur:1.3,rise:.7,pal:PD,gain:.9,delay:.9,light:.5});
   // path of the head: floor position and height, lt seconds after it leaves the circle. The dive is one arc: on along the lap, up, over and in.
   const lap=lt=>{ const a=-PI/2+lt*3.0, R=RR*Math.min(1,lt/.45); return [x0+Math.cos(a)*R,y0+Math.sin(a)*R*.75]; }, zl=lt=>ZF*eo3(sat(lt/.35))+Math.sin(lt*6)*38;
-  const [sx,sy]=lap(TD), [sx2,sy2]=lap(TD+.02), sz=zl(TD), qx=sx+(sx2-sx)/.02*DD*.5, qy=sy+(sy2-sy)/.02*DD*.5;
+  const [sx,sy]=lap(TD), [sxb,syb]=lap(TD-.02), sz=zl(TD), Y0=sy-sz, hvx=(sx-sxb)/.02, hvy=(sy-syb)/.02-(sz-zl(TD-.02))/.02, hvl=Math.hypot(hvx,hvy)||1, side=hvx>=0?1:-1;
+  const b1x=sx+hvx/hvl*420, b1y=Y0+hvy/hvl*420-240, b2x=cx+side*580, b2y=cy-300;
   const pos=lt=>{ if(lt<=0) return {x:x0,y:y0,z:0}; if(lt<TD){ const [x,y]=lap(lt); return {x,y,z:zl(lt)}; }
-    const k=sat((lt-TD)/DD), w=k*(.7+.3*k), u=1-w; return {x:u*u*sx+2*u*w*qx+w*w*cx,y:u*u*sy+2*u*w*qy+w*w*cy,z:sz*(1-Math.pow(k,2.2))+3300*k*k*Math.pow(1-k,1.5)}; };
+    const k=sat((lt-TD)/DD), w=k*(.7+.3*k), u=1-w, X=u*u*u*sx+3*u*u*w*b1x+3*u*w*w*b2x+w*w*w*cx, Y=u*u*u*Y0+3*u*u*w*b1y+3*u*w*w*b2y+w*w*w*cy, z=Math.max(0,lerp(sy,cy,w*w*(3-2*w))-Y); return {x:X,y:Y+z,z}; };
   let t=0, sc=0, fl=0, arcT=.2, dive=0, done=false; const trail=[];
   V.ultTick=dt=>{ t+=dt; sig.r=lerp(30,SR,easeOut(Math.min(1,t/1))); Cn.shake(t<1.8?.1+t*.1:0);
     if(t<T0){ if((sc+=dt)>.09){ sc=0; const a=rand(0,TAU), r=rand(.55,1)*SR; K.flame(x0+Math.cos(a)*r,y0+Math.sin(a)*r*FSY,{s:rand(70,150)*(.5+t*.4),dur:.5,pal:PD,light:0}); } return; }
     const lt=t-T0; if(dive||lt>=TD) return; const p=pos(lt);
     if((sc+=dt)>.11){ sc=0; trail.push({x:p.x,y:p.y,t}); if((fl=(fl+1)%3)===0) K.flame(p.x+rand(-40,40),p.y+rand(-20,20),{s:rand(130,190),dur:rand(1.5,2.1),pal:PF,light:0}); }
     // its wake throws a wall of fire outward, sector by sector, until the whole field is ringed
-    if(lt>.35&&(arcT+=dt)>.3){ arcT=0; const a=-PI/2+lt*3.0; K.arcwall(x0,y0,{r:RO,a0:a-1.0,a1:a-.08,h:560,hb:1,hf:.34,dur:1.8,rise:.22,pal:PF,gain:1.05,light:0}); GFX.light(x0+Math.cos(a-.5)*RO,y0+Math.sin(a-.5)*RO*FSY,700,PD.l,.6,1,{z:160}); }
+    if(lt>.35&&(arcT+=dt)>.3){ arcT=0; const a=-PI/2+lt*3.0; K.arcwall(x0,y0,{r:RO,a0:a-1.0,a1:a-.08,h:760,hb:1,hf:.26,dur:1.8,rise:.22,pal:PF,gain:1.05,light:0}); GFX.light(x0+Math.cos(a-.5)*RO,y0+Math.sin(a-.5)*RO*FSY,700,PD.l,.6,1,{z:160}); }
     if(Math.random()<.35){ V.blast={x:p.x,y:p.y,p:.8}; inCircle(p.x,p.y,270,o=>ultHit(o,Dm*.15,p.x,p.y-BODY)); } };
   // the shape under the floor before it comes: a scaled body turning under the circle
   if(F.on){ const m=mats(); GFX.add(1.5,(k,tt)=>{ const a=sat(tt/.5)*(1-sat((tt-1.4)/.1)), r=sig.r*.74, w=r*.36, a0=-tt*2.6;
@@ -333,7 +340,7 @@ function ultDragon(id){ ultStart(id); const Cn=X.cine, {hw,hh}=view(), Dm=70000*
   // the track it flew: a charred, ember-veined scar that stays, and flames standing on it until the floor takes the dragon back
   if(F.on){ const m=mats(), km=K.mats(), CD=col(PD), C=col(PF), sd=rand(0,9); GFX.add(8,(k)=>{ const n=trail.length; if(n<2) return; const heat=t<4.52?1.2:Math.max(.15,1-(t-4.52)/1.5), fade=sat((1-k)/.15), burn=done?0:sat(1-(t-5.0)/.7);
       F.ribbon(m.arm,trail,{w:78,cB:'#e03a04',cC:PF.s,a:.9*fade,bgain:1.5*heat,gain:2.4*heat});
-      if(burn>0){ for(const p of trail){ const age=t-p.t; p.h=200*sat(age/.2)*(1+.12*Math.sin(p.t*37+t*9)); } F.wall(km.waB,trail,{...CD,a:burn,gain:2.2,ero:.14+(1-burn)*.6,ulen:400,fd:[0,0,0,.35],t0:sd});
+      if(burn>0){ for(const p of trail){ const age=t-p.t; p.h=200*sat(age/.2)*(1+.12*Math.sin(p.t*37+t*9)); } F.wall(m.gf,trail,{...CD,a:burn,gain:2.4,ero:.1+(1-burn)*.6,ulen:640,t0:sd});
         for(let i=1;i<n-1;i+=3){ const p=trail[i], dx=trail[i+1].x-trail[i-1].x, dy=trail[i+1].y-trail[i-1].y; if(p.h>40&&Math.abs(dy)>Math.abs(dx)*.8) tongue(p.x,p.y,0,p.h*1.3,0,-1,{...(i%2?C:CD),a:burn,t0:sd+i,ero:.12+(1-burn)*.6,gain:2.3}); } } },T0); }
   // ---- the dragon itself: drawn from the path every frame
   if(F.on){ const m=mats(), km=K.mats(), C=col(PF), CD=col(PD), CG=col(PG), sd=rand(0,9), pts=[], au=[], sm=[];
@@ -353,9 +360,9 @@ function ultDragon(id){ ultStart(id); const Cn=X.cine, {hw,hh}=view(), Dm=70000*
       L1.x=hp.x; L1.y=hp.y; L1.a=1.25*live; L2.x=mid.x; L2.y=mid.y; L2.a=.9*live*sat(lt/.4);
       // on the floor: its shadow, and the light it throws down
       if(head){ F.quad(km.dark,hp.x,hp.y,340,340,0,{a:.5*hk}); F.quad(km.glowG,hp.x,hp.y,600,600,0,{...C,a:.85*hk,gain:1.4}); }
-      if(mid.w>1){ F.quad(km.dark,mid.x,mid.y,290,290,0,{a:.42}); F.quad(km.glowG,mid.x,mid.y,430,430,0,{...CD,a:.6,gain:1.2}); }
+      if(mid.w>1){ if(!F.low) F.quad(km.dark,mid.x,mid.y,290,290,0,{a:.42}); F.quad(km.glowG,mid.x,mid.y,430,430,0,{...CD,a:.6,gain:1.2}); }
       // what it drags: black-crimson smoke, and the fire streaming back along the body
-      F.ribbon(m.ctS,sm,{a:.8*live,t0:sd});
+      if(!F.low) F.ribbon(m.ctS,sm,{a:.8*live,t0:sd});
       F.ribbon(m.ct,au,{...CD,gain:2.2,ero:.1,t0:sd,a:.95*live});
       // the mane: painted flames rooted along the spine, blown back and up
       for(let i=1;i<N-6;i+=3){ const p=pts[i], pq=pts[i+2], bx=pq.x-p.x, by=(pq.y-pq.z)-(p.y-p.z), bl=Math.hypot(bx,by)||1; if(p.w<8) continue; const tx_=bx/bl*.75, ty_=by/bl*.75-.66, tl=Math.hypot(tx_,ty_)||1; tongue(p.x,p.y,p.z+p.w*.2,p.w*(2.5-i*.03),tx_/tl,ty_/tl,{...(i%2?C:CD),t0:sd+i,a:.9*live,gain:2.2}); }
@@ -364,11 +371,14 @@ function ultDragon(id){ ultStart(id); const Cn=X.cine, {hw,hh}=view(), Dm=70000*
       // the head, and the gold-white fire in its jaws
       if(head){ const rot=right?th-.22:th-PI+.22, s=HS*(1+hp.z/1600), HW=s*HA, ax=(right?-.5:.5)*HW, az=-.42*s, co=Math.cos(rot), si=Math.sin(rot), ox=ax*co+az*si, oy=ax*si-az*co, hx=hp.x-ox, hz=hp.z+oy, fd_=right?1:-1;
         F.bill(km.glowO,hx,hp.y,hz,s*1.7,s*1.7,0,{...CD,a:.45*hk,gain:1.2});
-        const mx=fd_*.44*HW, mz=-.22*s, bx=hx+mx*co+mz*si, bz=hz-(mx*si-mz*co), bs=s*(.62+.5*dv)*(1+.1*Math.sin(t*23));
-        tongue(bx,hp.y,bz,bs,fd_*Math.cos(rot+fd_*.3),fd_*Math.sin(rot+fd_*.3),{...CG,t0:sd+7,a:.95*hk,gain:2.9,wk:.4});
+        const mx=fd_*.44*HW, mz=-.22*s, bx=hx+mx*co+mz*si, bz=hz-(mx*si-mz*co), fa=right?rot+.22:rot+PI-.22, fl_=s*(1.15+1.1*dv)*(1+.08*Math.sin(t*23));
+        F.bill(m.fc,bx+Math.cos(fa)*fl_*.46,hp.y,bz-Math.sin(fa)*fl_*.46,fl_*.5,fl_*.24,fa,{...CG,a:.95*hk,gain:2.8,ero:.12,t0:sd+7,uvT:(Math.floor(t*12)&1)?[1,-1,0,1]:[1,1,0,0]});
         F.bill(m.dH,hx,hp.y,hz,HW,s,rot,{ero:mix(.9,-.1,hk),soft:.1,uvT:right?[1,1,0,0]:[-1,1,1,0]});
         F.bill(km.glowO,bx,hp.y,bz,s*.24,s*.24,0,{...CG,a:.8*hk,gain:2.2+Math.sin(t*37)*.4});
-        const jx=-fd_*Math.cos(rot), jy=-fd_*Math.sin(rot), nl=Math.hypot(jx*.8,jy*.8-.6)||1; tongue(hp.x-jx*s*.15,hp.y,hp.z+jy*s*.15+s*.12,s*.95,jx*.8/nl,(jy*.8-.6)/nl,{...C,t0:sd+11,a:.95*hk,gain:2.3}); tongue(hp.x+jx*s*.1,hp.y,hp.z-jy*s*.1-s*.1,s*.8,jx*.9/nl,(jy*.9-.3)/nl,{...CD,t0:sd+13,a:.95*hk,gain:2.2}); }
+        // where the painted neck ends and the body begins: buried in the smoke it drags and the flames of its mane
+        const pb=pts[3], qx_=pb.x-hp.x, qy_=(pb.y-pb.z)-(hp.y-hp.z), ql=Math.hypot(qx_,qy_)||1, jx=qx_/ql, jy=qy_/ql, kx=-fd_*.74*HW, kz=-.66*s, ex=hx+kx*co+kz*si, ez=hz-(kx*si-kz*co), nl=Math.hypot(jx*.8,jy*.8-.6)||1;
+        if(!F.low) F.bill(m.ctS,ex+jx*s*.62,hp.y,ez-jy*s*.62,s*.95,s*.62,Math.atan2(-jy,-jx),{a:.95*hk,t0:sd+5});
+        tongue(ex-jx*s*.1,hp.y,ez+jy*s*.1+s*.1,s*1.05,jx*.8/nl,(jy*.8-.6)/nl,{...C,t0:sd+11,a:.95*hk,gain:2.3}); tongue(ex+jx*s*.25,hp.y,ez-jy*s*.25-s*.12,s*.85,jx*.9/nl,(jy*.9-.35)/nl,{...CD,t0:sd+13,a:.95*hk,gain:2.2}); }
       // embers shed along its length
       for(let e=0;e<2;e++){ const p=pts[(Math.random()*(N-4))|0]; if(p.w>4) GFX.pt({x:p.x+rand(-40,40),y:p.y,z:p.z+rand(-40,40),vx:rand(-90,90),vy:rand(-40,40),vz:rand(-60,220),g:120,drag:.8,life:rand(.4,.9),s:rand(2.5,6.5),m:8,c:GFX.rgb(Math.random()<.4?PF.h:PF.s),L:3}); } }); }
   // ---- release: it comes up through the circle

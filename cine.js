@@ -46,7 +46,7 @@ const C={on:false,t:0,dark:0,darkT:0,dc:'6,4,14',spot:null,cut:null,imp:null,lin
 X.cine=C;
 C.preload=cls=>{ (CUTS[cls]||[]).forEach(img); };
 C.begin=()=>{ C.on=true; C.hscT=1.22; C.t=0; C.cut=null; C.imp=null; C.lines=null; post.caMax=.012; };
-C.end=()=>{ C.on=false; if(C.spotL){ C.spotL.hold=0; C.spotL.life=.3; C.spotL=null; } C.hscT=1; if(C.imp&&C.imp.amb) GFX.amb=C.imp.amb; GFX.ambient(1,1,1,3); if(C.st) C.st.dur=Math.min(C.st.dur,C.st.t+.5); C.darkT=0; C.spot=null; C.lines=null; C.cut=null; C.imp=null; C.veilT=0; V.camT=null; V.camK=0; cam.rollT=0; post.caMax=0; V.blast=null; C.flashCap=.22; for(const d of C.drones) d.stop(); C.drones.length=0; if(beamSnd!==NOP){ beamSnd.stop(); beamSnd=NOP; } };
+C.end=()=>{ C.on=false; post.tiltT=0; post.tiltK=3; if(C.spotL){ C.spotL.hold=0; C.spotL.life=.3; C.spotL=null; } C.hscT=1; if(C.imp&&C.imp.amb) GFX.amb=C.imp.amb; GFX.ambient(1,1,1,3); if(C.st) C.st.dur=Math.min(C.st.dur,C.st.t+.5); C.darkT=0; C.spot=null; C.lines=null; C.cut=null; C.imp=null; C.veilT=0; V.camT=null; V.camK=0; cam.rollT=0; post.caMax=0; V.blast=null; C.flashCap=.22; for(const d of C.drones) d.stop(); C.drones.length=0; if(beamSnd!==NOP){ beamSnd.stop(); beamSnd=NOP; } };
 C.reset=()=>{ C.end(); V.hsc=1; GFX.reset(); C.st=null; C.dark=0; C.veil=0; C.scars.length=0; C.ash.length=0; C.ashT=0; };
 C.drone=(f,v)=>{ const d=SND.drone(f,v); C.drones.push(d); return d; };
 
@@ -57,6 +57,8 @@ C.wash=(c,a,hold=0,x,y)=>{ a*=.45; C.veilC=c; C.veil=LOW()?a*.4:a; C.veilHold=ho
 C.cam=(x,y,k=7)=>{ V.camT=x==null?null:{x,y}; V.camK=k; };
 C.zoom=z=>{ V.zk=z; };
 C.roll=r=>{ cam.rollT=LOW()?r*.3:r; };
+// camera tilt: 0 = the game's top-down view, up to ~.3 = the camera drops toward the floor and the field recedes (k = how fast it gets there)
+C.tilt=(t,k=4)=>{ post.tiltT=LOW()?t*.5:t; post.tiltK=k; };
 C.shake=s=>{ trauma=Math.min(1.5,Math.max(trauma,LOW()?s*.35:s)); };
 C.release=(x,y,c,v=.5)=>{ K.ripple(x,y,1400,{life:.5,s:.6}); K.light(x,y,1600,c,.9,.5); C.gSparks(x,y,BODY*.6,22,c,{vz:900}); C.gDebris(x,y,8,{s0:250,s1:800,r:120}); C.flash(.2); C.shake(.7); post.ca=.01; fring(x,y,2600,c,.5,9); fring(x,y,1500,'#ffffff',.3,4); gl0(x,y-BODY,360,c,.3,{a:.8}); SFX.boom(1.4,v); SND.shing(.7,.4); };
 C.flash=a=>{ a*=.72; a=LOW()?a*.35:a; C.flashCap=Math.max(C.flashCap,a); post.flash=Math.max(post.flash,a); };
@@ -339,7 +341,7 @@ C.artNow=(name,x,y,z,w,h,c,o={})=>{ const s=C.art(name); if(!s.ok) return false;
     for(let q=0;q<2;q++) C.gArt('fx3_bolt',(x1+x2)/2,(y1+y2)/2,c,{c2:o.c2,c3:o.c3||'#ffffff',add:true,z:(z1+z2)/2,w,h:hh,rot,life:q?life*.7:life,hold:.5,flipX:q?!fl:fl,boil:.01,fps:18,L:o.L??3,delay:(o.delay||0)+q*life*.55,a:q?.8:1}); };
 }
 // ---------------------------------------------------------------- per-frame
-C.step=rdt=>{ C.t+=rdt; GFX.step(rdt); V.hsc=lerp(V.hsc||1,C.hscT||1,1-Math.exp(-rdt*5)); if(LOW()){ trauma=Math.min(trauma,.4); post.flash=Math.min(post.flash,.12); } C.dark=lerp(C.dark,C.darkT,1-Math.exp(-rdt*(C.darkT>C.dark?6:3.2)));
+C.step=rdt=>{ C.t+=rdt; GFX.step(rdt); post.tilt=(post.tilt||0)+((post.tiltT||0)-(post.tilt||0))*(1-Math.exp(-rdt*(post.tiltK||4))); V.hsc=lerp(V.hsc||1,C.hscT||1,1-Math.exp(-rdt*5)); if(LOW()){ trauma=Math.min(trauma,.4); post.flash=Math.min(post.flash,.12); } C.dark=lerp(C.dark,C.darkT,1-Math.exp(-rdt*(C.darkT>C.dark?6:3.2)));
   if(C.veilHold>0) C.veilHold-=rdt; else C.veil*=Math.exp(-rdt*7);
   C.flashCap=Math.max(.22,C.flashCap-rdt*2.2);
   if(C.cut){ C.cut.t+=rdt; if(C.cut.t>=C.cut.dur) C.cut=null; }

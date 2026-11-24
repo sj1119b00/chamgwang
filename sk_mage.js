@@ -204,7 +204,7 @@ const SKILL={
     let px=J&&J.st?J.st[0]:pl.x, py=J&&J.st?J.st[1]:pl.gy-BODY, hit=new Set(), nv=0;
     const jump=(e,k,px,py,s3)=>{ if(!e||k>=n) return; hit.add(e); const ex=e.x, ey=e.y-e.h*.5, t3={x:e.x,y:e.y,z:e.h*.5};
       // the evolved chain forks at every other hop, so one cast can be dozens of hits: the first ones get the full dressing, the rest less and less
-      const v=nv++; if(v<22) arc(s3,t3,{pal:k%2?AZV:ARC,tex:'h',dur:.28}); if(v<14) K.sparks(e.x,e.y,e.h*.5,{pal:ARC,n:6,sp:[250,900],up:500,life:[.12,.32]});
+      const v=nv++; if(v<14) arc(s3,t3,{pal:k%2?AZV:ARC,tex:'h',dur:.28}); if(v<10) K.sparks(e.x,e.y,e.h*.5,{pal:ARC,n:6,sp:[250,900],up:500,life:[.12,.32]});
       if(v<9){ K.art(e.x,e.y,{tex:'v3_xburst',s:85,z:e.h*.5,lift:0,dur:.2,pal:ARC,gain:.8,hold:.2,s0:.5}); GFX.light(e.x,e.y,520,ARC.l,.9,.28,{z:150}); if(k%2===0) scorch(e.x,e.y,{r:110,life:.8}); }
       dmg(e,d,{stun:.3,sx:px,sy:py+BODY}); hitFx(e,C2,1.2); sfx('slash',2,.2);
       const nx=V.en.filter(o=>!o.dead&&!hit.has(o)&&Math.hypot(o.x-e.x,o.y-e.y)<480).sort((a,b)=>Math.hypot(a.x-e.x,a.y-e.y)-Math.hypot(b.x-e.x,b.y-e.y));
@@ -237,7 +237,7 @@ const SKILL={
     T.sort(()=>Math.random()-.5).slice(0,n).forEach((e,i)=>{ const x=e.x+rand(-40,40), y=e.y+rand(-30,30), hitAt=Math.max(.3,.25+i*.12), fall=Math.min(.42,hitAt);
       mark({x,y},{r:150,dur:hitAt+.05,pal:STA,glow:0});
       comet(x,y,{img:'crystal',asp:.43,s:105,s0:.8,h0:1500,dx:480,dur:fall,delay:hitAt-fall,pal:STA,spin:0,rot:-.3,tail:5,tw:.9,gain:1.5,ring:0});
-      after(hitAt,()=>{ K.burst(x,y,{s:150,pal:STA,no:['smoke','crack','debris','shock'],dur:.45,gain:.8}); ring1(x,y,330,{pal:STA,dur:.4}); scorch(x,y,{r:180,pal:STA,life:1.6}); K.debris(x,y,{n:4,r:30,sp:[200,600],up:800,size:11,c:'#5a4c7a'}); sfx('boom',.8,.5);
+      after(hitAt,()=>{ K.burst(x,y,{s:150,pal:STA,no:i%2?['smoke','crack','debris','shock','flash']:['smoke','crack','debris','shock'],dur:.45,gain:.8}); ring1(x,y,330,{pal:STA,dur:.4}); scorch(x,y,{r:180,pal:STA,life:1.6}); K.debris(x,y,{n:4,r:30,sp:[200,600],up:800,size:11,c:'#5a4c7a'}); sfx('boom',.8,.5);
         inCircle(x,y,190,o=>{ dmg(o,d,{kb:1,launch:600,sx:x,sy:y}); hitFx(o,C1,1.2); }); }); }); }},
   // ARCANE RAY: a painted beam swept once round her, scoring the floor as it goes
   mg_beam:{fn(id){ const e=nearest(700); if(!e) return false; const d=D(id), a0=angTo(e), n=EVO(id)?2:1, Lb=950, dir=Math.random()<.5?1:-1; face(a0);

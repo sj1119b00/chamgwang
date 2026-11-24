@@ -41,7 +41,7 @@ function mats(){ if(MT) return MT; const m=F.mat; MT={
   piC:m({nz:'streak',n1:[.5,2,0,-2.4],n2:[2,1,0,-1],dist:.04,nk:.5,ero:.1,soft:.25,fd:[0,0,0,.85],rk:[.15,.5],gain:4.5,bgain:2.2}),
   waB:m({tex:'v3_curtain',texO:{repeat:true},nz:'wisp',n1:[1,.5,0,-1.2],n2:[1.2,.9,.05,-.9],dist:.08,mdist:1,nk:.5,ero:.12,soft:.35,fd:[.06,.06,0,.35],pm:[4,.8,.003,0],rk:[.62,1.15],gain:2.4,bgain:1.05,op:.55}),
   waC:m({tex:'v3_curtain',texO:{repeat:true},nz:'billow',n1:[2,.6,0,-2],n2:[1.6,1.2,-.04,-1.5],dist:.06,mdist:1,nk:.6,pw:1.8,ero:.3,soft:.25,fd:[.1,.1,0,.5],pm:[4,3,.003,0],rk:[.4,1],gain:2.8,bgain:1.4,op:.25}),
-  waS:m({tex:'v3_curtain',texO:{repeat:true},nz:'wisp',n1:[1,.5,0,-.7],n2:[1.1,.8,.04,-.6],dist:.1,mdist:1,nk:.6,ero:.1,soft:.4,fd:[.06,.06,0,.3],cA:'#000000',cB:'#000000',cC:'#000000',op:1,a:.62}),
+  waS:m({tex:'v3_curtain',texO:{repeat:true},nz:'billow',n1:[1.4,.7,0,-.5],n2:[1,.7,.03,-.4],dist:.12,mdist:1,nk:.75,pw:.7,ero:.2,soft:.5,fd:[.1,.1,.05,.45],cA:'#000000',cB:'#000000',cC:'#000000',op:1,a:.42}),
   plS:m({tex:'v3_pillar',nz:'wisp',n1:[1,.6,0,-.8],n2:[1.2,.7,.03,-.7],dist:.06,mdist:1,nk:.4,pw:.6,ero:.1,soft:.4,cA:'#000000',cB:'#000000',cC:'#000000',op:1,a:.5}),
   plB:m({tex:'v3_pillar',nz:'wisp',n1:[1,.5,0,-1.6],n2:[1.3,.6,.04,-1.4],dist:.05,mdist:1,nk:.35,pw:.8,ero:.08,soft:.3,rk:[.5,1.15],gain:2.6,bgain:1.1}),
   plC:m({tex:'v3_pillar',nz:'streak',n1:[.5,2,0,-2.6],n2:[1.5,.8,.02,-2],dist:.03,mdist:1,nk:.25,pw:1.6,ero:.16,soft:.25,rk:[.2,.75],gain:3.4,bgain:1.6}),
@@ -107,20 +107,23 @@ K.slash=(x,y,z,o={})=>{ if(!F.on) return; const m=mats(), P=pal(o.pal), r=o.r||4
 
 // CRES: a painted crescent stroke laid on a tilted plane in the world: it is drawn tip to tip in the direction of the swing,
 // hangs for a breath, and burns away from the tail. The painting's crescent bulges to its left (the cutting edge).
+//  With o.keep it stays hanging (dimmed, in o.idlePal) and returns a handle: h.end() burns it away, h.kick() pulses it.
 //  o: {reach (from the swordsman to the cutting edge) or s (half height), dir (floor angle the edge faces), lean (0 flat on the floor .. .9 almost facing the camera), roll (one tip up, the other down), tex, pal, swing, hold, fade, ccw, gain, z, asp}
 const ART={fx3_slash:{asp:1.47,piv:[.62,.5],edge:.07,rk:[.55,1.02]},v3_slash_thin:{asp:1.78,piv:[.8,.5],edge:.02,rk:[.5,1]},v3_slash_heavy:{asp:1.5,piv:[.74,.5],edge:.02,rk:[.72,1.3]},v3_cres_up:{asp:.667,piv:[.8,.5],edge:.11,rk:[.4,1]}};
 K.ART=ART;
-K.cres=(x,y,z,o={})=>{ if(!F.on) return; const m=mats(), P=pal(o.pal), tex=o.tex&&F.ready(o.tex)?o.tex:'fx3_slash', A=ART[tex]||ART.fx3_slash, asp=o.asp||A.asp, s=o.reach?o.reach/((A.piv[0]-A.edge)*2*asp):(o.s||300), sw=o.swing??.07, hold=o.hold??.08, fade=o.fade??.3, life=sw+hold+fade, C=col(P), g=o.gain||1, dir=o.dir||0, ccw=o.ccw?1:-1;
+K.cres=(x,y,z,o={})=>{ const h={on:true,t1:-1,pk:-9,end(){ if(h.t1<0) h.t1=RT; },kick(){ h.pk=RT; }}; if(!F.on) return h; const m=mats(), P=pal(o.pal), tex=o.tex&&F.ready(o.tex)?o.tex:'fx3_slash', A=ART[tex]||ART.fx3_slash, asp=o.asp||A.asp, s=o.reach?o.reach/((A.piv[0]-A.edge)*2*asp):(o.s||300), sw=o.swing??.07, hold=o.hold??.08, fade=o.fade??.3, keep=o.keep?(o.max||8):0, life=keep||sw+hold+fade, C=col(P), CI=col(pal(o.idlePal||o.pal)), g=o.gain||1, dir=o.dir||0, ccw=o.ccw?1:-1;
   const mt=F.mat({...m.art,tex,layer:'o',nz:'wisp',n1:[1.5,1.5,.4*ccw,.1],n2:[1.2,1.2,.2,.1],dist:.025,mdist:1,rk:o.rk||A.rk}), sd=Math.random()*9;
   // the painting faces -x; turn it so its edge faces dir
   const rz=dir+PI, cx=x+Math.cos(dir)*s*asp*(A.piv[0]-.5)*2*(o.off??1), cy=y+Math.sin(dir)*s*asp*(A.piv[0]-.5)*2*FSY*(o.off??1);
-  GFX.add(life,(k,t)=>{ const hk=eo5(sat(t/sw)), f=sat((t-sw-hold)/fade), ss=s*(1+.1*f+.05*hk), tail=f*1.25;
-    // uv pivot; in texture space the crescent runs from the top tip (angle +100deg) round the left to the bottom tip
+  GFX.add(life,(k,t)=>{ if(!h.on) return; const hk=eo5(sat(t/sw)); let f, idle=0;
+    if(keep){ f=h.t1<0?0:sat((RT-h.t1)/fade); idle=sat((t-sw-hold)/.18); if(f>=1){ h.on=false; return; } } else f=sat((t-sw-hold)/fade);
+    const ss=s*(1+.1*f+.05*hk), tail=f*1.25, pk=Math.max(0,1-(RT-h.pk)/.25), dim=keep?mix(1,(o.idle??.5)+.35*pk,idle):1, Cc=keep&&idle>.5&&h.t1<0?CI:C;
+    // uv pivot; in texture space the crescent runs from the top tip round the left (the cutting edge) to the bottom tip
     const aw=[A.piv[0],A.piv[1],ccw>0?.8:-.8,ccw], aw2=[.06+hk*.8,tail*.62,.22,1];
-    F.quad(mt,cx,cy,ss*asp,ss,0,{z,M:F.xfw({sx:ss*asp,sy:ss,rx:-(o.lean??.3),ry:o.roll||0,rz}),...C,a:1-f*f,gain:3*g,bgain:1.1,ero:.1+f*.3,nk:.18+f*.25,aw,aw2,t0:sd}); },o.delay||0);
-  const fx=()=>{ if(o.light!==0) GFX.light(x+Math.cos(dir)*s*.6,y+Math.sin(dir)*s*.6*FSY,s*2.6,P.l,o.light??1,life*.8,{z});
+    F.quad(mt,cx,cy,ss*asp,ss,0,{z,M:F.xfw({sx:ss*asp,sy:ss,rx:-(o.lean??.3),ry:o.roll||0,rz}),...Cc,a:(1-f*f)*Math.min(1,dim+.25),gain:3*g*dim,bgain:1.1*Math.max(.6,dim),ero:.1+f*.3+(keep?idle*.06:0),nk:.18+f*.25,aw,aw2,t0:sd}); },o.delay||0);
+  const fx=()=>{ if(o.light!==0) GFX.light(x+Math.cos(dir)*s*.6,y+Math.sin(dir)*s*.6*FSY,s*2.6,P.l,o.light??1,(sw+hold+fade)*.8,{z});
     if(o.sparks!==0) K.sparks(x+Math.cos(dir)*s*.8,y+Math.sin(dir)*s*.8*FSY,z,{pal:P,n:o.sparks||10,dir,spread:1.1,sp:[400,1500],up:400,life:[.15,.45]}); };
-  if(o.delay) after(o.delay,fx); else fx(); };
+  if(o.delay) after(o.delay,fx); else fx(); return h; };
 
 // SHOCK: a wave racing over the floor (under the characters): the painted front, a sharp leading ring, its wake, rolling dust, heat haze.
 //  o: {r, r0 (start; larger than r = implosion), dur, pal, gain, dust (0 = none), painted (0 = lines only), light, haze, th}
@@ -137,7 +140,7 @@ K.shock=(x,y,o={})=>{ if(!F.on) return; const m=mats(), P=pal(o.pal), Rm=o.r||60
 // PILLAR: a painted column of light standing on the floor: dark smoke edge, coloured sheath with ribbons spiralling up, white-hot core,
 // a flare and scorch at its foot. It holds for a breath, then burns away from the ground upward. o: {r (core half width), h, dur, hold, pal, rise}
 K.pillar=(x,y,o={})=>{ if(!F.on) return; const m=mats(), P=pal(o.pal), r=o.r||80, h=o.h||1400, dur=o.dur||.7, hold=o.hold??dur*.35, C=col(P), g=o.gain||1, sd=Math.random()*9, rise=o.rise??.07, hw=r*4.2, flip=Math.random()<.5?[-1,1,1,0]:[1,1,0,0];
-  GFX.add(dur,(k,t)=>{ const up=eo5(sat(t/rise)), f=sat((t-rise-hold)/Math.max(.01,dur-rise-hold)), hh=h*(.25+.75*up)/2, a=1-f*f*f, w=hw*(1+.12*Math.sin(t*40+sd))*(1-.35*f), cut=[0,0,f*1.1,.12];
+  GFX.add(dur,(k,t)=>{ const up=eo5(sat(t/rise)), f=sat((t-rise-hold)/Math.max(.01,dur-rise-hold)), hh=h*(.25+.75*up)/2, a=1-f*f*f, w=hw*(1+.12*Math.sin(t*40+sd))*(1-.35*f), cut=[0,0,.03+f*1.1,.12];
     F.quad(m.soot,x,y,r*5,r*5,sd,{a:.6*sat(t*10)});
     F.quad(m.glowG,x,y,r*5.5,r*5.5,0,{...C,a:a*(.5+.5*up),gain:1.6*g,bgain:1});
     if(!F.low) F.bill(m.plS,x,y,hh,w*1.5,hh*1.04,0,{a:a*.5,fd:cut,t0:sd,uvT:flip});
@@ -195,10 +198,11 @@ K.sigil=(x,y,o={})=>{ const h={x,y,r:o.r||400,a:1,pal:o.pal,pk:-9,dead:false,kic
 K.crack=(x,y,o={})=>{ if(!F.on) return; const m=mats(), P=pal(o.pal), r=o.r||420, life=o.life||4, C=col(P), rot=o.rot??R(0,TAU_), grow=o.grow??.18, g=o.gain||1, sd=[R(0,1),R(0,1)];
   GFX.add(life,(k,t)=>{ const i=eo3(sat(t/grow)), heat=Math.pow(1-k,1.6), out=sat((1-k)/.25);
     if(!F.low) F.quad(m.soot,x,y,r*.95,r*.95,rot,{a:.6*out*i,rv:[1,.35,0,.1]});
-    F.quad(m.crD,x,y,r,r,rot,{a:out,rv:[i*1.02,.3,0,.1]});
+    const ry=r*(o.ry||1);
+    F.quad(m.crD,x,y,r,ry,rot,{a:out,rv:[i*1.02,.3,0,.1]});
     const cl=(1.02-.5*k)*i;
-    if(!F.low) F.quad(m.crG,x,y,r,r,rot,{...C,a:heat*.8,rv:[cl,.35,0,.1]});
-    F.quad(m.crE,x,y,r,r,rot,{...C,a:Math.min(1,heat*1.4),gain:2.6*g*(.5+.5*heat),ero:.12+.5*(1-heat),rv:[cl,.35,0,.1]}); },o.delay||0); };
+    if(!F.low) F.quad(m.crG,x,y,r,ry,rot,{...C,a:heat*.8,rv:[cl,.35,0,.1]});
+    F.quad(m.crE,x,y,r,ry,rot,{...C,a:Math.min(1,heat*1.4),gain:2.6*g*(.5+.5*heat),ero:.12+.5*(1-heat),rv:[cl,.35,0,.1]}); },o.delay||0); };
 
 // GASH: a straight wound in the floor between two points: soot around it, a deep dark split, light at its lips that cools from the ends inward.
 K.gash=(x1,y1,x2,y2,o={})=>{ if(!F.on) return; const m=mats(), P=pal(o.pal), life=o.life||4, w=(o.w||60)*R(.85,1.2), C=col(P), dx=x2-x1, dy=(y2-y1)/FSY, L=Math.hypot(dx,dy), rot=Math.atan2(dy,dx)+(Math.random()<.5?PI:0), cx=(x1+x2)/2, cy=(y1+y2)/2, grow=o.grow??.1, g=o.gain||1, uv=Math.random()<.5?[1,-1,0,1]:[1,1,0,0];
