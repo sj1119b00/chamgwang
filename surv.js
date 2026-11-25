@@ -79,7 +79,7 @@ function dmg(e,d,o={}){
   if(e.hp<=0) die(e);
 }
 function die(e){
-  e.dead=true; e.hp=0; V.kills++; G.stats.kills++; if(V.dying.length<60){ const fr=eFrame(e); if(fr){ const q={fr,e:{x:e.x,y:e.y,z:e.z,f:e.f,d:e.d},t:0,life:.35}; if(lock&&V.blast){ const dx=e.x-V.blast.x, dy=e.y-V.blast.y, l=Math.hypot(dx,dy)||1, sp=rand(900,1700)*V.blast.p*(e.d.heavy?.4:1); q.vx=dx/l*sp; q.vy=dy/l*sp*.7; q.vz=rand(500,1100); q.spin=rand(-9,9); q.life=.6; } V.dying.push(q); } } const y=e.y-e.h*.4;
+  e.dead=true; e.hp=0; V.kills++; G.stats.kills++; if(V.dying.length<60){ const fr=G.foeDraw?{d:[1,1,0]}:eFrame(e); if(fr){ const q={fr,e:{x:e.x,y:e.y,z:e.z,f:e.f,d:e.d},t:0,life:.35}; if(lock&&V.blast){ const dx=e.x-V.blast.x, dy=e.y-V.blast.y, l=Math.hypot(dx,dy)||1, sp=rand(900,1700)*V.blast.p*(e.d.heavy?.4:1); q.vx=dx/l*sp; q.vy=dy/l*sp*.7; q.vz=rand(500,1100); q.spin=rand(-9,9); q.life=.6; } V.dying.push(q); } } const y=e.y-e.h*.4;
   for(let i=0;i<(e.d.heavy?8:2);i++){ const a=rand(0,TAU), s=rand(300,800); V.shards.push({x:e.x,y:e.y,z:e.h*.4,vx:Math.cos(a)*s,vy:Math.sin(a)*s*.6,vz:rand(300,900),s:rand(5,e.d.heavy?18:11),rot:rand(0,TAU),vr:rand(-9,9),t:0,life:rand(.7,1.2)}); }
   gl0(e.x,y,e.h*.5,lock?CCOL[pl.cls]:CH().acc,.25,{grow:200,a:gl?.35:.7}); sfx('shatter',e.d.heavy?.8:.35);
   if(lock&&V.fxK!==RT){ V.fxK=RT; vfx('impact',e.x,y,{sc:.5,rot:rand(0,TAU)}); fring(e.x,e.y,700,CCOL[pl.cls],.3,4); }
@@ -278,7 +278,7 @@ const shock1=shock; shock=function(x,y,s=1,spd){ if(G.mode==='surv') return; ret
 // ============================================================ drawing
 let floorPat=null, floorCh=-1;
 const FLOORIM=new Image(); let floorArt=false; FLOORIM.onload=()=>{ /* the flat drawn tile read as a downgrade: kept on disk, not used */ }; FLOORIM.src='assets/fx2_floor.webp?v='+ASSET_V;
-function floor(){ if(floorPat&&floorCh===V.ch) return floorPat; floorCh=V.ch;
+function floor(){ if(floorPat&&floorCh===V.ch) return floorPat; floorCh=V.ch; if(G.floorTile) return floorPat=ctx.createPattern(G.floorTile(),'repeat');
   if(floorArt){ const cv=document.createElement('canvas'); cv.width=cv.height=1280; const g=cv.getContext('2d'), [fr,fg,fb]=CH().floor;
     for(let i=0;i<2;i++) for(let j=0;j<2;j++){ g.save(); g.translate(i?1280:0,j?1280:0); g.scale(i?-1:1,j?-1:1); g.drawImage(FLOORIM,0,0,640,640); g.restore(); }
     g.globalCompositeOperation='multiply'; g.fillStyle=`rgb(${Math.min(255,fr*1.75)|0},${Math.min(255,fg*1.75)|0},${Math.min(255,fb*1.75)|0})`; g.fillRect(0,0,1280,1280); g.globalCompositeOperation='source-over';
@@ -326,12 +326,12 @@ function eFrame(e){ const F=A.EFR[e.d.img]; if(!F) return null; let a='walk', i=
   const L=F[a], s=L&&spr(`enemy_${e.d.img}_${a}${A.fr2(i+1)}`); if(s) return {s,d:L[i]};
   // a frame that has not arrived yet: stand in with the walk frame instead of a blob
   const w=a!=='walk'&&spr(`enemy_${e.d.img}_walk02`); return w?{s:w,d:F.walk[1]}:null; }
-function drawE(e){ const D=e.d, sc=D.sc, x=e.x, y=e.y, fr=eFrame(e), ac=CH().acc;
+function drawE(e){ const D=e.d, sc=D.sc, x=e.x, y=e.y, fr=G.foeDraw?null:eFrame(e), ac=CH().acc;
   ctx.fillStyle='rgba(0,0,0,.55)'; ctx.beginPath(); ctx.ellipse(x,y+2,D.r*1.55*(1-Math.min(.5,e.z/600)),D.r*.55,0,0,TAU); ctx.fill();
   // the strongest effect light throws his shadow away from it
   if(V.kl){ const L=V.kl, dx=x-L.x, dy=(y-L.y)/FSY, d=Math.hypot(dx,dy)||1, f=Math.max(0,1-d/(L.r*1.5)); if(f>.05&&d>40){ const k=L.s*f, len=D.r*(1.2+3.2*k), ux=dx/d, uy=dy/d*FSY, ul=Math.hypot(ux,uy)||1;
       ctx.fillStyle=`rgba(0,0,0,${Math.min(.5,.55*k)})`; ctx.beginPath(); ctx.ellipse(x+ux/ul*len*.85,y+2+uy/ul*len*.85,len,D.r*.5,Math.atan2(uy,ux),0,TAU); ctx.fill(); } }
-  if(fr){ const [fw,fh,fa]=fr.d; ctx.save(); ctx.translate(x,y-e.z+4);
+  if(G.foeDraw&&G.foeDraw(e)){} else if(fr){ const [fw,fh,fa]=fr.d; ctx.save(); ctx.translate(x,y-e.z+4);
     /* the blow reads on the body: it jumps in size and rocks back from the blow for a few frames */
     const hp=Math.max(0,1-(RT-(e.hitT??-9))/.16); if(hp>0){ const q=hp*hp; ctx.rotate((e.hdx||0)*.3*q); ctx.scale(1+.3*q,1+.22*q); }
     ctx.scale(e.f*sc*e.sv,sc*e.sv); if(e.z>0){ /* thrown: he tumbles about his middle and comes a little nearer the eye */ e.sp=(e.sp||0)+(e.z>30?.13:0); const up=1+Math.min(.3,e.z/2600); ctx.scale(up,up); ctx.translate(0,-fh*.5); ctx.rotate(-.3-e.sp); ctx.translate(0,fh*.5); } else e.sp=0; ctx.drawImage(tinted(fr.s,D.img==='brute'?55:0),-fa*fw,-fh,fw,fh);
@@ -373,11 +373,11 @@ drawEnemy=function(){ if(G.mode!=='surv') return drawEnemy1();
   // the hero stands out in the crowd: a ring of his colour on the floor
   if(pl.visible&&pl.gy!=null&&!(lock&&window.MK&&MK.on())){ const c=CCOL[pl.cls]; ctx.fillStyle='rgba(0,0,0,.45)'; ctx.beginPath(); ctx.ellipse(pl.x,pl.gy,88,88*FSY,0,0,TAU); ctx.fill(); ctx.fillStyle=hexA(c,.3+.08*Math.sin(RT*5)); ctx.beginPath(); ctx.ellipse(pl.x,pl.gy,88,88*FSY,0,0,TAU); ctx.fill();
     fx.strokeStyle=hexA(c,1); fx.lineWidth=8; fx.beginPath(); fx.ellipse(pl.x,pl.gy,88+5*Math.sin(RT*5),(88+5*Math.sin(RT*5))*FSY,0,0,TAU); fx.stroke(); fx.strokeStyle=hexA('#ffffff',.6); fx.lineWidth=2.5; fx.stroke(); glow(fx,pl.x,pl.gy,112,c,.3); }
-  for(const q of V.dying){ const [fw,fh,fa]=q.fr.d, D=q.e.d, k=q.t/q.life, t=q.t, fly=q.vx!=null; ctx.save(); ctx.globalAlpha=fly?Math.min(1,(1-k)*2.5):1-k; if(fly){ ctx.translate(q.e.x+q.vx*t,q.e.y+q.vy*t-(q.vz*t-1400*t*t)-fh*D.sc*.5); ctx.rotate(q.spin*t); ctx.translate(0,fh*D.sc*.5); } else ctx.translate(q.e.x,q.e.y-q.e.z+4-k*40); ctx.scale(q.e.f*D.sc*(1+k*.25),D.sc*(1+k*.25)); ctx.drawImage(tinted(q.fr.s,D.img==='brute'?55:0),-fa*fw,-fh,fw,fh); ctx.restore();
+  for(const q of V.dying){ if(G.foeDying&&G.foeDying(q)) continue; const [fw,fh,fa]=q.fr.d, D=q.e.d, k=q.t/q.life, t=q.t, fly=q.vx!=null; ctx.save(); ctx.globalAlpha=fly?Math.min(1,(1-k)*2.5):1-k; if(fly){ ctx.translate(q.e.x+q.vx*t,q.e.y+q.vy*t-(q.vz*t-1400*t*t)-fh*D.sc*.5); ctx.rotate(q.spin*t); ctx.translate(0,fh*D.sc*.5); } else ctx.translate(q.e.x,q.e.y-q.e.z+4-k*40); ctx.scale(q.e.f*D.sc*(1+k*.25),D.sc*(1+k*.25)); ctx.drawImage(tinted(q.fr.s,D.img==='brute'?55:0),-fa*fw,-fh,fw,fh); ctx.restore();
     if(!lock) glow(fx,q.e.x,q.e.y-D.h*D.sc*.5,D.h*D.sc*.4,'#ffffff',(1-k)*.25); }
   ctx.globalAlpha=1;
   // recolour one enemy frame a frame ahead of need (the first use of a frame costs a pixel loop; a crowd going into its hurt frames at once would hitch)
-  if(V.warmCh!==V.ch){ V.warmCh=V.ch; V.warm=[]; for(const im in A.EFR) for(const a of ['hurt','attack','walk']){ const L=A.EFR[im][a]; if(L) for(let i=0;i<L.length;i++) V.warm.push([`enemy_${im}_${a}${A.fr2(i+1)}`,im==='brute'?55:0]); } }
+  if(!G.foeDraw&&V.warmCh!==V.ch){ V.warmCh=V.ch; V.warm=[]; for(const im in A.EFR) for(const a of ['hurt','attack','walk']){ const L=A.EFR[im][a]; if(L) for(let i=0;i<L.length;i++) V.warm.push([`enemy_${im}_${a}${A.fr2(i+1)}`,im==='brute'?55:0]); } }
   if(V.warm&&V.warm.length){ const [n,ex]=V.warm[V.warm.length-1], sp=spr(n); if(sp){ V.warm.pop(); tinted(sp,ex); } else if(SPR[n]===undefined) V.warm.pop(); }
   V.kl=null; if(window.GFX&&GFX.lights.length){ let b=.3; for(const l of GFX.lights){ const k=l.t<l.hold?1:Math.max(0,1-(l.t-l.hold)/l.life), v=Math.min(1.2,l.a*k*k); if(v>b&&l.r>300){ b=v; V.kl={x:l.x,y:l.y,r:l.r,s:v}; } } }
   V.sorted=V.en.filter(e=>!e.dead).sort((a,b)=>a.y-b.y);
@@ -618,7 +618,7 @@ function finish(win){ if(V.over) return; V.over=true; joyHide(); G.keys={};
   let first=false;
   if(win){ first=(sv.chClear||0)<=V.ch; sv.chClear=Math.max(sv.chClear||0,V.ch+1); const b=150*(V.ch+1); A.gainExp(b); V.run+=b; stamp('CLEAR',{x:.5,y:.4,size:.14,life:1.6,c:'#ffcf4a'}); }
   else { slow(.25,.8); stamp('다운',{x:.5,y:.4,size:.14,life:1.4,c:'#ff4a5a'}); }
-  A.save(); const next=win&&V.ch+1<CHAP.length;
+  A.save(); const next=win&&V.ch+1<CHAP.length; if(G.hubResult){ G.hubResult({win,t,first,next,prev,best:sv.best[key],kills:V.kills,dmg:G.stats.dmg,exp:V.run,ch:V.ch,el:resEl,again:()=>{ end(); start(); },go:c=>{ end(); start(c); }}); return; }
   resEl.innerHTML=`<div class="box"><h2 class="${win?'w':'l'}">${win?'클리어':'쓰러짐'}</h2><p>챕터 ${V.ch+1} · ${CH().name} · ${mmss(t)} 버팀${!win&&Math.round(t)>prev?' · 최고 기록!':''}${first&&next?'<br><b style="color:#ffcf4a">다음 챕터가 열렸습니다</b>':''}</p>
     <div class="st"><span>처치<b>${V.kills}</b></span><span>피해<b>${Math.round(G.stats.dmg).toLocaleString()}</b></span><span>경험치<b>+${V.run}</b></span><span>최고<b>${mmss(sv.best[key])}</b></span></div>
     <div class="lv">${NAMES[pl.cls]} Lv ${sv.lv} · 스킬 포인트 ${sv.sp}</div><div class="row">${next?'<button class="p" data-r="next">다음 챕터</button>':''}<button ${next?'':'class="p"'} data-r="again">다시 하기</button><button data-r="menu">메뉴로 (강화하기)</button></div></div>`;
@@ -666,9 +666,9 @@ G.firstSkills=c=>{ const L=(A.ORDER[c]||[]).filter(id=>SK[id]&&SK[id].type==='sk
 // ============================================================ class skill files
 // keep a point (an ultimate's impact) inside the middle of the screen
 const inView=(x,y,k=.5)=>{ const {hw,hh}=view(); return [clamp(x,cam.x-hw*k,cam.x+hw*k),clamp(y,cam.y-hh*k+BODY*.5,cam.y+hh*k+BODY*.5)]; };
-G.sv={V,A,SK,BODY,CH,CLS,CCOL,NAMES,spawn,shock1,inView,FSY,draw:(life,fn,delay=0)=>V.draws.push({t0:RT+delay,life,fn}),nearest,countIn,densest,angTo,face,seq,dmg,hitFx,inCircle,inCircleS,inSector,inLine,sfx,view,onScreen,tdV,dropFx,ultStart,ultStop,ultHit,addVfx,burst,fring,heal,hurt,
+G.sv={V,A,SK,BODY,CH,CHAP,EN,CLS,CCOL,NAMES,spawn,shock1,inView,FSY,draw:(life,fn,delay=0)=>V.draws.push({t0:RT+delay,life,fn}),nearest,countIn,densest,angTo,face,seq,dmg,hitFx,inCircle,inCircleS,inSector,inLine,sfx,view,onScreen,tdV,dropFx,ultStart,ultStop,ultHit,addVfx,burst,fring,heal,hurt,
   fmtN,reg(c,def){ CLS[c]=def; if(def.sk) Object.assign(SK,def.sk); if(def.order) A.ORDER[c]=def.order; if(G.mode==='menu') A.menuRender(); if(G.mode==='surv'&&c===pl.cls) buildBar(); }};
-for(const f of ['fx3','vol3','gfx','vfx3','vkit3','cine','assassin_flow','assassin_mist','assassin_blades','assassin_cuts','assassin_ground','assassin_skills','assassin_eclipse','assassin_loom',...CLS_ORDER.map(c=>'sk_'+c),'mk','mk_sword']){
+for(const f of ['hub','fx3','vol3','gfx','vfx3','vkit3','cine','assassin_flow','assassin_mist','assassin_blades','assassin_cuts','assassin_ground','assassin_skills','assassin_eclipse','assassin_loom',...CLS_ORDER.map(c=>'sk_'+c),'mk','mk_sword']){
   const s=document.createElement('script'); s.src=`${f}.js?v=${VER}`; s.async=false;
   if(f==='mk') s.onload=()=>{ if(G.mode==='menu'&&pl.cls==='assassin') A.menuRender(); else if(G.mode==='surv'&&V.practice) buildPractice(); };
   document.body.appendChild(s);

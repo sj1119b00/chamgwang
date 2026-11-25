@@ -114,14 +114,15 @@ void main(){
 
 // solid meshes: p, face normal, uv (x = a random tone per face, y = height 0..1 in the model)
 const SVS=`attribute vec3 p;attribute vec3 n;attribute vec2 uv;attribute vec3 bc;
-uniform mat4 M;uniform mat3 Nm;uniform vec3 org;uniform vec4 camP;uniform vec2 hf;uniform vec4 shd;
+uniform mat4 M;uniform mat3 Nm;uniform vec3 org;uniform vec4 camP;uniform vec2 hf;uniform vec4 shd;uniform vec2 dz;
 varying vec3 vN;varying vec3 vW;varying vec2 v;varying vec3 vE;varying vec3 vP;varying vec3 vMn;
 void main(){vec3 w=(M*vec4(p,1.)).xyz;vN=Nm*n;vE=bc;vP=p;vMn=n;
  if(shd.z>.5){float h=max(org.z+w.z,0.);w.x+=shd.x*h;w.y+=shd.y*h;w.z=-org.z;}
  vW=vec3(org.x+w.x,org.y/${FSY}+w.y,org.z+w.z);
  float wx=org.x+w.x;float wy=org.y+w.y*${FSY}-(org.z+w.z);
  float px=(wx+camP.x)*camP.z;float py=(wy+camP.y)*camP.z;float c=cos(camP.w);float s=sin(camP.w);
- gl_Position=vec4((px*c-py*s)/hf.x,-(px*s+py*c)/hf.y,0.,1.);v=uv;}`;
+ float zd=dz.x>.5?clamp(-((vW.y*.8146+vW.z*.58)-dz.y)/9000.,-1.,1.):0.;
+ gl_Position=vec4((px*c-py*s)/hf.x,-(px*s+py*c)/hf.y,zd,1.);v=uv;}`;
 const SFS=`#ifdef GL_FRAGMENT_PRECISION_HIGH
 precision highp float;
 #else
@@ -131,11 +132,73 @@ varying vec3 vN;varying vec3 vW;varying vec2 v;varying vec3 vE;varying vec3 vP;v
 uniform sampler2D nzA,nzB;
 uniform vec3 alb,amb,emis,rimC;uniform vec4 pr;uniform vec4 pr2;uniform vec4 lp[4];uniform vec3 lc[4];uniform float shadow,bmp;
 uniform vec4 dt,dt2,dsd;uniform vec3 dmc;
+uniform vec4 xm,xp,xq;uniform vec3 xc;
+// kit update 10: triplanar noise in model space (the grain rides with the rock), one sample per axis plane
+vec4 tA(vec3 p,vec3 w){return texture2D(nzA,p.yz)*w.x+texture2D(nzA,p.xz)*w.y+texture2D(nzA,p.xy)*w.z;}
+vec4 tB(vec3 p,vec3 w){return texture2D(nzB,p.yz)*w.x+texture2D(nzB,p.xz)*w.y+texture2D(nzB,p.xy)*w.z;}
+vec3 lights(vec3 N,vec3 Vd,float pw_,out vec3 spc){vec3 lt=vec3(0.);spc=vec3(0.);
+ for(int i=0;i<4;i++){vec4 L=lp[i];if(L.w<=0.)continue;vec3 dl=vec3(L.x,L.y/${FSY},L.z)-vW;float d2=dot(dl,dl);vec3 l=dl/sqrt(d2);
+  float at=clamp(1.-d2/(L.w*L.w),0.,1.);at*=at;float nd=max(dot(N,l),0.);
+  lt+=lc[i]*at*(nd*1.3+.08);vec3 Hh=normalize(l+Vd);spc+=lc[i]*at*pow(max(dot(N,Hh),0.),pw_);}
+ return lt;}
+// xm: mode (1 stone, 2 ice, 3 molten), dust on top, glow in the cracks, strata | xp: a model-space direction (ice: toward the eye; molten: travel) + front heat
+// xq: ice clarity, frost, -, - | xc: dust colour (stone) / deep colour (ice). Vertex uv.x = baked cavity (stone) or facet tone (ice); uv.y = model height.
+void deepSolid(){
+ vec3 N=normalize(vN);vec3 Vd=vec3(0.,.8146,.58);
+ vec3 Pm=vP*2.2+dsd.xyz*7.;vec3 an=abs(normalize(vMn));vec3 wt=an*an*an*an;wt/=wt.x+wt.y+wt.z+1e-4;
+ float crd=tA(Pm*.35,wt).g;if(crd<pr2.x)discard;
+ float hgt=v.y;float e=min(vE.x,min(vE.y,vE.z));vec3 Lk=normalize(vec3(-.5,.3,.82));
+ float edge=smoothstep(pr2.x+.07,pr2.x,crd)*step(.001,pr2.x);
+ if(xm.x>1.5&&xm.x<2.5){
+  // ice: faceted, see-through, darker and bluer where the eye looks deep into it, cracks and bubbles inside at different depths
+  vec4 nb=tA(Pm*.8,wt);N=normalize(N+(nb.rgb-.5)*.22*bmp);
+  float ndv=clamp(dot(N,Vd),0.,1.);float fr=pow(1.-ndv,2.2);float kd=max(dot(N,Lk),0.);
+  vec3 Vm=normalize(xp.xyz);float cr=0.,bb=0.;
+  for(int i=0;i<3;i++){float dd=.05+.08*float(i);vec3 q=(vP-Vm*dd)*2.2+dsd.xyz*7.;
+   float c=tB(q*.8,wt).r;cr+=smoothstep(.74,.9,c)*(1.-smoothstep(.9,.97,c))*(1.-.28*float(i));
+   float g=tB(q*3.2,wt).b;bb+=smoothstep(.93,.985,g)*(1.-.3*float(i));}
+  float deep=clamp(ndv*1.35-.2+(.35-hgt)*.3,0.,1.);
+  vec3 base=mix(alb*1.1,xc,deep*.92)*(.7+.6*v.x);
+  // the sky caught at grazing angles, and light scattered inside (it glows a little from within)
+  vec3 sky=mix(alb,vec3(.92,.98,1.),.5)*fr*1.1;
+  float fn=tA(Pm*1.6,wt).g;float frost=xq.y*max((1.-smoothstep(0.,.006+.022*fn,e))*smoothstep(.32,.6,fn),smoothstep(.22,-.12,hgt)*smoothstep(.35,.6,fn));
+  vec3 spc;vec3 lt=lights(N,Vd,70.,spc);vec3 lit=amb*(.35+.75*kd)+lt*.8;
+  vec3 Hk=normalize(Lk+Vd);float spk=pow(max(dot(N,Hk),0.),60.);
+  float gl1=smoothstep(.975,.996,tB(Pm*4.+vec3(0.,0.,floor(dsd.w*2.)),wt).b)*(.3+kd);
+  vec3 col=base*(lit+amb*.35)+sky*(amb+lt*.4)+alb*(1.-deep)*.18*amb+(vec3(.75,.92,1.)*cr*.85+vec3(.9,1.,1.)*bb*.6)*(amb+lt*.5)+rimC*fr*pr.y*1.2+(amb+lt)*spk*1.3+spc*1.2+vec3(1.)*gl1*1.6*amb
+   +mix(vec3(.8,.9,1.),vec3(1.),fn)*frost*(amb*.85+lt*.6)+emis*pr.z*(cr*1.4+.35*(1.-deep)+bb)+emis*edge*1.5;
+  float A=mix(xq.x,1.,max(fr*.9,frost))*pr.w;
+  gl_FragColor=vec4(col*A,A);return;}
+ // stone and molten stone
+ vec4 nb=tA(Pm*.55,wt);vec4 nf=tB(Pm*2.3,wt);vec4 nff=tA(Pm*5.5,wt);
+ float n1=nb.r;float n2=nf.g;float gr=nf.b;
+ float sv=vP.z*xm.w+n1*.9+vP.x*.45+vP.y*.2;float bi=floor(sv);float bf=fract(sv);float bt=fract(sin(bi*91.7+dsd.x*13.1)*437.58);
+ float seam=xm.w>0.?(1.-smoothstep(0.,.07,bf)*smoothstep(1.,.9,bf)):0.;
+ N=normalize(N+(vec3(nb.r,nb.g,nf.g)-.5)*bmp*.42+(vec3(nf.r,nf.g,nff.g)-.5)*bmp*.3+(vec3(nff.r,nff.g,nf.b)-.5)*bmp*.18-vec3(0.,0.,seam*.3));
+ float ew=dt2.y*(.5+n2);float edg=1.-smoothstep(0.,ew,e);
+ float chip=smoothstep(.5,.6,tB(Pm*1.1,wt).g);float notch=edg*chip;float wear=edg*(1.-chip)*(1.-smoothstep(0.,ew*.45,e)*.5);
+ float ck=tB(Pm*.42,wt).r;float crk=smoothstep(.66,.86,ck);float crkC=smoothstep(.74,.92,ck);
+ float kd=max(dot(N,Lk),0.);vec3 spc;vec3 lt=lights(N,Vd,18.,spc);vec3 lit=amb*(.24+.95*kd*kd+.12*max(N.y,0.))+lt;
+ float dm=xm.y*smoothstep(.62,.92,N.z+(n1-.5)*.8)*smoothstep(.4,.66,n2*.8+n1*.4);
+ vec3 a=alb*(1.-pr2.z+pr2.z*2.*n1)*(xm.w>0.?mix(.72,1.28,bt):1.)*(.84+.32*n2)*(1.-seam*.5)*(1.-crk*.55);
+ a=mix(a,xc*(.8+.4*n2),dm);
+ float form=mix(.5,1.2,smoothstep(-.3,.85,N.z));
+ float ao=mix(.22,1.,v.x*v.x)*mix(.4,1.,smoothstep(-.06,.32,hgt))*(1.-notch*.7);
+ float fr=pow(1.-max(dot(N,Vd),0.),2.5);
+ float glw=xm.z*crkC*(.75+.25*sin(dsd.w*3.1+n1*9.));
+ vec3 col=a*lit*form*ao+a*wear*kd*amb*.6+spc*pr.x*(.3+a)*(1.-notch)*(1.-dm*.7)+rimC*fr*pr.y*(1.-notch*.6)*ao+emis*(edge*1.5+glw*2.4)+emis*glw*glw*.6;
+ if(xm.x>2.5){
+  // molten: the crust is cut by seams of white-hot rock, and the face meeting the air is a sheet of plasma
+  float mc=tB(Pm*.6+vec3(0.,0.,dsd.w*.05),wt).r;float seamH=smoothstep(.6,.8,mc)*(1.-smoothstep(.9,.98,mc)*.4);
+  float fd=dot(normalize(vMn),xp.xyz);float hotF=xp.w*pow(clamp(fd,0.,1.),1.6);float warm=xp.w*smoothstep(-.3,.4,fd);
+  col=col*(1.-hotF*.8)+emis*seamH*xm.z*(.5+.8*n1)*(1.4+1.6*warm)+mix(emis,rimC,.35+.65*hotF)*hotF*2.4+emis*glw;}
+ gl_FragColor=vec4(col*pr.w,pr.w);}
 void main(){
  // pr: spec, rim, vein glow, alpha | pr2: dissolve threshold, heat at the foot, tone variation, clip at the floor
  // dt: detail amount, strata bands per model height, glow in the cracks, moss | dt2: ore glints, chipped edge width, -, - | dsd: seed xyz, time
  if(shadow>.5){float cs=texture2D(nzA,vW.xy/240.).g;if(cs<pr2.x)discard;gl_FragColor=vec4(0.,0.,0.,pr.w);return;}
  if(pr2.w>.5&&vW.z<0.)discard;
+ if(xm.x>.5){deepSolid();return;}
  vec3 N=normalize(vN);vec3 Vd=vec3(0.,.8146,.58);
  if(dt.x>0.){
   // detailed stone: every texture lookup is in the rock's own model space, so the grain rides with the rock as it rises and turns
@@ -207,7 +270,7 @@ function uni(P,names){ const U={}; for(const n of names) U[n]=gl.getUniformLocat
 function init(){ if(typeof gl==='undefined'||!gl||!GLX) return;
   try{
     Pm=prog(VS,FS,['p','uv']); Um=uni(Pm,['M','org','camP','hf','la','lb','lh','tex','nzA','nzB','kind','time','uvT','n1','n2','ch1','ch1b','pr','fd','pw','pm','rv','cA','cB','cC','cM','rk','msk','gn','aw','aw2','nrmT','lit','lamb','llp','llc']);
-    try{ Ps=prog(SVS,SFS,['p','n','uv','bc']); Us=uni(Ps,['M','Nm','org','camP','hf','shd','nzA','nzB','alb','amb','emis','rimC','pr','pr2','lp','lc','shadow','bmp','dt','dt2','dsd','dmc']); buildSolids(); }catch(e){ console.error('FX3 solid',e); Ps=null; }
+    try{ Ps=prog(SVS,SFS,['p','n','uv','bc']); Us=uni(Ps,['M','Nm','org','camP','hf','shd','nzA','nzB','alb','amb','emis','rimC','pr','pr2','lp','lc','shadow','bmp','dt','dt2','dsd','dmc','dz','xm','xp','xq','xc']); buildSolids(); }catch(e){ console.error('FX3 solid',e); Ps=null; }
     Pg=prog(GVS,GFS,['p']); Ug=uni(Pg,['alb','nrm','nzA','res','camU','gOff','amb','tint','lp','lc','time','gk','hp']);
     // lathe grid: p = (u around 0..1, t along the profile 0..1, 0), uv = (u, t)
     { const vtx=new Float32Array((LN+1)*(LT+1)*5), idx=new Uint16Array(LN*LT*6); let o=0;
@@ -276,18 +339,87 @@ function mCrag(seed,sides){ const R=rng(seed), out=[], ctr=[0,0,.45], ax=(R()-.5
   for(let k=0;k<3;k++) for(let i=0;i<sides;i++){ const j=(i+1)%sides, a=rings[k][i], b=rings[k][j], c=rings[k+1][j], d=rings[k+1][i], u=R(); tri(out,a,b,c,ctr,u,[1]); tri(out,a,c,d,ctr,u,[2]); }
   const tc=[ax*.5,ay*.5,1]; for(let i=0;i<sides;i++){ const j=(i+1)%sides; tri(out,top[i],top[j],tc,ctr,R()); }
   return out; }
+// ---------------------------------------------------------------- kit update 10: real stone and ice (new kinds; the meshes above are untouched)
+// 3D value noise for shaping meshes once at load
+function vnoise(seed){ const h=(i,j,k)=>{ let n=(Math.imul(i,374761393)+Math.imul(j,668265263)+Math.imul(k,1274126177)+Math.imul(seed,1442695041))|0; n=Math.imul(n^(n>>>13),1274126177); n^=n>>>16; return (n>>>0)/4294967296; }, sm=t=>t*t*(3-2*t), L=(a,b,t)=>a+(b-a)*t;
+  return (x,y,z)=>{ const i=Math.floor(x), j=Math.floor(y), k=Math.floor(z), u=sm(x-i), v=sm(y-j), w=sm(z-k);
+    return L(L(L(h(i,j,k),h(i+1,j,k),u),L(h(i,j+1,k),h(i+1,j+1,k),u),v),L(L(h(i,j,k+1),h(i+1,j,k+1),u),L(h(i,j+1,k+1),h(i+1,j+1,k+1),u),v),w); }; }
+function ico(lv){ const t=1.618; let V=[[-1,t,0],[1,t,0],[-1,-t,0],[1,-t,0],[0,-1,t],[0,1,t],[0,-1,-t],[0,1,-t],[t,0,-1],[t,0,1],[-t,0,-1],[-t,0,1]].map(q=>{ const l=Math.hypot(...q); return q.map(c=>c/l); });
+  let Fc=[[0,11,5],[0,5,1],[0,1,7],[0,7,10],[0,10,11],[1,5,9],[5,11,4],[11,10,2],[10,7,6],[7,1,8],[3,9,4],[3,4,2],[3,2,6],[3,6,8],[3,8,9],[4,9,5],[2,4,11],[6,2,10],[8,6,7],[9,8,1]];
+  for(let s=0;s<lv;s++){ const mid={}, mp=(a,b)=>{ const k=a<b?a+'_'+b:b+'_'+a; if(mid[k]!=null) return mid[k]; const p=[(V[a][0]+V[b][0])/2,(V[a][1]+V[b][1])/2,(V[a][2]+V[b][2])/2], l=Math.hypot(...p); V.push(p.map(c=>c/l)); return mid[k]=V.length-1; };
+    const F2=[]; for(const [a,b,c] of Fc){ const ab=mp(a,b), bc=mp(b,c), ca=mp(c,a); F2.push([a,ab,ca],[b,bc,ab],[c,ca,bc],[ab,bc,ca]); } Fc=F2; }
+  return {V,F:Fc}; }
+// STONE: an icosphere pushed about by several octaves of noise, bitten by hollows, stacked into ledges (strata) when asked, and split by
+//  planar cleaves (the faces of a broken stone stay flat and meet the rest at a real edge). Smooth normals on the weathered skin, flat on the cleaves,
+//  a baked cavity term in uv.x for the hollows. st: {sx,sy,sz shape, amp, freq, dents, dr (dent size), dd (dent depth), cuts, cf:[lo,hi] (how deep each cleave bites,
+//  as a fraction of the support), cutB (how far the cleaves may tilt off vertical), layers, lsh (ledge shift), ridge}
+function mStone(seed,st){ const R=rng(seed), nz=vnoise(seed), {V,F:Fc}=ico(st.lv??3), fq=st.freq||1.6, amp=st.amp??.16;
+  const fb=(x,y,z)=>{ let s=0,a=.5,f=1; for(let i=0;i<4;i++){ s+=a*nz(x*f+i*17.3,y*f+i*5.1,z*f+i*9.7); a*=.5; f*=2.03; } return s; };
+  const dents=[]; for(let i=0;i<(st.dents||0);i++){ const a=R()*6.283, b=(R()-.35)*1.6; dents.push([Math.cos(a)*Math.cos(b),Math.sin(a)*Math.cos(b),Math.sin(b),Math.cos((st.dr||.42)*(.6+R()*.8)),(st.dd||.12)*(.6+R()*.7)]); }
+  const AX=.82+R()*.36, AY=.82+R()*.36, SH=[(R()-.5)*(st.lean??.4),(R()-.5)*(st.lean??.4)*.6], lay=st.layers||0, LS=[]; for(let i=0;i<=lay;i++) LS.push([.62+R()*.5,(R()-.5)*(st.lsh||.12),(R()-.5)*(st.lsh||.12)]);
+  const P=V.map(q=>{ let r=1+amp*(fb(q[0]*fq+3,q[1]*fq,q[2]*fq)-.5)*2.4+(st.lump??.22)*(nz(q[0]*.9+11,q[1]*.9,q[2]*.9)-.5)*2+amp*(st.ridge??.4)*(.5-Math.abs(nz(q[0]*fq*3.1,q[1]*fq*3.1+7,q[2]*fq*3.1)*2-1));
+    for(const d of dents){ const c=q[0]*d[0]+q[1]*d[1]+q[2]*d[2]; if(c>d[3]){ const u=(c-d[3])/(1-d[3]); r-=d[4]*Math.sin(Math.min(1,u*1.7)*1.5708); } }
+    const p=[q[0]*r*st.sx*AX,q[1]*r*st.sy*AY,q[2]*r*st.sz]; p[0]+=SH[0]*(p[2]+st.sz); p[1]+=SH[1]*(p[2]+st.sz);
+    if(lay){ const zz=(p[2]/st.sz+1)/2, li=Math.min(lay,Math.max(0,Math.floor(zz*lay+(nz(q[0]*2,q[1]*2,5)-.5)*.5))), L=LS[li]; p[0]=p[0]*L[0]+L[1]; p[1]=p[1]*L[0]+L[2]; }
+    return p; });
+  // cleaves: project everything beyond the plane onto it
+  const cuts=[]; for(let i=0;i<(st.cuts||0);i++){ const a=R()*6.283, b=(R()-.3)*(st.cutB??1.3), n=[Math.cos(a)*Math.cos(b),Math.sin(a)*Math.cos(b),Math.sin(b)], cf=st.cf||[.6,.85];
+    let s=-1e9; for(const p of P) s=Math.max(s,p[0]*n[0]+p[1]*n[1]+p[2]*n[2]); const d=s*(cf[0]+R()*(cf[1]-cf[0])); cuts.push({n,d});
+    for(const p of P){ const t=p[0]*n[0]+p[1]*n[1]+p[2]*n[2]; if(t>d){ p[0]-=(t-d)*n[0]; p[1]-=(t-d)*n[1]; p[2]-=(t-d)*n[2]; } } }
+  let zmin=1e9, zmax=-1e9; for(const p of P){ zmin=Math.min(zmin,p[2]); zmax=Math.max(zmax,p[2]); } const k=1.3/(zmax-zmin); for(const p of P){ p[0]*=k; p[1]*=k; p[2]=(p[2]-zmin)*k-.3; } for(const c of cuts) c.d=c.d*k-(zmin*k+.3)*c.n[2];
+  // which faces lie on a cleave
+  const FC=Fc.map(f=>{ for(let ci=cuts.length-1;ci>=0;ci--){ const c=cuts[ci]; if(f.every(i=>Math.abs(P[i][0]*c.n[0]+P[i][1]*c.n[1]+P[i][2]*c.n[2]-c.d)<.004)) return ci; } return -1; });
+  const ctr=[0,0,.35], FN=Fc.map(f=>{ const a=P[f[0]], b=P[f[1]], c=P[f[2]], u=[b[0]-a[0],b[1]-a[1],b[2]-a[2]], w=[c[0]-a[0],c[1]-a[1],c[2]-a[2]]; let n=[u[1]*w[2]-u[2]*w[1],u[2]*w[0]-u[0]*w[2],u[0]*w[1]-u[1]*w[0]]; const m=[(a[0]+b[0]+c[0])/3-ctr[0],(a[1]+b[1]+c[1])/3-ctr[1],(a[2]+b[2]+c[2])/3-ctr[2]]; if(n[0]*m[0]+n[1]*m[1]+n[2]*m[2]<0) n=n.map(x=>-x); return n; });
+  // smooth normals from the weathered faces only (so a cleave keeps a crisp edge), and the cavity term from the umbrella operator
+  const VN=P.map(()=>[0,0,0]), VA=P.map(()=>[0,0,0]), NB=P.map(()=>new Set());
+  Fc.forEach((f,fi)=>{ const n=FN[fi]; for(const i of f){ const T=FC[fi]<0?VN:VA; T[i][0]+=n[0]; T[i][1]+=n[1]; T[i][2]+=n[2]; } for(let j=0;j<3;j++){ NB[f[j]].add(f[(j+1)%3]); NB[f[j]].add(f[(j+2)%3]); } });
+  const nrm=a=>{ const l=Math.hypot(...a)||1; return a.map(x=>x/l); }; const VS=VN.map((n,i)=>Math.hypot(...n)>1e-6?nrm(n):nrm(VA[i]));
+  let AO=P.map((p,i)=>{ let ax=0,ay=0,az=0,el=0; for(const j of NB[i]){ ax+=P[j][0]; ay+=P[j][1]; az+=P[j][2]; el+=Math.hypot(P[j][0]-p[0],P[j][1]-p[1],P[j][2]-p[2]); } const n=NB[i].size||1, l=[ax/n-p[0],ay/n-p[1],az/n-p[2]], c=(l[0]*VS[i][0]+l[1]*VS[i][1]+l[2]*VS[i][2])/((el/n)||1); return 1-Math.min(.75,Math.max(0,c*2.2)); });
+  for(let s=0;s<2;s++) AO=AO.map((a,i)=>{ let t=a; for(const j of NB[i]) t+=AO[j]; return t/(NB[i].size+1); });
+  // real edges: where a cleave meets the skin or another cleave
+  const EM={}; Fc.forEach((f,fi)=>{ for(let j=0;j<3;j++){ const a=f[(j+1)%3], b=f[(j+2)%3], kk=a<b?a+'_'+b:b+'_'+a; (EM[kk]=EM[kk]||[]).push(fi); } });
+  const out=[]; Fc.forEach((f,fi)=>{ const pl=FC[fi], n=FN[fi], nl=nrm(n), A=f.map(i=>P[i]), area2=Math.hypot(...n)||1, ed=j=>{ const p=A[(j+1)%3], q=A[(j+2)%3]; return Math.hypot(q[0]-p[0],q[1]-p[1],q[2]-p[2])||1; };
+    const real=[0,1,2].map(j=>{ const a=f[(j+1)%3], b=f[(j+2)%3], kk=a<b?a+'_'+b:b+'_'+a, o=EM[kk].find(x=>x!==fi); return o!=null&&FC[o]!==pl; });
+    f.forEach((vi,j)=>{ const nn=pl>=0?cuts[pl].n:VS[vi], e=[9,9,9]; for(let q=0;q<3;q++) if(real[q]) e[q]=q===j?area2/ed(q):0; out.push(P[vi][0],P[vi][1],P[vi][2],nn[0],nn[1],nn[2],AO[vi],P[vi][2],e[0],e[1],e[2]); }); });
+  return out; }
+// ICE: a faceted crystal - an irregular prism (each side its own width), a shoulder ring, and a point or a chisel. Flat facets.
+//  type 0 hex column, 1 chisel-topped, 2 thin blade, 3 stubby with a two-tier point
+function mIce(seed,type){ const R=rng(seed), out=[], ctr=[0,0,.35], n=[6,5,4,7][type], rad=[.2,.21,.25,.25][type], sy=type===2?.42:1, tw=(R()-.5)*.5, zb=[.6,.66,.55,.42][type]+R()*.08, ax=(R()-.5)*.08, ay=(R()-.5)*.08;
+  const ring=(z,k)=>{ const r=[]; for(let i=0;i<n;i++){ const a=i/n*6.2832+tw*z+(R()-.5)*.25, rr=rad*k*(.72+R()*.5); r.push([Math.cos(a)*rr+ax*(z+.3),Math.sin(a)*rr*sy+ay*(z+.3),z+(R()-.5)*.04]); } return r; };
+  const rs=[ring(-.3,1.02),ring(.12+R()*.1,1.08),ring(zb,.94)];
+  if(type===3) rs.push(ring(zb+.2,.55));
+  const qd=(a,b,c,d)=>{ const u=R(); tri(out,a,b,c,ctr,u,[1]); tri(out,a,c,d,ctr,u,[2]); };
+  for(let k=0;k<rs.length-1;k++) for(let i=0;i<n;i++){ const j=(i+1)%n; qd(rs[k][i],rs[k][j],rs[k+1][j],rs[k+1][i]); }
+  const top=rs[rs.length-1], tx=ax*1.3+(R()-.5)*.06, ty=ay*1.3+(R()-.5)*.06;
+  if(type===1){ const i0=(R()*n)|0, A=[tx-.05,ty,.92+R()*.08], B=[tx+.05,ty,.84+R()*.06]; for(let i=0;i<n;i++){ const j=(i+1)%n, P=(i-i0+n)%n<n/2?A:B; tri(out,top[i],top[j],P,ctr,R()); } tri(out,top[i0],A,B,ctr,R()); tri(out,top[(i0+Math.floor(n/2))%n],B,A,ctr,R()); }
+  else { const ap=[tx,ty,1]; for(let i=0;i<n;i++) tri(out,top[i],top[(i+1)%n],ap,ctr,R()); }
+  return out; }
+// ICE SHARD: a small broken splinter (a bipyramid with an uneven waist) for what flies when ice breaks
+function mShard(seed){ const R=rng(seed), out=[], ctr=[0,0,.35], n=3+((R()*2)|0), w=[]; for(let i=0;i<n;i++){ const a=i/n*6.2832+R()*.6, r=.12+R()*.16; w.push([Math.cos(a)*r,Math.sin(a)*r*(.5+R()*.5),.3+R()*.15]); }
+  const T=[(R()-.5)*.15,(R()-.5)*.1,1], B=[(R()-.5)*.1,(R()-.5)*.1,-.3]; for(let i=0;i<n;i++){ const j=(i+1)%n; tri(out,w[i],w[j],T,ctr,R()); tri(out,w[j],w[i],B,ctr,R()); } return out; }
+const STONE={stone:{sx:1,sy:.85,sz:.85,amp:.17,dents:3,dd:.16,cuts:6,cf:[.38,.7],cutB:1},cobble:{sx:1,sy:.86,sz:.66,amp:.08,lump:.12,freq:1.2,dents:2,dd:.07,cuts:1,cf:[.78,.9],ridge:.15,lean:.2},
+  shard:{sx:.62,sy:.44,sz:1.3,amp:.1,lump:.1,dents:1,cuts:8,cf:[.3,.62],cutB:.7,lean:.6},flag:{sx:1.15,sy:.95,sz:.55,amp:.06,lump:.12,dents:1,cuts:3,cf:[.5,.78],layers:5,lsh:.3,lean:.25},
+  meteor:{sx:1,sy:.95,sz:.95,amp:.13,lump:.12,dents:9,dr:.36,dd:.19,cuts:2,cf:[.66,.85],freq:1.9,lean:0}};
 function buildSolids(){ const all=[]; MESH={}; const add=(k,arr)=>{ (MESH[k]=MESH[k]||[]).push([all.length/11,arr.length/11]); for(const x of arr) all.push(x); };
   for(let i=0;i<4;i++){ add('spike',mSpike(11+i*7,5+(i&1),.3,.62)); add('crystal',mSpike(101+i*5,4+(i&1),.13,.85)); add('slab',mSlab(31+i*3)); add('boulder',mBoulder(57+i*9)); add('plate',mPlate(73+i*11)); add('rock',mRock(201+i*13,.1+.08*i)); add('crag',mCrag(307+i*17,6+(i&1)*2)); }
   solidVB=gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,solidVB); gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(all),gl.STATIC_DRAW); }
+// kit update 10: the new kinds live in their own buffer, built the first time one is asked for (about 0.1 s), so loading and every older
+// effect stay exactly as they were. Call FX3.prepDeep() early (e.g. when a run starts) to take that cost before it is needed.
+let deepVB=null; const DEEPK={stone:1,cobble:1,shard:1,flag:1,meteor:3,ice:2,iceshard:2};
+F.prepDeep=()=>{ if(deepVB||!Ps) return; const all=[], add=(k,arr)=>{ (MESH[k]=MESH[k]||[]).push([all.length/11,arr.length/11]); for(const x of arr) all.push(x); };
+  for(const k in STONE) for(let i=0;i<4;i++) add(k,mStone(401+i*29+k.length*7,STONE[k]));
+  for(let i=0;i<4;i++){ add('ice',mIce(503+i*31,i)); add('iceshard',mShard(607+i*13)); }
+  for(const k in DEEPK) MESH[k].deep=DEEPK[k];
+  const prev=gl.getParameter(gl.ARRAY_BUFFER_BINDING); deepVB=gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,deepVB); gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(all),gl.STATIC_DRAW); gl.bindBuffer(gl.ARRAY_BUFFER,prev); curVB=null; };
 // F.solid(kind, variant, x, y, z, {s | M, rx, ry, rz, alb, emis, rimC, spec, rim, vein, heat, tone, ero, a, clip, shadow:[dx,dy,alpha], ord})
 //   kind: spike | crystal | slab | boulder | plate | rock (many-faceted broken stone) | crag (leaning stone column). The model is 1 tall with its foot .3 below 0 (hidden by the floor unless clip:0).
 //   detail (kit update 9): {detail:1, strata (bands per height, 6), glow (light in the cracks, emis colour, 0..2), moss:'#rrggbb', mossK, ore (glints 0..1), edge (chipped edge width, .05), seed}
 //   shadow: how far the shadow slides per unit of height, in floor units (true depth), and its darkness.
 const SOLID={layer:'o',ord:0};
 F.solids=()=>!!Ps;
-F.solid=(kind,vi,x,y,z,o={})=>{ if(!F.on||!Ps||!MESH[kind]) return null; const r=MESH[kind][(vi|0)%MESH[kind].length], M=o.M||F.xf({sx:o.sx??o.s??100,sy:o.sy??o.s??100,sz:o.sz??o.s??100,rx:o.rx||0,ry:o.ry||0,rz:o.rz||0});
-  if(o.shadow&&F.ground&&!F.low) F.q.push({geo:'solid',mat:SOLID,org:[x,y,z||0],M,first:r[0],count:r[1],ov:o,L:0,ord:-5,sh:1});
-  const q={geo:'solid',mat:SOLID,org:[x,y,z||0],M,first:r[0],count:r[1],ov:o,L:1,ord:o.ord??0,sh:0}; F.q.push(q); return q; };
+F.solid=(kind,vi,x,y,z,o={})=>{ if(F.on&&Ps&&!MESH[kind]&&DEEPK[kind]) F.prepDeep(); if(!F.on||!Ps||!MESH[kind]) return null; const r=MESH[kind][(vi|0)%MESH[kind].length], M=o.M||F.xf({sx:o.sx??o.s??100,sy:o.sy??o.s??100,sz:o.sz??o.s??100,rx:o.rx||0,ry:o.ry||0,rz:o.rz||0});
+  if(o.shadow&&F.ground&&!F.low) F.q.push({geo:'solid',mat:SOLID,org:[x,y,z||0],M,first:r[0],count:r[1],ov:o,L:0,ord:-5,sh:1,kd:kind});
+  const q={geo:'solid',mat:SOLID,org:[x,y,z||0],M,first:r[0],count:r[1],ov:o,L:1,ord:o.ord??0,sh:0,kd:kind}; if(MESH[kind].deep) q.dp=MESH[kind].deep; F.q.push(q); return q; };
 
 // a render target; half float when asked for and available
 F.mkRT=(w,h,hdr)=>{ const t=gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D,t); const type=hdr&&HF?HF:gl.UNSIGNED_BYTE; gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,w,h,0,gl.RGBA,type,null);
@@ -380,7 +512,9 @@ function drawOne(q){ const m=q.mat, o=q.ov; let t=m.tex?glTex(m.tex):white; if(!
   F.stats.draws++; }
 const LP=new Float32Array(32), LC=new Float32Array(24);
 const NM=new Float32Array(9);
-function drawSolid(q){ const o=q.ov, m=q.M; gl.uniformMatrix4fv(Us.M,false,m);
+let curVB=null;
+function drawSolid(q){ const o=q.ov, m=q.M, vb=MESH[q.kd]&&MESH[q.kd].deep?deepVB:solidVB; if(vb!==curVB){ curVB=vb; gl.bindBuffer(gl.ARRAY_BUFFER,vb); gl.vertexAttribPointer(0,3,gl.FLOAT,false,44,0); gl.vertexAttribPointer(1,3,gl.FLOAT,false,44,12); gl.vertexAttribPointer(2,2,gl.FLOAT,false,44,24); gl.vertexAttribPointer(3,3,gl.FLOAT,false,44,32); }
+  gl.uniformMatrix4fv(Us.M,false,m);
   for(let c=0;c<3;c++){ const a=m[c*4], b=m[c*4+1], d=m[c*4+2], l2=a*a+b*b+d*d||1; NM[c*3]=a/l2; NM[c*3+1]=b/l2; NM[c*3+2]=d/l2; } gl.uniformMatrix3fv(Us.Nm,false,NM);
   gl.uniform3f(Us.org,q.org[0],q.org[1],q.org[2]); gl.uniform1f(Us.bmp,o.bump??2.2); gl.uniform4f(Us.pr2,o.ero||0,o.heat||0,o.tone??.35,o.clip===0?0:1);
   if(q.sh){ const sd=o.shadow; gl.uniform4f(Us.shd,sd[0],sd[1],1,0); gl.uniform1f(Us.shadow,1); gl.uniform4f(Us.pr,0,0,0,(sd[2]??.5)*(o.a??1)); }
@@ -390,8 +524,16 @@ function drawSolid(q){ const o=q.ov, m=q.M; gl.uniformMatrix4fv(Us.M,false,m);
   const dk=o.detail===true?1:(o.detail||0);
   if(dk>0&&!q.sh){ const mc=rgb(o.moss||'#3e5a2a'), sd=o.seed??(q.first*.0137); gl.uniform4f(Us.dt,dk,o.strata??6,o.glow||0,o.moss?(o.mossK??.6):0); gl.uniform4f(Us.dt2,o.ore||0,o.edge??.05,0,0); gl.uniform4f(Us.dsd,sd*.731%1,sd*.377%1,sd*.913%1,RT); gl.uniform3f(Us.dmc,mc[0],mc[1],mc[2]); }
   else gl.uniform4f(Us.dt,0,0,0,0);
-  gl.drawArrays(gl.TRIANGLES,q.first,q.count); F.stats.draws++; }
-function beginSolid(){ gl.useProgram(Ps); gl.bindBuffer(gl.ARRAY_BUFFER,solidVB); gl.enableVertexAttribArray(0); gl.enableVertexAttribArray(1); gl.enableVertexAttribArray(2);
+  // kit update 10: the new kinds (real stone, ice, molten) - own shader branch, and a depth test so a hollow or overhang hides what is behind it
+  const dpt=q.dp&&!q.sh&&F._dep;
+  if(q.dp&&!q.sh){ const md=o.mode||q.dp, hot=md===3&&o.hot, sd=o.seed??(q.first*.0137), w=(x,y,z)=>{ const a=(m[0]*x+m[1]*y+m[2]*z)/(m[0]*m[0]+m[1]*m[1]+m[2]*m[2]||1), b=(m[4]*x+m[5]*y+m[6]*z)/(m[4]*m[4]+m[5]*m[5]+m[6]*m[6]||1), c=(m[8]*x+m[9]*y+m[10]*z)/(m[8]*m[8]+m[9]*m[9]+m[10]*m[10]||1), l=Math.hypot(a,b,c)||1; return [a/l,b/l,c/l]; },
+      d=hot?w(hot[0],hot[1],hot[2]):w(0,.8146,.58), xc=rgb(o.dustC||(md===2?'#05304a':'#8a7c66'));
+    gl.uniform4f(Us.xm,md,o.dust??(md===2?0:.5),o.glow||0,o.strata??0); gl.uniform4f(Us.xp,d[0],d[1],d[2],hot?(hot[3]??1):0); gl.uniform4f(Us.xq,o.clear??.74,o.frost??1,0,0); gl.uniform3f(Us.xc,xc[0],xc[1],xc[2]);
+    gl.uniform4f(Us.dt2,o.ore||0,o.edge??.05,0,0); gl.uniform4f(Us.dsd,sd*.731%1,sd*.377%1,sd*.913%1,RT); gl.uniform2f(Us.dz,dpt?1:0,cam.y/FSY*.8146);
+    if(dpt){ gl.enable(gl.DEPTH_TEST); gl.depthFunc(gl.LESS); } }
+  else { gl.uniform4f(Us.xm,0,0,0,0); gl.uniform2f(Us.dz,0,0); }
+  gl.drawArrays(gl.TRIANGLES,q.first,q.count); F.stats.draws++; if(dpt) gl.disable(gl.DEPTH_TEST); }
+function beginSolid(){ gl.useProgram(Ps); gl.bindBuffer(gl.ARRAY_BUFFER,solidVB); curVB=solidVB; gl.enableVertexAttribArray(0); gl.enableVertexAttribArray(1); gl.enableVertexAttribArray(2);
   gl.enableVertexAttribArray(3); gl.vertexAttribPointer(0,3,gl.FLOAT,false,44,0); gl.vertexAttribPointer(1,3,gl.FLOAT,false,44,12); gl.vertexAttribPointer(2,2,gl.FLOAT,false,44,24); gl.vertexAttribPointer(3,3,gl.FLOAT,false,44,32);
   gl.uniform4f(Us.camP,-cam.x+cam.sx,-cam.y+cam.sy,S*cam.z,cam.rot); gl.uniform2f(Us.hf,W/2,H/2); gl.uniform1i(Us.nzA,1); gl.uniform1i(Us.nzB,2);
   const A=window.GFX?GFX.amb:[1,1,1]; gl.uniform3f(Us.amb,A[0],A[1],A[2]); gl.uniform4fv(Us.lp,LP.subarray(0,16)); gl.uniform3fv(Us.lc,LC.subarray(0,12)); cur=null; }
@@ -445,7 +587,11 @@ F.renderOver=(G,gfxDrew)=>{ if(!F.on) return false; let n=0, nd=0, ng=0; for(con
   // volumes (fire, smoke, plasma) go in first: sparks drawn by GFX stay under them, mesh slashes and cores go over them
   if(nv){ VOL.render(G,G.gVfx); gl.activeTexture(gl.TEXTURE0); }
   beginMesh();
-  if(n){ gl.bindFramebuffer(gl.FRAMEBUFFER,G.gVfx.f); gl.viewport(0,0,G.gVfx.w,G.gVfx.h); drawLayer(1); }
+  if(n){ gl.bindFramebuffer(gl.FRAMEBUFFER,G.gVfx.f); gl.viewport(0,0,G.gVfx.w,G.gVfx.h);
+    // kit update 10: a depth buffer for the new solid kinds only (nothing else tests or writes it)
+    if(F.q.some(q=>q.dp&&q.L===1)){ const T=G.gVfx; if(!T.db){ T.db=gl.createRenderbuffer(); gl.bindRenderbuffer(gl.RENDERBUFFER,T.db); gl.renderbufferStorage(gl.RENDERBUFFER,gl.DEPTH_COMPONENT16,T.w,T.h); gl.framebufferRenderbuffer(gl.FRAMEBUFFER,gl.DEPTH_ATTACHMENT,gl.RENDERBUFFER,T.db); }
+      gl.depthMask(true); gl.clear(gl.DEPTH_BUFFER_BIT); F._dep=1; }
+    drawLayer(1); F._dep=0; }
   if(nd){ gl.bindFramebuffer(gl.FRAMEBUFFER,G.gDist.f); gl.viewport(0,0,G.gDist.w,G.gDist.h); gl.blendFuncSeparate(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE); drawLayer(2); }
   endMesh(); F.q.length=0; dynN=0; if(window.GFX) GFX.wasClear=false; return true; };
 F.pending=()=>F.q.length>0;

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>참광 — 작화 폭발 FX 쇼케이스</title>
+<title>프로메테우스 · PROMETHEUS</title>
 <style>
   html,body{margin:0;height:100%;background:#000;overflow:hidden;color:#fff;touch-action:none;-webkit-touch-callout:none;overscroll-behavior:none;-webkit-tap-highlight-color:transparent;
     font-family:"Pretendard","Malgun Gothic","Apple SD Gothic Neo",sans-serif;user-select:none;-webkit-user-select:none}
@@ -3128,7 +3128,7 @@ function drawWarn(){
   ctx.globalAlpha=al*blink; ctx.textAlign='center'; ctx.textBaseline='middle';
   ctx.font=`900 ${fsz}px ${FONT_K}`; ctx.lineJoin='round'; ctx.lineWidth=fsz*.08; ctx.strokeStyle='#000'; ctx.strokeText('경 고',W/2,H*.5);
   ctx.fillStyle='#ff1d3d'; ctx.fillText('경 고',W/2,H*.5);
-  ctx.globalAlpha=al; ctx.font=`900 ${Math.min(fsz*.16,W/30)}px ${FONT_K}`; ctx.fillStyle='#ffd0d8'; ctx.fillText('보이드 타이탄 출현 · VOID TITAN APPROACHING',W/2,H*.5+fsz*.62);
+  ctx.globalAlpha=al; ctx.font=`900 ${Math.min(fsz*.16,W/30)}px ${FONT_K}`; ctx.fillStyle='#ffd0d8'; ctx.fillText(window.BOSS_WARN||'보이드 타이탄 출현 · VOID TITAN APPROACHING',W/2,H*.5+fsz*.62);
   ctx.globalAlpha=1;
 }
 function drawHUD(){

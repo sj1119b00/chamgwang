@@ -310,6 +310,9 @@ const K=window.K3, F=window.FX3, V=window.VOL; if(!K||!F||!window.GFX) return;
 const FSY=.58, PI=Math.PI, TAU_=PI*2, sat=K.sat, mix=K.mix, eo3=K.eo3, eo5=K.eo5, R=(a,b)=>a+Math.random()*(b-a), pal=K.pal;
 const rgb=c=>typeof c==='string'?GFX.rgb(c):c, col=P=>({cA:P.d,cB:P.b,cC:P.h,cM:P.m}), vok=()=>!!(K.vok&&K.vok());
 let M9=null;
+// kit update 10: the new solid kinds (real stone, ice, molten) - see fx3.js
+const DEEP={stone:1,cobble:1,shard:1,flag:1,meteor:1,ice:1,iceshard:1};
+K.DEEP=DEEP;
 function m9(){ if(M9) return M9; const m=F.mat, blk={cA:'#000000',cB:'#000000',cC:'#000000',op:1};
   M9={
     soot:m({tex:'v3_scorch',nz:'cells',n1:[3,3,0,0],nk:.5,pw:.75,ero:.1,soft:.4,...blk,layer:'g'}),
@@ -349,7 +352,7 @@ K.rocks=(x,y,o={})=>{ const H={L:[],dead:false,t1:-1,end(){ if(H.t1<0) H.t1=1; }
     // keep stones from sinking into each other: try a few places and take the first that leaves room
     for(let tr=0;tr<8;tr++){ a=mix(a0,a1,(i+R(.15,.85))/n)+(tr?R(-.6,.6):0); d=big&&n>2?r*R(0,.2):r*Math.sqrt(R(.3,1))*(1+tr*.08); const px=x+Math.cos(a)*d, py=y+Math.sin(a)*d*FSY;
       if(H.L.every(q=>Math.hypot(q.x-px,(q.y-py)/FSY)>(q.s+s)*.42)) break; }
-    H.L.push({x:x+Math.cos(a)*d,y:y+Math.sin(a)*d*FSY,s,a,big,v:(Math.random()*4)|0,rz:R(0,TAU_),ln:R(.06,.3)*(o.lean??1),sq:(o.squash??1)*R(.85,1.25),dl:big?0:(o.stagger??.05)*i+R(0,.04),sd:R(0,9),em:0,dust:false}); }
+    H.L.push({x:x+Math.cos(a)*d,y:y+Math.sin(a)*d*FSY,s,a,big,kd:o.kinds?o.kinds[i%o.kinds.length]:kind,v:(Math.random()*4)|0,rz:R(0,TAU_),ln:R(.06,.3)*(o.lean??1),sq:(o.squash??1)*R(.85,1.25),dl:big?0:(o.stagger??.05)*i+R(0,.04),sd:R(0,9),em:0,dust:false}); }
   if(typeof pl!=='undefined'&&pl.gy!=null) for(const p of H.L){ const dx=p.x-pl.x, dy=p.y-pl.gy; if(dy>-p.s*.45&&dy<p.s*.9&&Math.abs(dx)<p.s*.75){ p.s*=.75; p.x=pl.x+(dx>=0?1:-1)*p.s*R(.85,1.05); } }
   H.L.sort((p,q)=>p.y-q.y); const bigs=[...H.L].sort((p,q)=>q.s-p.s).slice(0,nsh);
   const lx=o.lx??x, ly=o.ly??y; for(const p of H.L) p.sa=Math.atan2((p.y-ly)/FSY,p.x-lx);
@@ -360,14 +363,14 @@ K.rocks=(x,y,o={})=>{ const H={L:[],dead:false,t1:-1,end(){ if(H.t1<0) H.t1=1; }
     if(o.mound!==0) F.quad(m.soot,x,y,r*1.35+s1*.6,(r*1.35+s1*.6)*.9,o.rot||0,{a:.75*sat(t/.15)*(1-sat((t-tEnd-out)/.3))});
     for(const p of H.L){ const tt=t-p.dl; if(tt<0) continue; const f=sat((t-tEnd-p.dl*.5)/out), h=hgt(tt), sink=f*f*.35, z=p.s*((h-sink)-1)*.95, ca=Math.cos(p.sa), sa=Math.sin(p.sa), heat=sat(1-tt/.6);
       if(!p.dust){ p.dust=true; K.dust(p.x,p.y,{n:p.big?5:3,r:p.s*.25,sp:[p.s*.8,p.s*2.4],a:.42,s:.6+p.s/400,life:1.1,c:'#241f1c',c3:'#4a4038'}); if(p.big) GFX.light(p.x,p.y,p.s*2.2,P.l,.22+glow*.18,.45,{z:p.s*.5}); }
-      if(solids) F.solid(kind,p.v,p.x,p.y,z,{M:F.xfw({sx:p.s*p.sq,sy:p.s*p.sq*.9,sz:p.s,rz:p.rz,rx:sa*p.ln,ry:ca*p.ln}),alb,emis:P.b,rimC:P.h,spec:.45,rim:.24,vein:glow*.35,heat:heat*.35*(o.heat??1),tone:.3,bump:2.4,ero:f*.85,
-        shadow:bigs.includes(p)?[Math.cos(p.sa)*.7+.3,Math.sin(p.sa)*.7+.2,.5*(1-f)]:null,detail:1,strata:o.strata??5,glow:glow*(1-f*.8)*(.6+.4*sat(tt/.4)),moss:o.moss||0,mossK:o.mossK??.4,ore:o.ore??.3,edge:o.edge??.06,seed:p.sd});
+      if(solids) F.solid(p.kd,p.v,p.x,p.y,z,{M:F.xfw({sx:p.s*p.sq,sy:p.s*p.sq*.9,sz:p.s,rz:p.rz,rx:sa*p.ln,ry:ca*p.ln}),alb,emis:P.b,rimC:P.h,spec:.45,rim:.24,vein:glow*.35,heat:heat*.35*(o.heat??1),tone:.3,bump:2.4,ero:f*.85,dust:o.dust,dustC:o.dustC,
+        shadow:bigs.includes(p)?[Math.cos(p.sa)*.7+.3,Math.sin(p.sa)*.7+.2,.5*(1-f)]:null,detail:1,strata:DEEP[p.kd]?(p.kd==='flag'?(o.strata??4):(o.strata??0)):(o.strata??5),glow:glow*(1-f*.8)*(.6+.4*sat(tt/.4)),moss:o.moss||0,mossK:o.mossK??.4,ore:o.ore??.3,edge:o.edge??.06,seed:p.sd});
       // soil, pebbles and dust run off it while it climbs and while it breaks up
       if(o.spill!==0&&!F.low){ const climbing=tt<rise*1.6, br=f>0&&f<1, rate=climbing?(p.big?36:16):br?(p.big?30:14):0; p.em+=rate*dt*(GFX.QK||1);
         while(p.em>=1){ p.em-=1; const top=Math.max(0,z+p.s*(1.25*h-.3)), ang=R(0,TAU_), rr=p.s*R(.12,.42);
           if(Math.random()<.65) GFX.pt({x:p.x+Math.cos(ang)*rr,y:p.y+Math.sin(ang)*rr*FSY,z:top*R(.6,1),vx:Math.cos(ang)*R(40,200),vy:Math.sin(ang)*R(20,100),vz:R(80,420),g:2400,drag:.3,life:R(.6,1.2),s:R(3,8)*(.6+p.s/400),rot:R(0,TAU_),vr:R(-12,12),m:11,b:'alpha',c:rgb(Math.random()<.5?'#4a433e':'#6e655c'),c2:'#0a0908',shadow:true,bounce:.3,fk:5,L:2,pri:1});
           else GFX.pt({x:p.x+Math.cos(ang)*rr*1.3,y:p.y+Math.sin(ang)*rr*FSY,z:top*R(.2,.7),vx:Math.cos(ang)*R(20,90),vy:Math.sin(ang)*R(10,50),vz:R(-180,-40),g:0,drag:1.6,life:R(.7,1.3),s:R(14,30)*(.5+p.s/350),grow:R(30,70),m:5,b:'alpha',c:rgb('#3a332e'),c2:'#000000',c3:'#6a5e52',er:.9,ns:R(.9,1.6),w:1,a:.4,L:0,pri:1}); } }
-      if(f>0&&!p.br){ p.br=true; if(K.chunks&&p.big&&!F.low) K.chunks(p.x,p.y,{n:3,r:p.s*.3,sp:[120,360],up:600,s:[p.s*.12,p.s*.24],pal:P,kind:kind==='crystal'?'crystal':'boulder',rock:alb,life:1.1}); } } },o.delay||0);
+      if(f>0&&!p.br){ p.br=true; if(K.chunks&&p.big&&!F.low) K.chunks(p.x,p.y,{n:3,r:p.s*.3,sp:[120,360],up:600,s:[p.s*.12,p.s*.24],pal:P,kind:DEEP[p.kd]?(p.kd==='ice'?'iceshard':'shard'):kind==='crystal'?'crystal':'boulder',rock:alb,life:1.1}); } } },o.delay||0);
   return H; };
 
 // ---------------------------------------------------------------- 2. gather (ki drawn in)
@@ -461,7 +464,7 @@ K.halo=(x,y,z,o={})=>{ const H={x,y,z:z||400,r:o.r||220,a:o.a??1,dead:false,t1:-
 //  o: {h (1700), z (how high it floats, h*.12), pal ('gold'), dur (3), in (.7: it condenses from mist), out (.6: it dissolves upward),
 //      arms ('open' | 'raise' | 'down' | 'press' - palms pushing down), eyes:0, halo:0, mist (2 bands), shadow:0, gain, a, delay}
 //  -> handle {x,y,z,h,a,arms,dead,end(), head() -> [x,y,z], hand(i) -> [x,y,z] (0 left, 1 right)}
-K.deity=(x,y,o={})=>{ const h=o.h||1700, H={x,y,z:o.z??h*.12,h,a:o.a??1,arms:o.arms||'open',dead:false,t1:-1,end(){ if(H.t1<0) H.t1=RT; },
+K.deity=(x,y,o={})=>{ if(o.rig&&K.deityRig) return K.deityRig(x,y,o); const h=o.h||1700, H={x,y,z:o.z??h*.12,h,a:o.a??1,arms:o.arms||'open',dead:false,t1:-1,end(){ if(H.t1<0) H.t1=RT; },
     head(){ return [H.x,H.y,H.z+H.h*.86]; },hand(i){ const A=ARM[H.arms]||ARM.open, s=i?1:-1; return [H.x+s*H.h*A[2],H.y,H.z+H.h*A[3]]; }};
   if(!F.on) return H; const m=m9(), P=pal(o.pal||'gold'), VC=K.vc?K.vc(P):null, C=col(P), CW={cA:P.b,cB:P.m,cM:P.h,cC:'#ffffff'}, dur=o.dur||3, tin=o.in??.7, out=o.out??.6, g=o.gain||1, sd=R(0,9);
   const HL=o.halo!==0?K.halo(x,y,H.z+h*.86,{r:h*.15,pal:P,dur:(o.max||dur)+tin,in:tin*1.2,out,tilt:-.95,gain:.9*g,delay:(o.delay||0)+tin*.4}):null;
@@ -504,4 +507,302 @@ K.divine=(x,y,o={})=>{ const P=pal(o.pal||'gold'), dur=o.dur||3.6, h=o.h||1800, 
     GFX.light(x,y,hw*1.2,P.l,1.1,.6,{z:400}); GFX.ripple(x,y,h*.8,{life:.5,s:.8}); }};
   const st=o.strike??dur*.6; if(st>=0) after(d+st,R0.strike);
   return R0; };
+})();
+
+// ================================================================ kit update 10: real assets, replacements for the light pillars, the god's motion (2026-11-25)
+// ice (a crystal cluster on frosted floor), meteor (a tumbling molten rock with a plasma face and a breaking tail), lightning (a branched
+// channel that re-strikes), impact (flash, ejecta curtain, rolling dust ring, mushroom cloud, molten crater), eruptEarth (the floor bursting up),
+// deityRig (K3.deity with {rig:1}: forms from the ground up, breathes, lifts its head, jointed arms with weight, trailing mist, smite / point, scatters away).
+// All new: nothing older changes look. Stone and ice use the new solid kinds in fx3.js (stone cobble shard flag meteor ice iceshard).
+(()=>{
+const K=window.K3, F=window.FX3, V=window.VOL; if(!K||!F||!window.GFX) return;
+const FSY=.58, PI=Math.PI, TAU_=PI*2, sat=K.sat, mix=K.mix, eo3=K.eo3, eo5=K.eo5, R=(a,b)=>a+Math.random()*(b-a), pal=K.pal;
+const rgb=c=>typeof c==='string'?GFX.rgb(c):c, col=P=>({cA:P.d,cB:P.b,cC:P.h,cM:P.m}), vok=()=>!!(K.vok&&K.vok());
+const ss=(a,b,x)=>{ const t=sat((x-a)/(b-a)); return t*t*(3-2*t); }, hash=n=>{ const s=Math.sin(n*127.1+311.7)*43758.5453; return s-Math.floor(s); };
+const hexm=(a,b,k)=>{ a=rgb(a); b=rgb(b); return '#'+[0,1,2].map(i=>('0'+Math.round(sat(a[i]+(b[i]-a[i])*k)*255).toString(16)).slice(-2)).join(''); };
+let M10=null;
+function m10(){ if(M10) return M10; const m=F.mat, n9=K.m9();
+  M10={
+    // frost on the floor: cells of rime, thicker toward the middle; a ragged ring of snow at its edge
+    frost:m({pm:[3,.8,0,0],nz:'veins',n1:[4,4,0,0],n2:[1.6,1.6,0,0],dist:.12,nk:1,pw:1.7,ero:.3,soft:.25,cA:'#06141e',cB:'#2e5670',cM:'#86b4cc',cC:'#e6f6ff',rk:[.45,1],gain:.85,op:1,layer:'g'}),
+    snow:m({nz:'billow',n1:[9,9,0,0],n2:[2,2,0,0],dist:.1,nk:1,pw:2.2,ero:.42,soft:.2,rv:[1,.3,.55,.35],cA:'#1e3444',cB:'#9fc2d6',cC:'#f4fbff',rk:[.4,1],gain:.85,op:1,layer:'g'}),
+    // the lightning channel: ion haze, the coloured glow, the white thread
+    lH:m({pm:[2,1.1,0,0],nk:0,ero:0,soft:.6,rk:[.5,1],gain:1}),
+    lG:m({pm:[2,1.7,0,0],nz:'streak',n1:[.6,3,0,0],nk:.2,ero:.02,soft:.4,rk:[.4,1],gain:2.2,bgain:1.1}),
+    lC:m({pm:[2,2.6,0,0],nk:0,ero:.02,soft:.25,rk:[.1,.45],gain:4.5,bgain:2}),
+    // ejecta curtain: a cone of thrown dirt, ragged and thinning upward; its lit underside
+    cur:m({nz:'streak',n1:[11,.7,0,-.35],n2:[4,1.2,0,-.15],dist:.14,nk:1,pw:1.4,ero:.3,soft:.25,fd:[0,0,.03,.55],cA:'#0a0706',cB:'#231b16',cC:'#3e342c',rk:[.3,1],gain:.9,op:1}),
+    curL:m({nz:'streak',n1:[11,.7,0,-.35],n2:[4,1.2,0,-.15],dist:.14,nk:1,pw:2.2,ero:.3,soft:.25,fd:[0,0,.02,.85],rk:[.45,1],gain:1.1,bgain:1}),
+    flash:n9.flash, pool:n9.pool, shade:n9.shade, mist:n9.mist };
+  return M10; }
+K.m10=m10;
+
+// ---------------------------------------------------------------- 1. ice
+// ICE: a cluster of crystals bursting up through a floor that frosts over: sharp faceted prisms (see-through, deep blue-green where you look into
+//  them, cracks and bubbles inside, white rime on the edges and at the foot), sizes spread like a real cluster, leaning out from the middle.
+//  Cold mist rolls off, glints catch the light. At the end it shatters into sharp splinters and white powder (or melts: o.end 'melt').
+//  o: {n (7), r (cluster radius 260), s:[lo,hi] crystal heights ([120,420], the first is hi), pal ('azure': light in it and on the floor), tint (shallow
+//      colour '#8fe4ff'), deep (deep colour '#05304a'), glow (0..1 light inside), clear (.74: how much floor shows through), lean (1), rise (.22), over (.06),
+//      stagger (.04), dur (2.5 until it breaks), out (.35), end ('shatter' | 'melt' | 'none' = stays until h.shatter()), frost (1: frosted floor),
+//      a0,a1 (arc), shadow (2), delay}
+//  -> handle {L (crystals {x,y,s}), dead, shatter(), end() (melt)}
+K.ice=(x,y,o={})=>{ const H={L:[],dead:false,t1:-1,mode:'',shatter(){ if(H.t1<0){ H.t1=1; H.mode='shatter'; } },end(){ if(H.t1<0){ H.t1=1; H.mode='melt'; } }}; if(!F.on) return H;
+  const P=pal(o.pal||'azure'), n=Math.max(1,Math.round((o.n||7)*(F.low?.6:1))), r=o.r??260, [s0,s1]=o.s||[120,420], rise=o.rise??.22, over=o.over??.06, dur=o.dur||2.5, out=o.out??.35,
+    a0=o.a0??0, a1=o.a1??TAU_, m=m10(), glow=o.glow||0, alb=o.tint||'#8fe4ff', dc=o.deep||'#05304a', nsh=o.shadow??2, ends=o.end||'shatter', solids=F.solids&&F.solids();
+  for(let i=0;i<n;i++){ const big=i===0, s=big?s1:mix(s0,s1*.85,Math.pow(Math.random(),1.5)); let a=0, d=0;
+    for(let tr=0;tr<8;tr++){ a=mix(a0,a1,(i+R(.15,.85))/n)+(tr?R(-.6,.6):0); d=big&&n>2?r*R(0,.15):r*Math.sqrt(R(.25,1))*(1+tr*.08); const px=x+Math.cos(a)*d, py=y+Math.sin(a)*d*FSY;
+      if(H.L.every(q=>Math.hypot(q.x-px,(q.y-py)/FSY)>(q.s+s)*.16)) break; }
+    H.L.push({x:x+Math.cos(a)*d,y:y+Math.sin(a)*d*FSY,s,a,big,v:(Math.random()*4)|0,rz:R(0,TAU_),ln:(big?R(.03,.1):R(.22,.6))*(o.lean??1),wd:R(.85,1.3),dl:big?0:(o.stagger??.04)*i+R(0,.03),sd:R(0,9),sh:false}); }
+  if(typeof pl!=='undefined'&&pl.gy!=null) for(const p of H.L){ const dx=p.x-pl.x, dy=p.y-pl.gy; if(dy>-p.s*.3&&dy<p.s*.7&&Math.abs(dx)<p.s*.4){ p.s*=.7; p.x=pl.x+(dx>=0?1:-1)*p.s*R(.5,.7); } }
+  H.L.sort((p,q)=>p.y-q.y); const bySize=[...H.L].sort((p,q)=>q.s-p.s), bigs=bySize.slice(0,nsh); bySize.forEach((p,i)=>{ p.rk=i; });
+  for(const p of H.L) p.sa=Math.atan2((p.y-y)/FSY,p.x-x);
+  const hgt=tt=>{ const u=tt/rise; if(u<1) return (1+over)*(1-Math.pow(1-u,3)); const v=u-1; return 1+over*Math.exp(-v*5)*Math.cos(v*7); };
+  const R0=(r+s1*.45)*1.35; let tPrev=0, gE=0, bornAt=-1;
+  const brk=p=>{ p.sh=true; const nk=p.big?3:p.rk<4?1:0; if(K.chunks&&nk) K.chunks(p.x,p.y,{n:nk,kind:'iceshard',r:p.s*.15,sp:[220,760],up:1000,s:[p.s*.09,p.s*.2],pal:P,rock:alb,life:1.3});
+    for(let i=0;i<Math.round((p.big?9:5)*(GFX.QK||1));i++){ const a=R(0,TAU_), v=R(80,380); GFX.pt({x:p.x+R(-.15,.15)*p.s,y:p.y,z:R(.1,.9)*p.s,vx:Math.cos(a)*v,vy:Math.sin(a)*v*FSY,vz:R(-40,160),g:0,drag:1.5,life:R(.7,1.3),s:R(18,40)*(p.s/300),grow:R(40,90),m:5,b:'alpha',c:rgb('#cfe6f4'),c2:'#5a7f98',c3:'#ffffff',er:.85,ns:R(.9,1.6),w:1,a:.5,L:2,pri:1}); }
+    for(let i=0;i<Math.round(7*(GFX.QK||1));i++) GFX.pt({x:p.x+R(-.2,.2)*p.s,y:p.y,z:R(.1,1)*p.s,vx:R(-300,300),vy:R(-120,120),vz:R(100,600),g:900,drag:1,life:R(.2,.5),s:R(3,6),m:8,c:[1,1,1],fade:'in',L:3,pri:1}); };
+  GFX.add(dur+out+.5+(o.max||0),(k,t)=>{ if(H.dead) return; if(bornAt<0) bornAt=t;
+    if(ends==='none'&&H.t1<0){ k=0; } if(H.t1===1) H.t1=t; const tEnd=H.t1>0?H.t1:(ends==='none'?1e9:dur), mode=H.mode||ends, dt=Math.max(0,t-tPrev); tPrev=t; if(t>tEnd+out+.4){ H.dead=true; return; }
+    const fo=sat((t-tEnd-.1)/(out+.2)), gi=eo3(sat(t/.3));
+    // frosted floor, the snow ring at its edge
+    if(o.frost!==0){ F.quad(m.frost,x,y,R0*gi,R0*gi*.92,o.rot||.4,{a:.5*(1-fo*fo),ero:.38+fo*.5});
+      if(!F.low) F.quad(m.snow,x,y,R0*.55*gi,R0*.5*gi,.9,{a:.3*(1-fo),ero:.5+fo*.4}); }
+    for(const p of H.L){ const tt=t-p.dl; if(tt<0) continue; const f=sat((t-tEnd-p.dl*.4)/out), h=hgt(tt), ca=Math.cos(p.sa), sa=Math.sin(p.sa);
+      if(!p.born){ p.born=true; K.dust(p.x,p.y,{n:p.big?4:2,r:p.s*.15,sp:[p.s*.4,p.s*1.4],a:.3,s:.6+p.s/500,life:1.4,c:'#8fb4cc',c3:'#e4f4ff'});
+        for(let i=0;i<Math.round((p.big?8:4)*(GFX.QK||1));i++){ const a=R(0,TAU_), v=R(120,420); GFX.pt({x:p.x,y:p.y,z:R(2,20),vx:Math.cos(a)*v,vy:Math.sin(a)*v*FSY,vz:R(300,800),g:2400,drag:.3,life:R(.5,.9),s:R(3,7),rot:R(0,TAU_),vr:R(-12,12),m:11,b:'alpha',c:rgb('#cfeeff'),c2:'#2e5f80',shadow:true,bounce:.3,fk:5,L:2,pri:1}); } }
+      if(mode==='shatter'&&f>0&&!p.sh) brk(p);
+      const gone=mode==='shatter'?sat(f*3.5):f, sink=mode==='melt'?f*f*.45:0, sc=.55+.45*Math.min(h,1.1), z=p.s*((h-sink)-1)*.55;
+      if(solids&&gone<1) F.solid('ice',p.v,p.x,p.y,z,{M:F.xfw({sx:p.s*.95*p.wd*sc,sy:p.s*.95*p.wd*sc,sz:p.s*sc,rz:p.rz,rx:sa*p.ln,ry:ca*p.ln}),alb,dustC:dc,emis:P.b,rimC:P.h,spec:.6,rim:.35,vein:0,glow,clear:o.clear,frost:o.frost??1,
+        ero:gone*.9,bump:1.6,shadow:bigs.includes(p)?[.32,.2,.32*(1-gone)]:null,seed:p.sd}); }
+    // glints running over the crystals, and cold vapour sliding off them
+    if(!F.low&&fo<.5){ gE+=dt*(10+6*n)*(GFX.QK||1); while(gE>=1){ gE-=1; const p=H.L[(Math.random()*H.L.length)|0]; GFX.pt({x:p.x+R(-.18,.18)*p.s,y:p.y+R(-6,6),z:p.s*R(.15,.95),vx:0,vy:0,vz:0,g:0,life:R(.12,.3),s:R(4,9),m:8,c:[1,1,1],fade:'in',L:3,pri:1});
+        if(Math.random()<.25) GFX.pt({x:p.x+R(-.2,.2)*p.s,y:p.y,z:p.s*R(.3,.8),vx:R(-30,30),vy:R(-10,10),vz:R(-60,-15),g:0,drag:.8,life:R(.9,1.6),s:R(16,30)*(p.s/300),grow:R(20,45),m:5,b:'alpha',c:rgb('#bcdcee'),c2:'#4a6e86',c3:'#f0fbff',er:.9,ns:R(.9,1.5),w:1,a:.22,L:2,pri:1}); } } },o.delay||0);
+  after(o.delay||0,()=>GFX.light(x,y,(r+s1)*2,P.l,.3+glow*.35,dur,{z:s1*.6,hold:dur*.7}));
+  return H; };
+
+// ---------------------------------------------------------------- 2. meteor
+// METEOR: a tumbling broken rock falling onto (x,y) from the sky: molten seams glowing in its crust, its face toward the air a sheet of white plasma,
+//  a fire tail and a longer smoke tail streaming back along its path, embers and burning chips tearing off it, smoke left hanging in the air
+//  behind it, its light growing on the floor and a dark spot tightening where it will land. On landing it calls o.land(x,y) and (unless
+//  impact:false) sets off K3.impact there. o: {s (body radius 170), h0 (start height 2200), dx,dy (start offset on the floor: where it comes from,
+//  -700,-250), dur (.9 fall time), spin (2.2), pal ('flame' seams and fire), rock ('#2a2421'), hot (1: plasma face), tail (1), smoke (1),
+//  impact ({...K3.impact options} | false), land(x,y), delay} -> handle {x,y,z (current), dead, landed}
+K.meteor=(x,y,o={})=>{ const H={x,y,z:o.h0??2200,dead:false,landed:false}; const d0=o.delay||0;
+  if(!F.on){ after(d0+(o.dur||.9),()=>{ H.landed=true; if(o.land) o.land(x,y); }); return H; }
+  const m=m10(), P=pal(o.pal||'flame'), S=o.s||170, dur=o.dur||.9, h0=o.h0??2200, x0=x+(o.dx??-700), y0=y+(o.dy??-250), sp=o.spin??2.2, v=(Math.random()*4)|0, ax=R(-1,1), ay=R(-1,1),
+    C=col(P), CW={cA:P.b,cB:P.m,cM:P.h,cC:'#ffffff'}, DX=x-x0, DY=(y-y0)/FSY, DZ=-h0, DL=Math.hypot(DX,DY,DZ), dir=[DX/DL,DY/DL,DZ/DL], fdir=Math.atan2(DY,DX), pit=Math.atan2(h0,Math.hypot(DX,DY)||1);
+  const pos=u=>{ const k=u*(.4+.6*u); return [x0+DX*k,y0+(y-y0)*k,h0*(1-k)]; };
+  let jet=null, smk=null, E=0, tp=0, L=null;
+  const land=()=>{ if(H.landed) return; H.landed=true; H.dead=true; if(jet) jet.dead=true; if(smk) smk.dead=true; if(L) L.t=L.life;
+    if(o.land) o.land(x,y); if(o.impact!==false) K.impact(x,y,{s:S*2.4,fire:P,pal:P,...(o.impact||{})}); };
+  GFX.add(dur+.05,(k,t)=>{ if(H.dead) return; const u=sat(t/dur), [px,py,pz]=pos(u), dt=Math.max(0,t-tp); tp=t; H.x=px; H.y=py; H.z=pz;
+    if(u>=1){ land(); return; }
+    if(!jet&&vok()&&o.tail!==0){ jet=K.vjet(px,py,pz,fdir+PI,{len:S*6.5,r:S*1.25,r0:S*.85,dur:dur*2,pal:P,pitch:pit,heat:1.35,turb:.75,speed:8,in:.06,out:.05,gain:1.1});
+      if(o.smoke!==0) smk=K.vjet(px,py,pz,fdir+PI,{len:S*13,r:S*2.2,r0:S*.9,dur:dur*2,pal:P,pitch:pit,heat:0,turb:.9,speed:5,in:.1,out:.05,c:'#221c18',c2:'#7a6a5e',gain:.9}); }
+    // the tails ride behind the body; the smoke tail starts a little further back so the fire stays in front of it
+    if(jet){ jet.x=px; jet.y=py; jet.z=pz; } if(smk){ const b=S*1.6; smk.x=px-dir[0]*b; smk.y=py-dir[1]*b*FSY; smk.z=pz-dir[2]*b; }
+    // the body: tumbling about its own centre
+    const M=F.xfw({s:S*1.6,rx:ax*t*sp,ry:ay*t*sp*.7,rz:t*sp}); M[12]-=M[8]*.35; M[13]-=M[9]*.35; M[14]-=M[10]*.35;
+    F.bill(m.flash,px,py,pz,S*2.7,S*2.7,0,{...C,a:.42,gain:1.3});
+    F.solid('meteor',v,px,py,pz,{M,clip:0,alb:o.rock||'#2a2421',emis:P.b,rimC:P.h,spec:.3,rim:.3,glow:1.3,hot:[dir[0],dir[1],dir[2],o.hot??1],bump:2.4,dust:0,edge:.04});
+    // the plasma face: a hot cap just ahead of it
+    const fx=px+dir[0]*S*.55, fy=py+dir[1]*S*.55*FSY, fz=pz+dir[2]*S*.55, fl=.85+.15*hash(Math.floor(t*40));
+    F.bill(m.flash,fx,fy,fz,S*1.5*fl,S*1.2*fl,-fdir*.3,{...CW,a:.75,gain:2.2});
+    // what tears off it: embers, burning chips, smoke puffs that stay hanging along the path
+    E+=dt*150*(GFX.QK||1); while(E>=1){ E-=1; const r=Math.random(), ox=R(-.6,.6)*S, oz=R(-.6,.6)*S;
+      if(r<.45) GFX.pt({x:px+ox,y:py,z:pz+oz,vx:-dir[0]*R(300,900)+R(-150,150),vy:-dir[1]*R(300,900)*FSY,vz:-dir[2]*R(300,900)+R(-80,200),g:600,drag:1.2,life:R(.25,.7),s:R(3,6),m:3,len:.04,c:rgb(Math.random()<.4?'#ffffff':P.s),c3:'#ffffff',c2:P.b,L:3,pri:1});
+      else if(r<.6) GFX.pt({x:px+ox,y:py,z:pz+oz,vx:-dir[0]*R(100,400)+R(-200,200),vy:R(-100,100),vz:R(-100,300),g:1500,drag:.5,life:R(.5,1),s:R(5,10),rot:R(0,TAU_),vr:R(-10,10),m:8,c:rgb(P.m),fade:'in',L:3,pri:1});
+      else GFX.pt({x:px-dir[0]*S*.8+ox,y:py-dir[1]*S*.8*FSY,z:pz-dir[2]*S*.8+oz,vx:R(-40,40),vy:R(-20,20),vz:R(10,60),g:0,drag:.9,life:R(1.2,2.2),s:R(30,60)*(S/170),grow:R(40,90),m:5,b:'alpha',c:rgb('#2e2620'),c2:'#000000',c3:'#6e6258',er:.9,ns:R(.9,1.6),w:1,a:.45,L:2,pri:1}); }
+    // on the floor: the light it throws, and a dark spot tightening where it will land
+    F.quad(m.shade,x,y,S*(3.2-2*u),S*(3.2-2*u)*.8,.3,{a:.25+.5*u});
+    F.quad(m.flash,px,py,S*(2+4*u),S*(2+4*u),0,{...C,a:.12+.4*u*u,gain:1.1,layer:'g'});
+    if(!L) L=GFX.light(px,py,S*8,P.l,.5,dur+.2,{z:pz}); L.x=px; L.y=py; L.z=pz; L.a=.4+.7*u; L.r=S*(5+5*u); L.t=0; },d0);
+  return H; };
+
+// ---------------------------------------------------------------- 3. lightning
+// LIGHTNING: a real bolt from the sky to (x,y): a jagged channel with branches that die in the air, a thread of white of uneven thickness inside
+//  a coloured glow and a wide ionised haze; it strikes 3..5 times (return strokes) on the same channel - each a hard flash that falls off fast,
+//  the branches changing between strokes - then leaves an afterimage that cools to the palette colour. Where it lands: a flash, sparks, flung dirt,
+//  a scorch with cracks, dust, the floor lit and flickering. Drawn as three ribbons (all branches in each).
+//  o: {h (sky height 2400), sx,sy (sky start offset, random), w (core width 13), pal ('violet'), strokes (4), span (.5 s over which they come),
+//      branches (5), rough (.2), r (scorch radius 170), after (.45 afterimage seconds), scorch:0, light:0, delay}
+//  -> handle {pts (the channel), x,y, dead}
+K.lightning=(x,y,o={})=>{ const H={x,y,pts:null,dead:false}; if(!F.on) return H;
+  const m=m10(), P=pal(o.pal||'violet'), C=col(P), CW={cA:P.b,cB:P.m,cM:P.h,cC:'#ffffff'}, hs=o.h||2400, w=o.w||13, ns=Math.max(1,o.strokes??4), span=o.span??.5, aft=o.after??.45, rough=o.rough??.2,
+    A=[x+(o.sx??R(-500,500)),y/FSY+(o.sy??R(-150,150)),hs], B=[x,y/FSY,0];
+  const ST=[0]; for(let i=1;i<ns;i++) ST.push(ST[i-1]+span/ns*R(.6,1.4)); const tl=ST[ns-1];
+  const zig=(a,b,ro,lv)=>{ let P_=[a,b]; for(let l=0;l<lv;l++){ const Q=[P_[0]]; for(let i=1;i<P_.length;i++){ const p=P_[i-1], q=P_[i], dl=Math.hypot(q[0]-p[0],q[1]-p[1],q[2]-p[2])*ro; Q.push([(p[0]+q[0])/2+R(-dl,dl),(p[1]+q[1])/2+R(-dl,dl)*.6,(p[2]+q[2])/2+R(-dl,dl)*.3],q); } P_=Q; } return P_; };
+  const main=zig(A,B,rough,6), mw=main.map((p,i)=>(.5+.9*Math.random())*(.75+.5*(i/main.length)));
+  // the last few points straighten into the strike point
+  for(let i=main.length-4;i<main.length;i++){ const k=(i-(main.length-4))/3; main[i][0]=mix(main[i][0],x,k); main[i][1]=mix(main[i][1],y/FSY,k); }
+  H.pts=main.map(p=>({x:p[0],y:p[1]*FSY,z:p[2]}));
+  let br=[]; const mkBr=()=>{ br=[]; const nb=o.branches??5; for(let j=0;j<nb;j++){ const i=Math.floor(R(.1,.7)*main.length), s=main[i], len=s[2]*R(.25,.55), a=R(0,TAU_);
+      const e=[s[0]+Math.cos(a)*len*.7,s[1]+Math.sin(a)*len*.35,Math.max(40,s[2]-len*R(.6,1))], P_=zig(s,e,.24,4); br.push(P_.map((p,q)=>({x:p[0],y:p[1]*FSY,z:p[2],k:(1-q/(P_.length-1))*R(.5,.8)*(j<2?1:.7)}))); } };
+  mkBr();
+  const strip=(sc)=>{ const out=[]; main.forEach((p,i)=>out.push({x:p[0],y:p[1]*FSY,z:p[2],w:w*sc*mw[i]})); const last=out[out.length-1]; out.push({...last,w:0});
+    for(const b of br){ out.push({...b[0],w:0}); for(const q of b) out.push({x:q.x,y:q.y,z:q.z,w:w*sc*q.k*.55}); out.push({...b[b.length-1],w:0}); } return out; };
+  let si=-1;
+  const ground=(j)=>{ const p=j===0?1.3:1; GFX.light(x,y,hs*.32,P.l,1*p,.1,{z:220});
+    K.sparks(x,y,20,{pal:P,n:Math.round(12*p),sp:[300,1300],up:1000,life:[.15,.45],s:3});
+    if(j===0){ GFX.ripple(x,y,(o.r||170)*2.2,{life:.35,s:.8}); K.dust(x,y,{n:8,r:30,sp:[180,560],a:.45,s:.9,life:1.2,c:'#2a2430',c3:'#5a5266'});
+      for(let i=0;i<Math.round(14*(GFX.QK||1));i++){ const a=R(0,TAU_), v=R(250,700); GFX.pt({x,y,z:4,vx:Math.cos(a)*v,vy:Math.sin(a)*v*FSY,vz:R(500,1200),g:2600,drag:.25,life:R(.6,1.1),s:R(3,8),rot:R(0,TAU_),vr:R(-12,12),m:11,b:'alpha',c:rgb('#4a4038'),c2:'#08070a',shadow:true,bounce:.3,fk:5,L:2,pri:1}); }
+      if(o.scorch!==0){ K.cool(x,y,{kind:'scorch',r:(o.r||170)*1.3,pal:P,life:3,hot:.4,start:.05,light:0}); K.cool(x,y,{kind:'crack2',r:(o.r||170)*1.6,pal:P,life:2.6,hot:.55,grow:.08,light:0}); } } };
+  GFX.add(tl+aft+.1,(k,t)=>{ if(H.dead) return; let j=-1; for(let i=0;i<ns;i++) if(t>=ST[i]) j=i;
+    if(j!==si){ si=j; if(j>0) mkBr(); ground(j); }
+    const ds=t-ST[j], fl=.8+.2*hash(Math.floor(t*55)+j*13), I=Math.min(1.6,Math.exp(-ds*26)*1.6+.16)*fl, af=t>tl?sat((t-tl-.06)/aft):0, glowK=t>tl?Math.max(I,.5*(1-af)):I;
+    const s1=strip(1);
+    if(!F.low) F.ribbon(m.lH,strip(9),{...C,a:.18*Math.min(1,glowK)*(1-af),gain:1});
+    F.ribbon(m.lG,strip(3.2),{...C,a:Math.min(1,glowK)*(1-af*af),gain:1.6+.8*Math.min(1,I),ulen:600});
+    if(af<.6) F.ribbon(m.lC,s1,{...CW,a:Math.min(1,I*1.2)*(1-af/.6),gain:3+1.5*Math.min(1,I)});
+    // the strike point: a white-hot flash on the floor and its light pool
+    const ga=Math.min(1,I)*(1-af);
+    F.bill(m.flash,x,y,30,w*(6+7*I),w*(6+7*I)*.75,0,{...CW,a:ga,gain:2.2});
+    F.quad(m.flash,x,y,w*13,w*13,0,{...C,a:ga*.65,gain:1.3,layer:'g'});
+    if(o.light!==0&&I>.5&&ds<.05) GFX.light(x,y,hs*.3,P.l,.8*I,.06,{z:300}); },o.delay||0);
+  return H; };
+
+// ---------------------------------------------------------------- 4. impact
+// IMPACT: what a heavy fall really does: a flash, a curtain of dirt thrown out in a cone that opens and falls back, rocks and real stones
+//  flung out, a ring of dust rolling over the floor, a mushroom of dust and smoke climbing over it - its foot lit by the fire, its cap dark -
+//  and a molten crater whose rim cools. Magic colour lives in the cracks and the afterglow only (pal); the fire is the fire (fire).
+//  o: {s (crater radius 420), h (cloud height s*3.4), dur (3.4), fire ('flame'), pal (crack light / afterglow, default = fire), rock ('#4a433d'),
+//      cloud (1), ring (1), curtain (1), stones (5), delay}
+K.impact=(x,y,o={})=>{ if(!F.on) return; const m=m10(), Pf=pal(o.fire||'flame'), P=pal(o.pal||o.fire||'flame'), s=o.s||420, HH=o.h||s*2.4, dur=o.dur||3.4, C=col(Pf), CW={cA:Pf.b,cB:Pf.m,cM:Pf.h,cC:'#ffffff'}, sd=R(0,9);
+  const go=()=>{
+    GFX.add(.34,k=>{ const e=eo5(k), a=(1-k)*(1-k); F.bill(m.flash,x,y,s*.35,s*(1+1.5*e),s*(1+1.5*e)*.85,0,{...CW,a,gain:2.4}); F.quad(m.flash,x,y,s*(1.2+1.6*e),s*(1.2+1.6*e),0,{...C,a:a*.7,gain:1.4,layer:'g'}); });
+    GFX.light(x,y,s*4,Pf.l,.95,.5,{z:s*.6,hold:.08}); GFX.ripple(x,y,s*2.6,{life:.55,s:1});
+    // the crater: churned scorched floor, a molten pool in it, a rim that cools, cracks running out in the magic colour
+    K.cool(x,y,{kind:'crater',r:s*1.15,pal:Pf,life:dur,hot:.5,grow:.1});
+    K.cool(x,y,{kind:'lava',r:s*.5,pal:P,life:dur,hot:.8,grow:.08,light:0});
+    K.cool(x,y,{kind:'ring',r:s*1.35,pal:Pf,life:dur*.85,hot:.4,start:.12,grow:.18,light:0});
+    K.cool(x,y,{kind:'crack2',r:s*2.2,pal:P,life:dur,hot:.65,grow:.3,light:0});
+    // the ejecta curtain: a cone that opens out and up, then thins and falls back
+    if(o.curtain!==0) GFX.add(1.4,(k,t)=>{ const e=eo3(sat(t/.5)), f=sat((t-.4)/1), r0=s*(.5+.5*e), r1=s*(.85+1.75*e), hh=s*(.3+1.15*e)*(1-.4*f*f);
+      F.lathe(m.cur,x,y,0,{r0,r1,h0:0,h1:hh,a:.85*(1-f*f),ero:.3+f*.55,t0:sd});
+      F.lathe(m.curL,x,y,0,{r0,r1,h0:0,h1:hh*.7,...C,a:.45*(1-e)*(1-f),ero:.3+f*.6,gain:1.1,t0:sd}); });
+    const nq=Math.round(40*(GFX.QK||1)), vs=Math.sqrt(s/420);
+    for(let i=0;i<nq;i++){ const a=R(0,TAU_), el=R(.6,1.1), v=R(800,1700)*vs, hot=i%5===0;
+      GFX.pt({x:x+Math.cos(a)*s*.3,y:y+Math.sin(a)*s*.3*FSY,z:10,vx:Math.cos(a)*Math.cos(el)*v,vy:Math.sin(a)*Math.cos(el)*v*FSY,vz:Math.sin(el)*v*1.25,g:2600,drag:.15,life:R(1,1.8),s:R(5,14)*vs,rot:R(0,TAU_),vr:R(-10,10),m:11,b:'alpha',c:rgb(hot?Pf.d:'#4a3f36'),c2:'#0a0807',shadow:true,bounce:.3,fk:5,L:2,pri:1});
+      if(hot) GFX.pt({x,y,z:20,vx:Math.cos(a)*Math.cos(el)*v,vy:Math.sin(a)*Math.cos(el)*v*FSY,vz:Math.sin(el)*v*1.25,g:2600,drag:.15,life:R(.5,1),s:R(3,6),m:3,len:.03,c:rgb(Pf.s),c3:'#ffffff',c2:Pf.b,L:3,pri:1}); }
+    if(o.stones!==0&&K.chunks) K.chunks(x,y,{n:o.stones||5,kind:'stone',r:s*.4,sp:[300,900],up:1400,s:[s*.1,s*.22],pal:P,rock:o.rock||'#4a433d',life:1.9});
+    // the dust ring rolling out over the floor
+    if(o.ring!==0) K.vring(x,y,{r:s*3.2,r0:s*.6,dur:1.6,tube:.13,c:'#171310',c2:'#3c332b',lit:.15,a:.85});
+    // the mushroom: a stem of dust lit orange from below, a cap that rolls outward, dark on top
+    if(o.cloud!==0&&vok()){ const VC=K.vc(Pf), ph=R(0,TAU_);
+      GFX.add(dur,(k,t)=>{ const g=eo3(sat(t/1.2)), f=sat((t-dur*.5)/(dur*.5)), top=HH*(.18+.82*g), hot=Math.max(0,1-t/1.3), cr=s*(.5+1.05*g), fd=1-f*f, lk=hexm('#4a4038',Pf.l,hot*.75);
+        const B=(px,py,pz,r,hk,dn,sdd,ez,amb)=>V.add('blast',px,py,pz,{ex:r,ey:r,ez:r*(ez||.85),pa:[.6,.55,2.2,t*.3],pb:[hk,.85,1.2,.35],dens:dn*fd,gain:1.4,seed:sd+sdd,smoke:1,fire:.72,...VC,cS:'#110e0c',cK:lk,amb:amb??.16,key:1.25,rim:.28,glow:.3*hot,lit:.3});
+        // the base surge: fire turning to dust at the foot
+        B(x,y,s*(.25+.2*g),s*(.75+.85*g),1.5*hot*hot+.05,10*sat(t/.06),0,.55,.22);
+        // two lumps of the stem, drifting, lit from below
+        const dr=Math.sin(t*1.3+ph)*s*.12; B(x+dr,y-1,top*.36,s*(.4+.35*g),.45*hot,8.5*sat((t-.05)/.25),1,1);
+        B(x-dr*.7+s*.08,y-2,top*.66,s*(.36+.4*g),.25*hot,8*sat((t-.12)/.3),2,1);
+        // the cap: wide, rolling outward, dark on top
+        B(x,y-3,top+cr*.1,cr,.35*hot,9.5*sat((t-.18)/.35),3,.6,.14); },0);
+    }
+    K.sparks(x,y,40,{pal:Pf,n:28,sp:[800,2300],up:1500,life:[.3,.8],s:4});
+    if(P!==Pf||o.pal) K.embers(x,y,s*1.3,{pal:P,n:26,up:380,life:2.6,z:60});
+  };
+  if(o.delay) after(o.delay,go); else go(); };
+
+// ---------------------------------------------------------------- 5. the floor bursting up
+// ERUPTEARTH: the ground at (x,y) breaks and throws itself up: a jumble of broken stone and shards bursting out of a cracked, glowing seam,
+//  a ragged fountain of dirt and stones that falls back, light leaking from the cracks, lit dust and smoke rolling up off it (no uniform column).
+//  o: {r (220), h (spray height r*3.2), pal ('jade' light in the cracks), glow (.9), n (stones 6), rock ('#57504a'), clods (46), rocks:0 (no stones),
+//      dur (2.2), delay} -> the K3.rocks handle (or null)
+K.eruptEarth=(x,y,o={})=>{ const P=pal(o.pal||'jade'), r=o.r||220, h=o.h||r*3.2, dur=o.dur||2.2, rk=o.rock||'#57504a';
+  const go=()=>{ if(!F.on) return null;
+    K.cool(x,y,{kind:'crack2',r:r*2,pal:P,life:dur+.9,hot:.75,grow:.12});
+    K.cool(x,y,{kind:'scorch',r:r*1.3,pal:P,life:dur+.9,hot:.3,start:.35,light:0});
+    const rks=o.rocks!==0?K.rocks(x,y,{n:o.n||6,r:r*.55,s:[r*.35,r*1.05],kinds:['shard','stone','flag','shard','stone','cobble'],rock:rk,pal:P,glow:o.glow??.9,rise:.13,over:.22,stagger:.025,dur,out:.45,lean:1.6,dust:.6}):null;
+    const n=Math.round((o.clods||46)*(GFX.QK||1)), vk=Math.sqrt(r/220);
+    for(let i=0;i<n;i++){ const a=R(0,TAU_), el=R(1.05,1.45), v=Math.sqrt(2*2600*h)*R(.45,1), rr=R(0,r*.5);
+      GFX.pt({x:x+Math.cos(a)*rr,y:y+Math.sin(a)*rr*FSY,z:R(0,30),vx:Math.cos(a)*Math.cos(el)*v,vy:Math.sin(a)*Math.cos(el)*v*FSY,vz:Math.sin(el)*v,g:2600,drag:.2,life:R(1,1.8),s:R(4,13)*vk,rot:R(0,TAU_),vr:R(-12,12),m:11,b:'alpha',c:rgb(Math.random()<.5?'#3e352e':'#5e5248'),c2:'#090706',shadow:true,bounce:.25,fk:5,L:2,pri:1}); }
+    K.embers(x,y,r*.7,{pal:P,n:16,up:520,z:30,life:1.8});
+    GFX.light(x,y,r*3,P.l,.85,dur*.55,{z:60,flick:.2});
+    if(K.vsmoke){ K.vsmoke(x+R(-.3,.3)*r,y-r*.12,{s:r*1.5,dur:2.4,rise:h*.55,c:'#1e1915',c2:'#64564a',a:.75,lit:.35,delay:.07});
+      K.vsmoke(x+R(-.4,.4)*r,y+r*.15,{s:r*1.1,dur:2,rise:h*.3,c:'#1e1915',c2:'#64564a',a:.6,lit:.35,delay:.2}); }
+    K.dust(x,y,{n:10,r:r*.6,sp:[r*1.2,r*3.2],a:.45,s:1.3,life:1.4,c:'#2e2620',c3:'#6a5a4c'});
+    if(K.chunks) K.chunks(x,y,{n:4,kind:'stone',r:r*.4,sp:[200,600],up:Math.sqrt(2*3000*h)*.85,s:[r*.12,r*.26],pal:P,rock:rk,life:1.9});
+    return rks; };
+  if(o.delay){ after(o.delay,go); return null; } return go(); };
+
+// ---------------------------------------------------------------- 6. the god's motion (K3.deity with {rig:1})
+// Arm poses for the right arm (the left mirrors it): A azimuth (0 out to the side, PI/2 toward the camera), e elevation (+ up), b elbow bend;
+//  L forward lean of the body, hp head pitch (- chin down, + head up). A pose may leave L / hp out.
+const POSE={open:{A:.15,e:-.5,b:.35},raise:{A:.05,e:1.05,b:.4},down:{A:.1,e:-1.2,b:.1},press:{A:.75,e:-.15,b:-.75},up:{A:-.2,e:1.35,b:.5,L:-.25,hp:.15},
+  smite:{A:1.1,e:-.6,b:-.12,L:.55,hp:-.2},point:{A:.95,e:.05,b:0,L:.15},rest:{A:.3,e:-.95,b:.3,L:0},bow:{A:.4,e:-1.1,b:.3,L:.35,hp:-.5}};
+K.POSE=POSE;
+const EAS={io:u=>u<.5?4*u*u*u:1-Math.pow(-2*u+2,3)/2,out:u=>1-Math.pow(1-u,3),in:u=>u*u*u,lin:u=>u,heavy:u=>{ const c=1.9; return 1+(c+1)*Math.pow(u-1,3)+c*Math.pow(u-1,2); }};
+// DEITY (rig): a giant of light and mist with a skeleton. It condenses from the ground up (robe, chest, arms, head), breathes, lifts its head to look
+//  down on the field, moves shoulder - elbow - hand with weight (eased, with overshoot on heavy moves), its sleeves of mist trail behind the hands,
+//  and it leaves by scattering upward. Thickness and self-shadow are set by `solid`.
+//  o: everything K3.deity takes, plus {rig:1, pose ('rest'), look (head pitch it lifts to, 0), bow (start with the head down, 1), solid (0..1, .55),
+//      in (formation seconds, .9), breath (1), sleeves (1)}
+//  handle: {x,y,z,h,a, pose(name|{A,e,b,L,hp}, dur=.6, ease='io', arm=-1), look(hp, dur), act('smite', {arm, up, hold, down, hit(H)}) | act('point', {arm, to:[x,y], dur, hit(H)}),
+//           head(), hand(i), end(), busy()}
+K.deityRig=(x,y,o={})=>{ const h=o.h||850, H={x,y,z:o.z??h*.06,h,a:o.a??1,dead:false,t1:-1,Q:[],tw:null,
+    end(){ if(H.t1<0) H.t1=RT; }, busy(){ return !!H.tw||H.Q.length>0; },
+    pose(p,dur=.6,ease='io',arm=-1,fn){ H.Q.push({p,dur,ease,arm,fn}); return H; },
+    look(hp,dur=.6,ease='io'){ H.Q.push({p:{hp},dur,ease,arm:-1}); return H; },
+    act(kind,q={}){ const arm=q.arm??-1;
+      if(kind==='smite'){ H.pose('up',q.up??.5,'out',arm); H.Q.push({hold:q.hold??.1}); H.pose('smite',q.down??.13,'in',arm,()=>{ hitFx(arm); if(q.hit) q.hit(H); }); H.pose(q.after||'rest',q.settle??.55,'heavy',arm); }
+      else if(kind==='point'){ const i=arm<0?1:arm, sx=i?1:-1, sh=[H.x+sx*H.h*.14,H.y], tx=(q.to||[H.x,H.y+600])[0]-sh[0], ty=((q.to||[H.x,H.y+600])[1]-sh[1])/FSY, dz=H.z+H.h*.72, A=Math.atan2(ty,tx*sx);
+        H.pose({A,e:-Math.atan2(dz,Math.hypot(tx,ty))*.8,b:0,L:.2},q.dur??.35,'heavy',i,()=>{ hitFx(i); if(q.hit) q.hit(H); }); }
+      return H; },
+    head(){ return J.head.slice(); }, hand(i){ return (i?J.h1:J.h0).slice(); }};
+  if(!F.on) return H;
+  const m=m10(), P=pal(o.pal||'gold'), VC=K.vc?K.vc(P):null, C=col(P), CW={cA:P.b,cB:P.m,cM:P.h,cC:'#ffffff'}, dur=o.dur||3, tin=o.in??.9, out=o.out??.8, g=o.gain||1, sd=R(0,9), sol=o.solid??.55;
+  const p0=typeof o.pose==='object'?o.pose:POSE[o.pose||'rest']||POSE.rest;
+  // the live pose: two arms, lean, head pitch; and a lagging copy that drives the robe and the mist
+  const S={ar:[{A:p0.A,e:p0.e,b:p0.b},{A:p0.A,e:p0.e,b:p0.b}],L:p0.L||0,hp:o.bow===0?(o.look||0):-.55}, LG=JSON.parse(JSON.stringify(S));
+  if(o.bow!==0) H.Q.push({hold:tin*.55}), H.Q.push({p:{hp:o.look??.05},dur:.7,ease:'heavy',arm:-1});
+  const J={head:[x,y,H.z+h*.86],h0:[x,y,0],h1:[x,y,0]}, HIST=[[],[]];
+  const HL=o.halo!==0?K.halo(x,y,H.z+h*.86,{r:h*.13,pal:P,dur:(o.max||dur)+tin,in:tin*.8,out,tilt:-.95,gain:.6*g,a:.75,delay:(o.delay||0)+tin*.75}):null;
+  const hitFx=arm=>{ for(let i=0;i<2;i++){ if(arm>=0&&arm!==i) continue; const p=i?J.h1:J.h0; K.flare(p[0],p[1],p[2],{pal:P,s:h*.22,dur:.3,gain:2.6}); K.sparks(p[0],p[1],p[2],{pal:P,n:10,sp:[400,1400],up:400,life:[.2,.5],s:3}); } };
+  const lerpP=(a,b,u)=>({A:mix(a.A,b.A??a.A,u),e:mix(a.e,b.e??a.e,u),b:mix(a.b,b.b??a.b,u)});
+  const step=t=>{ if(!H.tw&&H.Q.length){ const q=H.Q.shift(); if(q.hold!=null) H.tw={t0:t,dur:q.hold,hold:1}; else { const tg=typeof q.p==='string'?POSE[q.p]:q.p; H.tw={t0:t,dur:Math.max(.01,q.dur),ease:EAS[q.ease]||EAS.io,arm:q.arm,fn:q.fn,tg,from:JSON.parse(JSON.stringify({ar:S.ar,L:S.L,hp:S.hp}))}; } }
+    const w=H.tw; if(!w) return; const u=sat((t-w.t0)/w.dur);
+    if(!w.hold){ const e=w.ease(u), tg=w.tg;
+      for(let i=0;i<2;i++) if(w.arm<0||w.arm===i){ if(tg.A!=null||tg.e!=null||tg.b!=null) S.ar[i]=lerpP(w.from.ar[i],tg,e); }
+      if(tg.L!=null) S.L=mix(w.from.L,tg.L,e); if(tg.hp!=null) S.hp=mix(w.from.hp,tg.hp,e); }
+    if(u>=1){ H.tw=null; if(w.fn) w.fn(); } };
+  // a limb of mist between two points (true-depth units relative to the figure's foot): A is the frayed end
+  const seg=(A,B,ey,ra,rb,flow,rag,a,glow,ord,loose,dk)=>{ const dx=B[0]-A[0], dy=B[1]-A[1], dz=B[2]-A[2], L2=Math.hypot(dx,dy,dz)/2||1;
+    V.add('wisp',H.x+(A[0]+B[0])/2,H.y+(A[1]+B[1])/2*FSY,H.z+(A[2]+B[2])/2,{ex:L2+ey*.35,ey,ez:ey,yaw:Math.atan2(dy,dx),pitch:Math.atan2(dz,Math.hypot(dx,dy)),pa:[ra,rb,2.4,flow],pb:[glow*(o.glow??.24),loose,(o.rimK??.9),rag],
+      dens:(o.dens??3.6)*(1+1.4*sol)*a*dk,gain:1.1*g,seed:sd+ord,smoke:.25+.3*sol,fire:.75,block:.55+.35*sol,cA:P.d,cB:P.b,cM:P.m,cC:P.h,cS:VC?VC.cS:P.d,cK:P.m,amb:.22,key:1.15+.3*sol,rim:.9,glow:.2,sdist:.15+.1*sol,shadow:2.5+3*sol,ord:H.y+ord,steps:22,lit:.6+.3*sol}); };
+  const dirv=(A,e,s)=>[s*Math.cos(e)*Math.cos(A),Math.cos(e)*Math.sin(A),Math.sin(e)];
+  let tp=0, hs=0, eF=0, eX=0;
+  GFX.add((o.max||dur)+out+.05,(k,t)=>{ if(H.dead) return; const dt=Math.max(0,t-tp); tp=t;
+    const te=H.t1>=0?Math.min(dur,t-(RT-H.t1)):dur, f=sat((t-te)/out); if(f>=1){ H.dead=true; if(HL) HL.end(); return; } if(f>0&&HL) HL.end();
+    step(t);
+    // the lag: follows the pose a beat late (secondary motion)
+    const lk=1-Math.exp(-dt*3.2); for(let i=0;i<2;i++) for(const c of ['A','e','b']) LG.ar[i][c]+=(S.ar[i][c]-LG.ar[i][c])*lk; LG.L+=(S.L-LG.L)*lk;
+    const hh=H.h, hv=sat(t/tin)*1.2, br=o.breath===0?0:Math.sin(t*1.7+sd), up=f*f*hh*.3, A0=H.a*(1-f);
+    const al=[ss(0,.28,hv),ss(.28,.55,hv),ss(.45,.75,hv),ss(.65,.95,hv)].map(v=>v*A0), loose=v=>.85+1.4*(1-v)+.8*f;
+    // joints (x right, y toward the camera in true depth, z up), relative to the foot
+    const Lb=S.L, sway=(LG.L-S.L)*.5, hp=S.hp;
+    const waist=[0,Lb*hh*.04,hh*.5+up], neck=[0,Lb*hh*.1,hh*(.77+.006*br)+up], hem=[sway*hh*.15,(sway+Lb*.3)*hh*.12-hh*.02,hh*.02+up*.6];
+    const head=[0,neck[1]+hh*(.03+.06*Math.max(0,-hp))*(1)+Lb*hh*.02,neck[2]+hh*(.085+.03*Math.min(0,hp)*1.2)];
+    if(VC&&vok()){
+      seg(hem,waist,hh*.22*(1+.02*br),1,.36,.9,1.5,al[0],1,0,loose(al[0]),1);
+      seg(waist,neck,hh*.13*(1+.035*br),.78,1,.7,.3,al[1],1.2,1,loose(al[1]),1.15);
+      seg([head[0],head[1]-hh*.02,head[2]-hh*.07],[head[0],head[1]+hh*.02,head[2]+hh*.06],hh*.068,.9,.85,.6,.2,al[3],1.5,3,loose(al[3]),1.2); }
+    for(let i=0;i<2;i++){ const s=i?1:-1, a=S.ar[i], sh=[s*hh*.14,Lb*hh*.08,hh*(.715+.008*br)+up], d1=dirv(a.A,a.e,s), d2=dirv(a.A+a.b*.35,a.e+a.b,s), el=[sh[0]+d1[0]*hh*.2,sh[1]+d1[1]*hh*.2,sh[2]+d1[2]*hh*.2], hd=[el[0]+d2[0]*hh*.19,el[1]+d2[1]*hh*.19,el[2]+d2[2]*hh*.19];
+      if(VC&&vok()){ seg(sh,el,hh*.062,1,.85,1,.3,al[2]*.95,1,2+i*.1+d1[1],loose(al[2]),1.1); seg(hd,el,hh*.052,.6,.95,1.2,.5,al[2]*.9,1.25,2.2+i*.1+d2[1],loose(al[2]),1.1); }
+      const wp=[H.x+hd[0],H.y+hd[1]*FSY,H.z+hd[2]]; if(i) J.h1=wp; else J.h0=wp;
+      // hands glow a little; the sleeve of mist streams from the elbow through the hand and trails where the hand has been
+      F.bill(m.flash,wp[0],wp[1],wp[2],hh*.06,hh*.06,0,{...CW,a:.5*al[2],gain:2*g});
+      const Hs=HIST[i]; if(t-hs>.035||!Hs.length){ Hs.unshift([...wp]); if(Hs.length>11) Hs.pop(); }
+      if(o.sleeves!==0&&Hs.length>2&&al[2]>.02){ const ep=[H.x+el[0],H.y+el[1]*FSY,H.z+el[2]], pts=[{x:ep[0],y:ep[1],z:ep[2],w:hh*.03}]; Hs.forEach((q,j)=>{ const u=j/(Hs.length-1); pts.push({x:q[0],y:q[1],z:q[2]-u*u*hh*.08,w:hh*(.045-.03*u)}); });
+        F.ribbon(m.mist,pts,{...C,a:.7*al[2],gain:1.3*g,ulen:hh*.8,t0:sd+i*5}); } }
+    if(t-hs>.035) hs=t;
+    J.head=[H.x+head[0],H.y+head[1]*FSY,H.z+head[2]]; if(HL){ HL.x=J.head[0]; HL.y=J.head[1]-hh*.03; HL.z=J.head[2]+hh*.02; }
+    // eyes: they light as the head comes up
+    if(o.eyes!==0){ const lit=ss(-.35,0,hp)*al[3]*(.85+.15*Math.sin(t*7+sd)), ez=J.head[2]-hh*.005;
+      for(let s=-1;s<=1;s+=2){ F.bill(m.flash,J.head[0]+s*hh*.027,J.head[1]+hh*.04*FSY,ez,hh*.06,hh*.018,0,{...CW,a:lit,gain:5*g}); } }
+    if(o.shadow!==0) F.quad(m.shade,H.x+hh*.12,H.y+hh*.08,hh*.32,hh*.24,.3,{a:.75*A0*al[0]});
+    // forming: motes of mist spiralling in at the height it has reached; leaving: motes streaming up and away
+    if(hv<1.05){ eF+=dt*60*(GFX.QK||1); while(eF>=1){ eF-=1; const zf=H.z+Math.min(1,hv)*hh, a=R(0,TAU_), r0=hh*R(.25,.45); GFX.pt({x:H.x+Math.cos(a)*r0,y:H.y+Math.sin(a)*r0*FSY,z:zf,oc:[H.x,H.y,zf],or:r0,oa:a,ow:R(2,3.5),ok:r0*R(1,1.8),oz0:zf,rmin:hh*.05,life:.9,s:R(6,12),m:8,c:rgb(Math.random()<.4?P.h:P.m),fade:'in',L:3,pri:1}); } }
+    if(f>0){ eX+=dt*120*(GFX.QK||1); while(eX>=1){ eX-=1; const zz=H.z+hh*R(.1,.95)+up, a=R(0,TAU_), rr=hh*R(.03,.16); GFX.pt({x:H.x+Math.cos(a)*rr,y:H.y+Math.sin(a)*rr*FSY,z:zz,vx:Math.cos(a)*R(60,260),vy:Math.sin(a)*R(30,120),vz:R(120,420),g:-50,drag:.5,life:R(.7,1.4),s:R(6,13),m:8,c:rgb(Math.random()<.4?P.h:P.m),fade:'in',L:3,pri:1}); } } },o.delay||0);
+  return H; };
 })();
