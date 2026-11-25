@@ -5,12 +5,12 @@
 // World: x/y is the floor plane (y = depth), z is height. The hero's floor position is pl.x / pl.gy (the engine draws him at pl.gy).
 'use strict';
 (()=>{
-const G=RPG, A=G.api, SV=()=>A.SV, SK=A.SK, VER=31;
+const G=RPG, A=G.api, SV=()=>A.SV, SK=A.SK, VER=41;
 const ZL=.42, ZP=.5, DUR=300, BOSS_T=240, CAP=340, SPD=430, BODY=170, FAR=1e5;
-const CLS_ORDER=['sword','mage','fist','shaman','pyro'];
-const NAMES={sword:'소드맨',mage:'메이지',fist:'파이터',shaman:'샤먼',pyro:'파이로'};
-const CRIM={sword:'#ffb3c0',mage:'#e6d4ff',fist:'#bff4ff',shaman:'#c8ffe8',pyro:'#ffd0a8'};
-const CCOL={sword:'#ff3355',mage:'#b48cff',fist:'#55ddff',shaman:'#3dffb0',pyro:'#ff7a2a'};
+const CLS_ORDER=['sword','mage','fist','shaman','pyro','assassin'];
+const NAMES={sword:'소드맨',mage:'메이지',fist:'파이터',shaman:'샤먼',pyro:'파이로',assassin:'암살자'};
+const CRIM={sword:'#ffb3c0',mage:'#e6d4ff',fist:'#bff4ff',shaman:'#c8ffe8',pyro:'#ffd0a8',assassin:'#e1ddff'};
+const CCOL={sword:'#ff3355',mage:'#b48cff',fist:'#55ddff',shaman:'#3dffb0',pyro:'#ff7a2a',assassin:'#a9afff'};
 const EN={
   shard:{img:'shard',hp:700,spd:170,r:40,dmg:6,gem:1,sc:.56,h:300},
   archer:{img:'archer',hp:600,spd:150,r:38,dmg:8,gem:2,sc:.56,h:290,ranged:true},
@@ -30,6 +30,7 @@ const V={t:0,ch:0,en:[],pj:[],gems:[],items:[],nums:[],shards:[],mk:[],orbs:[],z
 G.surv=V;
 const CH=()=>CHAP[V.ch];
 const CLS={};
+const classReady=c=>!!CLS[c]&&(c!=='assassin'||!!window.MK);
 const FSY=.58;   // vertical squash of anything lying on the floor (tiles, rings, magic circles) for this camera   // class -> {basic:{fn,cd}, skills:{id:{fn,passive}}, ults:{id:fn}, onHurt, glow}
 
 // ============================================================ small helpers
@@ -489,7 +490,7 @@ body.cine #shud .ul,body.cine #shud .pp{opacity:.0;pointer-events:none;transitio
 #rmenu.mob .hd{text-align:center;margin-bottom:10px} #rmenu.mob .hd h1{font:900 44px "Malgun Gothic",sans-serif;letter-spacing:.08em;margin:0}
 #rmenu.mob .hd small{display:block;color:#b9b0d8;letter-spacing:.45em;font-size:12px}
 #rmenu.mob .hd{position:relative;min-height:98px} #rmenu.mob .opt.opt2{top:34px} #rmenu.mob .opt.opt3{top:68px} #rmenu.mob .opt{position:absolute;right:0;top:0;padding:6px 9px;border-radius:9px;font:700 11px "Malgun Gothic",sans-serif;color:#b9b0d8;background:rgba(20,14,34,.8);border:1px solid rgba(255,255,255,.2)} #rmenu.mob .opt.on{color:#fff;border-color:#55ddff;background:rgba(85,221,255,.2)}
-#rmenu.mob .cl{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:10px}
+#rmenu.mob .cl{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px;margin-bottom:10px}
 #rmenu.mob .cc{position:relative;border:1px solid rgba(255,255,255,.18);border-radius:12px;background:rgba(20,14,34,.75);padding:4px 2px 5px;text-align:center;cursor:pointer;overflow:hidden}
 #rmenu.mob .cc img{width:100%;height:62px;object-fit:contain;display:block}
 #rmenu.mob .cc b{display:block;font:900 11px "Malgun Gothic",sans-serif} #rmenu.mob .cc small{font-size:10px;color:#aaa}
@@ -525,6 +526,13 @@ hudEl.querySelector('.pz').addEventListener('pointerdown',e=>{ e.preventDefault(
 const $=s=>hudEl.querySelector(s);
 const mmss=s=>Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0');
 const ICON={"sw_basic":"slash06","sw_dash":"cleave05","sw_rise":"slash05","sw_wave":"slash07","sw_spin":"impact04","sw_fly":"goldsword03","sw_plunge":"td_colossal07","sw_thrust":"impact03","sw_counter":"td_zeroburst06","sw_ult1":"td_cutline06","sw_ult2":"td_swordfall07","sw_ult3":"td_cutline06","mg_basic":"mage_bolt04","mg_bolt":"mage_lightning04","mg_orb":"fx_mage_orb05","mg_chain":"mage_lightning06","mg_nova":"fx_mage_nova07","mg_vortex":"fx_mage_vortex05","mg_field":"fx_mage_field05","mg_star":"fx_mage_star08","mg_beam":"fist_beam04|80","mg_ult1":"fx_mage_megabolt09","mg_ult2":"fx_mage_meteor09","fs_basic":"fist_impact04","fs_dash":"fist_impact05","fs_upper":"fist_impact03","fs_ki":"fx_fist_kiball05","fs_stomp":"fx_fist_shock07","fs_rush":"fx_fist_barrage07","fs_tornado":"fx_fist_tornado05","fs_aura":"fx_fist_aura05","fs_giga":"fist_beam04","fs_ult1":"fist_beam06","fs_ult2":"fx_fist_sunblast08","sh_basic":"shaman_talisman04","sh_bomb":"shaman_burst04","sh_spike":"fx_shaman_spike07","sh_wisp":"fx_shaman_wisp05","sh_heal":"td_circle05|110","sh_rock":"fx_shaman_rock07","sh_seal":"fx_shaman_seal05","sh_wolf":"fx_shaman_wolf05","sh_palm":"fx_shaman_palm08","sh_ult1":"fx_shaman_rock08","sh_ult2":"fx_shaman_palm06","py_basic":"pyro_fireball04","py_dash":"pyro_explosion03","py_pillar":"fx_pyro_pillar06","py_ring":"fx_pyro_ring05","py_boom":"pyro_explosion05","py_rain":"pyro_fireball06","py_breath":"fx_pyro_breath07","py_tornado":"fx_pyro_tornado05","py_nova":"fx_pyro_nova06","py_ult1":"fx_pyro_tornado08","py_ult2":"fx_pyro_dragon05"};
+ICON.as_basic='slash06|228';
+ICON.as_ult1='td_cutline06|242';
+Object.assign(ICON,{
+  as_fan:'goldsword03|165',as_return:'slash07|165',as_step:'cleave05|238',as_snare:'fx_shaman_seal05|198',
+  as_ricochet:'mage_lightning06|22',as_caltrop:'fx_shaman_spike07|172',as_warrant:'td_zeroburst06|230',
+  as_crescent:'slash05|195',as_ult3:'td_circle05|188',as_ult2:'td_swordfall07|220'
+});
 const icon=id=>{ const v=ICON[id]; if(!v) return ''; const [n,h]=v.split('|'); return `<img class="ic" src="assets/vfx_${n}.webp?v=${ASSET_V}" alt=""${h?` style="filter:hue-rotate(${h}deg)"`:''}>`; };
 G.sv_icon=icon;
 const SHORT={"그림자 난무": "난무", "체인 라이트닝": "체인", "플라잉 소드": "플라잉", "기가 임팩트": "기가", "스피릿 핸드": "핸드", "스톤 스파이크": "스파이크", "드래곤 블레이즈": "드래곤", "파이어 토네이도": "토네이도", "파이어 스톰": "스톰", "플레임 쓰로워": "화염방사", "플레임 대시": "대시", "파이어 필러": "필러", "파이어 레인": "파이어레인", "플레임 링": "플레임링", "익스플로전": "폭발", "프로스트 노바": "노바", "아케인 오브": "오브", "아케인 레이": "레이", "썬더 필드": "필드", "헤븐 썬더": "썬더", "메테오 폴": "메테오", "매직 볼트": "볼트", "라이트닝": "번개", "그래비티": "중력", "콤보 펀치": "펀치", "대시 펀치": "대시", "라이징 어퍼": "어퍼", "러쉬 펀치": "러쉬", "회오리 킥": "회오리", "아이언 바디": "아이언", "하이퍼 빔": "빔", "솔라 크래쉬": "솔라", "탈리스만": "부적", "카드 봄": "카드봄", "스피릿 오브": "영혼불", "힐링 서클": "힐링", "스피릿 울프": "울프", "스톤 레인": "스톤", "스피릿 킹": "킹", "파이어 볼": "화염구", "제로 슬래시": "제로", "소드 레인": "레인", "슬래시": "슬래시"};
@@ -539,7 +547,7 @@ function buildUlts(){ const el=$('.ul'); el.style.setProperty('--cc',CCOL[pl.cls
 // the practice room's own panel: who, which skill, and how the room behaves
 function buildPractice(){ const el=$('.pp'); hudEl.classList.toggle('prac',!!V.practice); if(!V.practice){ el.innerHTML=''; return; } el.style.setProperty('--cc',CCOL[pl.cls]);
   const ids=A.ORDER[pl.cls]||[], sk=ids.filter(id=>SK[id]&&SK[id].type==='skill'&&CLS[pl.cls]&&CLS[pl.cls].skills[id]&&CLS[pl.cls].skills[id].fn), ul=ULTS(), lv5=V.plv===5;
-  el.innerHTML=`<h4>직업</h4><div class="row cls">${CLS_ORDER.map(c=>`<button data-pc="${c}" class="${c===pl.cls?'on':''}">${NAMES[c]}</button>`).join('')}</div>
+  el.innerHTML=`<h4>직업</h4><div class="row cls">${CLS_ORDER.map(c=>`<button data-pc="${c}" class="${c===pl.cls?'on':''}" ${classReady(c)?'':'disabled'}>${NAMES[c]}</button>`).join('')}</div>
     <h4>설정</h4><div class="row"><button data-po="auto" class="${V.pauto?'on':''}">자동 시전 ${V.pauto?'켜짐':'꺼짐'}</button><button data-po="lv" class="${lv5?'on':''}">스킬 ${lv5?'진화(Lv5)':'기본(Lv1)'}</button><button data-po="many" class="${V.pmany?'on':''}">적 ${V.pmany?'많이':'보통'}</button><button data-po="clear">적 지우기</button><button class="x" data-po="exit">나가기</button></div>
     <h4>스킬 (누르면 바로 시전)</h4><div class="row"><button data-ps="__basic">${short((SK[ids[0]]||{}).name||'평타')}</button>${sk.map(id=>`<button data-ps="${id}">${short(SK[id].name)}</button>`).join('')}</div>
     <h4>궁극기</h4><div class="row">${ul.map(id=>`<button class="u" data-pu="${id}">${SK[id].name}</button>`).join('')}</div>`;
@@ -622,10 +630,13 @@ let tab='ch', sel=null;
 function goFull(){ if(!A.isTouch()) return; const d=document.documentElement; if(!document.fullscreenElement&&d.requestFullscreen) d.requestFullscreen().then(()=>screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(()=>{})).catch(()=>{}); }
 G.menuOverride=el=>{
   const sv=SV(), cls=pl.cls, ids=A.ORDER[cls]||[], need=A.needExp(sv.lv), open=Math.min(CHAP.length-1,sv.chClear||0); if(sel==null||sel>open) sel=open;
+  const count=type=>ids.filter(id=>SK[id]?.type===type).length;
+  const summary=classReady(cls)?[SK[ids[0]]?.name,count('skill')&&count('skill')+'개 스킬','궁극기 '+count('ult')+'개'].filter(Boolean).join(' · '):'불러오는 중…';
+  const wait=classReady(cls)?'':'disabled';
   el.classList.add('mob');
   let h=`<div class="mm"><div class="hd"><h1>참광</h1><small>SURVIVAL RPG</small><button class="opt ${sv.opt&&sv.opt.calm?'on':''}" data-opt="calm">섬광·흔들림 줄이기 ${sv.opt&&sv.opt.calm?'켜짐':'꺼짐'}</button><button class="opt opt2 ${sv.opt&&sv.opt.lowfx?'on':''}" data-opt="lowfx">이펙트 품질 ${sv.opt&&sv.opt.lowfx?'낮음':'높음'}</button><button class="opt opt3 ${sv.opt&&sv.opt.stick?'on':''}" data-opt="stick">스틱맨 모드 ${sv.opt&&sv.opt.stick?'켜짐':'꺼짐'}</button></div>
     <div class="cl">${CLS_ORDER.map(c=>{ const d=c===sv.cls?sv:(sv.chars&&sv.chars[c])||{lv:1}; return `<div class="cc ${c===cls?'on':''}" data-c="${c}" style="--c:${CCOL[c]}"><img src="assets/${c}_a.webp" alt=""><b>${NAMES[c]}</b><small>Lv ${d.lv}</small></div>`; }).join('')}</div>
-    <div class="pv" style="--c:${CCOL[cls]}"><img src="assets/${cls}_a.webp" alt=""><div><b>${NAMES[cls]}</b><small>${(SK[ids[0]]||{}).name||''} · ${ids.filter(id=>SK[id]&&SK[id].type==='skill').length}개 스킬 · 궁극기 2</small></div></div>
+    <div class="pv" style="--c:${CCOL[cls]}"><img src="assets/${cls}_a.webp" alt=""><div><b>${NAMES[cls]}</b><small>${summary}</small></div></div>
     <div class="st"><b>${NAMES[cls]} · Lv ${sv.lv}</b><span>스킬 포인트 <b style="color:#55ddff">${sv.sp}</b> · HP ${A.maxHp()}</span></div><div class="xp"><i style="width:${sv.exp/need*100}%"></i></div>
     <div class="tb"><button data-t="ch" class="${tab==='ch'?'on':''}">챕터</button><button data-t="sk" class="${tab==='sk'?'on':''}">스킬 강화${sv.sp?' <span class="bdg">'+sv.sp+'</span>':''}</button></div><div class="bd">`;
   if(tab==='ch') h+=CHAP.map((c,i)=>{ const b=(sv.best||{})[cls+i]; return `<button class="chp ${i===sel?'on':''}" data-ch="${i}" style="--c:${c.acc}" ${i>open?'disabled':''}><i></i><div><b>${i+1}. ${c.name}</b><small>${c.en} · 보스 ${c.boss} · 권장 Lv ${c.rec}</small></div><em>${i<(sv.chClear||0)?'클리어':i===open?'도전':'잠김'}${b?'<br>'+mmss(b):''}</em></button>`; }).join('');
@@ -635,7 +646,7 @@ G.menuOverride=el=>{
     if(un&&s.type!=='ult') bt+=`<button class="up" data-up="${id}" ${sv.sp<1||lv>=5?'disabled':''}>${lv>=5?'진화 완료':lv===4?'진화 (SP 1)':'강화 (SP 1)'}</button>`;
     const tag=s.type==='ult'?'<span class="t u">궁극기</span>':s.type==='basic'?'<span class="t">기본 공격</span>':`<span class="t">쿨 ${A.cdOf(id).toFixed(1)}초 · 자동 사용</span>`;
     return `<div class="sr ${un?'':'lock'}"><div><b>${s.name}</b>${tag}</div><div class="lv ${ev?'ev':''}">${s.type==='ult'?'':ev?'★ 진화':'Lv '+lv+'/5'}</div><p>${un?s.desc+(s.evo&&s.type!=='ult'?'<br><span style="color:#ffcf4a">진화: '+s.evo+'</span>':''):'Lv '+s.lv+'에 해금'}</p>${bt?'<div class="bt">'+bt+'</div>':''}</div>`; }).join('');
-  h+=`</div><div style="display:flex;gap:8px"><button class="go" style="flex:1 1 auto">챕터 ${sel+1} 시작 · ${CHAP[sel].name}</button><button class="go pr" style="flex:0 0 auto;background:rgba(20,14,34,.9);border:1.5px solid #ffcf4a;color:#ffe9a8;padding-left:18px;padding-right:18px">연습장</button></div></div>`;
+  h+=`</div><div style="display:flex;gap:8px"><button class="go" ${wait} style="flex:1 1 auto">챕터 ${sel+1} 시작 · ${CHAP[sel].name}</button><button class="go pr" ${wait} style="flex:0 0 auto;background:rgba(20,14,34,.9);border:1.5px solid #ffcf4a;color:#ffe9a8;padding-left:18px;padding-right:18px">연습장</button></div></div>`;
   el.innerHTML=h;
   const R=()=>A.menuRender();
   el.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{ const c=b.dataset.c; if(c===pl.cls) return; A.swapClass(c); setClass(c,true); R(); });
@@ -656,8 +667,12 @@ G.firstSkills=c=>{ const L=(A.ORDER[c]||[]).filter(id=>SK[id]&&SK[id].type==='sk
 // keep a point (an ultimate's impact) inside the middle of the screen
 const inView=(x,y,k=.5)=>{ const {hw,hh}=view(); return [clamp(x,cam.x-hw*k,cam.x+hw*k),clamp(y,cam.y-hh*k+BODY*.5,cam.y+hh*k+BODY*.5)]; };
 G.sv={V,A,SK,BODY,CH,CLS,CCOL,NAMES,spawn,shock1,inView,FSY,draw:(life,fn,delay=0)=>V.draws.push({t0:RT+delay,life,fn}),nearest,countIn,densest,angTo,face,seq,dmg,hitFx,inCircle,inCircleS,inSector,inLine,sfx,view,onScreen,tdV,dropFx,ultStart,ultStop,ultHit,addVfx,burst,fring,heal,hurt,
-  reg(c,def){ CLS[c]=def; if(def.sk) Object.assign(SK,def.sk); if(def.order) A.ORDER[c]=def.order; if(G.mode==='menu') A.menuRender(); if(G.mode==='surv'&&c===pl.cls) buildBar(); }};
-for(const f of ['fx3','vol3','gfx','vfx3','vkit3','cine',...CLS_ORDER.map(c=>'sk_'+c),'mk','mk_sword']){ const s=document.createElement('script'); s.src=`${f}.js?v=${VER}`; s.async=false; document.body.appendChild(s); }
+  fmtN,reg(c,def){ CLS[c]=def; if(def.sk) Object.assign(SK,def.sk); if(def.order) A.ORDER[c]=def.order; if(G.mode==='menu') A.menuRender(); if(G.mode==='surv'&&c===pl.cls) buildBar(); }};
+for(const f of ['fx3','vol3','gfx','vfx3','vkit3','cine','assassin_flow','assassin_mist','assassin_blades','assassin_cuts','assassin_ground','assassin_skills','assassin_eclipse','assassin_loom',...CLS_ORDER.map(c=>'sk_'+c),'mk','mk_sword']){
+  const s=document.createElement('script'); s.src=`${f}.js?v=${VER}`; s.async=false;
+  if(f==='mk') s.onload=()=>{ if(G.mode==='menu'&&pl.cls==='assassin') A.menuRender(); else if(G.mode==='surv'&&V.practice) buildPractice(); };
+  document.body.appendChild(s);
+}
 if(G.mode==='menu') A.menuRender();
 G.survStart=start;
 })();

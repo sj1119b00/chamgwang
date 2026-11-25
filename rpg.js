@@ -32,9 +32,9 @@ const SK={
   sw_plunge:{cls:'sword',type:'skill',name:'크래쉬',lv:6,cd:9,dmg:3600,desc:'뛰어올라 땅을 내려찍어 주변에 충격파를 일으킨다.',fn:skPlunge},
   sw_thrust:{cls:'sword',type:'skill',name:'러시',lv:8,cd:7,dmg:750,desc:'앞을 빠르게 여섯 번 찌른다. 맞은 적은 계속 움찔한다.',fn:skThrust},
   sw_counter:{cls:'sword',type:'skill',name:'카운터',lv:10,cd:10,dmg:5200,desc:'0.8초 동안 자세를 잡는다. 그 사이 공격받으면 막아 내고 큰 반격을 넣는다.',fn:skCounter},
-  sw_ult1:{cls:'sword',type:'ult',name:'제로 슬래시',lv:3,desc:'궁극기. 하늘까지 가르는 단 한 번의 베기.',fn:()=>ultMetten()},
+  sw_ult1:{cls:'sword',type:'ult',name:'제로 슬래시',lv:3,desc:'궁극기. 거합으로 전장을 X자로 가른 뒤 그림자 난무가 이어진다. 붉은 테두리의 검은 그림자 열둘로 갈라져 하나씩, 점점 빠르게 전장 끝에서 끝까지 가로지르며 모든 적에게 표식을 새기고, 분신이 돌아와 납도하는 순간 시간이 멎었다가 X자 검기 벽이 솟으며 모든 표식이 한꺼번에 터진다.',fn:()=>ultMetten()},
   sw_ult2:{cls:'sword',type:'ult',name:'천검 낙하',lv:12,desc:'궁극기. 하늘의 검들이 전장 전체에 꽂히고, 탑만 한 대검이 떨어져 화면의 모든 적을 날려 버린다.',fn:()=>ultSwords()},
-  sw_ult3:{cls:'sword',type:'ult',name:'월식 검무',lv:5,desc:'궁극기. 잔상이 화면의 모든 적을 이어 달리며 표식을 새기고, 납도와 함께 거대한 진홍 초승달이 솟으며 모든 표식이 한꺼번에 터진다.',fn:()=>ultMetten()},
+  sw_ult3:{cls:'sword',type:'ult',name:'월식 검무',lv:5,desc:'궁극기. 영웅 뒤에 핏빛 달이 떠오르고, 베어 낸 적의 붉은 빛을 삼키며 검은 해가 달을 가린다. 납도와 함께 개기월식이 깨지며 거대한 진홍 초승달이 서고, 화면의 모든 적 위로 달빛이 내리꽂힌 뒤 초승달 바퀴가 화면 전체를 쓸어 모든 표식이 한꺼번에 터진다.',fn:()=>ultMetten()},
 };
 const ORDER={sword:['sw_basic','sw_dash','sw_rise','sw_wave','sw_spin','sw_fly','sw_plunge','sw_thrust','sw_counter','sw_ult1','sw_ult2','sw_ult3']};
 const SLOT_KEYS=['K','L','U','I'];
@@ -649,7 +649,13 @@ addEventListener('touchstart',enableTouch,{passive:true});
 // ============================================================ boot
 // survival mode (surv.js) works on the same save, levels and skill table
 G.api={get SV(){ return SV; },SK,ORDER,SLOT_KEYS,save,mul,cdOf,maxHp,needExp,gainExp,unlocked,sLv,stickLoco,STK,toMenu,menuRender,setPause,toast,floatTxt,EFR,ET,menuEl,isTouch,fr2,swapClass,locoPose,hurtAnim};
-{ const s=document.createElement('script'); s.src='surv.js?v=27'; document.body.appendChild(s); }
+if(location.hash==='#assassin'){
+  swapClass('assassin');
+  history.replaceState(history.state,'',location.pathname+location.search);
+}
 started=true; setClass(SV.cls||'sword',true); E.dead=true; E.respawn=1e9; pl.x=pl.home=VW*.62;
-menuRender(); menuEl.classList.add('on');
+{ const s=document.createElement('script'); s.src='surv.js?v=37';
+  s.onload=()=>menuEl.classList.add('on');
+  s.onerror=()=>{ menuRender(); menuEl.classList.add('on'); };
+  document.body.appendChild(s); }
 })();

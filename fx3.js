@@ -113,10 +113,10 @@ void main(){
  gl_FragColor=vec4(col,1.);}`;
 
 // solid meshes: p, face normal, uv (x = a random tone per face, y = height 0..1 in the model)
-const SVS=`attribute vec3 p;attribute vec3 n;attribute vec2 uv;
+const SVS=`attribute vec3 p;attribute vec3 n;attribute vec2 uv;attribute vec3 bc;
 uniform mat4 M;uniform mat3 Nm;uniform vec3 org;uniform vec4 camP;uniform vec2 hf;uniform vec4 shd;
-varying vec3 vN;varying vec3 vW;varying vec2 v;
-void main(){vec3 w=(M*vec4(p,1.)).xyz;vN=Nm*n;
+varying vec3 vN;varying vec3 vW;varying vec2 v;varying vec3 vE;varying vec3 vP;varying vec3 vMn;
+void main(){vec3 w=(M*vec4(p,1.)).xyz;vN=Nm*n;vE=bc;vP=p;vMn=n;
  if(shd.z>.5){float h=max(org.z+w.z,0.);w.x+=shd.x*h;w.y+=shd.y*h;w.z=-org.z;}
  vW=vec3(org.x+w.x,org.y/${FSY}+w.y,org.z+w.z);
  float wx=org.x+w.x;float wy=org.y+w.y*${FSY}-(org.z+w.z);
@@ -127,16 +127,54 @@ precision highp float;
 #else
 precision mediump float;
 #endif
-varying vec3 vN;varying vec3 vW;varying vec2 v;
-uniform sampler2D nzA;
+varying vec3 vN;varying vec3 vW;varying vec2 v;varying vec3 vE;varying vec3 vP;varying vec3 vMn;
+uniform sampler2D nzA,nzB;
 uniform vec3 alb,amb,emis,rimC;uniform vec4 pr;uniform vec4 pr2;uniform vec4 lp[4];uniform vec3 lc[4];uniform float shadow,bmp;
+uniform vec4 dt,dt2,dsd;uniform vec3 dmc;
 void main(){
  // pr: spec, rim, vein glow, alpha | pr2: dissolve threshold, heat at the foot, tone variation, clip at the floor
+ // dt: detail amount, strata bands per model height, glow in the cracks, moss | dt2: ore glints, chipped edge width, -, - | dsd: seed xyz, time
  if(shadow>.5){float cs=texture2D(nzA,vW.xy/240.).g;if(cs<pr2.x)discard;gl_FragColor=vec4(0.,0.,0.,pr.w);return;}
  if(pr2.w>.5&&vW.z<0.)discard;
+ vec3 N=normalize(vN);vec3 Vd=vec3(0.,.8146,.58);
+ if(dt.x>0.){
+  // detailed stone: every texture lookup is in the rock's own model space, so the grain rides with the rock as it rises and turns
+  vec3 Pm=vP+dsd.xyz;vec3 an=abs(normalize(vMn));
+  vec2 pq=an.z>.62?Pm.xy:(an.x>an.y?Pm.yz:Pm.xz);
+  float crd=texture2D(nzA,pq*.55+dsd.yx).g;if(crd<pr2.x)discard;
+  if(dot(N,Vd)<-.03)discard;
+  float n1=texture2D(nzA,pq*.5+dsd.xz).r;float n2=texture2D(nzA,pq*1.1+dsd.zy).r;float gr=texture2D(nzB,pq*1.3+dsd.xy).b;
+  // strata: bands up the height, bent by the broad noise; each band its own tone, a dark seam between bands
+  float sv=Pm.z*dt.y+n1*1.1+(Pm.x+Pm.y)*.35;float bi=floor(sv);float bf=fract(sv);float bt=fract(sin(bi*91.7+dsd.x*13.1)*437.58);
+  float seam=1.-smoothstep(.0,.09,bf)*smoothstep(1.,.86,bf);
+  // relief: the normal tilts with the noise and drops into each seam
+  {vec2 bq=pq*1.2;float b0=texture2D(nzA,bq).r;float bx=texture2D(nzA,bq+vec2(.03,0.)).r;float bz=texture2D(nzA,bq+vec2(0.,.03)).r;
+   N=normalize(N+vec3(b0-bx,b0-bz,(b0-bx+b0-bz)*.5)*bmp*1.6*dt.x+vec3(0.,0.,-seam*.25*dt.x));}
+  // chipped edges: distance to the facet's real edges (model units); notches bitten out are dark, the worn lip between them catches light
+  float e=min(vE.x,min(vE.y,vE.z));float ew=dt2.y*(.5+n2);float edg=1.-smoothstep(0.,ew,e);
+  float chip=smoothstep(.5,.6,texture2D(nzB,pq*1.1+dsd.zx).g);float notch=edg*chip;float wear=edg*(1.-chip)*(1.-smoothstep(0.,ew*.45,e)*.5);
+  // cracks: thin dark lines, glowing with the class colour when asked
+  float ck=texture2D(nzB,pq*.42+dsd.zy*.7).r;float crk=smoothstep(.45,.8,ck);float crkC=smoothstep(.62,.9,ck);
+  vec3 Lk=normalize(vec3(-.5,.3,.82));float kd=max(dot(N,Lk),0.);
+  vec3 lit=amb*(.16+1.05*kd*kd);vec3 spc=vec3(0.);
+  for(int i=0;i<4;i++){vec4 L=lp[i];if(L.w<=0.)continue;vec3 dl=vec3(L.x,L.y/${FSY},L.z)-vW;float d2=dot(dl,dl);vec3 l=dl/sqrt(d2);
+   float at=clamp(1.-d2/(L.w*L.w),0.,1.);at*=at;float nd=max(dot(N,l),0.);
+   lit+=lc[i]*at*(nd*1.3+.08);vec3 Hh=normalize(l+Vd);spc+=lc[i]*at*pow(max(dot(N,Hh),0.),18.);}
+  vec3 a=alb*(1.-pr2.z+pr2.z*2.*n1)*mix(.7,1.3,bt)*(.9+.2*gr)*(1.-seam*.55)*(1.-crk*.6);
+  float mo=dt.w*smoothstep(.42,.72,n2+N.z*.4)*smoothstep(.15,.55,N.z);a=mix(a,dmc*(.55+.7*n1),mo);
+  // form: tops lit, flanks in shade, the foot and the hollows dark
+  float form=mix(.5,1.22,smoothstep(-.25,.8,N.z));
+  float ao=mix(.32,1.,smoothstep(0.,.4,v.y))*mix(.6,1.,smoothstep(.12,.55,n1))*(1.-notch*.72);
+  float fr=pow(1.-max(dot(N,Vd),0.),2.5);
+  float gl=dt.z*crkC*(.75+.25*sin(dsd.w*3.1+n1*9.));
+  float vein=smoothstep(.6,.78,texture2D(nzA,pq*.6+dsd.xy).a);
+  float foot=smoothstep(.42,0.,v.y);
+  float edge=smoothstep(pr2.x+.07,pr2.x,crd)*step(.001,pr2.x);
+  float glint=dt2.x*smoothstep(.93,.99,gr)*pow(kd,3.);
+  vec3 col=a*lit*form*ao+a*wear*kd*amb*.55+spc*pr.x*(.3+a)*(1.-notch)+vec3(glint)*amb*.9+rimC*fr*pr.y*(1.-notch*.6)+emis*(vein*pr.z+foot*pr2.y+edge*1.5+gl*2.4)+emis*gl*gl*.6;
+  gl_FragColor=vec4(col*pr.w,pr.w);return;}
  float cr=texture2D(nzA,vW.xz/240.+vW.y/380.).g;
  if(cr<pr2.x)discard;
- vec3 N=normalize(vN);vec3 Vd=vec3(0.,.8146,.58);
  if(dot(N,Vd)<-.03)discard;
  // the facet is rough stone, not glass: the noise field tilts the normal a little
  {vec2 bq=vW.xz/85.+vW.y/130.;float b0=texture2D(nzA,bq).r;float bx=texture2D(nzA,bq+vec2(.06,0.)).r;float bz=texture2D(nzA,bq+vec2(0.,.06)).r;N=normalize(N+vec3(b0-bx,(b0-bx+b0-bz)*.5,b0-bz)*bmp);}
@@ -169,7 +207,7 @@ function uni(P,names){ const U={}; for(const n of names) U[n]=gl.getUniformLocat
 function init(){ if(typeof gl==='undefined'||!gl||!GLX) return;
   try{
     Pm=prog(VS,FS,['p','uv']); Um=uni(Pm,['M','org','camP','hf','la','lb','lh','tex','nzA','nzB','kind','time','uvT','n1','n2','ch1','ch1b','pr','fd','pw','pm','rv','cA','cB','cC','cM','rk','msk','gn','aw','aw2','nrmT','lit','lamb','llp','llc']);
-    try{ Ps=prog(SVS,SFS,['p','n','uv']); Us=uni(Ps,['M','Nm','org','camP','hf','shd','nzA','alb','amb','emis','rimC','pr','pr2','lp','lc','shadow','bmp']); buildSolids(); }catch(e){ console.error('FX3 solid',e); Ps=null; }
+    try{ Ps=prog(SVS,SFS,['p','n','uv','bc']); Us=uni(Ps,['M','Nm','org','camP','hf','shd','nzA','nzB','alb','amb','emis','rimC','pr','pr2','lp','lc','shadow','bmp','dt','dt2','dsd','dmc']); buildSolids(); }catch(e){ console.error('FX3 solid',e); Ps=null; }
     Pg=prog(GVS,GFS,['p']); Ug=uni(Pg,['alb','nrm','nzA','res','camU','gOff','amb','tint','lp','lc','time','gk','hp']);
     // lathe grid: p = (u around 0..1, t along the profile 0..1, 0), uv = (u, t)
     { const vtx=new Float32Array((LN+1)*(LT+1)*5), idx=new Uint16Array(LN*LT*6); let o=0;
@@ -193,17 +231,20 @@ function init(){ if(typeof gl==='undefined'||!gl||!GLX) return;
 
 // ---------------------------------------------------------------- solid meshes (flat shaded, a few variants of each kind)
 function rng(seed){ let t=(seed*9301+49297)%233280; return ()=>{ t=(t*9301+49297)%233280; return t/233280; }; }
-function tri(out,a,b,c,ctr,u){ const ux=b[0]-a[0], uy=b[1]-a[1], uz=b[2]-a[2], vx=c[0]-a[0], vy=c[1]-a[1], vz=c[2]-a[2]; let nx=uy*vz-uz*vy, ny=uz*vx-ux*vz, nz=ux*vy-uy*vx; const l=Math.hypot(nx,ny,nz)||1; nx/=l; ny/=l; nz/=l;
+// each vertex also carries its distance to the opposite edge (model units, one component per corner), so the shader knows how far a pixel
+// is from the facet's real edges; sk lists corners whose opposite edge is only a split diagonal (never drawn as an edge)
+function tri(out,a,b,c,ctr,u,sk){ const ux=b[0]-a[0], uy=b[1]-a[1], uz=b[2]-a[2], vx=c[0]-a[0], vy=c[1]-a[1], vz=c[2]-a[2]; let nx=uy*vz-uz*vy, ny=uz*vx-ux*vz, nz=ux*vy-uy*vx; const l=Math.hypot(nx,ny,nz)||1; nx/=l; ny/=l; nz/=l;
   const mx=(a[0]+b[0]+c[0])/3-ctr[0], my=(a[1]+b[1]+c[1])/3-ctr[1], mz=(a[2]+b[2]+c[2])/3-ctr[2]; if(nx*mx+ny*my+nz*mz<0){ nx=-nx; ny=-ny; nz=-nz; }
-  for(const q of [a,b,c]) out.push(q[0],q[1],q[2],nx,ny,nz,u,q[2]); }
+  const P=[a,b,c], ed=i=>{ const p=P[(i+1)%3], q=P[(i+2)%3]; return Math.hypot(q[0]-p[0],q[1]-p[1],q[2]-p[2])||1; }, hgt=[0,1,2].map(i=>l/ed(i));
+  P.forEach((q,i)=>{ const e=[0,0,0]; e[i]=hgt[i]; if(sk) for(const s of sk) e[s]=9; out.push(q[0],q[1],q[2],nx,ny,nz,u,q[2],e[0],e[1],e[2]); }); }
 // a faceted spike: a ring below the floor, a shoulder, a point that leans
 function mSpike(seed,sides,rad,sh){ const R=rng(seed), out=[], ctr=[0,0,.4], base=[], mid=[], zs=.5+R()*.2, ax=(R()-.5)*.34, ay=(R()-.5)*.34, top=[ax,ay,1];
   for(let i=0;i<sides;i++){ const a=i/sides*6.2832+R()*.3, r0=rad*(.85+R()*.3), r1=rad*sh*(.8+R()*.4); base.push([Math.cos(a)*r0,Math.sin(a)*r0,-.3]); mid.push([Math.cos(a)*r1+ax*.5,Math.sin(a)*r1+ay*.5,zs*(.9+R()*.2)]); }
-  for(let i=0;i<sides;i++){ const j=(i+1)%sides, u=R(); tri(out,base[i],base[j],mid[j],ctr,u); tri(out,base[i],mid[j],mid[i],ctr,u); tri(out,mid[i],mid[j],top,ctr,R()); }
+  for(let i=0;i<sides;i++){ const j=(i+1)%sides, u=R(); tri(out,base[i],base[j],mid[j],ctr,u,[1]); tri(out,base[i],mid[j],mid[i],ctr,u,[2]); tri(out,mid[i],mid[j],top,ctr,R()); }
   return out; }
 // a sheared flagstone standing on edge
 function mSlab(seed){ const R=rng(seed), out=[], w=.26+R()*.12, t=.07+R()*.05, h2=.6+R()*.28, sk=(R()-.5)*.3, ctr=[0,0,.35], P=(x,y,z)=>[x+sk*z,y,z];
-  const f=[P(-w,-t,-.3),P(w,-t,-.3),P(w*.9,-t*.8,h2),P(-w*.8,-t*.8,1)], b=[P(-w,t,-.3),P(w,t,-.3),P(w*.9,t*.8,h2),P(-w*.8,t*.8,1)], qd=(a,b2,c,d)=>{ const u=R(); tri(out,a,b2,c,ctr,u); tri(out,a,c,d,ctr,u); };
+  const f=[P(-w,-t,-.3),P(w,-t,-.3),P(w*.9,-t*.8,h2),P(-w*.8,-t*.8,1)], b=[P(-w,t,-.3),P(w,t,-.3),P(w*.9,t*.8,h2),P(-w*.8,t*.8,1)], qd=(a,b2,c,d)=>{ const u=R(); tri(out,a,b2,c,ctr,u,[1]); tri(out,a,c,d,ctr,u,[2]); };
   qd(f[0],f[1],f[2],f[3]); qd(b[1],b[0],b[3],b[2]); qd(f[1],b[1],b[2],f[2]); qd(b[0],f[0],f[3],b[3]); qd(f[3],f[2],b[2],b[3]); return out; }
 // a boulder: a knocked-about icosahedron
 function mBoulder(seed){ const R=rng(seed), out=[], t=1.618, ctr=[0,0,.4], V=[[-1,t,0],[1,t,0],[-1,-t,0],[1,-t,0],[0,-1,t],[0,1,t],[0,-1,-t],[0,1,-t],[t,0,-1],[t,0,1],[-t,0,-1],[-t,0,1]].map(q=>{ const k=.5*(.8+R()*.4)/1.902; return [q[0]*k*1.08,q[1]*k*.92,q[2]*k*.86+.4]; }),
@@ -211,14 +252,36 @@ function mBoulder(seed){ const R=rng(seed), out=[], t=1.618, ctr=[0,0,.4], V=[[-
   for(const f of Fc) tri(out,V[f[0]],V[f[1]],V[f[2]],ctr,R()); return out; }
 // a thin jagged plate of volcanic glass
 function mPlate(seed){ const R=rng(seed), out=[], w=.42+R()*.14, t=.035+R()*.03, sk=(R()-.5)*.3, ctr=[0,0,.3], O=[[-w,-.3],[w,-.3],[w*(.7+R()*.3),.35+R()*.25],[w*(R()*.4-.1),.75+R()*.25],[-w*(.5+R()*.4),.5+R()*.3]].map(q=>[q[0]+sk*q[1],q[1]]), n=O.length;
-  for(let i=1;i<n-1;i++){ const u=R(); tri(out,[O[0][0],-t,O[0][1]],[O[i][0],-t,O[i][1]],[O[i+1][0],-t,O[i+1][1]],ctr,u); tri(out,[O[0][0],t,O[0][1]],[O[i+1][0],t,O[i+1][1]],[O[i][0],t,O[i][1]],ctr,u); }
-  for(let i=1;i<n;i++){ const j=(i+1)%n, u=R(), a=[O[i][0],-t,O[i][1]], b=[O[j][0],-t,O[j][1]], c=[O[j][0],t,O[j][1]], d=[O[i][0],t,O[i][1]]; tri(out,a,b,c,ctr,u); tri(out,a,c,d,ctr,u); }
+  for(let i=1;i<n-1;i++){ const u=R(), s1=[...(i>1?[2]:[]),...(i+1<n-1?[1]:[])], s2=[...(i>1?[1]:[]),...(i+1<n-1?[2]:[])]; tri(out,[O[0][0],-t,O[0][1]],[O[i][0],-t,O[i][1]],[O[i+1][0],-t,O[i+1][1]],ctr,u,s1); tri(out,[O[0][0],t,O[0][1]],[O[i+1][0],t,O[i+1][1]],[O[i][0],t,O[i][1]],ctr,u,s2); }
+  for(let i=1;i<n;i++){ const j=(i+1)%n, u=R(), a=[O[i][0],-t,O[i][1]], b=[O[j][0],-t,O[j][1]], c=[O[j][0],t,O[j][1]], d=[O[i][0],t,O[i][1]]; tri(out,a,b,c,ctr,u,[1]); tri(out,a,c,d,ctr,u,[2]); }
   return out; }
-function buildSolids(){ const all=[]; MESH={}; const add=(k,arr)=>{ (MESH[k]=MESH[k]||[]).push([all.length/8,arr.length/8]); for(const x of arr) all.push(x); };
-  for(let i=0;i<4;i++){ add('spike',mSpike(11+i*7,5+(i&1),.3,.62)); add('crystal',mSpike(101+i*5,4+(i&1),.13,.85)); add('slab',mSlab(31+i*3)); add('boulder',mBoulder(57+i*9)); add('plate',mPlate(73+i*11)); }
+// a rock: a subdivided, knocked-about sphere with a flattened bed, so it has many facets of different sizes and no ball silhouette
+function mRock(seed,flat){ const R=rng(seed), t=1.618, ctr=[0,0,.42], out=[];
+  let V=[[-1,t,0],[1,t,0],[-1,-t,0],[1,-t,0],[0,-1,t],[0,1,t],[0,-1,-t],[0,1,-t],[t,0,-1],[t,0,1],[-t,0,-1],[-t,0,1]].map(q=>{ const l=Math.hypot(...q); return q.map(c=>c/l); });
+  let Fc=[[0,11,5],[0,5,1],[0,1,7],[0,7,10],[0,10,11],[1,5,9],[5,11,4],[11,10,2],[10,7,6],[7,1,8],[3,9,4],[3,4,2],[3,2,6],[3,6,8],[3,8,9],[4,9,5],[2,4,11],[6,2,10],[8,6,7],[9,8,1]];
+  const mid={}, mp=(a,b)=>{ const k=a<b?a+'_'+b:b+'_'+a; if(mid[k]!=null) return mid[k]; const p=[(V[a][0]+V[b][0])/2,(V[a][1]+V[b][1])/2,(V[a][2]+V[b][2])/2], l=Math.hypot(...p); V.push(p.map(c=>c/l)); return mid[k]=V.length-1; };
+  const F2=[]; for(const [a,b,c] of Fc){ const ab=mp(a,b), bc=mp(b,c), ca=mp(c,a); F2.push([a,ab,ca],[b,bc,ab],[c,ca,bc],[ab,bc,ca]); }
+  // a few big planar cuts (the faces of a broken stone) and lumpy noise on top
+  const cuts=[]; for(let i=0;i<5;i++){ const a=R()*6.283, b=(R()-.3)*1.6; cuts.push([Math.cos(a)*Math.cos(b),Math.sin(a)*Math.cos(b),Math.sin(b),.62+R()*.3]); }
+  V=V.map(q=>{ let r=.86+R()*.22; for(const c of cuts){ const d=q[0]*c[0]+q[1]*c[1]+q[2]*c[2]; if(d*r>c[3]) r=c[3]/d; } return [q[0]*r*.5*(1.1+R()*.1),q[1]*r*.5*(.85+R()*.1),Math.max(q[2]*r*.5*.9,-flat)]; });
+  const zmin=Math.min(...V.map(q=>q[2])), zmax=Math.max(...V.map(q=>q[2])), sz=1.3/(zmax-zmin); V=V.map(q=>[q[0]*sz,q[1]*sz,(q[2]-zmin)*sz-.3]);
+  // edges between two faces of the same cut are not edges: tell the shader to skip them
+  const nf=f=>{ const a=V[f[0]], b=V[f[1]], c=V[f[2]], u=[b[0]-a[0],b[1]-a[1],b[2]-a[2]], w=[c[0]-a[0],c[1]-a[1],c[2]-a[2]], n=[u[1]*w[2]-u[2]*w[1],u[2]*w[0]-u[0]*w[2],u[0]*w[1]-u[1]*w[0]], l=Math.hypot(...n)||1; return n.map(x=>x/l); }, FN=F2.map(nf), EM={};
+  F2.forEach((f,fi)=>{ for(let i=0;i<3;i++){ const a=f[(i+1)%3], b=f[(i+2)%3], k=a<b?a+'_'+b:b+'_'+a; (EM[k]=EM[k]||[]).push(fi); } });
+  F2.forEach((f,fi)=>{ const sk=[]; for(let i=0;i<3;i++){ const a=f[(i+1)%3], b=f[(i+2)%3], k=a<b?a+'_'+b:b+'_'+a, o=EM[k].find(x=>x!==fi); if(o!=null){ const q=FN[o], m=FN[fi]; if(Math.abs(q[0]*m[0]+q[1]*m[1]+q[2]*m[2])>.975) sk.push(i); } } tri(out,V[f[0]],V[f[1]],V[f[2]],ctr,R(),sk); });
+  return out; }
+// a crag: a leaning stone column in three tiers with a broken top
+function mCrag(seed,sides){ const R=rng(seed), out=[], ctr=[0,0,.45], ax=(R()-.5)*.22, ay=(R()-.5)*.22, tiers=[-.3,.25,.62], rad=[.27,.23,.17], rings=tiers.map((z,k)=>{ const ring=[]; for(let i=0;i<sides;i++){ const a=i/sides*6.2832+R()*.35, r=rad[k]*(.78+R()*.4); ring.push([Math.cos(a)*r+ax*(z+.3),Math.sin(a)*r+ay*(z+.3),z+(R()-.5)*.08]); } return ring; }),
+    top=[]; for(let i=0;i<sides;i++){ const p=rings[2][i]; top.push([p[0]*.7+ax*.4,p[1]*.7+ay*.4,.82+R()*.22]); } rings.push(top);
+  for(let k=0;k<3;k++) for(let i=0;i<sides;i++){ const j=(i+1)%sides, a=rings[k][i], b=rings[k][j], c=rings[k+1][j], d=rings[k+1][i], u=R(); tri(out,a,b,c,ctr,u,[1]); tri(out,a,c,d,ctr,u,[2]); }
+  const tc=[ax*.5,ay*.5,1]; for(let i=0;i<sides;i++){ const j=(i+1)%sides; tri(out,top[i],top[j],tc,ctr,R()); }
+  return out; }
+function buildSolids(){ const all=[]; MESH={}; const add=(k,arr)=>{ (MESH[k]=MESH[k]||[]).push([all.length/11,arr.length/11]); for(const x of arr) all.push(x); };
+  for(let i=0;i<4;i++){ add('spike',mSpike(11+i*7,5+(i&1),.3,.62)); add('crystal',mSpike(101+i*5,4+(i&1),.13,.85)); add('slab',mSlab(31+i*3)); add('boulder',mBoulder(57+i*9)); add('plate',mPlate(73+i*11)); add('rock',mRock(201+i*13,.1+.08*i)); add('crag',mCrag(307+i*17,6+(i&1)*2)); }
   solidVB=gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,solidVB); gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(all),gl.STATIC_DRAW); }
 // F.solid(kind, variant, x, y, z, {s | M, rx, ry, rz, alb, emis, rimC, spec, rim, vein, heat, tone, ero, a, clip, shadow:[dx,dy,alpha], ord})
-//   kind: spike | crystal | slab | boulder | plate. The model is 1 tall with its foot .3 below 0 (hidden by the floor unless clip:0).
+//   kind: spike | crystal | slab | boulder | plate | rock (many-faceted broken stone) | crag (leaning stone column). The model is 1 tall with its foot .3 below 0 (hidden by the floor unless clip:0).
+//   detail (kit update 9): {detail:1, strata (bands per height, 6), glow (light in the cracks, emis colour, 0..2), moss:'#rrggbb', mossK, ore (glints 0..1), edge (chipped edge width, .05), seed}
 //   shadow: how far the shadow slides per unit of height, in floor units (true depth), and its darkness.
 const SOLID={layer:'o',ord:0};
 F.solids=()=>!!Ps;
@@ -323,16 +386,26 @@ function drawSolid(q){ const o=q.ov, m=q.M; gl.uniformMatrix4fv(Us.M,false,m);
   if(q.sh){ const sd=o.shadow; gl.uniform4f(Us.shd,sd[0],sd[1],1,0); gl.uniform1f(Us.shadow,1); gl.uniform4f(Us.pr,0,0,0,(sd[2]??.5)*(o.a??1)); }
   else { gl.uniform4f(Us.shd,0,0,0,0); gl.uniform1f(Us.shadow,0); gl.uniform4f(Us.pr,o.spec??.5,o.rim??.25,o.vein??0,o.a??1);
     const al=rgb(o.alb||'#4a4650'), em=rgb(o.emis||'#000000'), rc=rgb(o.rimC||o.emis||'#ffffff'); gl.uniform3f(Us.alb,al[0],al[1],al[2]); gl.uniform3f(Us.emis,em[0],em[1],em[2]); gl.uniform3f(Us.rimC,rc[0],rc[1],rc[2]); }
+  // detail (kit update 9): 0 = the old flat-faceted stone
+  const dk=o.detail===true?1:(o.detail||0);
+  if(dk>0&&!q.sh){ const mc=rgb(o.moss||'#3e5a2a'), sd=o.seed??(q.first*.0137); gl.uniform4f(Us.dt,dk,o.strata??6,o.glow||0,o.moss?(o.mossK??.6):0); gl.uniform4f(Us.dt2,o.ore||0,o.edge??.05,0,0); gl.uniform4f(Us.dsd,sd*.731%1,sd*.377%1,sd*.913%1,RT); gl.uniform3f(Us.dmc,mc[0],mc[1],mc[2]); }
+  else gl.uniform4f(Us.dt,0,0,0,0);
   gl.drawArrays(gl.TRIANGLES,q.first,q.count); F.stats.draws++; }
 function beginSolid(){ gl.useProgram(Ps); gl.bindBuffer(gl.ARRAY_BUFFER,solidVB); gl.enableVertexAttribArray(0); gl.enableVertexAttribArray(1); gl.enableVertexAttribArray(2);
-  gl.vertexAttribPointer(0,3,gl.FLOAT,false,32,0); gl.vertexAttribPointer(1,3,gl.FLOAT,false,32,12); gl.vertexAttribPointer(2,2,gl.FLOAT,false,32,24);
-  gl.uniform4f(Us.camP,-cam.x+cam.sx,-cam.y+cam.sy,S*cam.z,cam.rot); gl.uniform2f(Us.hf,W/2,H/2); gl.uniform1i(Us.nzA,1);
+  gl.enableVertexAttribArray(3); gl.vertexAttribPointer(0,3,gl.FLOAT,false,44,0); gl.vertexAttribPointer(1,3,gl.FLOAT,false,44,12); gl.vertexAttribPointer(2,2,gl.FLOAT,false,44,24); gl.vertexAttribPointer(3,3,gl.FLOAT,false,44,32);
+  gl.uniform4f(Us.camP,-cam.x+cam.sx,-cam.y+cam.sy,S*cam.z,cam.rot); gl.uniform2f(Us.hf,W/2,H/2); gl.uniform1i(Us.nzA,1); gl.uniform1i(Us.nzB,2);
   const A=window.GFX?GFX.amb:[1,1,1]; gl.uniform3f(Us.amb,A[0],A[1],A[2]); gl.uniform4fv(Us.lp,LP.subarray(0,16)); gl.uniform3fv(Us.lc,LC.subarray(0,12)); cur=null; }
 // draw queued items of one layer, switching between the effect shader and the solid shader as the order demands
-function drawLayer(L){ let mode=0; for(const q of F.q){ if(q.L!==L) continue; const sld=q.geo==='solid';
-    if(sld&&mode!==1){ beginSolid(); mode=1; } else if(!sld&&mode!==0){ gl.disableVertexAttribArray(2); beginMesh(); mode=0; }
+function resumeMesh(L){
+  gl.disableVertexAttribArray(2);gl.disableVertexAttribArray(3);beginMesh();
+  if(L===2)gl.blendFuncSeparate(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE);
+}
+function drawLayer(L){ let mode=0; for(const q of F.q){ if(q.L!==L) continue;
+    if(q.render){ q.render(q,LP,LC); mode=2; continue; }
+    const sld=q.geo==='solid';
+    if(sld&&mode!==1){ beginSolid(); mode=1; } else if(!sld&&mode!==0){ resumeMesh(L); mode=0; }
     if(sld) drawSolid(q); else drawOne(q); }
-  if(mode===1){ gl.disableVertexAttribArray(2); beginMesh(); } }
+  if(mode!==0) resumeMesh(L); }
 function beginMesh(){ gl.useProgram(Pm); gl.enableVertexAttribArray(0); gl.enableVertexAttribArray(1); cur=null;
   gl.uniform4f(Um.camP,-cam.x+cam.sx,-cam.y+cam.sy,S*cam.z,cam.rot); gl.uniform2f(Um.hf,W/2,H/2);
   gl.uniform1i(Um.tex,0); gl.uniform1i(Um.nzA,1); gl.uniform1i(Um.nzB,2); gl.uniform1i(Um.nrmT,3); gl.uniform4f(Um.lit,0,0,0,0); litOn=0; { const A=window.GFX?GFX.amb:[1,1,1]; gl.uniform3f(Um.lamb,A[0],A[1],A[2]); gl.uniform4fv(Um.llp,LP.subarray(0,16)); gl.uniform3fv(Um.llc,LC.subarray(0,12)); } gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D,glTex(nzA)||white); gl.activeTexture(gl.TEXTURE2); gl.bindTexture(gl.TEXTURE_2D,glTex(nzB)||white);
@@ -373,7 +446,7 @@ F.renderOver=(G,gfxDrew)=>{ if(!F.on) return false; let n=0, nd=0, ng=0; for(con
   if(nv){ VOL.render(G,G.gVfx); gl.activeTexture(gl.TEXTURE0); }
   beginMesh();
   if(n){ gl.bindFramebuffer(gl.FRAMEBUFFER,G.gVfx.f); gl.viewport(0,0,G.gVfx.w,G.gVfx.h); drawLayer(1); }
-  if(nd){ gl.bindFramebuffer(gl.FRAMEBUFFER,G.gDist.f); gl.viewport(0,0,G.gDist.w,G.gDist.h); gl.blendFuncSeparate(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE); for(const q of F.q) if(q.L===2) drawOne(q); }
+  if(nd){ gl.bindFramebuffer(gl.FRAMEBUFFER,G.gDist.f); gl.viewport(0,0,G.gDist.w,G.gDist.h); gl.blendFuncSeparate(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE); drawLayer(2); }
   endMesh(); F.q.length=0; dynN=0; if(window.GFX) GFX.wasClear=false; return true; };
 F.pending=()=>F.q.length>0;
 init();

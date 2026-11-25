@@ -377,7 +377,7 @@ K.upheave=(x,y,o={})=>{ if(!F.on) return; const m=mats(), P=pal(o.pal), bk=o.tex
     for(const p of L){ p.pc=[]; for(let q=0;q<per;q++){ const big=q===0; p.pc.push({big,v:(Math.random()*4)|0,dx:big?0:R(-.55,.55)*p.s,dy:big?0:R(-.3,.4)*p.s,s:p.s*(big?1:R(.38,.68))*st[4],rz:R(0,TAU_),ln:R(.14,.42)*(o.lean??1),d:big?0:R(.02,.09)}); } }
     GFX.add(dur+.3,(kk,t)=>{ for(const p of L){ const t0=t-p.d; if(t0<0) continue; const ca=Math.cos(p.a), sa=Math.sin(p.a);
         for(const c of p.pc){ const tt=t0-c.d; if(tt<0) continue; const e=eo3(sat(tt/rise)), f=sat((tt-dur*.55)/(dur*.45)), z=c.s*(e-1)*.95-f*f*c.s*.3;
-          F.solid(kind,c.v,p.x+c.dx,p.y+c.dy*FSY,z,{M:F.xfw({s:c.s,rz:c.rz,rx:sa*c.ln,ry:ca*c.ln}),alb,emis:P.b,rimC:P.h,spec:st[2],rim:.22,vein:st[3]*(1-f*.6),heat:.9*(1-sat(tt/.7))+.12,ero:f*.8,bump:st[5],tone:.22,shadow:c.big?[Math.cos(p.sa)*.85,Math.sin(p.sa)*.85,.5*(1-f)]:null}); } } },o.delay||0);
+          F.solid(kind,c.v,p.x+c.dx,p.y+c.dy*FSY,z,{M:F.xfw({s:c.s,rz:c.rz,rx:sa*c.ln,ry:ca*c.ln}),alb,emis:P.b,rimC:P.h,spec:st[2],rim:.22,vein:st[3]*(1-f*.6),heat:.9*(1-sat(tt/.7))+.12,ero:f*.8,bump:st[5],tone:.22,shadow:c.big?[Math.cos(p.sa)*.85,Math.sin(p.sa)*.85,.5*(1-f)]:null,detail:o.detail,strata:o.strata,glow:o.detail?(o.glow??.8)*(1-f):0,moss:o.moss,edge:o.edge,seed:p.sd+c.v}); } } },o.delay||0);
     after(o.delay||0,()=>{ for(const p of L) if(Math.random()<.6) K.dust(p.x,p.y,{n:3,r:40,sp:[150,500],a:.45}); K.debris(x,y,{n:Math.min(24,n*2),r,sp:[200,900],up:1700,size0:8,size:26}); });
     return; }
   L.sort((p,q)=>p.y-q.y);
@@ -392,7 +392,7 @@ K.upheave=(x,y,o={})=>{ if(!F.on) return; const m=mats(), P=pal(o.pal), bk=o.tex
 K.chunks=(x,y,o={})=>{ if(!F.on) return; if(!(F.solids&&F.solids())) return K.debris(x,y,o); const P=pal(o.pal), st=SOL[pl.cls]||SOL.fist, kind=o.kind||(st[0]==='crystal'||st[0]==='plate'?st[0]:'boulder'), alb=o.rock||st[1], n=Math.max(2,Math.round((o.n||7)*(F.low?.5:1))), life=o.life||1.7, g=3000, L=[];
   for(let i=0;i<n;i++){ const a=R(0,TAU_), sp=R(...(o.sp||[300,900])), vz=R(.5,1)*(o.up||1500), z0=R(0,40); L.push({x:x+Math.cos(a)*R(0,o.r||60),y:y+Math.sin(a)*R(0,o.r||60)*FSY,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp*FSY,vz,z0,tl:(vz+Math.sqrt(vz*vz+2*g*z0))/g,s:R(...(o.s||[36,80])),v:(Math.random()*4)|0,ax:R(-8,8),ay:R(-8,8),az:R(-5,5)}); }
   GFX.add(life,(kk,t)=>{ const f=sat((kk-.7)/.3); for(const c of L){ const tt=Math.min(t,c.tl), z=Math.max(0,c.z0+c.vz*tt-.5*g*tt*tt);
-      F.solid(kind,c.v,c.x+c.vx*tt,c.y+c.vy*tt,z+c.s*.3,{M:F.xf({s:c.s,rx:c.ax*tt,ry:c.ay*tt,rz:c.az*tt}),alb,emis:P.b,rimC:P.h,spec:st[2],rim:.2,vein:st[3]*.6*(1-kk),heat:0,ero:f*.85,bump:st[5],tone:.22,clip:0,shadow:[.55,.28,.42*(1-f)]}); } },o.delay||0); };
+      F.solid(kind,c.v,c.x+c.vx*tt,c.y+c.vy*tt,z+c.s*.3,{M:F.xf({s:c.s,rx:c.ax*tt,ry:c.ay*tt,rz:c.az*tt}),alb,emis:P.b,rimC:P.h,spec:st[2],rim:.2,vein:st[3]*.6*(1-kk),heat:0,ero:f*.85,bump:st[5],tone:.22,clip:0,shadow:[.55,.28,.42*(1-f)],detail:o.detail,strata:o.strata,glow:o.detail?(o.glow||0)*(1-kk):0,seed:c.ax+c.az}); } },o.delay||0); };
 
 // FLARE: a soft hot glow in the air (the muzzle of a cut, a glint on the hilt)
 K.flare=(x,y,z,o={})=>{ if(!F.on) return; const m=mats(), P=pal(o.pal), dur=o.dur||.25, s=o.s||160, C=col(P);

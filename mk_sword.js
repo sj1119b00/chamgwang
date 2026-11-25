@@ -17,6 +17,30 @@ MK.CLIPS.notoS=MK.compile({keys:[
   [1.2,{hip:[-.05,0,.41]},'io'] ]});
 // the coil before a dash: two frames of sinking and winding toward the line he is about to cross
 MK.CLIPS.coil=MK.compile({keys:[ [.06,{gr:1,sf:1,sh:0,lw:[0,1,0],hip:[-.06,0,.31],hy:-.25,cy:-.55,lean:.52,fr:[.16,.1,0],fl:[-.2,-.09,0],hr:[.04,-.08,-.2],sw:MK.dir(-2.5,.12),hd:.75,hp:.0,tr:0,kr:.3,kl:.5},'out'] ]});
+// SHADOW BODIES (zero slash's twelve shadows): his afterimages as dark bodies. A black figure on the scene, a crimson rim of light round it on
+// the effect layer (the red figure blurred, its inside cut away), the blade lit white along its edge. It stands in the draw stance until its
+// turn, crosses in `dur` leaving a chain of fading copies of itself along the path, holds the last pose for `hold`, then thins and rises
+// away (the rim outlives the body). merge: it is going back into him, so it is gone the moment it arrives
+const DS=[]; let DRDY=null;
+MK.dshade=o=>{ DS.push(Object.assign({t0:RT,wait:0,dur:.1,clip:'cutA',sc:2.9,hold:.26},o)); };
+const o3=k=>1-(1-k)*(1-k)*(1-k);
+function dsFig(x,y,J,yaw,sc,a,rim,blade){ if(a<=.01&&rim<=.01) return;
+  if(a>.01){ ctx.save(); ctx.globalAlpha=Math.min(1,a); ctx.translate(x,y); ctx.scale(sc,sc); MK.figure(ctx,J,0,0,yaw,{flat:'#070206'}); ctx.restore(); }
+  if(rim<=.01) return;
+  fx.save(); fx.translate(x,y); fx.scale(sc,sc); fx.globalCompositeOperation='lighter'; fx.globalAlpha=Math.min(1,rim); fx.shadowColor='#ff1430'; fx.shadowBlur=8;
+  const S=MK.figure(fx,J,0,0,yaw,{flat:'#ff3448'}); fx.shadowBlur=0; fx.globalAlpha=Math.min(1,rim)*.9; fx.save(); fx.translate(-1.6,-1.8); MK.figure(fx,J,0,0,yaw,{flat:'#ffb0a8'}); fx.restore(); fx.globalAlpha=1; fx.globalCompositeOperation='destination-out'; MK.figure(fx,J,0,0,yaw,{flat:'#000'});
+  if(blade>.01&&S&&S.sb&&S.st){ fx.globalCompositeOperation='lighter'; fx.lineCap='round'; fx.globalAlpha=Math.min(1,blade); fx.strokeStyle='#ff4a5a'; fx.lineWidth=5; fx.beginPath(); fx.moveTo(S.sb[0],S.sb[1]); fx.lineTo(S.st[0],S.st[1]); fx.stroke(); fx.strokeStyle='#fff4f0'; fx.lineWidth=1.8; fx.stroke(); }
+  fx.restore(); }
+function drawDS(){ if(!MK.on()){ DS.length=0; return; } if(!DRDY) DRDY=MK.solve(MK.sample(MK.CLIPS.iaiReady,.86,null));
+  for(let i=DS.length-1;i>=0;i--){ const s=DS[i], t=RT-s.t0, end=s.wait+s.dur+(s.merge?0:s.hold+.34); if(t>end+.32){ DS.splice(i,1); continue; } const sc=s.sc;
+    if(t<s.wait){ const a=Math.min(1,t/.14); dsFig(s.x0,s.y0,DRDY,s.yaw,sc*(.9+.1*a),a*.92,a*.9,a*.7); continue; }
+    const u=t-s.wait, k=Math.min(1,u/s.dur), e=o3(k), cl=MK.CLIPS[s.clip], dx=s.x1-s.x0, dy=s.y1-s.y0;
+    // the chain left on the path: five copies at fixed places, each in the pose he had there, fading .3s after he passed it
+    for(let j=1;j<=5;j++){ const f=j/6; if(e<f) break; const tp=s.dur*f, ag=Math.max(0,1-(u-tp)/.3); if(ag<=0) continue; dsFig(s.x0+dx*o3(f),s.y0+dy*o3(f),MK.solve(MK.sample(cl,tp,null)),s.yaw,sc,ag*.38*(.5+.5*f),ag*.55*(.5+.5*f),0); }
+    if(s.merge&&k>=1) continue;
+    const J=MK.solve(MK.sample(cl,u,null)), lv=k<1?0:Math.min(1,(u-s.dur-s.hold)/.34), a=(1-lv)*(1-lv), rim=1-lv*lv*.6-Math.max(0,(u-s.dur-s.hold-.34)/.32)*.4;
+    dsFig(s.x0+dx*e,s.y0+dy*e-lv*60,J,s.yaw,sc*(1+.06*lv),a*.95,Math.max(0,rim)*(lv>=1?Math.max(0,1-(u-s.dur-s.hold-.34)/.32):1),k<1?1:Math.max(0,1-(u-s.dur)/.3)); } }
+const dpDS=drawPlayer; drawPlayer=function(){ dpDS(); if(DS.length) drawDS(); };
 // he stands out of it: the hand leaves the hilt last
 MK.CLIPS.stand=MK.compile({keys:[ [.5,{hip:[-.02,0,.49],hp:.1,lean:.08,cy:.1,hy:-.25},'io'], [.95,MK.DEF,'io'] ]});
 

@@ -16,7 +16,7 @@ function img(name){ let s=IMG[name]; if(!s){ s=IMG[name]={im:new Image(),ok:fals
 function tex(name,c){ const s=img(name); if(!s.ok) return null; if(!c) return s.im; const k=name+c; let cv=TINT[k];
   if(!cv){ cv=TINT[k]=document.createElement('canvas'); cv.width=s.im.naturalWidth; cv.height=s.im.naturalHeight; const g=cv.getContext('2d'); g.drawImage(s.im,0,0); g.globalCompositeOperation='multiply'; g.fillStyle=c; g.fillRect(0,0,cv.width,cv.height); }
   return cv; }
-const FXTEX=['fx_crack','fx_crack_k','fx_gash','fx_circle_arcane','fx_circle_seal','fx_sun','fx_ink','fx_lightning'];
+const FXTEX=['fx_crack','fx_crack_k','fx_gash','fx_circle_arcane','fx_circle_seal','fx_sun','fx_ink_a','fx_lightning'];
 FXTEX.forEach(img);
 const CUTS={sword:['sword_cut1','sword_cut2'],mage:['mage_cut1','mage_cut2'],fist:['fist_cut1','fist_cut2'],shaman:['shaman_cut1','shaman_cut2'],pyro:['pyro_cut1','pyro_cut2']};
 

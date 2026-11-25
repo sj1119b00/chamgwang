@@ -372,3 +372,130 @@
 - 2→3회차에 점수가 내려간 것이 있다(fs_ult1 70→62, fs_ult2 71→65, py_ult3 70→66 형체 심사). 심사 편차(±3~5)와 재작업 부작용이 섞여 있어 구분 안 됨.
 - 직접 검증: `node --check` 15개 파일 통과, 다섯 직업 `__smoke` errs 없음·stuck false·복귀 정상. 드로우 정점은 예산 120 초과(검사 299, 도사 236, 법사 189), 검사 최대 프레임 152ms(헤드리스).
 - 공통 잔여 지적: 적 피격 반응이 여전히 약함, 축적 구간 1초 이상 변화 없는 정지, 절정 블러로 형체 뭉개짐, 일부 메시(석판·빙산)가 평평한 판으로 읽힘.
+
+### 암살자 흑무연참 · 2026-11-25
+
+기존 스틱맨 골격에 복면과 쌍단도를 더했다. 레벨 1부터 기본 공격과 궁극기 하나를 사용할 수 있다. 이번 작업의 미술 목표는 독립 평가 80점, 제작 상한은 3회였다. 각 회차마다 구현을 보지 않은 새 검증자가 해당 회차의 실제 게임 화면을 16항목으로 평가했다.
+
+| 회차 | 달라진 동작과 이펙트 | 평균 | 실행 자료 |
+|---|---|---:|---|
+| 1 | 검은 안개로 은신, 궤도를 바꾸는 연격, 두 칼날로 마무리 | 72.0 | [프레임 시트](_gen/shots/as_ult_round1.jpg) |
+| 2 | 실제 적을 향한 관통, 방향성 금속 파편, 두 칼날의 충돌 시차, 바닥 과노출 완화 | 71.9 | [프레임 시트](_gen/shots/as_ult_round2.jpg) |
+| 3 | 칼끝에 맞춘 후드 잔상, 검선에 갈라지는 안개, 판석을 들어 올리는 금빛 절개 | 75.3 | [프레임 시트](_gen/shots/as_ult_round3.jpg) · [음향 포함 영상](_gen/review/as_round3.mp4) |
+
+최종 16항목 점수는 작화 78, 웅장함 72, 규모감 81, 타격감 70, 공간감 75, 입체감 73, 역동성 82, 화려함 76, 선명도 79, 색감·명암 80, 타이밍 79, 환경 반응 65, 카메라 68, 독창성 76, 상용 완성도 74, 다시 볼 매력 77이었다. 합계 1,205점, 평균 75.3125점으로 80점에 미달했다. 중반 검격의 진행 방향과 마지막 두 획의 대비가 강점이었다. 작은 적의 피격 동작과 바닥 반응이 검기보다 약하고, 마지막 피해 합계는 타격보다 늦게 표시된다는 지적이 남았다.
+
+일반 생존 레벨 1에서 게이지 99일 때 발동이 차단되고 100에서 발동했다. 0.49초에 은신하고 3.63초에 재등장했으며 5.25초에 조작이 복구됐다. 사방 일반 적 4마리가 모두 쓰러지고 보스 HP가 260,000에서 110,684로 줄었다. 연습장 재시전, 빈 전장, 은신 중 퇴장, 기존 저장 복원, 저사양 모드와 Canvas 대체 경로를 확인했다. 실제 휴대폰은 미측정이다.
+
+헤드리스 Chrome의 궁극기 성능 계측은 315프레임, 평균 9.5ms, p95 24.3ms, 최장 157.7ms였다. 별도 연속 시전 검사에서 두 시전의 최대 메시 드로우는 110회와 107회였다. 두 번 모두 조작 잠금·줌·롤·주변광·영웅 표시가 복원됐고 남은 GFX 효과와 광원은 0개였다. JS 오류는 0건이었다. 전투 준비와 복귀까지 포함한 별도 안정성 검사 전체에서 최장 프레임 1,092.5ms가 한 번 계측됐고 해당 프레임의 발생 단계는 기록되지 않았다.
+
+검기의 [전용 원화](assets/as_razor.webp)는 내장 ImageGen으로 만들었다. 검정 배경의 회색 발광 마스크를 검선 메시 위에 입히고, 게임에서 색·조명·침식을 적용했다.
+
+<details><summary>검흔 원화 생성 프롬프트</summary>
+
+Use case: stylized-concept. Create ONE high-end dark fantasy action RPG VFX grayscale emission texture, landscape 3:2, isolated on perfectly solid #000000. One spectacular swept sabre stroke in the form of a broad shallow hooked crescent sweeping from a long tapering left tip through the center to an upward-turning lethal hooked right tip. Overall it reads like a curved raptor talon cut in air. Outer convex edge along bottom is a sharply tapered razor line of pearl white with occasional breaks and sharp reflective glints. Upper trailing side layered with three to four faceted silvery splinters, stippled torn calligraphic ink wash and finely combed smoke whiskers. A few separate needle chips following the same flow. Wide dark pockets separate blade layers, sculpted black-metal facets and highlights across its width, dramatic angular leading tip. Pure black above, below, around shape and between separate wisps. All tips complete and within frame with 8 percent padding. Concentrate the shape within central 55 percent height. Absolutely no handle, no weapon hilt, no physical sword, no people, no ground, no scenery, no UI, no type, no border, no starburst, no evenly distributed particles, no blown-out glow, no color. Production hand-painted spell texture for animated compositing, sculptural dimensional bevel and brushwork with clearly legible silhouette even at thumbnail scale.
+
+</details>
+
+### 흑무연참의 검은 안개와 비행 단검 보강 · 2026-11-25
+
+앞의 캐릭터 제작 3회가 끝난 뒤, 안개를 늘리고 공중 검격에 잔상과 잔향을 더해 달라는 요청으로 진행했다. 비교 영상은 같은 전투 시드와 같은 화면 비율로 녹화했다.
+
+| 변경 회차 | 화면에서 달라진 점 | 독립 평가 | 실제 게임 영상 |
+|---|---|---:|---|
+| 1 | 두꺼운 검은 안개층, 높낮이가 다른 단검 8자루, 후드 잔상과 좌우로 번지는 금속 잔향 | 77.3 | [음향 포함 MP4](_gen/review/assassin_mist_echo.mp4) |
+| 2 | 중앙을 가로지르는 앞쪽 단검, 두 관통에서 더 오래 남는 복면과 쌍단도, 결정타가 밀어내는 안개 | 70.4 | [음향 포함 MP4](_gen/review/assassin_shadow_flight.mp4) |
+| 3 | 적에게 꺾어 들어가는 네 자루, 적중 지점의 불꽃, 막타에서 양옆으로 펼쳐지는 단검과 즉시 표시되는 피해 | 78.6 | [음향 포함 MP4](_gen/review/assassin_black_mist.mp4) · [프레임 시트](_gen/shots/assassin_black_mist.jpg) |
+
+최종 독립 평가는 1,258/1,600으로 평균 78.625점이었다. 작화 80, 웅장함 78, 규모감 85, 타격감 75, 공간감 83, 입체감 72, 역동성 87, 화려함 86, 선명도 75, 색감·명암 84, 타이밍 80, 환경 반응 66, 카메라 71, 독창성 79, 상용 완성도 76, 다시 볼 매력 81. 1.4초의 복면 잔상과 3.6초의 양방향 검격은 분명하게 읽혔다. 중반 일부 검격에서 적중 대상을 놓치기 쉽고 막타의 밝은 검선이 적을 가린다는 평가였다. 80점에 미달해 요청한 상한 3회에서 멈췄다.
+
+일반 화질과 저사양 WebGL, WebGL을 끈 Canvas에서 각각 두 번 시전했다. 여섯 번 모두 5.25초 뒤 조작·카메라가 복귀했고 남은 광원, 효과, 타이머와 JavaScript 오류는 0이었다. 일반 전투에서는 게이지 99에서 차단, 100에서 시전됐고 사방의 일반 적 4마리가 쓰러졌다. 보스 피격 테스트에서 첫 숫자와 체력 감소가 같은 시뮬레이션 프레임에 보였다. 후속 타격까지 합산한 실제 피해 410,318이 화면에 410.3K로 표시됐다. 실기기 성능은 측정하지 않았다.
+
+최종 빌드를 헤드리스 Chrome에서 315프레임 계측했다. 궁극기 중 평균 14.0ms, p95 44.4ms, 최장 225.3ms였고 최대 메시 드로우는 140회로 프로젝트 기준 120회를 넘었다. 카메라, 조작, 화면 효과가 복원됐고 스크립트 오류는 없었다.
+
+공중에서 회전하는 [단검 원화](assets/as_spectral_dagger.webp)는 ImageGen으로 생성하고 투명 WebP로 저장했다. 게임이 매 프레임 비행 방향에 맞춰 검신을 기울이고 이전 좌표로 뒤따르는 검광을 그린다.
+
+<details><summary>비행 단검 원화 생성 프롬프트</summary>
+
+Use case: stylized-concept. Create a transparent-background, wide 3:2 game VFX sprite, a single spectral throwing dagger viewed SIDE ON kept flat along the HORIZONTAL axis, TIP POINTING RIGHT, ring pommel to the LEFT. One striking silhouette for a high-end dark-fantasy isometric ARPG: forged blackened silver recurved blade with a deep cutout and a backward-facing talon on its spine, moon-silver cutting edge, long triangular forward tip, sharp faceted smoky crystal inset and vibrant violet-magenta fuller. Short leather wrapped grip with silver ring pommel and two short tapered silk streamer tips extending left, tiny luminous mulberry gem on the guard. Dynamic asymmetry, convincing cold metal anisotropic highlights, bright icy edge and dark reflection planes. The solitary knife fills 94 percent of the image width including its intact left and right ends, a sleek width to height ratio around 3.8:1. Distinct polished collectable icon artistry, selective hard highlights, clearly readable down to 40 pixels. Straight-on orthographic side profile, nicely finished original fantasy weapon design. Transparent background with clean alpha. NO cast shadow, floor, characters, hand, extra knives, floating particles, smoke, backdrop, halo, lettering, graphics layout or UI. The moving trails and illumination will be composited separately in game.
+
+</details>
+
+### 흑무연참 입체 효과 재작업 · 2026-11-25
+
+검은 안개와 칼이 원화 한 장을 밀어 놓은 듯 보인다는 지적을 기준으로 같은 궁극기를 네 차례 수정하고 촬영했다. 평가는 구현 내용을 보지 않은 검증자가 실제 영상으로 매겼다. 1·2차는 같은 검증자가 비교했고 3차와 4차는 각각 별도 검증자가 봤다. 역대 점수에는 평가자 차이도 있다.
+
+| 회차 | 변경과 관찰 | 16항목 평균 | 실제 전투 녹화 |
+|---|---|---:|---|
+| 1 | 검 등과 가드에 두께가 있는 메시, 3차원 안개 밀도장, 단검 양쪽 끝이 쓸고 간 검광 곡면. 밝은 안개가 바닥을 고르게 덮었다. | 69.4 | [1차](_gen/review/assassin_volume_1.mp4) |
+| 2 | 검의 고도에 따라 퍼지는 지면 그림자, 날의 광택, 틈이 열린 안개와 피격 때 튀는 돌 파편. 바닥이 보이지만 연기에 나란한 띠가 남았다. | 70.4 | [2차](_gen/review/assassin_volume_2.mp4) |
+| 3 | 검광의 국소 굴절과 적의 높이에 따른 안개 가림. 노이즈의 인접 깊이 방향을 바로잡아 규칙적인 계단무늬를 없앴다. 평가에서 중앙 연기의 윤곽이 오래 남는다는 지적이 나왔다. | 67.1 | [3차 교정본](_gen/review/assassin_volume_3.mp4) |
+| 4 | 세 방향에서 퍼져 나오는 검은 연기의 밀도·속도·부력을 계산해 시간별 부피를 저장했다. 전경 단검이 연마한 은색 면과 어두운 반대 면을 드러내며 돌고, 능선을 스치는 빛이 진한 속심과 분리된다. | 73.2 | [4차 최종](_gen/review/assassin_volumetric.mp4) · [수정 전후 비교](_gen/review/assassin_volume_comparison.mp4) |
+
+최종 점수는 작화 73, 웅장함 73, 규모감 80, 타격감 73, 공간감 76, 입체감 69, 역동성 80, 화려함 77, 선명도 70, 색감·명암 78, 타이밍 75, 환경 반응 68, 카메라 63, 독창성 70, 상용 완성도 72, 다시 볼 매력 74였다. 합계 1,171/1,600으로 목표 80점에 미달했다. 별도 평가는 안개 사실감 61, 단검 자체 입체감 68이었다. 1.9초의 전경 단검과 3.4~3.7초 교차 타격에서 깊이가 잘 읽혔고, 빠른 검 뒤의 공기 흐름과 피격체의 반응이 화면 규모에 비해 약했다.
+
+안개는 시전 반경을 기준으로 한 64×48×28 격자에서 4.16초 동안 56시점을 계산했다. 게임에서는 공간의 여덟 이웃과 시간상 인접한 두 시점을 보간하고, 검에 의한 국소 밀도 이동과 빛의 산란을 화면에서 계산한다. 단검 한 자루는 WebGL에서 902개, Canvas 대체 경로에서 138개 삼각형으로 그린다. [유체 시뮬레이션 원본](_gen/as_mist_sim.py) · [밀도 데이터](assets/as_mist_density.png)
+
+Chrome WebGL 1에서 밀도의 CPU/GPU 보간을 독립 기준값 9,350개와 비교했다. GPU 최대 오차는 0.700/255였다. 최종 녹화에서 유체 텍스처는 247번 사용됐고 단검 메시 제출 1,649회가 모두 성공했다. 일반·저사양 WebGL 및 Canvas 각각에서 레벨 1의 실제 궁극기 버튼을 검사했다. 게이지 99에서 차단, 100에서 시전, 5.25초 후 조작·카메라·캐릭터가 복원됐다. 세 경로 모두 일반 적 4마리를 쓰러뜨리고 대기 타이머·광원·효과·입자가 0으로 돌아왔다. 검사와 법사 궁극기도 실행했고 JavaScript·WebGL 오류는 없었다.
+
+별도 데스크톱 헤드리스 Chrome에서 궁극기 315프레임을 계측했다. 평균 14.0ms, p95 50.1ms, 최대 179.3ms, 최대 메시 드로우 114회였다. 실제 휴대폰 성능은 측정하지 않았다.
+
+### 흑무연참 전장 안개와 지면 잔광 · 2026-11-25
+
+중앙 안개의 원래 크기와 밀도 데이터를 유지하고 카메라에 보이는 전장 끝까지 입체 안개를 이어 붙였다. 첫 녹화에서 중앙 안개에 바닥이 가려져 낮은 안개 사이로 돌바닥이 드러나게 조정했다. 두 번째 검의 지면 잔광은 길이를 줄이고 파편의 진행 방향은 더 벌렸다. 최종판에서 세 단검이 시전 후 약 1.0초, 1.8초, 2.47초에 바닥을 스친다. 칼끝이 지나간 자리에는 짧게 끊긴 잔광이 남고, 금속과 돌 파편이 회전하며 한 번 튄다.
+
+844×390, 1080×380, 390×844에서 시전 후 1.16초, 2.06초, 2.78초, 3.44초의 안개를 측정했다. 모든 표본에서 네 모서리에 안개가 닿았고, 화면의 99.6% 이상에서 안개 불투명도가 32/255 이상이었다. 일반·저사양 WebGL 및 Canvas에서 지면 접촉 세 번, 피해 적용, 시전 종료 뒤 캐릭터·카메라 복귀를 확인했다. [실제 전투 영상](_gen/review/assassin_floor_sparks.mp4) · [직전 버전과 비교](_gen/review/assassin_full_mist_comparison.mp4)
+
+바닥 무늬를 더 가려 달라는 피드백에 따라 검은 안개의 가장 낮은 층을 채웠다. 같은 시드와 카메라에서 안개만 따로 렌더한 결과, 시전 2.07초에 중앙의 평균 투과율은 26.8%에서 4.5%로, 하단은 31.6%에서 2.1%로 줄었다. 시전 4.35초에는 안개가 걷혔다. [낮은 안개층을 보강한 전투 영상](_gen/review/assassin_settled_mist.mp4)
+
+### 흑무연참 단검 무리와 캐릭터 크기 · 2026-11-25
+
+세 돌진에서 잔상에 적용되던 1.78~3.03배 확대를 없앴다. 일반 설정은 단검 여덟 자루가 앞쪽 궤도를 돌고 다른 여덟 자루는 반대 방향의 높은 궤도로 지난다. 마지막에는 높이와 깊이가 다른 부채꼴로 갈라진다. 저사양 설정은 여덟 자루를 사용한다.
+
+844×390 전투 화면의 같은 시드와 카메라에서 칼끝부터 손잡이 끝까지 재었다. 일반 설정의 투영 길이 중앙값은 71.69px에서 35.39px로, 최댓값은 181.24px에서 72.25px로 줄었다. 중심이 서로 5px 이상 떨어진 단검을 한 프레임에서 최대 16자루 확인했다. 저사양 모드에서는 최대 8자루였다. 세 렌더 경로에서 지면 접촉 세 번, 적 피해, 시전 종료 뒤 카메라와 캐릭터 복귀를 확인했다. [전투 영상](_gen/review/assassin_dagger_swarm.mp4)
+
+WebGL에서 단검 네 자루의 메시를 한 번에 그린다. 최종 녹화에서 전체 메시 드로우는 프레임당 최대 113회였다. 별도 버튼 테스트에서도 한 프레임에 16자루를 네 번에 그리며 각 칼의 삼각형 902개가 모두 제출되는 것을 확인했다. [크기와 수량 전후 비교](_gen/review/assassin_dagger_swarm_comparison.mp4)
+
+### 암살자 궁극기와 자동 스킬 확장 · 2026-11-25
+
+월식낙인은 18자루(저사양 12자루)의 단검이 기울어진 검은 달의 테를 만든다. 달그림자가 지나는 순서대로 적에게 낙인이 붙고, 원반이 옆날을 돌려 내리꽂히면 충돌 방향으로 돌판이 벗겨진다. 초판 녹화 뒤 달 표면의 음영과 불규칙한 홍염, 착지면의 깊이를 보강했다. 장송사선은 단검 여섯 자루를 바닥에 고정한 뒤 그 사이에서 강철 매듭을 당겨 끊는다. 시트에서 중반이 멎어 보이던 문제를 찾아 세 앵커가 따로 움직이며 굽힘을 전달하도록 수정했고, 금속이 풀리는 순간과 바닥의 절개가 이어지도록 다듬었다. [궁극기 영상](_gen/review/assassin_new_ultimates.mp4) · [월식낙인 프레임](_gen/shots/as_ult3_new_final.jpg) · [장송사선 프레임](_gen/shots/as_ult2_new_final.jpg)
+
+| 캐릭터 레벨 | 자동 스킬 | 전투에서 보이는 동작 |
+|---:|---|---|
+| 1 | 비연도 · 회귀인 | 세 갈래로 벌어지는 관통 단검 · 서로 다른 곡선으로 날아갔다 돌아오는 칼 |
+| 2 | 그늘밟기 | 적을 스쳐 지나가는 돌진과 짧은 인물 잔영 |
+| 3 | 은사매듭 | 적 무리의 발아래서 조여드는 두 겹의 실 |
+| 5 | 연쇄비도 | 가까운 적을 차례로 찾아가며 꺾이는 비도 |
+| 6 | 야철마름쇠 | 착지해 적에게 감속을 거는 금속 가시 |
+| 8 | 사망선고 | 약해진 적에게 붙는 인장과 내려꽂히는 단검 |
+| 10 | 삭월무 | 서로 다른 높이를 지나가는 초승달 쌍베기 |
+
+일반기는 독립된 국소 형체와 짧은 타격을 기준으로 검수했다. 연습장에서 기본형과 진화형을 각각 일반 WebGL, 저사양 WebGL, Canvas로 실행했고, 실제 전투 자동 시전과 해금 레벨도 확인했다. 연습장 녹화는 칼끝의 움직임을 볼 수 있게 중앙을 약 1.5배 확대한 것이다. [일반 스킬 영상](_gen/review/assassin_normals_showcase.mp4) · [8종 프레임](_gen/shots/as_normals_new_final.jpg)
+
+같은 검증자가 실제 전투 영상으로 16항목을 평가한 평균은 흑무연참 83.94, 월식낙인 83.38, 장송사선 79.25였다. 장송사선은 중반의 장력파와 절단 흔적을 보강하면서 직전 76.50에서 올랐다. 작은 앵커의 금속 형상은 굵은 강선보다 알아보기 어려웠다. 새 궁극기 두 개 모두 시전 중 나갔다가 새 전투를 시작했을 때 이전 타격이나 타이머가 남지 않았다. 물리 휴대폰은 연결되지 않아 실기기 프레임률은 미측정이다.
+
+### 46회 — 궁극기 디테일 보강 3회 (2026-11-25)
+- 범위는 궁극기 15개다. 일반 스킬은 그대로 두었다: 각 직업 파일에서 첫 궁극기 함수 앞의 일반 스킬 정의와 X.reg 줄을 백업과 대조해, 바뀐 공용 함수가 궁극기에서만 호출됨을 확인했다.
+- 공용 기반 "키트 갱신 9"를 추가했다.
+  - K3.rocks: 층리, 깨진 모서리, 균열 발광, 오버슛, 흙더미.
+  - K3.gather: 나선으로 빨려 드는 줄기, 조여 드는 껍질 3겹, 아지랑이, 바닥 반사광.
+  - K3.godray / skyswirl / halo / deity / divine: 신성한 빛과 신령 형체.
+  - 볼륨 재질 옵션 band / flow / lit.
+- 검사: 그림자 난무를 제로 슬래시 축적 단계로 합쳤다. 분신 12개가 화면을 가로지른 뒤 X자 베기로 이어지고 길이는 6.3초다. 월식 검무는 초승달과 월식 중심으로 바꿨다. rpg.js 설명도 고쳤다.
+- 도사: 신령강림을 빛기둥, 후광, 팔을 든 빛·안개 거인으로 바꿨다.
+- 점수는 두 심사 평균이고, 괄호 안은 회차별 점수다.
+  - 검사: 63(62 / 62.5 / 63), 63.5(60 / 66.5 / 63.5), 62(60 / 62.5 / 62).
+  - 법사: 62, 58, 63.
+  - 권사: 64, 64, 63.5.
+  - 도사: 63.5, 60.5, 66.
+  - 화염술사: 64.5, 64, 64.
+  - 70점을 넘은 궁극기는 없다. 45회 점수와 비슷한 수준이다. 남아 있는 것은 3회차 코드이고, 최고 점수를 받은 회차의 코드가 아니다.
+- 점검 결과: node --check 전 파일 통과. __smoke 다섯 직업 모두 errs 없음, stuck false, 상태 복구 정상.
+  - 드로우 정점: 검사 192, 법사 184, 권사 125, 도사 190, 화염술사 129. 작업 전 검사 299, 도사 236.
+  - 검사 maxFrameMs 650: 헤드리스 셰이더 첫 컴파일로 보인다. 실제 기기에서는 확인하지 않았다.
+- 남은 흠:
+  - 신령: 천을 세운 판 같은 평면감, 형성 과정 없이 등장.
+  - 부적: 평평한 사각 카드.
+  - 분신: 단색 실루엣.
+  - 절정: 과노출.
+  - 검은 연기: 명암 없는 원형 얼룩.

@@ -29,6 +29,7 @@
   #start .card{--c:#ff3355;width:150px;padding:16px 10px 14px;border:1px solid var(--c);text-align:center;cursor:pointer;border-radius:4px;
     background:linear-gradient(180deg,color-mix(in srgb,var(--c) 22%,transparent),rgba(0,0,0,.45));box-shadow:0 0 22px color-mix(in srgb,var(--c) 35%,transparent);transition:transform .15s}
   #start .card:hover{transform:translateY(-4px)}
+  #start a.card{text-decoration:none}
   #start .card i{display:block;font-style:normal;font-size:28px;font-weight:900;font-family:"Black Han Sans","Malgun Gothic",sans-serif;color:#fff}
   #start .card em{display:block;font-style:normal;font-size:10px;letter-spacing:.28em;color:var(--c);margin-top:4px}
   #start .card small{display:block;margin-top:9px;color:#b9b3d0;font-size:11px}
@@ -79,6 +80,7 @@
     <div class="card" data-c="fist" style="--c:#55ddff"><i>권사</i><em>KI MASTER</em><small>극광기공포 · 태양구</small></div>
     <div class="card" data-c="shaman" style="--c:#3dffb0"><i>도사</i><em>SPIRIT SAGE</em><small>천암낙하 · 신령강림</small></div>
     <div class="card" data-c="pyro" style="--c:#ff6a1a"><i>화염술사</i><em>PYROMANCER</em><small>겁화폭풍 · 화룡승천</small></div>
+    <a class="card" href="?rpg#assassin" style="--c:#a9afff"><i>암살자</i><em>ASSASSIN</em><small>흑무연참 · 생존 RPG</small></a>
   </div>
   <div class="sub">직업을 골라 시작 · J 기본공격 · K / L 궁극기 · 1~5 직업 변경 · A 자동 시연 · 소리를 켜고 보세요</div>
   <div class="sub touch">직업을 골라 시작 · 화면 탭 = 기본공격 · 아래 버튼 = 궁극기 · 왼쪽 위 = 직업 변경<br>가로 화면 · 소리 켜기 추천 (아이폰은 무음 스위치 해제)</div>
@@ -2349,11 +2351,13 @@ const CLASSES={
   pyro:{name:'화염술사',en:'PYROMANCER',aura:'#ff6a1a',eye:'#ffe9b0',idle:'pIdle',basic:'화염구',basicFn:moveFireball,
     ults:[{name:'겁화폭풍',en:'GEOPHWA · FIRESTORM',fn:ultFirestorm},{name:'화룡승천',en:'HWARYONG · ASCENSION',fn:ultDragon}],
     cut:{bg:'#2a0800',box:'#c43a0a',iris:['#fff6d0','#ff9a2a','#8a1a00'],subc:'#ffc48a'}},
+  assassin:{name:'암살자',en:'ASSASSIN',aura:'#a9afff',eye:'#e5f0ff',idle:'idle',basic:'쌍단도',
+    ults:[{name:'흑무연참',en:'BLACK MIST'}],cut:{bg:'#090b18',box:'#353354',iris:['#eff8ff','#a9afff','#353354'],subc:'#cddaff'}},
 };
 function setClass(c,quiet){
   if(lock&&!quiet) return; const C=CLASSES[c]; pl.cls=c; pl.target=C.idle; pl.auraC=C.aura; pl.eyeC=C.eye; chain=0; chainT=0; resetChains();
   if(Math.abs(pl.x-pl.home)>30) pl.x=pl.home;
-  document.getElementById('lb0').textContent=C.basic; document.getElementById('lb1').textContent=C.ults[0].name; document.getElementById('lb2').textContent=C.ults[1].name;
+  document.getElementById('lb0').textContent=C.basic; document.getElementById('lb1').textContent=C.ults[0].name; document.getElementById('lb2').textContent=C.ults[1]?.name||'';
   document.querySelectorAll('#cls .c').forEach(e=>e.classList.toggle('on',e.dataset.c===c)); hudEl.style.setProperty('--uc',C.aura);
   if(quiet) return;
   const J=pl.j||joints(pl); add({k:'pillar',x:pl.x,w:110,life:.8,c:C.aura}); ring(pl.x,GROUND,1100,C.aura,.6,{w:6,sy:.16}); light(pl.x,J.nk[1],600,C.aura,.5,.6);
@@ -2590,7 +2594,7 @@ function ribbon(g,ch,w0,col){
   g.strokeStyle=col; g.lineCap='round';
   for(let i=1;i<ch.length;i++){ g.lineWidth=Math.max(1,w0*(1-i/ch.length)); g.beginPath(); g.moveTo(ch[i-1].x,ch[i-1].y); g.lineTo(ch[i].x,ch[i].y); g.stroke(); }
 }
-const SCARF={sword:'#c40c28',mage:'#5a22c8',fist:'#ff7a1d',shaman:'#1aa878',pyro:'#6a1608'};
+const SCARF={sword:'#c40c28',mage:'#5a22c8',fist:'#ff7a1d',shaman:'#1aa878',pyro:'#6a1608',assassin:'#514e83'};
 function limb(g,a,b,w1,w2){ w1*=BK; w2*=BK; const an=Math.atan2(b[1]-a[1],b[0]-a[0]), n=an+Math.PI/2, c=Math.cos(n), s=Math.sin(n);
   g.beginPath(); g.moveTo(a[0]+c*w1,a[1]+s*w1); g.lineTo(b[0]+c*w2,b[1]+s*w2); g.arc(b[0],b[1],w2,n,n-Math.PI,true); g.lineTo(a[0]-c*w1,a[1]-s*w1); g.arc(a[0],a[1],w1,n-Math.PI,n-TAU,true); g.closePath(); g.fill(); }
 function smoothPoly(g,P){ const n=P.length; g.beginPath(); g.moveTo((P[n-1][0]+P[0][0])/2,(P[n-1][1]+P[0][1])/2);
@@ -3207,7 +3211,7 @@ document.querySelectorAll('#cls .c').forEach(el=>el.addEventListener('pointerdow
 out.addEventListener('pointerdown',tapOut);
 addEventListener('contextmenu',e=>e.preventDefault());
 document.addEventListener('visibilitychange',()=>{ if(!document.hidden&&AC&&AC.state!=='running') AC.resume(); });
-document.querySelectorAll('#start .card').forEach(el=>el.addEventListener('click',()=>begin(el.dataset.c)));
+document.querySelectorAll('#start .card[data-c]').forEach(el=>el.addEventListener('click',()=>begin(el.dataset.c)));
 function begin(cls){
   if(started) return; started=true; setClass(cls,true); initAudio(); if(AC&&AC.state!=='running') AC.resume();
   const st=document.getElementById('start'); st.style.opacity=0; setTimeout(()=>st.remove(),500);
@@ -3224,6 +3228,6 @@ function begin(cls){
 }
 initGL(); addEventListener('resize',resize); resize(); requestAnimationFrame(frame);
 </script>
-<script src="rpg.js?v=46"></script>
+<script src="rpg.js?v=56"></script>
 </body>
 </html>

@@ -86,6 +86,9 @@ void main(){vec4 o=vec4(0.);
   vec2 w2=(vec2(N(v*vp.z+vp.y),M(v*vp.z-vp.y*1.3))-.5)*vp.w;float L=texture2D(tex,v+w2).g;float n=N(v*1.6+vp.y*.17);
   float keep=smoothstep(vp.x*1.25-.25,vp.x*1.25-.1,n);float a=smoothstep(.03,.22,L)*keep;
   vec3 c=mix(c2,vc.rgb,smoothstep(.06,.46,L));c=mix(c,c3,smoothstep(.46,.86,L));c=mix(c,vec3(1.),smoothstep(.9,1.,L)*.55*smoothstep(.6,.95,max(c3.r,max(c3.g,c3.b))));float e=(smoothstep(vp.x*1.25-.25,vp.x*1.25-.2,n)-keep);o=vec4(c*a*(.6+.4*L)+c3*e*L*.6,a)*vc.a;
+ }else if(mode>15.5&&mode<16.5){ // 16 heat haze -> distortion buffer: a soft disc of rolling noise. x=strength, y=phase, z=noise scale, w=rise
+  float r=length(v);float f=smoothstep(1.,.25,r);vec2 q=v*vp.z+vec2(vp.y*.13,-vp.y*vp.w);
+  vec2 d=vec2(N(q)-.5,M(q*1.3+.37)-.5)*2.;o=vec4(.5+d.x*.5*vp.x,.5+d.y*.5*vp.x,0.,f*vc.a);
  }else{ // 14 screen-space speed streaks toward a point: x=inner radius, z=count, w=density, y=phase
   float r=length(v);float th=atan(v.y,v.x)/6.2831853;float n=N(vec2(th*vp.z+vp.y,.5));float n2=M(vec2(th*vp.z*3.1+vp.y*1.7,.1));
   float len=vp.x+(1.-vp.x)*n2;float m=(n-(1.-vp.w))/vp.w;m*=smoothstep(len,len+.25,r);o=cel(m,.6,.02);
@@ -172,9 +175,14 @@ X.st=(m,b='add',o={})=>({m,b,rt:'vfx',c2:[0,0,0],c3:[1,1,1],...o});
 X.add=(life,fn,delay=0)=>{ const e={t0:RT+delay,life,fn,dead:false}; X.fx.push(e); return e; };
 // particles: {x,y,z,vx,vy,vz,g,drag,life,s,c,m,rot,vr,grow,a,bounce,shadow,st}
 const PT_ST={}; function ptSt(m,b,c2,c3,L){ const k=m+b+(c2||'')+(c3||'')+(L||''); return PT_ST[k]||(PT_ST[k]=X.st(m,b,{c2:c2?rgb(c2):[0,0,0],c3:c3?rgb(c3):[1,1,1],L:L??1})); }
-X.pt=o=>{ if(!X.on||X.pts.length>900) return; X.pts.push({x:0,y:0,z:0,vx:0,vy:0,vz:0,g:0,drag:0,life:1,s:10,c:[1,1,1],m:8,rot:0,vr:0,grow:0,a:1,t:0,b:'add',ph:Math.random()*9,sx:1,...o}); };
+// kit update 9: o.pri lets a kit piece's own grains use a reserve above the usual 900 (so an ultimate's detail is not starved by the field)
+X.pt=o=>{ if(!X.on||X.pts.length>(o.pri?1500:900)) return; X.pts.push({x:0,y:0,z:0,vx:0,vy:0,vz:0,g:0,drag:0,life:1,s:10,c:[1,1,1],m:8,rot:0,vr:0,grow:0,a:1,t:0,b:'add',ph:Math.random()*9,sx:1,...o}); };
 function stepPts(dt){ for(let i=X.pts.length-1;i>=0;i--){ const p=X.pts[i]; p.t+=dt; if(p.t>=p.life){ X.pts.splice(i,1); continue; }
     const d=Math.exp(-p.drag*dt); p.vx*=d; p.vy*=d; p.vz=(p.vz-p.g*dt)*(p.g?1:d); p.x+=p.vx*dt; p.y+=p.vy*dt; p.z+=p.vz*dt; p.rot+=p.vr*dt; p.s+=p.grow*dt;
+    // kit update 9: spiral in toward an orbit centre oc=[x,y,z] (or radius 0 means a closed orbit): or radius, oa angle, ow turn speed, ok pull-in rate, oz0 start height
+    if(p.oc&&dt>0){ const r0=p.or0||(p.or0=p.or), r=p.or=Math.max(0,p.or-p.ok*dt*(1+2*(1-p.or/r0))), w=p.ow*Math.min(3,Math.sqrt(r0/Math.max(r,r0*.1))); p.oa+=w*dt;
+      const nx=p.oc[0]+Math.cos(p.oa)*r, ny=p.oc[1]+Math.sin(p.oa)*r*FSY, nz=p.oc[2]+(p.oz0-p.oc[2])*(r0?r/r0:0)+(p.ob||0)*Math.sin(p.oa*2+p.ph);
+      p.vx=(nx-p.x)/dt+p.vx; p.vy=(ny-p.y)/dt+p.vy; p.vz=(nz-p.z)/dt+p.vz; p.x=nx; p.y=ny; p.z=nz; if(p.ok&&r<(p.rmin||20)) p.t=p.life; continue; }
     if(p.tx!=null){ const k=1-Math.exp(-dt*(p.pull||5)); p.x+=(p.tx-p.x)*k; p.y+=(p.ty-p.y)*k; p.z+=((p.tz||0)-p.z)*k; }
     if(p.z<0){ if(p.bounce){ p.z=0; p.vz=-p.vz*p.bounce; p.vx*=.55; p.vy*=.55; p.vr*=.5; if(Math.abs(p.vz)<120){ p.vz=0; p.g=0; p.vx=p.vy=p.vr=0; p.bounce=0; } } else if(p.g){ p.t=p.life; } } } }
 function drawPts(){ for(const p of X.pts){ const k=p.t/p.life, a=p.a*(p.fade==='in'?Math.min(1,k*5)*Math.min(1,(1-k)*2.5):Math.min(1,(1-k)*(p.fk||3)));
@@ -189,6 +197,9 @@ X.light=(x,y,r,c,a=1,life=.5,o={})=>{ const L={x,y,z:o.z||0,r,c:rgb(c),a,t:0,lif
 // ambient: the scene's own light level and tint during a sequence; eases toward the target
 X.ambient=(r,g,b,k=6)=>{ X.ambT=[Math.max(.3,r),Math.max(.3,g),Math.max(.34,b)]; X.ambK=k; };
 // one-shot refraction ring growing over the floor
+// HAZE (kit update 9): heat shimmer over a disc of the screen around a world point, held as long as it is called each frame
+//  (x, y, z centre; R radius in world units; s strength .3..1)
+let HZ=null; X.haze=(x,y,z,R,s=.6,ph=RT)=>{ if(!X.on||(X.calm&&X.calm())) return; HZ=HZ||X.st(16,'mix',{rt:'dist'}); X.bill(HZ,x,y,z,R,R,0,[0,0,0],1,s*.16,ph,2.2,1.4); };
 X.ripple=(x,y,R,o={})=>{ if(!X.on||(X.calm&&X.calm())) return; const life=o.life||.6, st=X.st(9,'mix',{rt:'dist'}), s=o.s??.6; X.add(life,k=>{ const e=1-(1-k)*(1-k); X.floor(st,x,y,R,null,0,[0,0,0],(1-k)*(1-k),e*.92,0,o.w||.09,s,o.z||0); },o.delay||0); };
 
 X.reset=()=>{ X.fx.length=0; X.pts.length=0; X.lights.length=0; X.amb=[1,1,1]; X.ambT=[1,1,1]; };
