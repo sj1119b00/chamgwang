@@ -8,7 +8,7 @@
 const G=RPG, A=G.api, S=G.sv, SV=()=>A.SV;
 const ORDER=['sword','mage','fist','shaman','pyro','assassin','axe'];
 const NAMES=S.NAMES, CHAP=S.CHAP||[];
-const EN_N={sword:'BLADE',mage:'ARCANIST',fist:'STRIKER',shaman:'SPIRIT LINK',pyro:'PYROMANCER',assassin:'PHANTOM',axe:'BERSERKER'};
+const EN_N={sword:'BLADE',mage:'ARCANIST',fist:'STRIKER',shaman:'SPIRIT LINK',pyro:'PYROMANCER',assassin:'PHANTOM',axe:'AXE'};
 const ROLE={sword:'근접',mage:'원거리',fist:'근접',shaman:'정령',pyro:'원거리',assassin:'근접',axe:'근접'};
 const LORE={sword:'검을 익힌 후손. 빛의 칼날 하나로 구역의 질서를 가른다.',mage:'피가 짙게 발현된 후손. 공간을 접어 무리를 한꺼번에 지운다.',fist:'맨몸으로 싸우는 법을 익힌 후손. 연타와 충격파로 밀어붙인다.',
   shaman:'정령과 동기화하는 후손. 보이지 않는 것들을 불러 싸운다.',pyro:'플라즈마를 다루는 후손. 닿는 모든 것을 태운다.',assassin:'그림자처럼 움직이는 후손. 보이기 전에 끝낸다.',axe:'불타는 거대 도끼를 휘두르는 후손. 내려치는 곳마다 땅이 탄다.'};

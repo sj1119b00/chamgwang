@@ -8,7 +8,7 @@
 const G=RPG, A=G.api, SV=()=>A.SV, SK=A.SK, VER=41;
 const ZL=.42, ZP=.5, DUR=300, BOSS_T=240, CAP=340, SPD=430, BODY=170, FAR=1e5;
 const CLS_ORDER=['sword','mage','fist','shaman','pyro','assassin','axe'];
-const NAMES={sword:'소드맨',mage:'메이지',fist:'파이터',shaman:'샤먼',pyro:'파이로',assassin:'암살자',axe:'버서커'};
+const NAMES={sword:'소드맨',mage:'메이지',fist:'파이터',shaman:'샤먼',pyro:'파이로',assassin:'암살자',axe:'액스'};
 const CRIM={sword:'#ffb3c0',mage:'#e6d4ff',fist:'#bff4ff',shaman:'#c8ffe8',pyro:'#ffd0a8',assassin:'#e1ddff',axe:'#ffc9a8'};
 const CCOL={sword:'#ff3355',mage:'#b48cff',fist:'#55ddff',shaman:'#3dffb0',pyro:'#ff7a2a',assassin:'#a9afff',axe:'#ff5a14'};
 const EN={
