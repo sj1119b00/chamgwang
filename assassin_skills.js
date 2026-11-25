@@ -125,6 +125,21 @@
   const aIris={d:'#130727',b:'#7140be',m:'#e093fb',h:'#fbe8ff',l:'#bb7ce3',s:'#f4beff'};
   const aWhite={d:'#16203c',b:'#8fb8dc',m:'#e8f8ff',h:'#ffffff',l:'#cfe8ff',s:'#ffffff'};
   const aR=(a,b)=>a+Math.random()*(b-a);
+  // Same rule as the sword's forced(): the auto loop only calls a skill whose cooldown is 0, so a call while it is
+  // still cooling down comes from outside it (capture harness). With nobody in range there, the nearest few
+  // enemies are set down in range along their own bearing, so the cast is filmed on bodies instead of empty air.
+  const aForced=id=>(V.cd[id]||0)>0;
+  function aStage(R){
+    const live=V.en.filter(e=>!e.dead&&!e.d.boss).sort((a,b)=>distance(hero(),a)-distance(hero(),b)).slice(0,5);
+    if(!live.length)return null;
+    const src=hero(),a=facing(src,live[0]),spot=[[0,0],[230,-220],[210,230],[440,-30],[-50,360]];
+    live.forEach((e,i)=>{
+      const [f,s]=spot[i],q=place(src,a,R*.5+f,s);
+      e.x=q.x;e.y=q.y;e.z=0;e.vz=0;e.kx=0;e.ky=0;
+    });
+    return live[0];
+  }
+  const aNear=(id,R)=>X.nearest(R)||(aForced(id)?aStage(R):null);
   const aCol=p=>({cA:p.d,cB:p.b,cM:p.m,cC:p.h});
   const aHex=c=>typeof c==='string'?c:'#'+c.map(v=>Math.round(sat(v)*255).toString(16).padStart(2,'0')).join('');
   let aMat=null;
@@ -150,10 +165,12 @@
     if(!F.on)return;
     const all=aJoin(lines);if(all.length<2)return;
     const m=aMats(),S=K.mats(),a=o.a??1,ero=o.ero??.1,ul=o.ulen||300,g=o.gain||1,z=o.ord||0;
+    // The trail materials fade out past u=1; joined lines run u far beyond that, so the fades are off and the widths taper instead.
+    const fd=[0,0,0,0];
     if(o.ink!==0)F.ribbon(m.mist,all,{a:a*(o.ink??.8),ulen:ul,t0:o.t0||0,ero,ord:4+z,layer:o.layer});
-    F.ribbon(S.trB,all.map(q=>({x:q.x,y:q.y,z:q.z,w:q.w*(o.mid??.42)})),{...aCol(p),a,gain:2.6*g,ero,ulen:ul,ord:5+z,layer:o.layer});
+    F.ribbon(S.trB,all.map(q=>({x:q.x,y:q.y,z:q.z,w:q.w*(o.mid??.42)})),{...aCol(p),a,gain:2.6*g,ero,ulen:ul,fd,ord:5+z,layer:o.layer});
     if(o.core!==0)F.ribbon(S.trC,all.map(q=>({x:q.x,y:q.y,z:q.z,w:q.w?Math.max(1.8,q.w*(o.core??.13)):0})),
-      {cA:p.b,cB:p.m,cM:p.h,cC:'#ffffff',a,gain:3.2*g,ero:ero+.05,ulen:ul*.8,ord:6+z,layer:o.layer});
+      {cA:p.b,cB:p.m,cM:p.h,cC:'#ffffff',a,gain:3.2*g,ero:ero+.05,ulen:ul*.8,fd,ord:6+z,layer:o.layer});
   }
   // Black vapour and steel chips blown out of an enemy's back along the blow (the exit wound).
   function aWound(e,dir,p,n=5){
@@ -181,73 +198,131 @@
       s:aR(12,20),grow:aR(30,60),m:5,b:'alpha',c:[.03,.03,.06],c2:'#000000',c3:'#28223a',er:.9,ns:1.2,w:1,a:.5,L:2});
   }
   // The second blade in one body carves an X across it; it bursts a quarter second later.
+  // All brands alive at once share one painter, so a crowd of branded enemies still costs one set of ribbons.
+  const aBrands=[];let aBrandEnd=-1,aBrandN=0;
   function aBrand(e){
     if(!F.on)return;
-    GFX.add(.26,(k,t)=>{
-      if(lock)return;
-      const q=chest(e),g=ease(t/.06),s=62,a=1-ease((t-.18)/.08);
-      const cut=(sx,sz,d)=>[{x:q.x-sx*s*g,y:q.y+2,z:q.z-sz*s*g,w:0},{x:q.x,y:q.y+2,z:q.z,w:18},{x:q.x+sx*s*g,y:q.y+2,z:q.z+sz*s*g,w:0}];
-      aLines([cut(1,1),cut(1,-1)],aIris,{a,gain:1.2,ink:.55,mid:.5,core:.18,ulen:160});
-    });
+    aBrands.push({e,t0:RT});
+    // One cast brands within ~.45 s of its first brand and each lasts .26 s, so one .9 s painter per cast covers them all.
+    if(aBrandEnd<RT){
+      aBrandEnd=RT+.9;aBrandN=0;
+      GFX.add(.9,()=>{
+        const lines=[];
+        for(let i=aBrands.length-1;i>=0;i--){
+          const b=aBrands[i],t=RT-b.t0;
+          if(t>.26||lock){aBrands.splice(i,1);continue;}
+          const q=chest(b.e),g=ease(t/.06),f=1-ease((t-.18)/.08);
+          const cut=(sx,sz)=>[{x:q.x-sx*62*g,y:q.y+2,z:q.z-sz*62*g,w:0},{x:q.x,y:q.y+2,z:q.z,w:18*f},{x:q.x+sx*62*g,y:q.y+2,z:q.z+sz*62*g,w:0}];
+          lines.push(cut(1,1),cut(1,-1));
+        }
+        if(lines.length)aLines(lines,aIris,{gain:1.3,ink:0,mid:.55,core:.2,ulen:160});
+      });
+    }
     beat(.26,()=>{
       if(e.dead)return;
-      K.ehit(e,{pal:aIris,pw:.9});X.sfx('slash',1.85,.24);
+      const q=chest(e);
+      if(aBrandN++<1)K.ehit(e,{pal:aIris,pw:.9});
+      else K.flare(q.x,q.y,q.z,{pal:aIris,s:150,dur:.12});
+      X.sfx('slash',1.85,.24);
     });
   }
   function fan(id){
-    const enemy=X.nearest(910);if(!enemy)return false;
+    const enemy=aNear(id,910);if(!enemy)return false;
     const src=hero(),ang=facing(src,enemy),len=880+rank(id)*28,d=damage(id),evo=rank(id)>=5;
     arm(enemy);X.sfx('whoosh',1.52,.36);
-    const z1=enemy.h*.48,T=.40,HOLD=.12,BREAK=.36;
+    // WIND: the three blades fan open at the hand before they leave it; the hits wait for the release.
+    const z1=enemy.h*.48,WIND=.09,T=.36,HOLD=.12,BREAK=.36;
     // Three straight lanes: the only straight lines the assassin draws.
     const lanes=[-1,0,1].map(n=>{const a=ang+n*.35;return {n,a,flakes:0,path:u=>place(src,a,len*u,0,lerp(src.z,z1,Math.min(1,u)))};});
-    const lamp=F.on?GFX.light(src.x,src.y,250,aSteel.l,.6,.2,{hold:T,z:src.z}):null;
+    const lamp=F.on?GFX.light(src.x,src.y,280,aIris.l,.7,.2,{hold:WIND+T,z:src.z}):null;
     if(F.on){
-      const mouth=place(src,ang,60);
-      K.flare(mouth.x,mouth.y,mouth.z,{pal:aWhite,s:120,dur:.14});
-      K.sparks(mouth.x,mouth.y,mouth.z,{pal:aSteel,n:F.low?4:8,dir:ang,spread:.5,sp:[700,1700],up:160,life:[.1,.22]});
+      const mouth=place(src,ang,70);
+      K.flare(mouth.x,mouth.y,mouth.z,{pal:aIris,s:150,dur:.12,sy:.55});
+      for(let i=0;i<3;i++)aFlake(mouth,aIris);
     }
-    frames(T+HOLD+BREAK,t=>{
+    beat(WIND,()=>{
+      X.sfx('whoosh',1.9,.3);
+      if(!F.on)return;
+      const mouth=place(src,ang,90);
+      K.flare(mouth.x,mouth.y,mouth.z,{pal:aSteel,s:170,dur:.1,sx:1.5,sy:.5});
+      K.sparks(mouth.x,mouth.y,mouth.z,{pal:aSteel,n:F.low?4:8,dir:ang,spread:.5,sp:[700,1700],up:160,life:[.1,.22]});
+    });
+    // At the end of its lane each blade bursts into steel shards and black vapour.
+    beat(WIND+T,()=>{
+      if(!F.on)return;
+      for(const L of lanes){
+        const q=L.path(1);
+        if(!L.n)K.flare(q.x,q.y,q.z,{pal:aIris,s:140,dur:.12});
+        else K.sparks(q.x,q.y,q.z,{pal:aSteel,n:F.low?3:6,dir:L.a,spread:.8,sp:[300,900],up:240,life:[.1,.25]});
+        for(let i=0;i<(F.low?3:6);i++){
+          const a=L.a+aR(-.9,.9),s=aR(260,700);
+          GFX.pt({x:q.x,y:q.y,z:q.z,vx:Math.cos(a)*s,vy:Math.sin(a)*s*FSY,vz:aR(150,500),g:1700,drag:.6,life:aR(.35,.7),s:aR(4,8),
+            rot:aR(0,6.3),vr:aR(-14,14),m:11,b:'alpha',c:GFX.rgb(i%2?'#9fb4d2':'#2c3446'),c2:'#05060a',fk:4,L:2});
+        }
+        aFlake(q,aSteel);aFlake(q,aIris);
+      }
+    });
+    frames(WIND+T+HOLD+BREAK,t0=>{
+      const t=t0-WIND;
+      if(t<0){
+        // Wind-up: three blades open like a hand of cards just in front of the hero.
+        const g=ease(t0/WIND);
+        for(const L of lanes){
+          const q=place(src,ang+L.n*.3*g,46+22*g,0,src.z+8),b=place(src,ang+L.n*.3*g,30,0,src.z+8);
+          knife(q,b,L.n?112:124,L.n*.4,L.n?aSteel:aIris,g);
+        }
+        return;
+      }
       const fly=t/T,head=sat(fly),brk=ease((t-T-HOLD)/BREAK),tail=Math.min(head-.004,.04+.96*brk);
       if(lamp){const q=lanes[1].path(head);lamp.x=q.x;lamp.y=q.y;lamp.z=q.z;}
       const lines=[];
       for(const L of lanes){
-        if(fly<1.15){
-          const q=L.path(fly),b=L.path(fly-.02),fade=Math.min(1,t*30)*(1-sat((fly-1)/.15));
-          knife(q,b,L.n?60:68,t*15+L.n,L.n?aSteel:aIris,fade);
+        if(fly<1.04){
+          const fade=1-sat((fly-1)/.04);
+          // The blade and two afterimages strung out behind it.
+          for(let j=0;j<3;j++){
+            const v=fly-.045*j;if(v<0)break;
+            knife(L.path(v),L.path(v-.02),(L.n?112:124)*(1-.08*j),t*15+L.n,j?aIris:(L.n?aSteel:aWhite),fade*[1,.45,.2][j]);
+          }
         }
         if(!F.on){strip(L.path,tail,head,12,aSteel,t,1-brk,1,true);continue;}
         const pts=[],n=F.low?6:11;
         for(let i=0;i<=n;i++){
-          const k=i/n,u=lerp(tail,head,k),q=L.path(u),near=sat((head-u)*len/70);
-          q.w=36*Math.pow(k,.7)*(.25+.75*near)*(1-.5*brk);pts.push(q);
+          const k=i/n,u=lerp(tail,head,k),q=L.path(u),near=sat((head-u)*len/90);
+          q.w=58*Math.pow(k,.7)*(.25+.75*near)*(1-.5*brk);pts.push(q);
         }
         lines.push(pts);
         const want=Math.floor(brk*(F.low?4:9));
         while(L.flakes<want){L.flakes++;aFlake(L.path(tail+aR(0,.05)),aSteel);}
       }
-      aLines(lines,aSteel,{a:1-brk*brk*brk,ero:.08+.45*brk,ulen:420,t0:t*.4,ink:.65,mid:.5,core:.15,gain:1.15});
+      aLines(lines,aSteel,{a:1-brk*brk*brk,ero:.08+.45*brk,ulen:420,t0:t*.4,ink:.8,mid:.5,core:.16,gain:1.2});
     });
-    const struck=new Map();let firstHit=true;
-    for(const L of lanes){
-      sweepDamage(L.path,0,1,T,34,(e,q)=>{
-        const c=struck.get(e)||0;
-        if(!c||evo){
-          strike(e,d*(c?.47:1),src,{push:120});
-          aWound(e,L.a,aSteel,F.low?3:5);
-          if(firstHit){
-            firstHit=false;hitstop=Math.max(hitstop,.045);X.cine.shake(.2);
-            if(F.on)K.ehit(e,{pal:aSteel,dir:L.a,pw:.85});
+    const struck=new Map();let hits=0;
+    beat(WIND,()=>{
+      for(const L of lanes){
+        sweepDamage(L.path,0,1,T,34,(e,q)=>{
+          const c=struck.get(e)||0;
+          if(!c||evo){
+            strike(e,d*(c?.47:1),src,{push:120});
+            aWound(e,L.a,aSteel,F.low?3:5);
+            // Every enemy a blade passes through jolts with a hit mark; the first one also stops time.
+            if(F.on&&hits<3){
+              const q=chest(e);
+              if(!hits)K.ehit(e,{pal:L.n?aSteel:aIris,dir:L.a,pw:.95});
+              else K.flare(q.x,q.y,q.z,{pal:aWhite,s:130,dur:.1,sx:1.6,sy:.45});
+            }
+            hits++;
+            if(hits===1){hitstop=Math.max(hitstop,.05);X.cine.shake(.22);}
+            if(c===1)aBrand(e);
           }
-          if(c===1)aBrand(e);
-        }
-        struck.set(e,c+1);
-      });
-    }
+          struck.set(e,c+1);
+        });
+      }
+    });
     return true;
   }
   function returning(id){
-    const e=X.nearest(910);if(!e)return false;
+    const e=aNear(id,910);if(!e)return false;
     const src=hero(),ang=facing(src,e),reach=Math.min(1050,distance(src,e)+123);
     const end=place(src,ang,reach,0,e.z+e.h*.48),d=damage(id),evo=rank(id)>=5;
     arm(e);X.sfx('whoosh',.90,.44);light(end,aIris);
@@ -256,7 +331,7 @@
       const back=u>.48,k=back?(u-.48)/.52:u/.48;
       const q=back?mixPoint(end,hero(),ease(k)):mixPoint(src,end,1-(1-k)**1.36);
       const bulge=back?Math.sin(pi*k)*(1-.45*k):Math.sin(pi*k)*(.55+.45*k);
-      return place(q,ang,0,(back?-1:1)*bulge*Math.min(reach*.24,139),q.z+Math.sin(pi*k)*(back?30:118));
+      return place(q,ang,0,(back?1:-1)*bulge*Math.min(reach*.24,139),q.z+Math.sin(pi*k)*(back?30:118));
     };
     // The disc checks for a breath at the far point: the picture holds while the hit timing stays on the path.
     const vu=t=>t<.3?.48*t/.3:t<.36?.48:Math.min(1,.48+.52*(t-.36)/.32);
@@ -265,25 +340,31 @@
       const u=vu(t),q=path(u),undo=ease((t-.74)/.38),tail=Math.min(u-.004,undo);
       if(t<.72){
         const a=Math.min(1,t*25)*(1-sat((t-.68)/.04)),spin=t*42;
+        // Two blades back to back plus afterimages: at speed they read as one steel disc.
+        // Three blades laid along the rim, chasing each other round it: a pinwheel that reads as a spinning steel disc.
         for(let j=0;j<3;j++){
-          const s=spin-j*.55;
-          knife(q,{x:q.x-Math.cos(s)*12,y:q.y-Math.sin(s)*12*FSY,z:q.z},84,pi/2,j?aIris:aSteel,a*[1,.5,.24][j]);
+          const s=spin+j*2*pi/3,r=44,p={x:q.x+Math.cos(s)*r,y:q.y+Math.sin(s)*r*FSY,z:q.z},tg=s+pi/2;
+          knife(p,{x:p.x-Math.cos(tg)*12,y:p.y-Math.sin(tg)*12*FSY,z:q.z},110,pi/2,j?aSteel:aWhite,a);
         }
         if(F.on){
-          F.quad(K.mats().glowO,q.x,q.y,190,190,0,{z:q.z,...aCol(aIris),a:.7*a,gain:2.4});
-          // The blur of the spinning rim: an open ring that turns with the blade.
-          const rim=[];
-          for(let i=0;i<=14;i++){const b=spin*.8+i/14*pi*1.6;rim.push({x:q.x+Math.cos(b)*58,y:q.y+Math.sin(b)*58*FSY,z:q.z,w:i&&i<14?7*Math.sin(pi*i/14):0});}
-          aLines([rim],aSteel,{a,ink:0,mid:.9,core:.3,gain:1.3,ulen:200});
+          F.quad(K.mats().glowO,q.x,q.y,250,250,0,{z:q.z,...aCol(aIris),a:.6*a,gain:2.2});
+          // The blur of the spinning rim: two open arcs that turn with the blades, with a black smear inside.
+          const rims=[];
+          for(const off of [0,pi]){
+            const rim=[];
+            for(let i=0;i<=14;i++){const b=spin*.8+off+i/14*pi*.9;rim.push({x:q.x+Math.cos(b)*92,y:q.y+Math.sin(b)*92*FSY,z:q.z,w:i&&i<14?30*Math.sin(pi*i/14)*(.4+.6*i/14):0});}
+            rims.push(rim);
+          }
+          aLines(rims,aWhite,{a,ink:0,mid:.9,core:.45,gain:1.9,ulen:200});
         }
       }
       if(!F.on){strip(path,tail,u,14,aSteel,t,1-undo,1,true);return;}
       const pts=[],n=F.low?14:26;
       for(let i=0;i<=n;i++){
         const k=i/n,v=lerp(tail,u,k),p=path(v);
-        p.w=24*(.45+.55*Math.pow(k,1.6))*Math.min(1,(u-v)*14+.15)*(1-.55*undo);pts.push(p);
+        p.w=38*(.45+.55*Math.pow(k,1.6))*Math.min(1,(u-v)*14+.15)*(1-.55*undo);pts.push(p);
       }
-      aLines([pts],aSteel,{a:1-undo*undo,ero:.08+.4*undo,ulen:380,ink:.6,mid:.72,core:.2,gain:1.05,t0:t*.5});
+      aLines([pts],aSteel,{a:1-undo*undo,ero:.08+.4*undo,ulen:380,ink:.6,mid:.8,core:.26,gain:1.5,t0:t*.5});
       F.ribbon(aMats().mist,pts.map(p=>({x:p.x,y:p.y,z:0,w:p.w*1.3})),{layer:'g',a:.32*(1-undo),ulen:380});
       if(hooked.length&&t<.8){
         const tight=ease((t-.4)/.2),a=1-ease((t-.7)/.1),wires=[];
@@ -414,8 +495,24 @@
       }
     });
   }
+  // A call while the skill is still cooling down comes from outside the auto loop (capture harness). With nobody in
+  // range there, the nearest few enemies are set down ahead (spread for a line, packed for a group) so the cast lands on bodies.
+  const bForced=id=>(V.cd[id]||0)>0;
+  function bStage(R,packed){
+    const live=V.en.filter(e=>!e.dead&&!e.d.boss).sort((a,b)=>distance(hero(),a)-distance(hero(),b)).slice(0,6);
+    if(!live.length)return null;
+    const src=hero(),a=facing(src,live[0]);
+    const spot=packed?[[0,0],[90,-80],[70,95],[-80,60],[-60,-95],[150,10]]:[[0,0],[160,-60],[120,80],[300,20],[-60,-110],[240,-150]];
+    live.forEach((e,i)=>{
+      const [f,s]=spot[i],q=place(src,a,R*.5+f,s);
+      e.x=q.x;e.y=q.y;e.z=0;e.vz=0;e.kx=0;e.ky=0;
+    });
+    return live[0];
+  }
+  const bNear=(id,R)=>X.nearest(R)||(bForced(id)?bStage(R,false):null);
+  const bDense=(id,R,r)=>X.densest(R,r)||(bForced(id)?bStage(R,true):null);
   function shadowStep(id){
-    const e=X.nearest(690);if(!e||V.steer)return false;
+    const e=bNear(id,690);if(!e||(V.steer&&!bForced(id)))return false;
     const src=hero(),ang=facing(src,e),reach=Math.min(750,distance(src,e)+114),end=place(src,ang,reach);
     const evo=rank(id)>=5,d=damage(id),T=.14;arm(e);X.sfx('whoosh',1.24,.51);
     V.dash={x0:src.x,y0:src.y,x1:end.x,y1:end.y,t:0,dur:T,soft:true};
@@ -441,11 +538,17 @@
       pool(src.x,src.y,0,125);pool(end.x,end.y,T,110);
       if(head<=tail)return;
       const pts=[],n=F.low?8:14;
-      for(let i=0;i<=n;i++){const k=i/n,q=floor(lerp(tail,head,k));q.w=40*Math.pow(Math.sin(pi*(.06+.88*k)),.6)*(1-.5*tail);pts.push(q);}
+      for(let i=0;i<=n;i++){const k=i/n,q=floor(lerp(tail,head,k));q.w=54*Math.pow(Math.sin(pi*(.06+.88*k)),.6)*(1-.5*tail);pts.push(q);}
       F.ribbon(S.trB,pts.map(q=>({...q,w:q.w*1.55})),{...bCol(bIris),a:.9*(1-tail),gain:1.6,ulen:300,fd:NOFD,t0:-t*2,ero:.15+.4*tail,layer:'g',ord:3});
       F.ribbon(bMist(),pts,{a:.95*(1-tail*tail),ulen:300,t0:t,ero:.1+.5*tail,layer:'g',ord:4});
     });
     bRift(rift,{draw:T,gap:78});
+    // A long phantom blade draws the cut: it rides the head of the rift edge-on, then breaks off as the slit opens.
+    frames(T+.1,t=>{
+      const u=sat(t/T),a=1-sat((t-T)/.1);
+      knife(rift(Math.max(.02,u)),rift(Math.max(0,u-.05)),190,0,bSteel,a);
+      if(u>.3)knife(rift(u-.22),rift(u-.27),150,.5,bIris,.45*a);
+    });
     light(end,bIris,380);
     beat(T,()=>bVapor({x:end.x,y:end.y,z:24},F.low?3:5,null,[50,200]));
     beat(.17,()=>{
@@ -458,7 +561,7 @@
       });
       X.sfx('slash',1.5,.36);
       if(n){hitstop=Math.max(hitstop,.05);X.cine.shake(.2);}
-      if(F.on)K.coolLine(src.x,src.y,q.x,q.y,{w:30,pal:bIris,life:1.2,hot:.45,grow:.06});
+      if(F.on)K.coolLine(src.x,src.y,q.x,q.y,{w:34,pal:bIris,life:1.4,hot:.6,grow:.06});
       else sparks(q,orchid,ang+pi);
       if(!evo)return;
       // The X: a second rift cuts down across the first, just short of where the body came up.
@@ -473,7 +576,7 @@
     return true;
   }
   function snare(id){
-    const e=X.densest(870,235);if(!e)return false;
+    const e=bDense(id,870,235);if(!e)return false;
     const q=chest(e),ang=facing(hero(),q),evo=rank(id)>=5,r=evo?311:225,d=damage(id),n=evo?6:4,TIGHT=.31,bind=evo?1.18:.76;
     arm(e);X.sfx('whoosh',.81,.41);light({...q,z:22},bSteel,r*1.6);
     const from=hero(),pegs=[],st={bound:[],broke:false};
@@ -490,7 +593,7 @@
       const taut=ease((t-.2)/.11),pull=ease((t-TIGHT)/.1),slack=ease((t-.5)/.32);
       const a=g.a+turn*s*1.3+(1-taut)*.08*Math.sin(s*pi*5-t*48+g.a*3+turn);
       const rad=r*(1-.7*s)*(1-.5*pull*Math.sqrt(s));
-      const z=lerp(52+150*s,4,slack*(.35+.65*s))-60*slack*(1-slack)*Math.sin(pi*s);
+      const z=lerp(52+220*s,4,slack*(.35+.65*s))-60*slack*(1-slack)*Math.sin(pi*s);
       return place(q,a,rad,0,z);
     };
     const LIFE=TIGHT+bind+.25;
@@ -561,7 +664,7 @@
     return true;
   }
   function ricochet(id){
-    const first=X.nearest(850);if(!first)return false;
+    const first=aNear(id,850);if(!first)return false;
     const d=damage(id),lvl=rank(id),max=2+Math.floor((lvl+1)/2)+(lvl>=5?1:0),visited=new Set(),evo=lvl>=5;
     arm(first);light(chest(first),aSteel);X.sfx('whoosh',1.35,.36);
     // It heats as it bounces: steel, then white, then indigo-violet.
@@ -580,11 +683,11 @@
           const q=P(fly),n=Math.min(3,s.i+1);
           for(let j=0;j<=n;j++){
             const v=fly-.09*j;if(v<0)break;
-            knife(P(v),P(v-.03),66,t*12+s.i,hp(s.i),j?.42/j:1);
+            knife(P(v),P(v-.03),112,t*12+s.i,hp(s.i),j?.42/j:1);
           }
         }
         if(!F.on){strip(P,fade*fly,fly,10,hp(s.i),t,1-fade,1,true);continue;}
-        const pts=[],w=17+4*Math.min(3,s.i);
+        const pts=[],w=28+7*Math.min(3,s.i);
         for(let k=0;k<=4;k++){
           const u=lerp(fade*fly,fly,k/4),q=P(u);
           q.w=w*(1-.6*fade)*Math.min(1,(fly-u)*10+.2);pts.push(q);
@@ -593,20 +696,29 @@
       }
       aLines(lines,hp(st.hot),{ero:.08,ulen:260,ink:.6,mid:.75,core:.2,gain:1.35+.12*st.hot});
       if(!F.on)return;
-      const m=aMats();
+      const m=aMats(),notches=[];
       for(const c of corners){
-        const k=(t-c.born)/.14;if(k>=1||k<0)continue;
-        const s=(130+22*c.i)*(1+.6*k);
-        F.bill(m.star,c.p.x,c.p.y,c.p.z,s,s,c.rot,{...aCol(hp(c.i)),a:1-k*k,gain:2.4,ero:.12+k*.5});
+        const k=(t-c.born)/.14;
+        // The ricochet notch: a hard V where the blade glanced off, the arriving and leaving strokes meeting at a point. It outlives the star.
+        const nk=(t-c.born)/.42;
+        if(nk>=0&&nk<1){
+          const L=150*(1-.35*nk),grow=ease(nk*6),out=c.out??c.inA+pi*.7;
+          const leg=a=>[{x:c.p.x,y:c.p.y,z:c.p.z,w:20*(1-nk)},{x:c.p.x+Math.cos(a)*L*grow,y:c.p.y+Math.sin(a)*L*grow*FSY,z:c.p.z+6,w:0}];
+          notches.push(leg(c.inA+pi),leg(out));
+        }
+        if(k>=1||k<0)continue;
+        const s=(80+14*c.i)*(1+.5*k);
+        F.bill(m.star,c.p.x,c.p.y,c.p.z,s*1.7,s*.6,c.inA,{...aCol(hp(c.i)),a:1-k*k,gain:2.4,ero:.12+k*.5});
       }
+      if(notches.length)aLines(notches,aWhite,{ink:.5,mid:.7,core:.3,gain:1.4,ulen:160,ord:2});
       const E=st.embed;
       if(E){
         const age=t-E.born,q=chest(E.e);
         if(age<.16&&!E.e.dead){
           const dx=Math.cos(E.ang),dy=Math.sin(E.ang)*FSY,glow=.6+.4*Math.sin(age*60);
           const p={x:q.x-dx*16,y:q.y-dy*16,z:q.z+4};
-          knife(p,{x:p.x-dx*10,y:p.y-dy*10,z:p.z},58,0,aWhite,1);
-          F.bill(K.mats().glowO,q.x,q.y,q.z,70*glow,70*glow,0,{...aCol(aIris),a:.8,gain:2.4});
+          knife(p,{x:p.x-dx*10,y:p.y-dy*10,z:p.z},96,0,aWhite,1);
+          F.bill(K.mats().glowO,q.x,q.y,q.z,110*glow,110*glow,0,{...aCol(aIris),a:.85,gain:2.6});
         }else if(!st.burst){
           st.burst=true;
           for(let i=0;i<(evo?10:6);i++){
@@ -615,7 +727,9 @@
               s:aR(5,9),rot:aR(0,6.3),vr:aR(-16,16),m:11,b:'alpha',c:GFX.rgb(i%2?'#9fb4d2':'#353d52'),c2:'#05060a',fk:4,L:2});
           }
           K.sparks(q.x,q.y,q.z,{pal:aIris,n:F.low?6:14,sp:[500,1500],up:420,life:[.14,.36]});
-          K.flare(q.x,q.y,q.z,{pal:aIris,s:evo?210:150,dur:.18});
+          K.flare(q.x,q.y,q.z,{pal:aIris,s:evo?260:200,dur:.2});
+          aWound(E.e,E.ang,aIris,F.low?4:7);
+          if(!evo&&!E.e.dead)K.ehit(E.e,{pal:aIris,pw:.9,dir:E.ang});
           if(evo&&!E.e.dead){K.ehit(E.e,{pal:aIris,pw:1.2,dir:E.ang});hitstop=Math.max(hitstop,.05);X.cine.shake(.22);}
         }
       }
@@ -629,12 +743,17 @@
         const at=chest(target);
         const next=i+1<max?nearby(at,580).filter(o=>!visited.has(o)).sort((a,b)=>distance(a,at)-distance(b,at))[0]:null;
         seg.end=at;seg.arrive=st.t;st.hot=i+1;
-        corners.push({p:at,born:st.t,i,rot:aR(0,6.3)});
+        corners.push({p:at,born:st.t,i,inA:ang,out:next?facing(at,next):null});
         if(!target.dead){
           strike(target,d*(lvl>=5&&!next?1.58:1),from,{push:90},.55);
           X.sfx('slash',1.35+i*.08,.22);
-          if(F.on)K.sparks(at.x,at.y,at.z,{pal:hp(i),n:F.low?4:8,dir:ang,spread:.5,sp:[500,1400],up:260,life:[.12,.3]});
+          if(F.on){
+            K.sparks(at.x,at.y,at.z,{pal:hp(i),n:F.low?4:8,dir:ang,spread:.5,sp:[500,1400],up:260,life:[.12,.3]});
+            if(next&&i<4)K.ehit(target,{pal:hp(i),dir:ang,pw:.7+.08*i});
+            aWound(target,ang,hp(i),F.low?2:3);
+          }
           else sparks(at,hp(i),ang);
+          if(!i){hitstop=Math.max(hitstop,.035);X.cine.shake(.14);}
         }
         if(next)link(at,next,i+1);
         else{st.embed={e:target,born:st.t,ang};hitstop=Math.max(hitstop,.035);}
@@ -651,7 +770,7 @@
       axes.push({dx,dy,dz});
       if(F.on&&F.solids()){
         F.solid('spike',i,q.x,q.y,q.z,{sx:size*.66,sy:size*.58,sz:size,ry:tilt,rz:yaw,
-          alb:iron,emis:'#000000',rimC:bSteel.m,rim:.65,spec:2.4,heat:0,vein:0,bump:.22,tone:.4,a,ord:5});
+          alb:iron,emis:'#000000',rimC:bSteel.h,rim:1.05,spec:2.4,heat:0,vein:0,bump:.22,tone:.4,a,ord:5});
       }else if(F.on){
         F.ribbon(K.mats().trB,[{...q,w:size*.16},{x:q.x+dx*size,y:q.y+dy*size*FSY,z:q.z+dz*size,w:.01}],{...bCol(bSteel),a,gain:.8,ord:5});
       }else{
@@ -664,7 +783,7 @@
     return axes;
   }
   function caltrop(id){
-    const e=X.densest(850,179);if(!e)return false;
+    const e=bDense(id,850,179);if(!e)return false;
     const src=hero(),center=chest(e),ang=facing(src,center),d=damage(id),evo=rank(id)>=5;
     const traps=[place(center,ang,-34,0,0),place(center,ang,99,162,0),place(center,ang,68,-164,0)];
     arm(e);X.sfx('whoosh',.93,.37);light({...center,z:18},bSteel);
@@ -705,6 +824,8 @@
           }
           c.cool=cool;
         }
+        // A cold violet pool of light under each caltrop so the dark iron reads against the dark floor.
+        if(F.on){const gl=u<1?.35+.4*u:1-.6*sat((t-GONE+.35)/.35);F.quad(K.mats().glowG,q.x,q.y,SIZE*1.15,SIZE*1.15,c.i,{...bCol(bIris),a:.55*gl,gain:.9});}
         const axes=bBurr(q,roll,turn,SIZE,1);
         for(const v of axes)glints.push([{x:q.x+v.dx*SIZE*.55,y:q.y+v.dy*SIZE*.55*FSY,z:q.z+v.dz*SIZE*.55,w:3},
           {x:q.x+v.dx*SIZE*.97,y:q.y+v.dy*SIZE*.97*FSY,z:q.z+v.dz*SIZE*.97,w:0}]);
@@ -752,7 +873,9 @@
     return true;
   }
   function warrant(id){
-    const src=hero(),candidates=nearby(src,1050);
+    const src=hero();
+    if(!nearby(src,1050).length&&aForced(id))aStage(1050);
+    const candidates=nearby(src,1050);
     candidates.sort((a,b)=>a.hp/a.max-b.hp/b.max||distance(src,a)-distance(src,b));
     const e=candidates[0];if(!e)return false;
     const d=damage(id),evo=rank(id)>=5,ang=facing(src,e);
@@ -775,41 +898,55 @@
     frames(1.26,t=>{
       if(t<HIT){st.x=e.x;st.y=e.y;}
       if(t<.44){
-        const c=ease(t/.2),a=Math.min(1,t*20)*(1-sat((t-.32)/.12)),top={x:st.x,y:st.y,z:e.z+e.h+52};
+        const c=ease(t/.2),a=Math.min(1,t*20)*(1-sat((t-.32)/.12)),top={x:st.x,y:st.y,z:e.z+e.h+60};
         for(let i=0;i<4;i++){
-          const b=i*pi/2+pi/4+t*2.4,r=lerp(175,40,c),q={x:top.x+Math.cos(b)*r,y:top.y+Math.sin(b)*r*FSY,z:top.z+r*.22};
-          knife(q,{x:q.x+Math.cos(b)*10,y:q.y+Math.sin(b)*10*FSY,z:q.z+2},58,0,aIris,a);
+          const b=i*pi/2+pi/4+t*2.4,r=lerp(270,58,c),q={x:top.x+Math.cos(b)*r,y:top.y+Math.sin(b)*r*FSY,z:top.z+r*.22};
+          knife(q,{x:q.x+Math.cos(b)*10,y:q.y+Math.sin(b)*10*FSY,z:q.z+2},100,0,i&1?aSteel:aIris,a);
         }
-        const s=lerp(280,110,c),cross=(dx,dy)=>[{x:st.x-dx*s,y:st.y-dy*s*FSY,z:3,w:0},{x:st.x,y:st.y,z:3,w:24},{x:st.x+dx*s,y:st.y+dy*s*FSY,z:3,w:0}];
-        aLines([cross(.71,.71),cross(.71,-.71)],aIris,{a,ink:.7,mid:.5,core:.16,ulen:220,gain:1.3});
+        // The death mark on the floor: a closing X inside a ring of four broken arcs that turns against the blades.
+        const s=lerp(380,150,c),cross=(dx,dy)=>[{x:st.x-dx*s,y:st.y-dy*s*FSY,z:3,w:0},{x:st.x,y:st.y,z:3,w:38},{x:st.x+dx*s,y:st.y+dy*s*FSY,z:3,w:0}];
+        const R=lerp(330,175,c),marks=[cross(.71,.71),cross(.71,-.71)];
+        for(let j=0;j<4;j++){
+          const arc=[];
+          for(let i=0;i<=6;i++){const b=-t*1.8+j*pi/2+.18+i/6*(pi/2-.36);arc.push({x:st.x+Math.cos(b)*R,y:st.y+Math.sin(b)*R*FSY,z:3,w:16*Math.sin(pi*i/6)});}
+          marks.push(arc);
+        }
+        aLines(marks,aIris,{a,ink:.85,mid:.55,core:.2,ulen:220,gain:1.45});
       }
       if(t<.2||st.broke)return;
       const f=sat((t-.2)/(HIT-.2)),after_=t-HIT;
       const quiver=after_>0?Math.sin(after_*70)*Math.exp(-after_*9)*9:0;
-      const tipZ=after_<0?lerp(950,-8,Math.pow(f,1.7)):-8,origin={x:st.x+quiver,y:st.y+3,z:tipZ+len*1.14};
+      // After the hit the planted blade settles into a lean, which also swings its hilt off the damage number over the body.
+      const lean=after_>0?.36*ease(after_/.09):0,lx=Math.sin(lean),lz=Math.cos(lean);
+      const tipZ=after_<0?lerp(950,-8,Math.pow(f,1.7)):-8,origin={x:st.x+quiver+lx*len*1.14,y:st.y+3,z:tipZ+lz*len*1.14};
       const k=sat(after_/.62),H=after_>0?K.heat(aIris,k*.9):null;
-      const tint=after_<0?{m:'#6f86a8'}:{m:k<.06?'#ffffff':aHex(H.cM)};
+      const tint=after_<0?{m:'#9db4dc'}:{m:k<.06?'#ffffff':aHex(H.cM)};
       if(after_>.56&&!st.broke)shatter();
       if(after_>.63)return;
-      knife(origin,{x:origin.x,y:origin.y,z:origin.z+10},len,0,tint,1-sat((after_-.56)/.07));
+      knife(origin,{x:origin.x+lx*10,y:origin.y,z:origin.z+lz*10},len,0,tint,1-sat((after_-.56)/.07));
+      // Halos and cracks below follow the leaning blade through its midline.
+      const mid=v=>st.x+quiver+lx*len*v;
       if(!F.on)return;
       const S=K.mats();
       if(after_<0){
         const r=lerp(240,80,f);
         F.quad(S.dark,st.x,st.y,r,r*.8,0,{a:.2+.55*f});
-        aLines([[{x:origin.x,y:origin.y,z:origin.z+len*1.05,w:16},{x:origin.x,y:origin.y,z:origin.z+len*1.05+520*f,w:0}]],aSteel,{a:.8,ink:.5,ulen:300});
+        // Falling: a black shadow aura round the blade, both cutting edges lit violet, and a torn streak above the hilt.
+        const hw=len*.075,lo=tipZ+10,hi=tipZ+len*.86;
+        const edge=sx=>[{x:origin.x+sx*hw*.2,y:origin.y,z:lo,w:0},{x:origin.x+sx*hw,y:origin.y,z:lerp(lo,hi,.35),w:9},{x:origin.x+sx*hw*.9,y:origin.y,z:hi,w:5}];
+        aLines([edge(-1),edge(1),[{x:origin.x,y:origin.y,z:origin.z+len*1.05,w:22},{x:origin.x,y:origin.y,z:origin.z+len*1.05+620*f,w:0}]],aIris,{a:.9,ink:.9,mid:.6,core:.25,ulen:300,gain:1.3});
+        F.bill(S.glowO,origin.x,origin.y,tipZ+len*.5,len*.42,len*1.1,0,{...aCol(aIris),a:.35+.35*f,gain:2});
         return;
       }
-      const edge=[{x:origin.x,y:origin.y,z:tipZ+8},{x:origin.x,y:origin.y,z:tipZ+len*1.06}];
       // A halo wider than the blade, under it: white-hot, then indigo, then dark steel as it cools.
       const gw=(doom?230:190)*(1-.4*k),HC=k<.25?{cA:aIris.b,cB:aIris.m,cM:aIris.h,cC:'#ffffff'}:{cA:aIris.d,cB:aIris.b,cM:aIris.m,cC:aIris.h};
-      F.bill(S.glowO,origin.x,origin.y,tipZ+len*.55,gw,len*1.05,0,{...HC,a:Math.pow(1-k,1.3),gain:3.4*(doom?1.3:1)});
-      F.bill(S.glowO,origin.x,origin.y,tipZ+len*.1,gw*1.3,gw*.55,0,{...HC,a:Math.pow(1-k,1.5),gain:3.6});
+      F.bill(S.glowO,mid(.55),origin.y,tipZ+lz*len*.55,gw,len*1.05,-lean,{...HC,a:Math.pow(1-k,1.3),gain:3.4*(doom?1.3:1)});
+      F.bill(S.glowO,mid(.1),origin.y,tipZ+len*.1,gw*1.3,gw*.55,0,{...HC,a:Math.pow(1-k,1.5),gain:3.6});
       // .78 s on: cracks run up the blade from its point before it falls apart.
       const cr=sat((after_-.41)/.18);
       if(cr>0){
         const pts=[],n=7;
-        for(let i=0;i<=n;i++){const v=i/n;if(v>cr)break;pts.push({x:origin.x+(i%2?16:-16)*(.4+v),y:origin.y,z:tipZ+20+v*len*.95,w:i?11:0});}
+        for(let i=0;i<=n;i++){const v=i/n;if(v>cr)break;pts.push({x:mid(v*.95)+(i%2?16:-16)*(.4+v),y:origin.y,z:tipZ+20+lz*v*len*.95,w:i?11:0});}
         if(pts.length>1){
           F.ribbon(aMats().mist,pts.map(q=>({...q,w:q.w*1.4})),{a:1,ulen:120,ord:9});
           F.ribbon(S.trB,pts.map(q=>({...q,w:q.w*.5})),{...aCol(aIris),a:1,gain:3.4,ulen:120,ord:10});
@@ -830,6 +967,8 @@
             s:aR(5,10),rot:aR(0,6.3),vr:aR(-12,12),m:11,b:'alpha',c:GFX.rgb(i%3?'#3a3540':'#6d6676'),c2:'#05060a',fk:4,L:2});
         }
       }
+      // The blow throws everything standing close to the mark outward and off its feet (no extra damage).
+      for(const o of nearby({x:st.x,y:st.y},240))if(o!==e)K.knock(o,{from:[st.x,st.y],dist:180,up:420,fx:F.on?1:0});
       if(e.dead)return;
       const weakness=1-e.hp/e.max;
       let power=d*(1+weakness*.86)*(evo&&e.d.boss?1.32:1);
@@ -843,7 +982,7 @@
             life:aR(.7,1.2),s:aR(22,40),grow:aR(60,110),m:5,b:'alpha',c:[.03,.02,.06],c2:'#000000',c3:'#3a2a55',er:.9,ns:aR(.9,1.5),w:1,a:.7,L:2});
         }
       }
-      strike(e,power,src,{crit:true,kb:.25});
+      strike(e,power,src,{crit:true,kb:.25,up:300});
     });
     return true;
   }
@@ -861,7 +1000,7 @@
         q.w=w*Math.pow(Math.sin(pi*(.04+.92*k)),.55)*(.35+.65*k)*(1-.35*f);body.push(q);
       }
       const a=1-f*f*f;
-      bLines([body],p,{a,ink:1,mid:.36,core:0,ero:.1+.5*f,ulen:420,t0:t*.5,gain:.85});
+      bLines([body],p,{a,ink:1,mid:.62,core:0,ero:.1+.5*f,ulen:420,t0:t*.5,gain:.7});
       // Which way is out (away from the hero on the screen) decides the side of the main edge.
       const m=n>>1,probe=bShift(body.slice(m-1,m+2),()=>10)[1],sy=v=>v.y-v.z;
       const out=Math.hypot(probe.x-src.x,sy(probe)-sy(src))>Math.hypot(body[m].x-src.x,sy(body[m])-sy(src))?1:-1;
@@ -879,7 +1018,7 @@
     if(delay)beat(delay,go);else go();
   }
   function crescent(id){
-    const enemy=X.nearest(565);if(!enemy)return false;
+    const enemy=bNear(id,565);if(!enemy)return false;
     const src=hero(),ang=facing(src,enemy),r=Math.min(452,Math.max(149,distance(src,enemy))),d=damage(id),evo=rank(id)>=5;
     arm(enemy);light(chest(enemy),bSteel,r*1.15);X.sfx('slash',.91,.54);
     for(let i=0;i<2;i++){
@@ -905,7 +1044,7 @@
         // The low wing scrapes the floor: dust along it and two cooling scratches.
         beat(.09,()=>{
           for(const u of [.2,.5,.8]){const q=path(u);K.dust(q.x,q.y,{n:2,r:10,sp:[150,420],a:.42,s:.75,life:.9});}
-          for(const [a,b] of [[.14,.46],[.54,.88]]){const A=path(a),B=path(b);K.coolLine(A.x,A.y,B.x,B.y,{w:20,pal:bSteel,life:1.1,hot:.3,grow:.08});}
+          for(const [a,b] of [[.14,.46],[.54,.88]]){const A=path(a),B=path(b);K.coolLine(A.x,A.y,B.x,B.y,{w:28,pal:bSteel,life:1.4,hot:.5,grow:.08});}
         });
       };
       if(delay)beat(delay,swing);else swing();

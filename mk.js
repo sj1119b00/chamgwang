@@ -39,7 +39,7 @@ const STY={
   assassin:{w:'daggers',bl:.37,hilt:.075,acc:'#888bbf',acc2:'#43445f',sash:'#716f97',tint:[.61,.64,.79],scarf:[8,1.5],hat:'cowl',
     base:{gr:0,lw:[0,0,1],hip:[0,0,.415],hy:-.34,cy:.16,lean:.24,hd:.16,hp:-.1,fr:[.17,.11,0],fl:[-.19,-.11,0],
       hr:[-.10,.22,-.15],hl:[.20,-.14,-.15],sw:[-.84,.5,.14],kr:.38,kl:.45}},
-  axe:{w:'axe',bl:.5,hilt:.3,acc:'#ff5a14',acc2:'#8a1a06',sash:'#a8240a',tint:[1.1,.9,.82],scarf:[8,2.5],
+  axe:{w:'axe',bl:.62,hilt:.34,acc:'#ff5a14',acc2:'#8a1a06',sash:'#a8240a',tint:[1.1,.9,.82],scarf:[8,2.5],
     base:{gr:0,sf:0,sh:0,lw:[0,1,0],hip:[0,0,.47],hy:-.2,cy:.15,lean:.12,fr:[.12,.12,0],fl:[-.14,-.11,0],hr:[.12,.17,-.12],hl:[.2,-.05,-.1],sw:[-.45,.1,.88],hd:.08,kr:.3,kl:.32}} };
 let ST=STY.sword, BASE=DEF;
 const BASES={}; for(const k in STY) BASES[k]=Object.assign({},DEF,STY[k].base);
@@ -85,7 +85,8 @@ function solve(P){ const J={}, hy=P.hy, fp=[cos(hy),sin(hy),0], rp=[-sin(hy),cos
     // the head: a broad bearded blade whose edge faces the way the haft travels (his forward, taken square to the haft), and a short spike behind
     let bd=sub(f,mul(sdir,dot(f,sdir))); if(len(bd)<.2) bd=sub(u,mul(sdir,dot(u,sdir))); bd=nrm(bd); J.bd=bd;
     const T=J.st, at=(s,b)=>add(add(T,mul(sdir,s)),mul(bd,b));
-    J.xa=at(-.03,0); J.xb=at(.05,.2); J.xc=at(-.12,.27); J.xd=at(-.29,.2); J.xe=at(-.2,0); J.xs=at(-.11,-.11);
+    // a crescent moon blade on a long pole (the reference weapon): two horns curling back toward the haft, a short neck, a small curled spur behind
+    J.xa=at(-.08,0); J.xe=at(-.2,0); J.xb=at(.15,.16); J.xc=at(-.15,.42); J.xd=at(-.47,.15); J.xi=at(-.15,.21); J.xs=at(-.14,-.11);
   }
   J.f=f; J.r=r; J.u=u; return J; }
 
@@ -313,6 +314,19 @@ CLIPS.xThrow={keys:[
 CLIPS.xRaise={keys:[
   [.3,{hip:[0,0,.5],lean:-.05,lw:[0,1,0],hr:[.06,.1,.33],sw:[.05,0,1],hp:-.4,fr:[.13,.12,0],fl:[-.14,-.11,0]},'back'],
   [9,{},'lin'] ]};
+// arms out, the haft level and the blade far out to his right: held through a long turn (the yaw is turned from outside)
+CLIPS.xSpin={keys:[
+  [.15,{hip:[.02,0,.43],hy:.3,cy:.4,lean:.28,lw:[0,1,0],hr:[.28,.26,-.06],sw:[.18,.98,-.04],fr:[.2,.13,0],fl:[-.2,-.12,0],kr:.45,kl:.45,hd:-.1,tr:1},'out'],
+  [9,{},'lin'] ]};
+// short versions for the normal skills: up and held for half a second, then back to the stance
+CLIPS.xRaiseS={keys:[
+  [.18,{hip:[0,0,.5],lean:-.05,lw:[0,1,0],hr:[.06,.1,.33],sw:[.05,0,1],hp:-.4,fr:[.13,.12,0],fl:[-.14,-.11,0]},'back'],
+  [.65,{hr:[.07,.1,.32]},'lin'],
+  [.95,STY.axe.base,'io'] ]};
+CLIPS.xPlantS={keys:[
+  [.12,{hip:[.05,0,.4],lean:.35,lw:[0,1,0],hr:[.3,.1,-.15],sw:[.4,0,-.92],kr:.5,kl:.45,fr:[.2,.12,0],fl:[-.2,-.11,0]},'in'],
+  [.6,{hip:[.05,0,.405]},'lin'],
+  [.9,STY.axe.base,'io'] ]};
 CLIPS.xPlant={keys:[
   [.15,{hip:[.05,0,.4],lean:.35,lw:[0,1,0],hr:[.3,.1,-.15],sw:[.4,0,-.92],kr:.5,kl:.45,fr:[.2,.12,0],fl:[-.2,-.11,0]},'in'],
   [9,{},'lin'] ]};
@@ -410,18 +424,24 @@ function cowl(g,head,facing,yaw,r,flat){
   g.lineTo(.63,.91); g.lineTo(.14,1.09); g.closePath(); g.fillStyle='#343448'; g.fill();
   g.strokeStyle='#77758c'; g.lineWidth=.045; g.beginPath(); g.moveTo(-.95,.62); g.lineTo(.12,.87); g.lineTo(.66,.72); g.stroke(); g.restore();
 }
-// the berserker's heavy axe: a dark haft with iron bands, a broad blackened head and an edge that glows like metal out of a forge
+// the berserker's weapon, after the reference: a long gold-lacquered pole with gold bands, a great ivory-white crescent blade whose horns curl back
+// toward the pole, gold fittings at the neck, and an outer edge that glows like metal out of a forge
 function axeDraw(g,S,flat){
-  const p=S.sp, t=S.st, A=S.xa, B=S.xb, Cc=S.xc, D=S.xd, E=S.xe, K=S.xs; g.lineCap='round'; g.lineJoin='round';
-  if(flat){ g.strokeStyle=flat; g.lineWidth=5; g.beginPath(); g.moveTo(p[0],p[1]); g.lineTo(t[0],t[1]); g.stroke(); g.fillStyle=flat; g.beginPath(); g.moveTo(A[0],A[1]); g.lineTo(B[0],B[1]); g.quadraticCurveTo(Cc[0]*2-(B[0]+D[0])/2,Cc[1]*2-(B[1]+D[1])/2,D[0],D[1]); g.lineTo(E[0],E[1]); g.closePath(); g.fill(); return; }
-  g.strokeStyle='#0d0a10'; g.lineWidth=8; g.beginPath(); g.moveTo(p[0],p[1]); g.lineTo(t[0],t[1]); g.stroke(); g.strokeStyle='#5a3420'; g.lineWidth=4.6; g.stroke();
-  g.strokeStyle='#2a2226'; g.lineWidth=7; for(const u of [.08,.5]){ g.beginPath(); g.moveTo(mixn(p[0],t[0],u),mixn(p[1],t[1],u)); g.lineTo(mixn(p[0],t[0],u+.05),mixn(p[1],t[1],u+.05)); g.stroke(); }
-  const cx=Cc[0]*2-(B[0]+D[0])/2, cy=Cc[1]*2-(B[1]+D[1])/2;
-  g.fillStyle='#1c1618'; g.strokeStyle='#0d0a10'; g.lineWidth=1.6; g.beginPath(); g.moveTo(A[0],A[1]); g.lineTo(K[0],K[1]); g.lineTo(E[0],E[1]); g.closePath(); g.fill(); g.stroke();
-  const gr=g.createLinearGradient(A[0],A[1],Cc[0],Cc[1]); gr.addColorStop(0,'#231b1c'); gr.addColorStop(.6,'#4a3a36'); gr.addColorStop(1,'#7a5a4a');
-  g.fillStyle=gr; g.beginPath(); g.moveTo(A[0],A[1]); g.lineTo(B[0],B[1]); g.quadraticCurveTo(cx,cy,D[0],D[1]); g.lineTo(E[0],E[1]); g.closePath(); g.fill(); g.stroke();
-  g.strokeStyle='#ff7a2a'; g.lineWidth=3.2; g.beginPath(); g.moveTo(B[0],B[1]); g.quadraticCurveTo(cx,cy,D[0],D[1]); g.stroke(); g.strokeStyle='#ffe2a8'; g.lineWidth=1.2; g.stroke();
-  if(g===ctx){ fx.save(); fx.globalCompositeOperation='lighter'; fx.lineCap='round'; fx.strokeStyle='rgba(255,90,20,.35)'; fx.lineWidth=11; fx.beginPath(); fx.moveTo(B[0],B[1]); fx.quadraticCurveTo(cx,cy,D[0],D[1]); fx.stroke(); fx.restore(); } }
+  const p=S.sp, t=S.st, A=S.xa, B=S.xb, Cc=S.xc, D=S.xd, E=S.xe, I=S.xi, K=S.xs; g.lineCap='round'; g.lineJoin='round';
+  const q=(P,Q,R)=>[R[0]*2-(P[0]+Q[0])/2,R[1]*2-(P[1]+Q[1])/2], co=q(B,D,Cc), ci=q(D,B,I), N=[(A[0]+E[0])/2,(A[1]+E[1])/2];
+  const blade=()=>{ g.beginPath(); g.moveTo(B[0],B[1]); g.quadraticCurveTo(co[0],co[1],D[0],D[1]); g.quadraticCurveTo(ci[0],ci[1],B[0],B[1]); g.closePath(); };
+  const neck=()=>{ g.beginPath(); g.moveTo(A[0],A[1]); g.lineTo(I[0]+(B[0]-I[0])*.12,I[1]+(B[1]-I[1])*.12); g.lineTo(I[0]+(D[0]-I[0])*.12,I[1]+(D[1]-I[1])*.12); g.lineTo(E[0],E[1]); g.closePath(); };
+  if(flat){ g.strokeStyle=flat; g.lineWidth=5; g.beginPath(); g.moveTo(p[0],p[1]); g.lineTo(t[0],t[1]); g.stroke(); g.fillStyle=flat; blade(); g.fill(); neck(); g.fill(); return; }
+  g.strokeStyle='#0d0a10'; g.lineWidth=8; g.beginPath(); g.moveTo(p[0],p[1]); g.lineTo(t[0],t[1]); g.stroke(); g.strokeStyle='#8a6424'; g.lineWidth=4.6; g.stroke();
+  g.strokeStyle='#e0b85a'; g.lineWidth=1.4; g.beginPath(); g.moveTo(mixn(p[0],t[0],.02),mixn(p[1],t[1],.02)-1); g.lineTo(t[0],t[1]-1); g.stroke();
+  g.strokeStyle='#f0c860'; g.lineWidth=7.5; for(const u of [.03,.42,.47,.86]){ g.beginPath(); g.moveTo(mixn(p[0],t[0],u),mixn(p[1],t[1],u)); g.lineTo(mixn(p[0],t[0],u+.025),mixn(p[1],t[1],u+.025)); g.stroke(); }
+  g.fillStyle='#c89a3a'; g.strokeStyle='#0d0a10'; g.lineWidth=1.4; g.beginPath(); g.moveTo(A[0],A[1]); g.quadraticCurveTo(K[0],K[1],E[0],E[1]); g.lineTo(N[0],N[1]); g.closePath(); g.fill(); g.stroke();
+  g.fillStyle='#d9a845'; neck(); g.fill(); g.stroke();
+  const gr=g.createLinearGradient(I[0],I[1],Cc[0],Cc[1]); gr.addColorStop(0,'#9a917e'); gr.addColorStop(.45,'#e6dfcc'); gr.addColorStop(1,'#fffaf0');
+  g.fillStyle=gr; blade(); g.fill(); g.strokeStyle='#0d0a10'; g.lineWidth=1.6; g.stroke();
+  g.strokeStyle='#c9a34a'; g.lineWidth=1.6; g.beginPath(); g.moveTo(B[0],B[1]); g.quadraticCurveTo(ci[0],ci[1],D[0],D[1]); g.stroke();
+  g.strokeStyle='#ff7a2a'; g.lineWidth=2.6; g.beginPath(); g.moveTo(B[0],B[1]); g.quadraticCurveTo(co[0],co[1],D[0],D[1]); g.stroke(); g.strokeStyle='#fff0c8'; g.lineWidth=1; g.stroke();
+  if(g===ctx){ fx.save(); fx.globalCompositeOperation='lighter'; fx.lineCap='round'; fx.strokeStyle='rgba(255,100,30,.32)'; fx.lineWidth=12; fx.beginPath(); fx.moveTo(B[0],B[1]); fx.quadraticCurveTo(co[0],co[1],D[0],D[1]); fx.stroke(); fx.restore(); } }
 function figure(g,J,ox,oy,yaw,o={}){ const S={}; for(const k in J) if(Array.isArray(J[k])&&k!=='f'&&k!=='r'&&k!=='u'&&k!=='hf'&&k!=='sdir') S[k]=proj(J[k],ox,oy,yaw);
   const flat=o.flat, L=o.L||lightOf(ox,oy), C=flat?null:pal(L), items=[];
   for(const [a,b,ra,rb,kd] of SEG) items.push({d:(S[a][2]+S[b][2])/2+(kd==='t'?0:0),a:S[a],b:S[b],ra:ra*SC,rb:rb*SC,kd});
@@ -444,7 +464,7 @@ function figure(g,J,ox,oy,yaw,o={}){ const S={}; for(const k in J) if(Array.isAr
     if(it.kd==='mantle'){ mantle(g,S.nk,it.shoulder,it.elbow,it.hem,flat); continue; }
     if(it.kd==='dagger'){ dagger(g,it.grip,it.guard,it.tip,flat); continue; }
     if(it.kd==='h'&&ST.hat==='cowl'){ cowl(g,it.a,J.hf,yaw,it.r*1.09,flat); continue; }
-    if(it.kd==='axe'){ axeDraw(g,S,flat); continue; }
+    if(it.kd==='axe'){ if(!M.hideW) axeDraw(g,S,flat); continue; }
     if(it.kd==='staff'){ const p=S.sp, t=S.st; g.lineCap='round'; if(flat){ g.strokeStyle=flat; g.lineWidth=4; g.beginPath(); g.moveTo(p[0],p[1]); g.lineTo(t[0],t[1]); g.stroke(); continue; }
       g.strokeStyle='#0d0a10'; g.lineWidth=7; g.beginPath(); g.moveTo(p[0],p[1]); g.lineTo(t[0],t[1]); g.stroke(); g.strokeStyle=ST.bell?'#7a5a36':'#4a3a5e'; g.lineWidth=4; g.stroke();
       g.strokeStyle='#d9b45a'; g.lineWidth=5; g.beginPath(); g.moveTo(mixn(p[0],t[0],.86),mixn(p[1],t[1],.86)); g.lineTo(mixn(p[0],t[0],.9),mixn(p[1],t[1],.9)); g.stroke();

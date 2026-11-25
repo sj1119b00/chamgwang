@@ -204,13 +204,22 @@
       float jitter=texture2D(fieldNoise,(gl_FragCoord.xy+.5)/256.).b;
       float T=1.;
       vec3 radiance=vec3(0.);
+      // Banks crowd the edges of the frame. The middle stays a dark, thin veil
+      // so the silver steel and its wakes keep their contrast.
+      vec2 sc=(gl_FragCoord.xy*invTarget-.5)*vec2(1.3,1.);
+      float vig=smoothstep(.04,.62,length(sc));
       for(int i=0;i<32;++i){
         if(float(i)>=steps||T<.025) break;
         float z=high-(float(i)+.025+.95*fract(jitter+float(i)*.618034))*dz;
         vec3 w=vec3(screen.x,y0+z/.58,z);
         vec2 f=field(w,true);
         float ck=clumps(w);
-        float density=f.x*ck, slit=0., rim=0., pulse=0.;
+        // Smoke is combed into long streaks that follow the vortex, dense near
+        // the floor and torn into wisps above the blades.
+        float rr=length(w.xy), aa=atan(w.y,w.x)-state.x*.35;
+        float streak=noise3(vec3(rr*13.+.8*sin(3.*aa+state.x*.5)-state.x*.6,cos(aa)*1.4,sin(aa)*1.4+w.z*4.));
+        float layer=mix(1.32,.5,smoothstep(.05,.3,w.z));
+        float density=f.x*ck*layer*(.38+1.15*smoothstep(.32,.68,streak))*mix(.4,1.,vig), slit=0., rim=0., pulse=0.;
         for(int j=0;j<6;j++){
           vec4 h=holes[j]; if(h.w<=0.)continue;
           vec3 g=(w-h.xyz)*vec3(1.,1.6,1.2);
@@ -270,6 +279,7 @@
           float edge=smoothstep(.025,.47,max(0.,f.x-d1))*(.34+.66*sky);
           light+=vec3(.172,.185,.193)*edge*exp(-.72*d2);
         }
+        light*=mix(.42,1.,vig);
         light+=vec3(.081,.107,.14)*rim+scatter*exp(-density*.78);
         float alpha=1.-exp(-density*dz*24.*state.z);
         radiance+=T*light*alpha; T*=1.-alpha;
@@ -319,7 +329,7 @@
     };
     return (interp(X,Y)*(1-c)+interp(X+37,Y+17)*c)/255;
   }
-  window.AssassinMist=function(x,y,{radius=1100,duration=4,openAt}={}){
+  window.AssassinMist=function(x,y,{radius=1100,duration=4,openAt,pace}={}){
     window.AssassinFlow?.prepare?.();
     const R=Math.max(120,radius), life=Math.max(.1,duration), start=RT;
     const blowAt=openAt??life-.55;
@@ -329,9 +339,9 @@
     const tails=new Float32Array(6),actors=new Float32Array(32),holes=new Float32Array(24);
     let endAt=Infinity,phase=0,radiusNow=.42,strength=0,open=0,canvas,lastPaint=-10,pixels,bounds,flash,clearAt=-1;
     function timing(t){
-      phase=t*4/life;
+      phase=t*4/(pace||life);
       radiusNow=.49+.54*ease(.12,1.33,phase)-.095*ease(2.64,3.08,phase)+.10*ease(3.16,3.65,phase);
-      const blow=ease(0,.42,t-blowAt);
+      const blow=ease(0,.62,t-blowAt);
       open=blow>0?-.3+2.7*blow:0;
       strength=ease(0,.25,phase)*(1-ease(blowAt+.12,life,t))*(1-ease(0,.34,RT-endAt));
     }

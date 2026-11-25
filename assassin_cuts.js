@@ -37,6 +37,7 @@
     uniform vec4 shape,lamps[2];
     uniform vec3 optical;
     uniform vec3 tint,hot,lightColor[2];
+    uniform float fine;
     void main(){
       float u=uv.x,v=uv.y, mode=shape.x,t=shape.y,fade=shape.z;
       if(mode>3.5){
@@ -68,7 +69,7 @@
       float threads=n2.b*.65+n1.g*.35;
       float back=smoothstep(.04,.58,v);
       float coverage=1.-smoothstep(.50,1.,v+back*(n1.r-.44)*.55);
-      coverage*=smoothstep(.01,.135,v);
+      coverage*=mix(smoothstep(.01,.135,v),smoothstep(.035,.055,v),fine);
       coverage*=mix(1.,smoothstep(.23,.59,threads+.16-.38*fade),back);
       float longitudinal=smoothstep(0.,.055,u)*smoothstep(0.,.032,1.-u);
       vec2 holes=texture2D(noiseMap,vec2(u*3.7-t*.13,v*1.6)+field).rg;
@@ -95,6 +96,16 @@
       }
       float leading=(1.-step(.5,mode))*crest;
       a+=longitudinal*(1.-fade)*(.22+.78*veil)*leading*glaze*.46;
+      // Fine mode: a razor edge and a comb of thin parallel after-images behind it,
+      // broken along the stroke, instead of one smooth painted band.
+      float razor=0.,comb=0.;
+      if(fine>.5){
+        razor=exp(-abs(v-.058)*85.)*longitudinal*(1.-fade);
+        float cv=v+.025*n1.g+.012*sin(u*21.);
+        comb=pow(abs(sin(cv*46.)),28.)*smoothstep(.09,.24,v)*(1.-smoothstep(.5,.86,v));
+        comb*=smoothstep(.28,.62,n2.r+.35*(1.-u))*longitudinal*(1.-fade)*veil;
+        a=a*mix(1.,.62,smoothstep(.1,.3,v))+comb*.55+razor*.6;
+      }
       if(a<.01)discard;
       vec3 N=normalize(normalW),V=vec3(0.,.865,.502);
       if(dot(N,V)<0.)N=-N;
@@ -116,6 +127,9 @@
       float grainBreak=mix(.32,1.,smoothstep(.25,.71,n1.g+n2.r*.18));
       vec3 color=base+hot*(line*(.52+1.25*grainBreak)*(.63+.37*current)+caustic+.54*spec);
       color+=mix(hot,vec3(.94,.97,1.),.42)*leading*(line*1.82+caustic*.61);
+      if(fine>.5){
+        color=color*mix(1.,.55,smoothstep(.1,.3,v))+mix(hot,vec3(.95,.97,1.),.35)*comb*1.5+vec3(.97,.98,1.)*razor*2.2;
+      }
       if(stone>.5){
         // A low-pressure crack throws up separate hot lips with opaque gaps.
         float lip=exp(-abs(v-ridge-.085*sin(u*39.+n1.r*4.))*31.);
@@ -220,7 +234,7 @@
       vb=gl.createBuffer();ib=gl.createBuffer();
       gl.bindBuffer(gl.ARRAY_BUFFER,vb);gl.bufferData(gl.ARRAY_BUFFER,vertices.byteLength,gl.DYNAMIC_DRAW);
       gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,ib);gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,new Uint16Array(indices),gl.STATIC_DRAW);
-      uniforms=Object.fromEntries(['camera','shape','halfView','optical','noiseMap','tint','hot','lamps[0]','lightColor[0]'].map(k=>[k,gl.getUniformLocation(linked,k)]));
+      uniforms=Object.fromEntries(['camera','shape','halfView','optical','noiseMap','tint','hot','lamps[0]','lightColor[0]','fine'].map(k=>[k,gl.getUniformLocation(linked,k)]));
       program=linked;
     }catch(e){
       failed=true;if(linked)gl.deleteProgram(linked);console.warn('Assassin cut surface',e);
@@ -304,6 +318,7 @@
     gl.uniform4f(uniforms.camera,-cam.x+cam.sx,-cam.y+cam.sy,S*cam.z,cam.rot);
     gl.uniform2f(uniforms.halfView,W*.5,H*.5);
     gl.uniform4f(uniforms.shape,mode,o.t||0,sat(o.fade||0),o.side||0);
+    gl.uniform1f(uniforms.fine,o.fine?1:0);
     gl.uniform1i(uniforms.noiseMap,1);
   }
   function refract(q){

@@ -499,3 +499,9 @@ WebGL에서 단검 네 자루의 메시를 한 번에 그린다. 최종 녹화�
   - 분신: 단색 실루엣.
   - 절정: 과노출.
   - 검은 연기: 명암 없는 원형 얼룩.
+
+## 47회 (2026-11-25) 에셋 실물화·기둥 교체·신 움직임·암살자 재제작 3회 (wf_efac1daa-4b5)
+- 키트 갱신 10: fx3 실물 메시(stone/cobble/shard/flag/meteor/ice/iceshard, 전용 셰이더·깊이), K3.ice/meteor/lightning/impact/eruptEarth/deity(rig). 보존 4개(sw_ult1·3, fs_ult1·3) 픽셀 차 0.
+- 3회차 점수(형태/움직임 평균): mg 64.5/59.5/67.5, fs_ult2 61.5, sh 60.5/60.5/65, sw_ult2 62.5, py_ult2 60·py_ult3 63, as_ult1 65.5·as_ult2 65.5·as_ult3 62. 암살자 일반 53~66. 70 통과 없음. 최종 코드 = 3회차.
+- smoke 6직업 errs 0, stuck 없음. peakDraws 검 164, 법 136, 권 124, 도 173, 화 115, 암 101 (모두 감소).
+- sk_sword.js 의 swordFoley(Sonniss 효과음)는 다른 세션 작업. 허브 세션이 9cea58f 로 작업 중 상태를 배포함 → 재배포 필요.
