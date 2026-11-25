@@ -20,7 +20,9 @@ const PE={d:'#220200',b:'#d81204',m:'#ff6a14',h:'#ffd070',l:'#ff3410',s:'#ff9a50
 const PG={d:'#2a1606',b:'#b8741e',m:'#ffd27a',h:'#fff6dc',l:'#ffae34',s:'#ffe6a0'};
 // the hottest instants only: white-gold; and the giant's own warm gold fire
 const PW={d:'#5a2a04',b:'#ffb040',m:'#fff0c0',h:'#ffffff',l:'#ffe2a8',s:'#fff2cc'};
-const PGF={d:'#3a1404',b:'#d8701a',m:'#ffc24a',h:'#fff4d8',l:'#ffae34',s:'#ffe6a0'};
+const PGF={d:'#2a0a02',b:'#b03a0a',m:'#ff7a20',h:'#ffe9b8',l:'#ff7a24',s:'#ffc24a'};
+// the rune circle: an amber nearer the fire than the clean gold
+const PGR={d:'#2a1006',b:'#a8521a',m:'#e8943c',h:'#ffd89a',l:'#ff9a34',s:'#ffd08a'};
 const SMK='#1a1614';
 const col=P=>({cA:P.d,cB:P.b,cM:P.m||P.b,cC:P.h});
 const mk=(n,o)=>{ if(window.MK&&MK.on()) MK.play(n,o); };
@@ -43,9 +45,12 @@ const jetSeg=(a,b,r0,r1,o)=>{ const dx=b[0]-a[0], dY=b[1]-a[1], dz=b[2]-a[2], hl
 let SMT=null; const smt=()=>SMT||(SMT={body:F.mat({pm:[2,1.3,0,0],nz:'fbm',n1:[1.2,.6,-1.4,0],nk:.12,ero:0,soft:.5,rk:[.3,.95],gain:2.4,bgain:1.1}),core:F.mat({pm:[2,3.5,0,0],nk:0,ero:0,soft:.4,rk:[.15,.55],gain:4,bgain:2})});
 // a fire burning on the floor: a real flame painting through the fire ramp, its grain rising, flickering, burning down from the top. s = height
 let FM=null; const fireMat=()=>FM||(FM=F.mat({...K.mats().art,tex:'v3_real_fire',layer:'o',nz:'billow',n1:[1,1.6,0,-2.2],n2:[1.4,1.2,.04,-1.6],dist:.07,mdist:1,rk:[.45,1.05]}));
-const fireCard=(x,y,s,dur,o={})=>{ if(!F.on) return; const mt=fireMat(), sd=rand(0,9), rise=o.rise||.18, L=o.light===0?null:GFX.light(x,y,s*2.2,PF.l,.7,dur,{z:s*.4,flick:.3});
-  GFX.add(dur,(k,t)=>{ const g=eo3(sat(t/rise)), f=sat((k-(o.hold??.45))/(1-(o.hold??.45))), fl=1+.06*Math.sin(t*23+sd)+.04*Math.sin(t*37+sd*2), hh=s*(.5+.5*g)*(1-.45*f)*fl;
-    F.bill(mt,x,y,hh*.95,hh*.62*(o.wide||1),hh,0,{...col(f>.5?PE:o.pal||PF),a:1-f*f,gain:(o.gain||2.4)*(1-.4*f),ero:.1+.75*f,t0:sd,uvT:o.flip?[-1,1,1,0]:[1,1,0,0]}); if(L) L.a=.7*(1-f); },o.delay||0); };
+// (2026-11-25) no longer a flame photograph stood on a card (it read as a picture sliding about): a real volume of fire, its own twist and girth,
+// that burns down and leaves smoke
+const fireCard=(x,y,s,dur,o={})=>{ if(!F.on) return; after(o.delay||0,()=>{ const hold=o.hold??.45, g=.8+.4*h01(x*.013+y*.007);
+    K.vcolumn(x,y,{r:(s*.15+50)*(o.wide||1)*g,h:s*.8,dur,rise:o.rise||.18,out:dur*(1-hold)*.9,pal:o.pal||PF,heat:1.25,twist:1.4+1.6*h01(x*.031),turb:1.15,taper:.24+.3*h01(x*.017+y*.011),gain:.85,band:1,btop:.62,lit:.6,flow:1.4});
+    if(o.light) GFX.light(x,y,s*2.2,PF.l,.7,dur,{z:s*.4,flick:.3});
+    if(s>700&&g>1) after(dur*.7,()=>K.vsmoke(x,y,{s:s*.4,z:s*.3,dur:1.8+g,rise:420,a:.3,c:'#1c120e',c2:'#5a3a2a',lit:.4,vx:-100})); }); };
 // a shaft of white-gold light falling from above the screen onto (x,y): it reaches down, stands, thins and goes
 const shaft=(x,y,w,dur,delay,o={})=>{ if(!F.on) return; const m=K.mats(), S=smt(), br=o.br??1, fk=o.flick||0, ph=rand(0,9);
   GFX.add(dur,(k,t)=>{ const i=eo3(sat(t/.16)), f=sat((k-.5)/.5), fl=fk?(.45+.55*Math.abs(Math.sin(t*fk+ph))*(.7+.3*Math.sin(t*fk*2.3+ph))):1, a=(1-f*f)*fl*br, z0=5200*(1-i), pts=[0,1,2,3,4,5].map(j=>({x:x+(j/5)*w*.4,y,z:mix(z0,5200,j/5),q:j/5}));
@@ -60,6 +65,10 @@ const shaft=(x,y,w,dur,delay,o={})=>{ if(!F.on) return; const m=K.mats(), S=smt(
 // A long gold pole with gold rings; at its head a neck and a big ivory crescent blade, thick in the middle, its horns curling back past the pole.
 const RCB=560, WB=340;
 function drawAxe(P,d,n,o){ if(!F.on||!(F.solids&&F.solids())) return null; const L=o.L, b=nrm(crs(d,n)), ero=o.ero||0, ht=o.heat||0, a=o.a??1;
+  // (2026-11-25) the real 3D axe (axe_ult3.js): model z runs from the head to the pommel, x the way the edge faces
+  if(window.AxeUlt3&&AxeUlt3.axe){ const sc=L*.62, Z=scl(d,-1), Xv=n, Yv=nrm(crs(Z,Xv)), O=add(P,scl(d,L*1.12));
+    const M=new Float32Array([Xv[0]*sc,Xv[1]*sc,Xv[2]*sc,0, Yv[0]*sc,Yv[1]*sc,Yv[2]*sc,0, Z[0]*sc,Z[1]*sc,Z[2]*sc,0, O[0],O[1],O[2],1]);
+    if(AxeUlt3.axe(M,[a,Math.min(1,ht),Math.min(1,ht),ero])) return add(add(P,scl(d,L*.97)),scl(n,110+WB*.52)); }
   const gold={alb:'#c8902c',emis:'#ff9a30',rimC:'#ffe6a0',spec:1.1,rim:.6,tone:.15,bump:.5,ero,a};
   solidAt('slab',1,add(P,scl(d,-.16*L)),n,b,d,44/.3,44/.1,L*1.14/1.3,{...gold});
   // ornamental bands: a wide ring with a thin ring either side, a spiked butt cap
@@ -110,8 +119,8 @@ function cast(id){ X.ultStart(id); if(F&&F.prepDeep) F.prepDeep(); const Cn=X.ci
   // (the right at the grip, the left lower down it). It overflows the top of the screen, and after the blow it lifts and scatters upward
   const wisp=(A,B,ey,ra,rb,o)=>{ const dx=B[0]-A[0], dY=B[1]-A[1], dz=B[2]-A[2], L2=Math.hypot(dx,dY,dz)/2||1;
     vol('wisp',(A[0]+B[0])/2,(A[1]+B[1])/2*FSY,(A[2]+B[2])/2,{ex:L2+ey*.35,ey,ez:ey,yaw:Math.atan2(dY,dx),pitch:Math.atan2(dz,Math.hypot(dx,dY)),pa:[ra,rb,2.4,o.flow||.8],pb:[o.glow??.3,o.loose??1,o.rimK??1.15,o.rag??.3],
-      dens:o.dens??6,gain:1.15,seed:o.seed||1,smoke:.55,fire:.75,block:.8,...col(PGF),cS:'#1e1008',cK:'#e8a040',amb:.2,key:1.3,rim:1.2,glow:.2,sdist:.25,shadow:5,steps:22,lit:.8,ord:o.ord??gy-40}); };
-  const arm=(S,H,sg)=>{ const l=620, D=sub(H,S), dl=Math.hypot(...D)||1, h=Math.sqrt(Math.max(0,l*l-dl*dl/4)), m=lerp3(S,H,.5), out=nrm(add([sg,0,-.6],scl(nrm(D),-sg*.0))), E=add(m,scl(nrm(sub(out,scl(nrm(D),out[0]*D[0]/dl+out[1]*D[1]/dl+out[2]*D[2]/dl))),h));
+      dens:o.dens??6,gain:1.15,seed:o.seed||1,smoke:.55,fire:.75,block:.8,...col(PGF),cS:'#160a06',cK:'#c0541c',amb:.2,key:1.2,rim:1,glow:.2,sdist:.25,shadow:5,steps:22,lit:.8,ord:o.ord??gy-40}); };
+  const arm=(S,H,sg)=>{ const l=430, D=sub(H,S), dl=Math.hypot(...D)||1, h=Math.sqrt(Math.max(0,l*l-dl*dl/4)), m=lerp3(S,H,.5), out=nrm(add([sg,0,-.6],scl(nrm(D),-sg*.0))), E=add(m,scl(nrm(sub(out,scl(nrm(D),out[0]*D[0]/dl+out[1]*D[1]/dl+out[2]*D[2]/dl))),h));
     return E; };
   GFX.add(T_IMP+.95,(k,t)=>{ if(st.dead) return; const form=eo3(sat((t-.03)/.45)), gone=sat((t-T_IMP-.12)/.65), body=form*(1-gone*gone), up=gone*gone*700, U=[0,0,up], Q=pose(Math.min(t,T_IMP+.2));
     if(body<.02) return; const lean=t<T_SW?-.1:t<T_IMP?.35*sat((t-T_SW)/(T_IMP-T_SW)):.35, fw=[0,lean*260,-lean*120], dn=.6+.4*form, hot=1-gone;
@@ -120,10 +129,10 @@ function cast(id){ X.ultStart(id); if(F&&F.prepDeep) F.prepDeep(); const Cn=X.ci
     // a dark mass of smoke behind the figure so its light has something to stand against
     vol('blast',gx,gy-30,1100+up,{ex:900,ey:420,ez:900,pa:[.7,.6,2,t*.25],pb:[.25*hot,1,1,.6],dens:4*body,gain:1,seed:3.3,smoke:1,fire:1,cS:'#0e0a08',cK:'#4a3426',amb:.25,key:1,rim:.4,glow:0,steps:18,ord:gy-90});
     wisp(wa,nk,400*dn,.42,.82,{dens:8*body,glow:.3*hot,seed:1,ord:gy-60,loose:1.3,rag:.9});
-    wisp(sL,sR,190*dn,.55,.55,{dens:9*body,glow:.3*hot,seed:2,ord:gy-55,loose:1.1});
+    wisp(sL,sR,230*dn,.7,.7,{dens:7*body,glow:.3*hot,seed:2,ord:gy-55,loose:1.5,rag:.8});
     wisp(add(hd,[0,0,-140]),add(hd,[0,0,150]),190*dn,.65,.6,{dens:10*body,glow:.38*hot,seed:3,ord:gy-50,rimK:1.4});
-    for(const [S,E,H,sd] of [[sL,eL,hL,4],[sR,eR,hR,6]]){ wisp(S,E,135*dn,.75,.6,{dens:9*body,glow:.32*hot,seed:sd,ord:gy-30+sd}); wisp(H,E,120*dn,.5,.65,{dens:9*body,glow:.36*hot,seed:sd+1,ord:gy-20+sd});
-      vol('blast',H[0],H[1]*FSY,H[2],{ex:150,ey:130,ez:130,pa:[.7,.5,2.6,t],pb:[1.3*hot,.9,1,.5],dens:10*body,gain:1.4,seed:sd+9,smoke:.3,fire:.7,...col(PGF),cS:'#2a1408',cK:'#c08040',amb:.12,key:1.2,rim:.6,glow:.6,ord:gy+sd}); }
+    for(const [S,E,H,sd] of [[sL,eL,hL,4],[sR,eR,hR,6]]){ wisp(S,E,165*dn,.8,.55,{dens:8*body,glow:.32*hot,seed:sd,ord:gy-30+sd,loose:1.4,rag:.7}); wisp(H,E,125*dn,.45,.65,{dens:8*body,glow:.36*hot,seed:sd+1,ord:gy-20+sd,loose:1.3,rag:.6});
+      vol('blast',H[0],H[1]*FSY,H[2],{ex:150,ey:130,ez:130,pa:[.7,.5,2.6,t],pb:[1.3*hot,.9,1,.5],dens:10*body,gain:1.4,seed:sd+9,smoke:.3,fire:.7,...col(PGF),cS:'#2a1408',cK:'#a8501c',amb:.12,key:1.2,rim:.6,glow:.6,ord:gy+sd}); }
     // the eyes, and fire licking up off the crown
     const m=K.mats(); for(const sg of [-1,1]){ const e=add(hd,[sg*70,120,20]); F.bill(m.glowO,e[0],e[1]*FSY,e[2],95*body,28*body,0,{...col(PW),a:body*hot,gain:3.6}); }
     jetSeg(add(hd,[0,0,120]),add(hd,[30,-40,560]),130*body,20*body,{pal:PGF,heat:1.2*hot,turb:1.1,smoke:.25,dens:9*body,gain:1.3,speed:4,seed:7.7,band:.6,btop:.75,flow:1,ord:gy-45});
@@ -162,14 +171,14 @@ function cast(id){ X.ultStart(id); if(F&&F.prepDeep) F.prepDeep(); const Cn=X.ci
   // on the floor; small gold flames stand round it. It flares when the walls rise and fades out while the dragon comes
   const RC=hw*.9;
   after(T_RUNE,()=>{ mk('xPlant',{yaw:yawTo(PI),blend:.1}); Cn.move({x:x0,y:y0-300,zoom:.95,tilt:.17,roll:.03},1,'io'); GFX.ambient(.5,.42,.38,2); SFX.rise(1.1,.4); Cn.SND.shing(.9,.35);
-    st.sg1=K.sigil(x0,y0,{r:RC,dur:T_DRA+.55-T_RUNE,in:.75,out:.5,spin:.1,tex:'fx_circle_arcane',pal:PG,gain:.8});
-    st.sg2=K.sigil(x0,y0,{r:RC*.42,dur:T_DRA+.45-T_RUNE-.15,in:.5,out:.45,spin:-.22,tex:'fx_circle_seal',pal:PG,gain:.95,delay:.15}); });
+    st.sg1=K.sigil(x0,y0,{r:RC,dur:T_DRA+.55-T_RUNE,in:.75,out:.5,spin:.1,tex:'fx_circle_arcane',pal:PGR,gain:.48}); st.sg1.a=.6;
+    st.sg2=K.sigil(x0,y0,{r:RC*.42,dur:T_DRA+.45-T_RUNE-.15,in:.5,out:.45,spin:-.22,tex:'fx_circle_seal',pal:PGR,gain:.55,delay:.15}); st.sg2.a=.6; });
   GFX.add(T_DRA+.55-T_RUNE,(k,t)=>{ if(st.dead||!F.on) return; const m=K.mats(), D=T_DRA+.55-T_RUNE, i=eo3(sat(t/.75)), f=sat((t-(D-.5))/.5), a=i*(1-f)*(.85+.15*Math.sin(t*6)), rr=RC*(.3+.7*i);
-    F.quad(m.glowG,x0,y0,rr*1.15,rr*1.15,0,{...col(PG),a:.42*a,gain:1.1}); F.quad(m.glowG,x0,y0,RC*.5,RC*.5,0,{...col(PW),a:.35*a,gain:1.2}); },T_RUNE);
+    F.quad(m.glowG,x0,y0,rr*1.15,rr*1.15,0,{...col(PF),a:.34*a,gain:1}); F.quad(m.glowG,x0,y0,RC*.5,RC*.5,0,{...col(PG),a:.22*a,gain:1.1}); },T_RUNE);
   { const RL=[0,1,2,3].map(j=>{ const a=j*PI/2+.4; return GFX.light(x0+Math.cos(a)*RC*.6,y0+Math.sin(a)*RC*.6*FSY,RC*.75,PG.l,0,.1,{z:150,hold:T_DRA+.55}); });
-    GFX.add(T_DRA+.55,(k,t)=>{ const D=T_DRA+.55-T_RUNE, u=t-T_RUNE, a=u<0?0:eo3(sat(u/.75))*(1-sat((u-(D-.5))/.5)); for(const L of RL) L.a=.75*a; if(k>=.99) for(const L of RL) L.hold=0; }); }
-  [[.25,0],[.4,1.3],[.52,2.5],[.62,3.7],[.72,4.9]].forEach(([dl,a])=>after(T_RUNE+dl,()=>{ const r=RC*.42, x=x0+Math.cos(a)*r, y=y0+Math.sin(a)*r*FSY;
-    K.vcolumn(x,y,{r:60,h:560,dur:.75,rise:.12,out:.35,pal:PG,twist:3,turb:.7,heat:1,taper:.6,gain:.9}); K.flare(x,y,30,{pal:PG,s:170,dur:.12,gain:1.8}); sfx('slash',1.6,.25); }));
+    GFX.add(T_DRA+.55,(k,t)=>{ const D=T_DRA+.55-T_RUNE, u=t-T_RUNE, a=u<0?0:eo3(sat(u/.75))*(1-sat((u-(D-.5))/.5)); for(const L of RL) L.a=.5*a; if(k>=.99) for(const L of RL) L.hold=0; }); }
+  [[.3,0],[.34,1.3],[.4,2.5],[.37,3.7],[.45,4.9]].forEach(([dl,a])=>after(T_RUNE+dl,()=>{ const r=RC*.42, x=x0+Math.cos(a)*r, y=y0+Math.sin(a)*r*FSY;
+    K.vcolumn(x,y,{r:50+40*h01(a*3.1),h:380+360*h01(a*5.7),dur:.8+.3*h01(a*2.3),rise:.14,out:.4,pal:PF,twist:3,turb:.8,heat:1.1,taper:.35+.2*h01(a),gain:.85,band:1,btop:.62}); K.flare(x,y,30,{pal:PF,s:170,dur:.12,gain:1.6}); sfx('slash',1.6,.25); }));
 
   // ---- the walls: tall tongues of real fire round the circle (tall behind him, low in front so he stays in sight), each with a burning foot and
   // dark smoke rolling up behind it; white-gold shafts of light fall from above the screen between them; everyone on the field is thrown up
@@ -177,7 +186,6 @@ function cast(id){ X.ultStart(id); if(F&&F.prepDeep) F.prepDeep(); const Cn=X.ci
   after(T_WALL,()=>{ Cn.move({y:y0-700,zoom:.8,tilt:.2,roll:-.02},.7,'out'); GFX.ambient(.72,.46,.36,2); SFX.fire(1.8,.6); sfx('boom',1.2,.6); Cn.shake(.5); if(st.sg1) st.sg1.kick(); if(st.sg2) st.sg2.kick(); });
   WL.forEach(([deg,h,dl],i)=>after(T_WALL+dl,()=>{ const a=deg*PI/180, x=x0+Math.cos(a)*RW, y=y0+Math.sin(a)*RW*FSY, dur=T_DRA+.6-T_WALL-dl+.1*h01(i*3.3);
     fireCard(x,y,h,dur,{rise:.22,hold:.62,wide:.95,gain:2.6,flip:i%2===1});
-    K.vcolumn(x,y+10,{r:170+h*.05,h:h*.32,dur,rise:.2,out:.4,pal:PF,twist:2.2,turb:1,heat:1.2,taper:.5,band:.6,lit:.5,flow:.8});
     if(h>1400) K.vsmoke(x+40,y-60,{s:420,z:h*.55,dur:dur+.4,rise:700,a:.7,c:'#120e0c',c2:'#3e322c',delay:.15});
     K.flare(x,y,40,{pal:PG,s:300,dur:.14,gain:2}); K.dust(x,y,{n:7,r:220,sp:[200,700],a:.45}); K.sparks(x,y,60,{pal:PF,n:12,sp:[200,800],up:2400,life:[.4,1]}); }));
   [[250,0,170,1,0,.48],[300,.17,120,.8,0,.42],[226,.3,26,.9,23,.5],[275,.09,18,1,31,.3],[318,.38,22,.8,27,.56],[205,.12,14,.7,37,.62]].forEach(([deg,dl,w,br,fk,rr])=>{ const a=deg*PI/180; shaft(x0+Math.cos(a)*RW*rr,y0+Math.sin(a)*RW*rr*FSY,w,fk?.7:1,T_WALL+.12+dl,{br,flick:fk}); });
@@ -244,9 +252,12 @@ function cast(id){ X.ultStart(id); if(F&&F.prepDeep) F.prepDeep(); const Cn=X.ci
     K.vring(x0,y0,{r:hw*1.2,r0:220,dur:.8,tube:.08,a:.55,c:'#2a2018',c2:'#9a7458'});
     // fire bursting over the whole screen: a wave of real flames from him to the edges, the biggest ones in the middle, fireballs among them
     const fv=hw/.74, fh=hh/.74;
-    for(let i=0;i<26;i++){ const x=x0+(h01(i*3.1+.7)-.5)*fv*1.95, y=y0-fh*.95+h01(i*5.7+.3)*fh*1.7, d=Math.hypot(x-x0,(y-y0)/FSY);
-      if(d<260) continue; fireCard(x,y,mix(1400,500,sat(d/(fv*1.1)))*(.35+.9*Math.pow(h01(i*7.3),1.5)),.8+.4*h01(i*2.9),{rise:.1,hold:.3,wide:1.05,gain:2.6,flip:i%2===0,light:i%4?0:1,delay:d/4200}); }
-    for(let i=0;i<7;i++){ const a=i/7*TAU+.3+(h01(i*3.3)-.5)*.5, d=hw*(.3+.4*h01(i*5.1)), x=x0+Math.cos(a)*d, y=y0+Math.sin(a)*d*FSY; after(d/4200,()=>{ K.vblast(x,y,{s:300+180*h01(i*7.7),pal:PF,dur:1.2,heat:1.25,rise:340,smoke:.6,c:'#1c1410',c2:'#5a4436',band:.5,lit:.5}); K.sparks(x,y,40,{pal:PG,n:8,sp:[300,900],up:1500,life:[.3,.7]}); }); }
+    // (kit update 13) one fire, not fires: it catches at him and runs out to the edges, its tongues joined at the foot, then breaks up and burns down from the far edge inward
+    { const FP=[]; for(let i=0;i<26;i++){ const x=x0+(h01(i*3.1+.7)-.5)*fv*1.95, y=y0-fh*.95+h01(i*5.7+.3)*fh*1.7, d=Math.hypot(x-x0,(y-y0)/FSY);
+        if(d<260||i%3) continue; FP.push([x,y,mix(1400,500,sat(d/(fv*1.1)))*(.35+.9*Math.pow(h01(i*7.3),1.5))]); }
+      for(let i=0;i<15;i+=3){ const a=h01(i*4.3)*TAU, d=hw*(.18+.95*h01(i*7.1)); FP.push([x0+Math.cos(a)*d,y0+Math.sin(a)*d*FSY*.85,i%5===0?760+400*h01(i*2.9):200+420*h01(i*2.9)]); }
+      K.firefield(x0,y0,{pts:FP,from:[x0,y0],speed:4200,dur:2.6,out:1.25,pal:PF,keep:[x0,y0,260],smoke:0}); }
+    for(let i=0;i<5;i++){ const a=h01(i*3.3+.2)*TAU, d=hw*(.25+.5*h01(i*5.1)), x=x0+Math.cos(a)*d, y=y0+Math.sin(a)*d*FSY; after(d/4200,()=>{ K.vblast(x,y,{s:230+330*h01(i*7.7),pal:PF,dur:1+.5*h01(i*2.1),heat:1.25,rise:340,smoke:.22,c:'#1c120e',c2:'#5a3a2a',band:.5,lit:.5}); K.sparks(x,y,40,{pal:PG,n:8,sp:[300,900],up:1500,life:[.3,.7]}); }); }
     // every body on the field is thrown out and up, burning
     const Ls=onScreen(300).sort((a,b)=>Math.hypot(a.x-x0,a.y-y0)-Math.hypot(b.x-x0,b.y-y0));
     Ls.forEach((e,i)=>{ K.knock(e,{from:[x0,y0],dist:680,up:2200,fx:0}); if(i<3) K.ehit(e,{pal:PW,pw:1.6,ring:0}); });
@@ -260,9 +271,7 @@ function cast(id){ X.ultStart(id); if(F&&F.prepDeep) F.prepDeep(); const Cn=X.ci
     const LF=GFX.light(x0,y0,hw*1.1,PF.l,.8,4.6,{z:120,hold:.6,flick:.12}); GFX.add(4.6,k=>{ LF.a=.8*(1-k); }); });
   for(let i=0;i<6;i++){ const a=i/6*TAU+.5+(h01(i*9.1)-.5)*.6, d=hw*(.35+.5*h01(i*4.7)), x=x0+Math.cos(a)*d, y=y0+Math.sin(a)*d*FSY;
     after(T_PEAK+.1+.05*i,()=>K.cool(x,y,{kind:i%2?'lava':'crack',r:420+260*h01(i*6.1),rot:a,pal:PF,life:4.4+.8*h01(i*2.3),hot:.9,light:0})); }
-  for(let i=0;i<15;i++){ const a=h01(i*4.3)*TAU, d=hw*(.18+.95*h01(i*7.1)), x=x0+Math.cos(a)*d, y=y0+Math.sin(a)*d*FSY*.85, big=i%5===0;
-    fireCard(x,y,big?1000+400*h01(i*2.9):220+480*h01(i*2.9),(big?1.9:1.3)+.7*h01(i*3.7),{rise:.25,hold:.35,flip:i%2===0,light:big||i%3===0?1:0,delay:T_PEAK+.35+.06*i}); }
-  [[-.45,-.35],[.4,-.45],[-.2,.25],[.55,.2],[-.7,.05],[.1,-.6]].forEach(([fx,fy],i)=>after(T_PEAK+.3+.12*i,()=>K.vsmoke(x0+fx*hw,y0+fy*hh,{s:420,z:150,dur:2.4,rise:1300,a:.7,c:'#14100e',c2:'#4a3c34',vx:-120})));
+  [[-.45,-.35,620],[.4,-.45,440],[.55,.2,760],[-.7,.05,520]].forEach(([fx,fy,sz],i)=>after(T_PEAK+.45+.3*h01(i*3.9),()=>K.vsmoke(x0+fx*hw,y0+fy*hh,{s:sz,z:150,dur:2+.5*h01(i*1.7),rise:700+500*h01(i*2.9),a:.34,c:'#1c120e',c2:'#5a3a2a',vx:-120,lit:.4})));
   let an=0;
   GFX.add(4.4,(k,te)=>{ const want=Math.floor(Math.min(te,4.2)*60*(GFX.QK||1)); let n=0;
     while(an<want&&n++<6){ an++; const px=x0+(h01(an*1.9)-.5)*hw*1.8, py=y0-hh*.9+h01(an*4.3)*hh*1.7, ash=an%3===0;

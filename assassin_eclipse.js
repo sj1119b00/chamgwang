@@ -720,7 +720,7 @@
       }
       if(gouge.pts.length>1)F.ribbon(m.trB,gouge.pts,{cA:'#000000',cB:'#06030c',cM:'#1a1030',cC:'#3a2a5c',a:.85,gain:.8,ero:.18,ord:2,ulen:180,fd:NF});
       if(lipC.pts.length>1)F.ribbon(m.trB,lipC.pts,{cA:'#0c0a12',cB:'#262230',cM:'#48425a',cC:'#77708c',a:.8,gain:.9,ero:.3,ord:2,ulen:110,fd:NF});
-      if(scar.pts.length>1){const hk=t<BLOOM?K.heat(iris,.78-.16*sgT):K.heat(iris,sat((t-BLOOM)/1.6));F.ribbon(m.trC,scar.pts,{cA:hk.cA,cB:hk.cB,cM:hk.cM,cC:hk.cC,gain:1.4*hk.g,ero:.1,ord:3,ulen:140,fd:NF});}
+      if(scar.pts.length>1){const hk=t<BLOOM?K.heat(iris,.78-.16*sgT):K.heat(iris,sat((t-BLOOM)/1.6));F.ribbon(m.trC,scar.pts,{cA:hk.cA,cB:hk.cB,cM:hk.cM,cC:hk.cC,gain:1.3*hk.g*(1-.75*smooth(4.25,5.0,t)),ero:.1,ord:3,ulen:140,fd:NF});}
       if(core.pts.length>1)F.ribbon(m.trC,core.pts,{cA:steel.b,cB:steel.m,cM:steel.h,cC:'#ffffff',gain:2.6,ero:.05,ord:9,ulen:260,fd:NF});
       if(vapour.pts.length>1)F.ribbon(m.trB,vapour.pts,{cA:iris.d,cB:'#2a1d4a',cM:iris.b,cC:iris.m,a:.6,gain:1.2,ero:.12,ord:7,ulen:320,t0:t*.6,fd:NF});
       if(seam.pts.length>1)F.ribbon(m.trC,seam.pts,{cA:iris.b,cB:iris.m,cM:'#b48cf0',cC:'#e4d2ff',gain:.8+.5*sgT+1.5*breath(t),ero:.04,ord:9,ulen:200,t0:t*1.5,fd:NF});
@@ -793,8 +793,8 @@
         K.vring(cx,cy,{r:reach*.95,r0:R0[0]+80,dur:.5,tube:.06,c:'#0a090b',c2:'#2c2a30',a:.6});
         K.vblast(cx,cy,{s:260,pal:iris,heat:.55,smoke:.25,dur:1.2,rise:260,fire:.2});
         // A column of dust and grit thrown straight up out of the heart of the flower, lit from below.
-        K.vsmoke(cx,cy,{s:460,z:60,rise:1200,dur:1.9,c:'#16121e',c2:'#7a7096',a:1,lit:.8,flow:.5});
-        K.vsmoke(cx+60,cy-20,{s:300,z:260,rise:1300,dur:1.6,c:'#0c0a12',c2:'#463f58',a:.7,lit:.4,delay:.06});
+        K.vsmoke(cx,cy,{s:460,z:60,rise:760,dur:1.9,c:'#120f1a',c2:'#3d3852',a:.75,lit:.4,flow:.5});
+        K.vsmoke(cx+60,cy-20,{s:300,z:200,rise:820,dur:1.6,c:'#0c0a12',c2:'#342f46',a:.6,lit:.3,delay:.06});
         K.cool(cx,cy+20,{kind:'crack2',r:620,pal:iris,life:2.4,hot:.5,light:0});
         K.cool(cx,cy+20,{kind:'scorch',r:460,pal:iris,life:2.4,hot:.3,light:0,start:.3});
       }
@@ -818,7 +818,7 @@
         after(Math.min(.22,dist/6500),()=>{
           if(e.dead)return;
           K.knock(e,{dir,dist:450,up:1000,stun:.8,fx:0});
-          if(i<6)K.ehit(e,{pal:iris,pw:1.2,dir,ring:0,light:0});
+          if(i<2)K.ehit(e,{pal:steel,pw:.7,dir,ring:0,light:0});
         });
       });
       C.sweep(cx,cy,D,{list:hitList,speed:6500,max:.22});
@@ -840,7 +840,7 @@
           if(e.dead)return;
           X.dmg(e,Math.min(D*.03,e.hp*.15),{crit:true,kb:0});
           K.knock(e,{dir,dist:180,up:600,stun:.4,fx:0});
-          if(i<5)K.ehit(e,{pal:steel,pw:1,dir,ring:0,light:0});
+          if(i<3)K.ehit(e,{pal:steel,pw:.75,dir,ring:0,light:0});
         });
       });
     });

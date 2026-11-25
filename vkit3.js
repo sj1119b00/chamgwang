@@ -806,3 +806,152 @@ K.deityRig=(x,y,o={})=>{ const h=o.h||850, H={x,y,z:o.z??h*.06,h,a:o.a??1,dead:f
     if(f>0){ eX+=dt*120*(GFX.QK||1); while(eX>=1){ eX-=1; const zz=H.z+hh*R(.1,.95)+up, a=R(0,TAU_), rr=hh*R(.03,.16); GFX.pt({x:H.x+Math.cos(a)*rr,y:H.y+Math.sin(a)*rr*FSY,z:zz,vx:Math.cos(a)*R(60,260),vy:Math.sin(a)*R(30,120),vz:R(120,420),g:-50,drag:.5,life:R(.7,1.4),s:R(6,13),m:8,c:rgb(Math.random()<.4?P.h:P.m),fade:'in',L:3,pri:1}); } } },o.delay||0);
   return H; };
 })();
+
+// ================================================================ kit update 11: photographed stone and ice, round burning meteors (2026-11-25)
+// The lumpy displaced-noise meshes of kit update 10 (stone cobble shard flag ice iceshard meteor) read as rough 3D. Those kinds are now drawn as
+// photographs (assets/v3_real_*.webp: rocks, crags, glacier ice, ice chunks) standing in the world, and a meteor is a round ball of fire.
+// F.solid keeps its signature, so every caller changes look without being rewritten. The older kinds (boulder slab spike crystal plate rock crag)
+// are untouched. New names for callers: 'pstone' (a photographed rock), 'pcrag' (a torn-up outcrop standing on the floor), 'pice' (glacier ice).
+// K3.real=0 turns all of this off (the meshes come back).
+(()=>{
+const K=window.K3, F=window.FX3; if(!K||!F||!window.GFX) return;
+const FSY=.58, sat=K.sat, rgb=c=>typeof c==='string'?GFX.rgb(c):c;
+const AT={
+  rocks:{tex:'v3_real_rocks',cells:[[.01709,.00977,.21533,.48047,.8963],[.25488,.03125,.24023,.4375,1.0982],[.53027,.00977,.18945,.48047,.7886],[.76807,.00977,.21338,.48047,.8882],[.01318,.50977,.22314,.48047,.9289],[.25732,.50977,.23535,.48047,.9797],[.52393,.50977,.20166,.48047,.8394],[.76367,.50977,.22266,.48047,.9268]]},
+  crags:{tex:'v3_real_crags',cells:[[.02734,.00977,.27783,.98047,.5667],[.33789,.1377,.32324,.85254,.7583],[.6709,.11426,.32324,.87598,.738]]},
+  ice:{tex:'v3_real_ice',cells:[[.00391,.05859,.32422,.93359,.6946],[.33594,.30859,.66016,.68359,1.9314]]},
+  ice2:{tex:'v3_real_ice2',cells:[[.0791,.00521,.17432,.65625,.3542],[.3501,.00521,.29834,.65625,.6062],[.66992,.08268,.3252,.57878,.7492],[.00391,.72201,.24219,.27279,1.1838],[.27246,.67188,.20508,.32292,.8468],[.50391,.72266,.24219,.27214,1.1866],[.75391,.6875,.24219,.30729,1.0508]]},
+  chunks:{tex:'v3_real_icechunks',cells:[[.02344,.00977,.20312,.48047,.8455],[.28662,.00977,.17627,.48047,.7337],[.50488,.01758,.24023,.46387,1.0358],[.76172,.00977,.22607,.48047,.9411],[.01855,.50977,.2124,.48047,.8841],[.27197,.50977,.20605,.48047,.8577],[.50488,.51465,.24023,.46973,1.0229],[.76318,.50977,.22363,.48047,.9309]]}};
+// kind -> [atlas, cells it may use, height of the picture in units of the model's height, stands on the floor]
+const KM={stone:['rocks',[0,3,4,5,7,6],.86,0],cobble:['rocks',[5,7,0,4],.8,0],flag:['rocks',[1,3,5],.8,0],shard:['rocks',[2,6,1],.95,0],pstone:['rocks',[0,1,2,3,4,5,6,7],.86,0],
+  pcrag:['crags',[0,1,2],1,1],ice:['ice',[0],1.05,1],pice:['ice',[0],1.05,1],picewall:['ice',[1],1,1],iceshard:['chunks',[0,1,2,3,4,5,6,7],.9,0],meteor:['ball']};
+K.real=1; K.REAL=AT;
+// glacier ice: the tall masses for a big piece, low broken ridges mixed in for a small one [atlas, cell, height factor]
+const ICB=[['ice2',1,1.05],['ice',0,1.05],['ice2',0,1.12],['ice2',2,1]], ICS=[['ice2',3,.6],['ice2',1,1],['ice2',4,.7],['ice2',0,1.08],['ice2',5,.6],['ice2',2,.95],['ice2',6,.66],['ice',0,1]];
+let MR=null;
+function mr(){ if(MR) return MR; const m=F.mat, n9=K.m9?K.m9():null; MR={};
+  for(const k in AT) MR[k]=m({kind:2,tex:AT[k].tex,nz:'fbm',n1:[3,3,0,0],ero:-1,soft:.06,cB:'#ffffff',cC:'#ffffff',gain:1,op:1});
+  // the ball: a churning incandescent face, its corona, its white heart
+  MR.face=m({pm:[3,.42,0,0],nz:'billow',n1:[1.6,1.6,.35,.22],n2:[2.2,2.2,-.2,.3],dist:.1,nk:.75,pw:1.25,ero:.12,soft:.3,rk:[.34,.95],gain:2.1,bgain:1.2});
+  MR.cor=m({pm:[3,1.5,0,0],nz:'wisp',n1:[2,2,.5,.3],nk:.5,ero:.02,soft:.5,rk:[.4,.95],gain:1.5});
+  MR.core=m({pm:[3,1.9,0,0],nk:0,ero:0,soft:.5,rk:[.2,.6],gain:3.4});
+  MR.shade=n9?n9.shade:m({pm:[3,.9,0,0],nk:0,ero:.05,soft:.5,cA:'#000000',cB:'#000000',cC:'#000000',op:1,layer:'g',a:.55});
+  return MR; }
+if(F.on) for(const k in AT) F.img(AT[k].tex);
+const hx=c=>'#'+c.map(v=>('0'+Math.round(sat(v)*255).toString(16)).slice(-2)).join('');
+// BALL: a round burning body at (x,y,z), radius r: dark-red corona, a churning face of fire, a white heart. e = its colour, h = its hottest colour.
+K.fireball=(x,y,z,r,o={})=>{ if(!F.on) return; const m=mr(), e=rgb(o.emis||'#ff7a1e'), h=rgb(o.hot||'#fff0c0'), a=o.a??1, t=(typeof RT!=='undefined'?RT:0)+(o.seed||0),
+    d=hx(e.map(v=>v*.22)), b=hx(e), mm=hx(e.map((v,i)=>v*.45+h[i]*.55)), hh=hx(h), fl=.94+.06*Math.sin(t*37)+.04*Math.sin(t*61+1.3), ord=o.ord??0;
+  F.bill(m.cor,x,y,z,r*2.5*fl,r*2.5*fl,t*.6,{cA:d,cB:b,cM:mm,cC:hh,a:.55*a,ord:ord-.02});
+  F.bill(m.face,x,y,z,r*1.22,r*1.22,t*(o.spin??1.1),{cA:d,cB:b,cM:mm,cC:'#ffffff',a,ord,uvT:[1,1,t*.07%1,0]});
+  F.bill(m.core,x,y,z,r*.8*fl,r*.8*fl,0,{cA:b,cB:mm,cM:hh,cC:'#ffffff',a:.6*a,ord:ord+.02}); };
+// kit update 12 (2026-11-25): every photographed piece comes and goes the same soft way, so a field of them reads as one thing breathing in and out
+// rather than pictures put up one by one: it condenses out of light (a little small and bright, then its own colour), its foot melts into the floor in
+// a breath of dust or mist, and when it leaves it flares to light and thins, motes lifting off it. LIFE remembers when each piece was first seen.
+const LIFE=new Map(); let lifeSweep=0;
+const GLOW={rocks:[1,.86,.66],crags:[1,.86,.66],ice:[.82,.96,1],ice2:[.82,.96,1],chunks:[.82,.96,1]}, PUFF={rocks:['#3a322a','#8a7a66'],crags:['#3a322a','#8a7a66'],ice:['#9fc4dc','#f0fbff'],ice2:['#9fc4dc','#f0fbff'],chunks:['#9fc4dc','#f0fbff']};
+// (a standing piece is found again by where it stands, within a stride, so one that trembles or sways keeps its life)
+function life(key,now,x,y,st){ let A=LIFE.get(key); if(!A){ A=[]; LIFE.set(key,A); } let L=null;
+  for(const q of A){ if(now-q.last>.3) continue; if(!st||(Math.abs(q.x-x)<150&&Math.abs(q.y-y)<100)){ L=q; break; } }
+  if(!L){ L=A.find(q=>now-q.last>.3); if(L){ L.t0=now; L.out=0; } else { L={t0:now,out:0}; A.push(L); } L.fresh=1; } else L.fresh=0;
+  L.last=now; L.x=x; L.y=y;
+  if(now-lifeSweep>6){ lifeSweep=now; for(const [k,v] of LIFE) if(v.every(q=>now-q.last>2)) LIFE.delete(k); } return L; }
+const SOL0=F.solid;
+F.solid=(kind,vi,x,y,z,o={})=>{ const km=KM[kind]; if(!km||!F.on||!K.real) return SOL0(kind,vi,x,y,z,o);
+  const M=o.M, sx=M?Math.hypot(M[0],M[1],M[2]):(o.sx??o.s??100), sz=M?Math.hypot(M[8],M[9],M[10]):(o.sz??o.s??100), ux=M?M[8]/sz:0, uy=M?M[9]/sz:0, uz=M?M[10]/sz:1;
+  let px=x+(M?M[12]:0), py=y+(M?M[13]*FSY:0), pz=(z||0)+(M?M[14]:0); const gone=sat(o.ero||0), al=(o.a??1);
+  if(km[0]==='ball'){ K.fireball(px+ux*sz*.35,py+uy*sz*.35*FSY,pz+uz*sz*.35,sx*.5,{emis:o.emis,hot:o.rimC,a:al*(1-gone),ord:o.ord,seed:(vi|0)*1.7}); return {}; }
+  const sd=o.seed!=null?Math.floor(Math.abs(o.seed)*7.3):0, pick=km[1], m=mr(); let sk=km[0], ci=pick[((vi|0)+sd)%pick.length], hk=km[2];
+  // a rock kind asked for with the ice shading (mode 2) is broken ice
+  if(o.mode===2&&sk==='rocks'){ sk='chunks'; ci=((vi|0)+sd)%8; hk=.9; }
+  if(kind==='ice'||kind==='pice'){ const L=sz<430?ICS:ICB, e=L[((vi|0)+sd)%L.length]; sk=e[0]; ci=e[1]; hk=e[2]; }
+  const set=AT[sk]; if(!F.ready(set.tex)) return SOL0(kind[0]!=='p'?kind:(kind.startsWith('pice')?'ice':'stone'),vi,x,y,z,o);
+  const c=set.cells[ci], stand=km[3]&&o.clip!==0;
+  // tint: the caller's stone colour only as a hue over the photograph; the scene's ambient darkens it with the floor
+  const rockish=sk==='rocks'||sk==='crags', a0=rgb(o.alb||'#8a8a8a'), mx=Math.max(a0[0],a0[1],a0[2],.02), am=GFX.amb||[1,1,1], tk=o.tintK??(rockish?.42:.45), br=(o.bright??1)*(rockish?.7:1.02),
+    em=o.glow?rgb(o.emis||'#ffffff'):null, gk=em?Math.min(.3,o.glow*.14):0,
+    tint=[0,1,2].map(i=>((1-tk)+tk*a0[i]/mx)*br*(.45+.55*Math.min(1.3,am[i]))*(1-gk)+(em?em[i]*gk*1.6:0));
+  // (texture v runs from the bottom of the image)
+  let H=sz*hk, W=H*c[4], u0=c[0], v0=1-c[1]-c[3], du=c[2], dv=c[3], rot, cz;
+  if(stand||(km[3]===0&&o.clip!==0&&M==null)){ rot=Math.max(-.6,Math.min(.6,Math.atan2(ux,uz)));
+    // standing on the floor: what is under it is cut off (it rises out of the ground)
+    let zb=pz-sz*(km[3]?.04:.14); if(zb<0){ const f=sat(1+zb/H); if(f<=.02) return {}; v0+=dv*(1-f); dv*=f; cz=H*f*.5; H*=f; } else cz=zb+H*.5; H*=.5; W*=.5; }
+  else { rot=Math.atan2(ux,uz)+(M?Math.atan2(M[1],M[0])+Math.atan2(M[9],M[10])*.6:0); px+=ux*sz*.35; py+=uy*sz*.35*FSY; cz=pz+uz*sz*.35; H*=.5; W*=.5;
+    if(o.clip!==0&&cz-H<0){ const f=sat((cz+H)/(2*H)); if(f<=.02) return {}; v0+=dv*(1-f); dv*=f; const top=cz+H; H*=f; cz=top-H; } }
+  const flip=(((vi|0)+sd)>>1)%2===1;
+  // one soft life for every piece (o.pop:1 = the old hard appearance)
+  let foot=0;
+  if(!o.pop){ const now=typeof RT!=='undefined'?RT:0, st=stand||(km[3]===0&&o.clip!==0&&M==null), Lf=life(kind+':'+(vi|0)+':'+(o.seed??''),now,x,y,st),
+      u=sat((now-Lf.t0)/(o.bloom??.42)), ui=u*u*(3-2*u), gi=Math.pow(1-u,1.6), go=gone>0?Math.sin(Math.PI*Math.min(1,gone*1.5))*.9+(gone>.66?0:0):0, g=Math.max(gi,go), G=em||GLOW[sk];
+    for(let i=0;i<3;i++) tint[i]=tint[i]*(1+.6*g)+G[i]*g*1.1;
+    const sc=.88+.12*ui+.05*sat(gone*2); W*=sc; if(st){ H*=sc; cz*=sc; foot=.16; } else H*=sc;
+    o={...o,a:(o.a??1)*ui};
+    // its breath: dust or mist rolling off its foot as it comes, motes lifting off it as it goes (particles, no draws)
+    if(!F.low){ const pc=o.puffC||(em?[hx(em.map(v=>v*.16+.05)),hx(em.map(v=>v*.4+.2))]:PUFF[sk]), s2=Math.max(W,H);
+      if(Lf.fresh&&st&&s2>60) for(let i=0;i<3;i++){ const a=Math.random()*6.283, v=s2*(.5+Math.random()*.8); GFX.pt({x:px+Math.cos(a)*W*.5,y:py+2,z:s2*.08,vx:Math.cos(a)*v,vy:Math.sin(a)*v*FSY*.6,vz:s2*.25,g:0,drag:1.4,life:.9+Math.random()*.5,s:s2*.28,grow:s2*.7,m:5,b:'alpha',c:rgb(pc[0]),c2:'#000000',c3:pc[1],er:.9,ns:1.2,w:1,a:.4,L:2}); }
+      if(gone>.08&&!Lf.out){ Lf.out=1; for(let i=0;i<4;i++) GFX.pt({x:px+(Math.random()-.5)*W*1.4,y:py,z:cz+(Math.random()-.5)*H*1.4,vx:(Math.random()-.5)*60,vy:0,vz:60+Math.random()*220,g:-60,drag:.6,life:.6+Math.random()*.7,s:4+Math.random()*6,m:8,c:G,fade:'in',L:3}); } } }
+  if(o.shadow&&!F.low) F.quad(m.shade,px+W*.35,py+W*.1,W*1.25,W*.6,0,{a:Math.min(.7,(o.shadow[2]||.3)*1.6)*(1-gone)*al});
+  // leaving: it fades as it is eaten (the noise alone leaves a speckle on a photograph)
+  F.bill(m[sk],px,py,cz,W,H,rot,{uvT:flip?[-du,dv,u0+du,v0]:[du,dv,u0,v0],cB:tint,fd:[0,0,foot,0],a:(o.a??1)*(1-gone*gone),ero:gone>0?gone*.45-.05:-1,soft:.12,ord:o.ord??0});
+  return {}; };
+})();
+
+// ================================================================ kit update 13: fire that burns as one body (2026-11-25)
+// Fires set down one by one (a column here, a column there) each rise and die alone: they read as separate stamps. FIREFIELD takes the same
+// places and makes them one fire: it catches from an origin and runs outward as a front, low flames stand along the lines between
+// neighbouring fires so their feet join, the tongues swell until they lean into one another and one pulse runs through all of them,
+// one wind carries all their sparks and smoke the same way; then the joining flames go out first, the body breaks into patches, and the patches
+// burn down from the far edge inward.
+//  K3.firefield(x,y,o) -> {pts,dead,end()}
+//  o: {pts:[[x,y,s],..] (floor points and tongue heights; or n + r + s:[lo,hi] to scatter them round (x,y)), from:[x,y] (where it catches, default x,y),
+//      speed (3200: how fast the front runs), dur (2.4), out (1: over how long it breaks up and dies), pal ('flame'), link (1.9: neighbours nearer than
+//      this many mean gaps are joined), linkH (.34: the joining flames' height as a share of the tongues), wind (-110: drift of sparks and smoke, x/s),
+//      keep ([x,y,r]: nothing is set down in front of this point), smoke (1), sparks (1), light (1), girth (1), delay}
+(()=>{
+const K=window.K3, F=window.FX3, V=window.VOL; if(!K||!F||!window.GFX) return;
+const FSY=.58, sat=K.sat, mix=K.mix, eo3=K.eo3, R=(a,b)=>a+Math.random()*(b-a), rgb=c=>typeof c==='string'?GFX.rgb(c):c;
+K.firefield=(x,y,o={})=>{ const H={pts:[],dead:false,end(){ H.cut=1; }}; if(!F.on||!(K.vok&&K.vok())) return H;
+  const P=K.pal(o.pal||'flame'), dur=o.dur||2.4, out=o.out??1, sp=o.speed||3200, [fx,fy]=o.from||[x,y], wind=o.wind??-110, gk=o.girth||1, d0=o.delay||0;
+  let L=(o.pts||[]).map(p=>({x:p[0],y:p[1],s:p[2]||400}));
+  if(!L.length){ const n=o.n||7, r=o.r||600, [s0,s1]=o.s||[260,620]; for(let i=0;i<n;i++){ const a=(i+R(.1,.9))/n*6.2832, d=r*Math.sqrt(R(.12,1)); L.push({x:x+Math.cos(a)*d,y:y+Math.sin(a)*d*FSY,s:mix(s0,s1,Math.pow(Math.random(),1.6))}); } }
+  if(o.keep){ const [kx,ky,kr]=o.keep; L=L.filter(p=>!(p.y>ky-20&&Math.abs(p.x-kx)<kr&&p.y-ky<kr)); }
+  if(F.low&&L.length>4) L=L.filter((p,i)=>i%2===0);
+  if(!L.length) return H;
+  const dist=(a,b)=>Math.hypot(a.x-b.x,(a.y-b.y)/FSY); let dmax=1;
+  // fires spread evenly over a field can never touch: they are drawn together into a few bodies (one per five or so), each round the one that
+  // stands furthest from the bodies already chosen, so there are masses of fire with dark floor between them rather than a scatter of candles
+  const CL=[]; { const gk2=o.gather??.5, nk=Math.max(1,Math.round(L.length/(o.per||5))); let c=L.reduce((a,b)=>b.s>a.s?b:a,L[0]); CL.push({x:c.x,y:c.y,L:[]});
+    while(CL.length<nk){ let best=null, bd=-1; for(const p of L){ const d=Math.min(...CL.map(q=>dist(p,q))); if(d>bd){ bd=d; best=p; } } CL.push({x:best.x,y:best.y,L:[]}); }
+    for(const p of L){ let q=CL[0], bd=1e9; for(const c2 of CL){ const d=dist(p,c2); if(d<bd){ bd=d; q=c2; } } const pull=Math.max(gk2,1-(p.s*.9+260)/Math.max(1,bd)); p.x=mix(p.x,q.x,Math.min(.85,pull)); p.y=mix(p.y,q.y,Math.min(.85,pull)); p.c=q; q.L.push(p); }
+    for(const q of CL){ q.r=Math.max(120,...q.L.map(p=>dist(p,q))); q.s=q.L.reduce((a,p)=>a+p.s,0)/Math.max(1,q.L.length); } }
+  for(const p of L){ p.d=Math.hypot(p.x-fx,(p.y-fy)/FSY); dmax=Math.max(dmax,p.d); }
+  // when each catches (the front), and when each dies (the far edge first, the heart of it last)
+  for(const p of L){ p.t0=p.d/sp+R(0,.04); p.t1=dur-out*(.15+.75*p.d/dmax)+R(-.06,.06); p.ph=R(0,6.28); p.tw=R(1.2,2.8); p.tp=R(.22,.5); }
+  // joins: each to its nearest neighbour or two, once, if they are near enough
+  const mean=L.length>1?L.reduce((s,p)=>s+Math.min(...L.filter(q=>q!==p).map(q=>dist(p,q))),0)/L.length:0, lim=mean*(o.link??1.9), J=[], seen=new Set();
+  if(L.length>1) L.forEach((p,i)=>{ const nb=L.map((q,j)=>[dist(p,q),j]).filter(e=>e[1]!==i).sort((a,b)=>a[0]-b[0]).slice(0,2);
+    nb.forEach(([d,j],k)=>{ const key=Math.min(i,j)+':'+Math.max(i,j), reach=((p.s+L[j].s)*.14+92)*gk*(o.reach??3.4); if(d>lim||d>reach||(k&&d>lim*.8)||seen.has(key)) return; seen.add(key); J.push([p,L[j],d]); }); });
+  H.pts=L;
+  after(d0,()=>{ if(H.dead) return;
+    for(const p of L){ const life=Math.max(.5,p.t1-p.t0);
+      p.h=K.vcolumn(p.x,p.y,{r:(p.s*.14+46)*gk,h:p.s*.8,dur:life,rise:.22,out:life*.42,pal:P,heat:1.25,twist:p.tw,turb:1.15,taper:p.tp,gain:.85,band:1,btop:.62,lit:.6,flow:1.4,delay:p.t0}); p.r0=p.h.r; p.h0=p.h.h; }
+    // the joining flames: they come when both ends burn and go first, so the body is seen to break up
+    for(const [a,b,d] of J){ const tb=Math.max(a.t0,b.t0)+.12, te=Math.min(a.t1,b.t1)-out*.45, life=te-tb; if(life<.35) continue;
+      K.vsheet(a.x,a.y,b.x,b.y,{h:Math.min(a.s,b.s)*(o.linkH??.46)*R(.8,1.25),thick:(Math.min(a.s,b.s)*.14+46)*gk*.75,dur:life,rise:.3,out:Math.min(.6,life*.5),pal:P,heat:1.1,turb:1,band:1,btop:.6,lit:.5,flow:1.2,gain:.8,delay:tb}); }
+    for(const q of CL){ if(q.L.length<2) continue; const t0=Math.min(...q.L.map(p=>p.t0))+.08, t1=Math.max(...q.L.map(p=>p.t1))-out*.3, life=t1-t0; if(life<.4) continue; const sd=R(0,90), rr=Math.min(q.r+q.s*.2,q.s*.8+110);
+      GFX.add(life,(k,t)=>{ if(H.dead) return; const g=eo3(sat(t/.4)), f=sat((t-(life-.55))/.55);
+        V.add('blast',q.x,q.y,q.s*.13,{ex:rr*1.25*(.6+.4*g),ey:rr*1.05*(.6+.4*g),ez:q.s*.3,pa:[.56,.62,2.6,.2+t*.9],pb:[1.25*(1-.5*f),1.25,1.1,.5+.3*f],dens:5.5*g*(1-f)*(1-f),gain:1.25,seed:sd,smoke:.12,fire:.6,
+          cA:P.d,cB:P.b,cM:P.m,cC:P.h,cS:P.d,cK:'#5a3a2a',amb:.1,key:1.1,rim:.4,glow:.5,steps:16,band:1,btop:.62,lit:.5,flow:1.1,ord:-1}); },t0); }
+    let E=0, tp=0, S=0; const cx=L.reduce((s,p)=>s+p.x,0)/L.length, cy=L.reduce((s,p)=>s+p.y,0)/L.length, Lg=o.light===0?null:GFX.light(cx,cy,dmax*1.5+500,P.l,.1,dur,{z:160,flick:.14});
+    GFX.add(dur,(k,t)=>{ if(H.dead) return; const dt=Math.max(0,t-tp); tp=t; let live=0;
+      for(const p of L){ if(!p.h||t<p.t0) continue; const u=t-p.t0, al=t<p.t1?1:0; live+=al;
+        // the tongues fatten until they lean into their neighbours, and one pulse runs out through all of them from where it caught
+        const fat=1+.7*sat(u/.7), pulse=1+.13*Math.sin(t*5.2-p.d*.0042)+.05*Math.sin(t*11+p.ph); p.h.r=p.r0*fat; p.h.h=p.h0*pulse; if(H.cut) p.h.a=Math.max(0,p.h.a-dt*3); }
+      if(Lg) Lg.a=.75*sat(t/.35)*sat((dur-t)/out)*(live?1:.4);
+      // one wind for everything it throws off
+      if(o.sparks!==0&&live){ E+=dt*(7+5*live)*(GFX.QK||1); while(E>=1){ E-=1; const p=L[(Math.random()*L.length)|0]; if(t<p.t0||t>p.t1) continue;
+          GFX.pt({x:p.x+R(-.25,.25)*p.s,y:p.y,z:p.s*R(.2,.8),vx:wind*R(.8,1.6)+R(-40,40),vy:R(-20,20),vz:R(160,520),g:-60,drag:.5,life:R(.6,1.3),s:R(2.5,5.5),m:3,len:.035,c:rgb(Math.random()<.3?P.h:P.s),c2:P.b,L:3}); } }
+      // and one roof of smoke over the whole of it, not a puff per fire: it gathers as the body breaks up and drifts off down the wind
+      if(o.smoke!==0&&!S&&t>dur-out*1.1){ S=1; const n=Math.min(3,1+(L.length>>2)); for(let i=0;i<n;i++){ const p=L[(i*5+1)%L.length]; K.vsmoke(mix(cx,p.x,.6),mix(cy,p.y,.6),{s:(dmax*.38+260)*R(.8,1.2),z:220+90*i,dur:out+1.3+.4*i,rise:R(380,620),a:.3,c:'#1c120e',c2:'#5a3a2a',lit:.4,vx:wind,delay:.18*i}); } } }); });
+  return H; };
+})();

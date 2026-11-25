@@ -490,7 +490,7 @@
         // A torn black wake, a coloured bleed, the lit edge and a white core that thins to a needle.
         // Every layer narrows as the rend retracts, so nothing lingers as a uniform line.
         wake.add(seg.map(q=>({...q,w:q.w*1.9*fade})));
-        bleed.add(seg.map(q=>({...q,z:q.z+4,w:q.w*(2.6+.9*(1-fade))*fade**.7})));
+        bleed.add(seg.map(q=>({...q,z:q.z+4,w:q.w*2.6*fade**1.3*sat((q.u-tail)*5)**1.2})));
         edge.add(seg.map(q=>({...q,w:q.w*fade})));
         core.add(seg.map(q=>({...q,w:q.w*.16*(c.heavy?1.4:1)*fade**1.8})));
       }

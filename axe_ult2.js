@@ -100,14 +100,14 @@ function cast(id){ ultStart(id); if(F&&F.prepDeep) F.prepDeep();
     FS.push({a,P}); }
   const ON=k=>k/SPD;
   after(TC,()=>{ gone=true; pl.gy=y0; lift=0; if(O) O.dead=true; if(J) J.dead=true;
-    Cn.peak(x0,y0-80,{ca:.03,blur:.16,tint:'#ff5a14',hold:.05,out:.3}); hitstop=Math.max(hitstop,.1); Cn.shake(1.6); Cn.SND.hit(1); sfx('boom',2.2,1);
+    Cn.peak(x0,y0-80,{ca:.03,blur:.16,tint:'#ff5a14',hold:.04,out:.2}); hitstop=Math.max(hitstop,.1); Cn.shake(1.6); Cn.SND.hit(1); sfx('boom',2.2,1);
     GFX.light(x0,y0,hw*1.6,PF.l,1.2,.6,{z:300}); GFX.light(x0,y0,800,'#fff2d0',1.1,.15,{z:80});
     Cn.move({x:x0,y:y0-BODY*.4-160,zoom:ZC,tilt:.2,roll:0},.3,'out'); GFX.ambient(.9,.52,.4,9); after(.15,()=>GFX.ambient(.62,.42,.38,2));
     // the boom: a white-hot flash at the axe, a fire dome swelling out of the impact over a third of the screen (low and wide, it rolls out and
     // turns to smoke - no column, no cap), and a torn front of fire rushing out over the whole floor with smoke behind it, thinning as it goes
     const q=blade(); K.flare(q[0],q[1],60,{pal:PG,s:700,dur:.12,gain:2.6}); K.flare(x0,y0,120,{pal:PF,s:1500,sx:2.4,sy:.6,dur:.22,gain:1.5});
-    K.vblast(x0,y0,{s:760,z:80,rise:220,dur:1.7,heat:1.35,fire:.7,smoke:.8,lump:.62,squash:.8,pal:PF,band:.7,lit:.6,flow:.6});
-    K.vring(x0,y0,{r:RM,r0:300,dur:.95,tube:.2,heat:1.3,pal:PF,lump:.95,lit:.6,a:1.1});
+    K.vblast(x0,y0,{s:760,z:80,rise:220,dur:1.7,heat:1.35,fire:.7,smoke:.55,lump:.62,squash:.8,pal:PF,band:.7,lit:.45,flow:.6,c:'#1c120e',c2:'#6a4632'});
+    K.vring(x0,y0,{r:RM*.62,r0:300,dur:.6,tube:.12,heat:1.1,pal:PF,lump:.95,lit:.5,a:.7,smoke:.25});
     K.shock(x0,y0,{r:RM*.9,pal:PF,dur:.7,gain:1.1});
     GFX.ripple(x0,y0,RM*.8,{life:.6,s:.7,w:.12});
     K.cool(x0,y0,{kind:'crater',r:540,pal:PF,life:TE-TC+AFT,hot:.55,start:.1,gain:1.15,light:0});
@@ -133,15 +133,18 @@ function cast(id){ ultStart(id); if(F&&F.prepDeep) F.prepDeep();
     // the first run lies inside the crater: the rift starts at its rim
     for(let j=1;j<4;j++){ const [ax,ay,da]=P[j], [bx,by,db]=P[j+1], w=[230,190,150,115][j]*(.85+.3*hs(i*2.3+j)), dl=ON(da);
       K.coolLine(ax,ay,bx,by,{w,pal:PF,life:TE-TC+AFT-dl,hot:.85,grow:Math.max(.05,ON(db-da)),gain:1.7,delay:dl}); }
+    // (kit update 13) the fires standing in one crack are one fire: it runs out along the crack with the front, joined at the foot, and breaks up as it dies
+    const FQ=[]; after(.02,()=>{ if(FQ.length) K.firefield(x0,y0,{pts:FQ,from:[x0,y0],speed:SPD,dur:2.3+.4*hs(i*3.1),out:1.1,pal:i%3?PF:PE,link:2.6,smoke:0,light:0,delay:.06}); });
     for(let j=1;j<4;j++){ const [ax,ay]=P[j], [bx,by]=P[j+1], uu=.25+.5*hs(i*5.1+j), px=mix(ax,bx,uu), py=mix(ay,by,uu), d=Math.hypot(px-x0,(py-y0)/FSY), dl=ON(d)+.06,
-        hk=.75+.5*hs(i*9.7+j), lf=1.3+.7*hs(i*3.1+j)+(j===3?.4:0);
-      after(dl,()=>{ K.vcolumn(px,py,{r:(105+25*j)*hk,h:(900+260*j)*hk,dur:lf,rise:.16,out:lf*.55,pal:j===1?PE:PF,heat:1.3,twist:2.2+hs(i+j),turb:1,taper:.32,gain:.85,band:1,btop:.64,lit:.7,flow:1.6});
-        GFX.light(px,py,640*hk,PF.l,1,lf,{z:220,flick:.2});
+        hk=.42+.95*Math.pow(hs(i*9.7+j),1.3), rk=.85+.75*hs(i*6.1+j*3.3), lf=1.3+.7*hs(i*3.1+j)+(j===3?.4:0), big=hs(i*4.3+j*2.9)>.42;
+      if(big) FQ.push([px,py,(900+260*j)*hk*1.15]);
+      after(dl,()=>{
+        GFX.light(px,py,640*hk,PF.l,big?1:.6,lf,{z:220,flick:.2});
         K.flare(px,py,30,{pal:PF,s:320*hk,dur:.12,gain:1.8});
         if(j===2) K.cool(px,py,{kind:'lava',r:150*hk,pal:PF,life:TE-TC+AFT*.7-dl,hot:.55,gain:1.2,light:0});
         for(let m=0;m<6;m++){ const b=hs(i*7.1+m+j)*TW, v=200+600*hs(m*2.3+i+j), c=m%2?PF.m:PE.b; GFX.pt({x:px,y:py,z:30,vx:Math.cos(b)*v,vy:Math.sin(b)*v*FSY,vz:1000+1100*hs(m*5.7+i),g:2600,drag:.25,life:.9+.3*hs(m+i),s:8+7*hs(m*4+i),m:8,c:GFX.rgb(c),c2:PE.d,L:3}); }
         K.dust(px,py,{n:4,r:40,sp:[120,380],a:.45});
-        after(lf*.55,()=>K.vsmoke(px,py,{s:240*hk,z:800*hk,dur:2.2,rise:520,a:.6,c:'#1e1814',c2:'#4a3e36',lit:.5}));
+        if(big&&(i+j)%2) after(lf*.5,()=>K.vsmoke(px,py,{s:(360+260*hs(i*2.1+j))*hk,z:240*hk,dur:2.2+.9*hs(i+j*3.7),rise:380+300*hs(j*1.9+i),a:.34,c:'#1c120e',c2:'#5a3a2a',lit:.5,vx:-90}));
         Cn.shake(.14); if(j===2&&i%2===0) sfx('boom',.7,.35); }); } }
 
   // one plate of crust: a flat, angular slab of broken stone (a cleaved stone mesh squashed thin) thrown up out of the floor and tipped on its
@@ -155,7 +158,7 @@ function cast(id){ ultStart(id); if(F&&F.prepDeep) F.prepDeep();
         // up .26 s (overshooting to on-edge), hang a beat, crash down by .62 s with a small bounce, then sit wedged
         const up=tt<.26?eo3(tt/.26):tt<.4?1:tt<.62?1-Math.pow((tt-.4)/.22,2):0, bo=tt>.62?.12*Math.exp(-(tt-.62)*9)*Math.abs(Math.sin((tt-.62)*20)):0,
           l=mix(L2,L1,up)+bo*.5, z=th*(.45*up+bo)-th*.1, f=sat((tt-(life-.5))/.5);
-        F.solid('stone',v,x,y,z-th*1.2*f*f,{M:F.xfw({sx:w,sy:w*.85,sz:th,rz,rx:-sa*l,ry:ca*l}),alb:'#7e7064',emis:PE.b,rimC:PF.h,spec:.5,rim:.4,heat:.45*sat(1-tt/.7),glow:mix(1.6,.35,sat(tt/2.8)),strata:0,edge:.07,dust:.55,dustC:'#5a4a3e',bump:2.2,detail:1,seed:i*1.7,
+        F.solid('pstone',v+1,x,y,z-w*.5*f*f,{M:F.xfw({sx:w,sy:w*.85,sz:w*.62,rz,rx:-sa*l*.4,ry:ca*l*.5}),clip:1,tintK:.3,bright:1.15,alb:'#7e7064',emis:PE.b,rimC:PF.h,spec:.5,rim:.4,heat:.45*sat(1-tt/.7),glow:mix(1.6,.35,sat(tt/2.8)),strata:0,edge:.07,dust:.55,dustC:'#5a4a3e',bump:2.2,detail:1,seed:i*1.7,
           shadow:[ca*.6+.2,sa*.6+.2,.55*(1-f)],ord:y}); }); }); }
   // the crust along the cracks: one big plate beside each crack (not in front of him), thrown up as the crack front passes, the edge at the crack raised
   function slabs(){ FS.forEach((f,i)=>{ const [ax,ay]=f.P[1], [bx,by]=f.P[2], dx=bx-ax, dy=(by-ay)/FSY, L=Math.hypot(dx,dy)||1, nx=-dy/L, ny=dx/L, sd=i%2?1:-1, u=.3+.4*hs(i*4.1),
@@ -163,13 +166,12 @@ function cast(id){ ultStart(id); if(F&&F.prepDeep) F.prepDeep();
     if(py>y0&&Math.abs(px-x0)<320) return;
     plate(px,py,Math.atan2(-ny*sd,-nx*sd),330+80*hs(i*3.7),ON(d)+.04,i+5); }); }
   // the floor burning between the cracks, then dying down one fire at a time (each its own size and life), leaving smoke
-  function groundFires(){ for(let i=0;i<7;i++){ const a=hs(i*2.7+.3)*TW, d=mix(.3,.95,hs(i*5.9))*RM*.7, px=x0+Math.cos(a)*d, py=y0+Math.sin(a)*d*FSY;
-      if(py>y0&&Math.abs(px-x0)<300) continue;
-      const dl=ON(d)+.2, lf=2+1.8*hs(i*3.3), s=.7+.6*hs(i*8.7);
-      after(dl,()=>{ K.vcolumn(px,py,{r:80*s,h:480*s,dur:lf,rise:.25,out:lf*.6,pal:i%3?PF:PE,heat:1.15,twist:1.6,turb:1.1,taper:.45,gain:.7,band:1,btop:.6,lit:.6,flow:1.2});
-        after(lf*.7,()=>K.vsmoke(px,py,{s:220*s,z:300,dur:2,rise:400,a:.5,c:'#1e1814',c2:'#4a3e36',lit:.4})); }); } }
+  function groundFires(){ const FP=[]; for(let i=0;i<7;i++){ const a=hs(i*2.7+.3)*TW, d=mix(.3,.95,hs(i*5.9))*RM*.7, px=x0+Math.cos(a)*d, py=y0+Math.sin(a)*d*FSY;
+      if((py>y0&&Math.abs(px-x0)<300)||i%3===2) continue; FP.push([px,py,600*(.7+.6*hs(i*8.7))]); }
+    // (kit update 13) one fire over the floor between the cracks
+    K.firefield(x0,y0,{pts:FP,from:[x0,y0],speed:SPD,dur:3.2,out:1.6,pal:PF,link:2.4,smoke:0,delay:.2}); }
   // ---- what is left (TC+1 - TE+AFT): smoke climbs out of the cracks, ash and embers drift over the whole field, the rifts cool and go dark
-  after(TC+2.2,()=>{ FS.forEach((f,i)=>{ const [px,py]=f.P[i%2?2:1]; K.vsmoke(px,py,{s:300+80*hs(i),z:250,dur:2.6,rise:600,a:.5,c:'#1e1814',c2:'#4a3e36',lit:.4,delay:.12*i}); }); });
+  after(TC+1.9,()=>{ FS.forEach((f,i)=>{ if(i%2) return; const [px,py]=f.P[i%4?2:1]; K.vsmoke(px,py,{s:420+320*hs(i*3.3),z:160,dur:2.4+.8*hs(i*5.1),rise:420+380*hs(i*2.3),a:.3,c:'#1c120e',c2:'#5a3a2a',lit:.4,vx:-110,delay:.35*hs(i*7.7)}); }); });
   after(TC+.6,()=>{ let n=0; GFX.add(TE-TC+AFT-.8,(k,tt)=>{ const want=Math.floor(tt*(70-45*k)*(GFX.QK||1)); while(n<want){ n++; const px=x0+(hs(n*1.9)-.5)*HWc*2, py=y0+(hs(n*4.3)-.5)*HHc*1.8;
       if(n%3) GFX.pt({x:px,y:py,z:10,vx:(hs(n*2.7)-.5)*60,vy:0,vz:150+hs(n*8.3)*380,g:-40,drag:.5,life:1+hs(n*3.1)*.9,s:3+hs(n*9.7)*4,m:3,len:.035,c:GFX.rgb(n%2?PF.s:PE.m),c2:PE.d,L:3});
       else GFX.pt({x:px,y:py,z:400+hs(n*6.1)*500,vx:-50,vy:-20,vz:-(150+hs(n*8.3)*150),g:0,drag:.2,life:1.8,s:5+hs(n*9.7)*6,rot:hs(n*5.3)*TW,vr:3,m:11,b:'alpha',c:GFX.rgb('#3a3436'),c2:'#0c0a0c',L:1}); } }); });

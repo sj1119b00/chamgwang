@@ -659,8 +659,8 @@
         K.sparks(fx_,fy,24,{pal:steel,n:low?4:7,dir,spread:.8,sp:[220,700],up:420,life:[.12,.34]});
         if(K.chunks&&!low)K.chunks(fx_,fy,{n:3,r:50,sp:[160,420],up:760,s:[26,48],kind:'slab',rock:'#2b2832',pal:dusk,life:1.1});
         K.debris(fx_,fy,{n:low?5:10,r:50,sp:[200,620],up:820,size:20,c:'#3c3744'});
-        K.dust(fx_,fy,{r:60,n:low?4:9,sp:[220,620],s:1.7,a:.6,life:1.1,c:'#2a2733',c3:'#857f97'});
-        if(!low)K.vring(fx_,fy,{r:340,r0:60,dur:.6,tube:.12,c:'#16131c',c2:'#4a4360',lit:.2,a:.7});
+        K.dust(fx_,fy,{r:60,n:low?4:9,sp:[220,620],s:1.7,a:.5,life:1.1,c:'#1c1926',c3:'#4a4560'});
+        if(!low)K.vring(fx_,fy,{r:340,r0:60,dur:.6,tube:.12,c:'#16131c',c2:'#3a3450',lit:.2,a:.5});
         K.cool(fx_,fy,{kind:'crater',r:170,pal:rock,life:Math.max(2.4,5.85-g.land),hot:.12,grow:.05,light:0,shed:0});
         if(web)GFX.light(fx_,fy,360,iris.l,.9,.28,{z:30});
         let first=true;
@@ -678,7 +678,7 @@
         if(g.n%2===0){note(98+12*(g.n>>1),0,.22);X.sfx('slash',.45,.35);}
         K.sparks(fx_,fy,18,{pal:g.n%2?iris:steel,n:low?3:6,dir,spread:.9,sp:[200,600],up:380,life:[.12,.3]});
         K.debris(fx_,fy,{n:low?4:8,r:44,sp:[180,540],up:700,size:17,c:'#3c3744'});
-        K.dust(fx_,fy,{r:48,n:low?3:7,sp:[180,520],s:1.4,a:.55,life:1,c:'#2a2733',c3:'#857f97'});
+        K.dust(fx_,fy,{r:48,n:low?3:7,sp:[180,520],s:1.4,a:.45,life:1,c:'#1c1926',c3:'#4a4560'});
         if(web)GFX.light(fx_,fy,280,iris.l,.8,.22,{z:30});
         for(const e of X.onScreen(300)){
           if(Math.hypot(e.x-fx_,(e.y-fy)/FSY)>200)continue;
@@ -746,7 +746,7 @@
         }
       }
       foes.slice().sort((a,b)=>Math.hypot(a.x-x,a.y-y)-Math.hypot(b.x-x,b.y-y)).slice(0,6)
-        .forEach((e,j)=>K.ehit(e,{pal:j%2?iris:steel,pw:1.1,ring:0,light:0}));
+        .forEach((e,j)=>K.ehit(e,{pal:steel,pw:.85,ring:0,light:0}));
       C.sweep(c.x,c.y,D,{list:foes,speed:7000,max:.2});
       later(.1,()=>{C.SND.shing(.7,.4);note(98,0,.25);C.shake(.5);});
     });
@@ -765,7 +765,7 @@
       }
       bp.parts.forEach((q,j)=>{if(low&&j%2)return;const p=step(q.a,q.d,q.len);shed(p,q.len*.42,q.pal,BURST,out({x:p.x+q.d.x*30,y:p.y+q.d.y*30*FSY}));});
       C.shake(.6);hitstop=Math.max(hitstop,.05);C.SND.shing(.6,.4);note(82,0,.3);X.sfx('slash',.7,.5);
-      K.flare(ctr.x,ctr.y,ctr.z,{s:220,sx:2.4,sy:.4,pal:iris,dur:.3,gain:1.6});
+      K.flare(ctr.x,ctr.y,ctr.z,{s:150,sx:2,sy:.35,pal:steel,dur:.3,gain:1.1});
       K.sparks(ctr.x,ctr.y,ctr.z,{pal:steel,n:low?8:16,sp:[500,1300],up:400,life:[.15,.45]});
       K.vsmoke(ctr.x,ctr.y-40,{s:240,z:ctr.z-60,dur:.8,rise:320,c:'#09080f',c2:'#2c2840',a:.5,lit:.3});
       puff({x:ctr.x,y:ctr.y,z:ctr.z-40},8,1.6);

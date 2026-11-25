@@ -97,7 +97,7 @@ const sk={
   py_tornado:{cls:'pyro',type:'skill',name:'파이어 토네이도',lv:8,cd:11,dmg:500,desc:'불의 회오리 2개를 일으켜 4초 동안 적을 쫓게 한다.',evo:'회오리가 3개가 된다.'},
   py_nova:{cls:'pyro',type:'skill',name:'슈퍼노바',lv:10,cd:13,dmg:9000,desc:'불꽃을 압축했다가 주변 전체를 날려 버리는 대폭발을 일으킨다.',evo:'범위가 크게 넓어진다.'},
   py_ult1:{cls:'pyro',type:'ult',name:'파이어 스톰',lv:3,desc:'궁극기. 등 뒤에 거대한 화염 회오리를 일으켜 화면의 모든 적을 끌어들여 태운 뒤, 회오리를 터뜨려 전부 날려 버린다.'},
-  py_ult2:{cls:'pyro',type:'ult',name:'홍염익',lv:12,desc:'궁극기. 등 뒤로 화염의 날개를 펼쳐 열파로 화면의 모든 적을 불태운 뒤, 날갯짓 한 번으로 전부 날려 버린다.'},
+  py_ult2:{cls:'pyro',type:'ult',name:'봉황강림',lv:12,desc:'궁극기. 불길에서 태어난 봉황이 하늘로 솟구쳤다가 전장에 내리꽂혀 화면의 모든 적을 불태운다.'},
   py_ult3:{cls:'pyro',type:'ult',name:'대분화',lv:5,desc:'궁극기. 땅에 손을 짚어 지면을 달구고 화면 끝까지 균열을 낸 뒤, 거대한 버섯 화구를 터뜨려 모든 적을 날리고 전역에 용암탄을 쏟아붓는다.'},
 };
 const order=Object.keys(sk);
@@ -360,7 +360,7 @@ const fsm=k=>k*k*(3-2*k);
 // st.cut (0..1) is how much of it has been torn away from the foot upward.
 function fsDraw(st){ return GFX.add(9,()=>{ if(st.dead||!VOLX||!VOLX.on||st.a<=0) return; const C=fsCol(st.col), sl=Math.sin(st.lean), cl=Math.cos(st.lean), ax=sl*Math.cos(st.ld), ay=sl*Math.sin(st.ld), ht=st.h*(1-st.cut), hh=ht/2, zc=st.h*st.cut+hh, rr=st.r*SBX, rf=mix(st.r0,st.r,Math.pow(st.cut,1.4)), smk=st.smk;
     const x=st.x+ax*zc, y=st.y+ay*zc*FSY, z=cl*zc+st.lift;
-    VOLX.add('funnel',x,y,z,{ex:rr,ey:rr,ez:hh,R:fsRot(st.ph,st.lean,st.ld),pa:[rf/rr,.936/SBX,st.thick*1.3/SBX,4],pb:[st.heat,2.4,st.sway,st.streak],dens:8.5*st.a,gain:1.38*st.gain,seed:7.3,smoke:smk,fire:.5,rim:.3*smk,amb:.2,key:1.2,glow:.34*(1-smk),band:.95,btop:.66,flow:.8,lit:.7,...C,...(smk>.2?{cS:mc(C.cS,'#141010',smk),cK:'#4e403a',key:.95}:{}),ord:st.y});
+    VOLX.add('funnel',x,y,z,{ex:rr,ey:rr,ez:hh,R:fsRot(st.ph,st.lean,st.ld),pa:[rf/rr,.936/SBX,st.thick*1.3/SBX,4],pb:[st.heat,2.4,st.sway,st.streak],dens:8.5*st.a,gain:1.38*st.gain,seed:7.3,smoke:smk,fire:.5,rim:.3*smk,amb:.2,key:1.2,glow:.34*(1-smk),band:.95,btop:.66,flow:.8,lit:.7,...C,...(smk>.2?{cS:mc(C.cS,'#120a08',smk),cK:'#4a2a1c',key:.8}:{}),ord:st.y});
     if(st.soot>0&&!F.low){ const r2=rr*1.08; VOLX.add('funnel',x,y,z,{ex:r2,ey:r2,ez:hh,R:fsRot(st.ph*.6+2,st.lean,st.ld),pa:[rf*1.12/r2,.936/SBX,st.thick*.42/SBX,2.6],pb:[0,1.7,st.sway,2.2],dens:3.2*st.soot*st.a,seed:19.4,smoke:1,fire:1,cS:'#0e0605',cK:mc('#3a160a','#7a3a14',sat(st.col/2)),amb:.16,key:1,rim:.3,glow:0,steps:16,lit:.5,flow:.4,ord:st.y+6}); }
     // the white heart shows as threads of white-gold wound up the near side of the wall, climbing
     // (all six threads are one ribbon: each thread ends at zero width, so the joins between them do not show - one draw instead of six)
@@ -403,13 +403,13 @@ function fsSeed(x0,y0,z0,tx,ty,dur,land){ const orb=K.vorb(x0,y0,z0,{r:46,pal:PG
 // (it starts small and slow and then rolls out; after the roll it keeps drifting outward as dust and thins over a second more.
 // On it: tongues of flame curling up and outward all round, and a bright front band on its near side - two ribbons, no volumes)
 const FSRP=1.35;
-function fsRing(x,y,Rm,r0,dur){ if(!VOLX||!VOLX.on) return; const C=K.vc(PF), tube=.125, a0=r0/Rm, km=F.on?K.mats():null, CF=col(PF), TL=1.15;
+function fsRing(x,y,Rm,r0,dur){ if(!VOLX||!VOLX.on) return; const C=K.vc(PF), tube=.125, a0=r0/Rm, km=F.on?K.mats():null, CF=col(PF), TL=.8;
   GFX.add(dur+TL,(k0,t)=>{ const k=sat(t/dur), e=eo3(Math.pow(k,FSRP)), late=sat((t-dur)/TL), rr=(mix(a0,1,e)+.12*Math.sqrt(late))*.78, f=sat((t-.45*dur)/(.55*dur+TL)), th=tube*(.78+.6*e);
     // (detail r3: the wall is a dark body with fire in it, not one orange - deep red ramp, a dark soot surface lit warm from above and
     // shadowed under itself (strong self shadow, low ambient); once it has rolled out it keeps an ember heat low in it that dies over
     // the drift, so it cools red-brown -> soot instead of bleaching to a beige band. Bigger, slower lumps instead of fine streaks.)
     const ember=.26*(1-late)*sat(k*3);
-    VOLX.add('ring',x,y,Rm*tube*.9,{ex:Rm,ey:Rm,ez:Rm*tube*2.1,time:t+5,pa:[rr,th,2,1.1],pb:[1.25*(1-k)+ember,.46,1.6,0],dens:9.5*Math.pow(1-f,1.5)*sat(k*10),seed:5.1,smoke:1,fire:.7,cA:'#3a0600',cB:'#c42804',cM:'#ff8a1c',cC:'#ffe0a0',cS:'#0a0504',cK:mc('#6a4430','#2e2826',Math.sqrt(late)),amb:.07,key:1.35,rim:.22,glow:.12*(1-k),shadow:7,sdist:.3,steps:20,band:.8,btop:.62,lit:.35,flow:.6,ord:t>.17?1e9:-1e9});
+    VOLX.add('ring',x,y,Rm*tube*.9,{ex:Rm,ey:Rm,ez:Rm*tube*2.1,time:t+5,pa:[rr,th,2,1.1],pb:[1.25*(1-k)+ember,.46,1.6,0],dens:9.5*Math.pow(1-f,1.5)*sat(k*10),seed:5.1,smoke:1,fire:.7,cA:'#3a0600',cB:'#c42804',cM:'#ff8a1c',cC:'#ffe0a0',cS:'#0a0504',cK:mc('#6a4430','#2c1c16',Math.sqrt(late)),amb:.07,key:1.35,rim:.22,glow:.12*(1-k),shadow:7,sdist:.3,steps:20,band:.8,btop:.62,lit:.35,flow:.6,ord:t>.17?1e9:-1e9});
     if(!km) return; const hot=1-sat((k-.25)/.6), R=Rm*rr, zt=Rm*tube*.9+Rm*th*1.25, ps=[], pf=[];
     // tongues of flame curling up and out all round; each one throws off a separate piece past its tip that lifts and dies
     if(hot>0){ for(let i=0;i<34;i++){ const h=h01(i*7.3+.5), a=i/34*TAU+h*.15+t*.25, L=(220+260*h)*hot*(.8+.3*Math.sin(t*9+i*2.3)), ca=Math.cos(a), sa=Math.sin(a), bx=x+ca*R, by=y+sa*R*FSY;
@@ -436,10 +436,10 @@ function fsShard(sx,sy,tx,ty,T,land){ const km=K.mats(), CG=col(PG), HZ=520+T*50
 function fsFire(x,y,r,h,dur){ const H=K.vcolumn(x,y,{r,h,dur,rise:.42,out:.45,pal:PF,taper:.55,turb:.8}); let pt=0;
   const sd=h01(x*.013+y*.007)*9;
   // (it gutters as it dies: width and lean flicker harder the nearer it is to going out, and it throws off small separate flames)
-  GFX.add(dur,(k,t)=>{ const FD=Math.min(1.1,dur*.6), f=sat((t-(dur-FD))/FD), fl=.08+.42*f; H.r=r*(1-.62*f*f)*(1+fl*Math.sin(t*23+sd)*Math.sin(t*7.3+sd*2)); H.h=h*(1+.5*f)*(1+.6*fl*Math.sin(t*17+sd*3)); H.x=x+r*(.15+.5*f)*Math.sin(t*5.1+sd);
+  GFX.add(dur,(k,t)=>{ const FD=Math.min(1.1,dur*.6), f=sat((t-(dur-FD))/FD), fl=.08+.42*f; H.r=r*(1-.62*f*f)*(1+fl*Math.sin(t*23+sd)*Math.sin(t*7.3+sd*2)); H.h=h*(1+.2*f-.75*f*f)*(1+.6*fl*Math.sin(t*17+sd*3)); H.x=x+r*(.15+.5*f)*Math.sin(t*5.1+sd);
     if(f>.15&&t-pt>.05&&h01(t*37+sd)<.4) GFX.pt({x:H.x+rand(-r,r)*.5,y,z:h*rand(.2,.6),vx:rand(-60,60),vy:0,vz:rand(150,320),g:0,drag:1.2,life:rand(.25,.45),s:rand(14,24)*(1-.5*f),m:8,c:GFX.rgb(PF.m),c2:PD.b,L:3});
     if(f>0&&t-pt>.05){ pt=t; GFX.pt({x:x+rand(-r,r)*.4,y,z:h*(.5+.6*f),vx:rand(-30,30),vy:0,vz:rand(420,760),g:0,drag:.8,life:rand(.35,.6),s:3.5,m:3,len:.05,c:GFX.rgb(PG.h),c2:PF.b,L:3}); } });
-  after(dur-.12,()=>K.vsmoke(x,y,{s:r*1.7,z:h*.6,dur:.9,rise:460,a:.45})); }
+  after(dur-.12,()=>K.vsmoke(x,y,{s:r*1.7,z:h*.3,dur:.8,rise:420,a:.35,c:'#0c0706',c2:'#5a3422'})); }
 // THE POOL the whirl stood on: molten veins that cool from the middle outward (three rings of it, each a step later than the one inside),
 // white -> orange -> dull red -> black crust; the crust itself breaks up at the very end.
 function fsPool(x,y,r,life){ if(!F.on) return; const m=um1(), CT=life*.62; GFX.add(life,(k,t)=>{ const i=eo3(sat(t/.22)), eat=sat((k-.93)/.07), rr=r*i;
@@ -537,7 +537,7 @@ function ultStorm(id){ timers.length=0; ultStart(id); const Cn=X.cine, {hw,hh}=v
         n=0; while(an2<wa&&n++<6){ an2++; const i=an2%5, aa=sat(st.arm-i)*st.armA; if(aa<.3) continue; const b0=(i*2%5)/5*TAU+st.aph+h01(i*3.3)*.5, Ro=st.armR*(.74+.34*h01(i*7.7)), Tq=.55+.2*hash1(an2*4.1);
           GFX.pt({x:st.x+Math.cos(b0)*Ro,y:st.y+Math.sin(b0)*Ro*FSY,z:24,oc:[st.x,st.y,24],or:Ro,oa:b0,ow:2.5/Tq+DIR*1.5,ok:(Ro-st.r0*1.5)/Tq,oz0:24,rmin:st.r0*1.4,life:Tq+.1,s:4+3*hash1(an2*7.3),m:3,len:.05,c:GFX.rgb(an2%3?PG.m:PG.h),c3:PG.h,c2:PF.b,L:3}); } }
       // black smoke leaves the mouth behind it, puff after puff, each one rolling up and away and thinning (never a blot that stays)
-      if(tt>.4&&t<T2&&t-smT>.36&&!F.low){ smT=t; const sx=sn++%2?1:-1; K.vsmoke(st.x+sx*st.r*.7,st.y-230,{s:st.r*.6+110,z:st.h*(.45+.25*gc),dur:1.3,rise:st.h*(.34+.3*gc)+260,a:.9,vx:-sx*st.r*1.1,c:'#0c0807',c2:'#8a6a52',lit:.8}); }
+      if(tt>.4&&t<T2&&t-smT>.36&&!F.low){ smT=t; const sx=sn++%2?1:-1; K.vsmoke(st.x+sx*st.r*.7,st.y-230,{s:st.r*.6+110,z:st.h*(.45+.25*gc),dur:1.3,rise:st.h*(.34+.3*gc)+260,a:.75,vx:-sx*st.r*1.1,c:'#0c0706',c2:'#7a4026',lit:.8}); }
       const burning=[]; for(const e of onScreen(300)) if(e._fs){ burning.push(e); e.mkC=PM.l; e.mkT=RT+.25; }
       // the wind: long sparks running round the whole field and into the foot of the whirl; every other one is torn off something that burns
       { const want=Math.floor((14*tt+20*tt*tt*.5)*(GFX.QK||1)*(t>T2?.3:1)); let n=0;
@@ -606,20 +606,20 @@ function ultStorm(id){ timers.length=0; ultStart(id); const Cn=X.cine, {hw,hh}=v
     // (four of them now: each one is a different size and leaves a fire of its own size and height)
     [.2,2.3,2.95,3.75,4.6,5.5].forEach((a,i)=>{ if(i===1||i===4) return; const d=[900,1400,820,1250,880,1150][i], tx=cx+Math.cos(a)*d, ty=cy+Math.sin(a)*d*FSY, T=.2+.07*i, fr=[66,0,104,52,0,88][i], fh=[340,0,540,250,0,450][i];
       fsShard(cx+Math.cos(a)*120,cy+Math.sin(a)*120*FSY,tx,ty,T,()=>{ K.vblast(tx,ty,{s:250+60*(i%3),pal:PF,dur:.95,fire:.34,smoke:.85,c:'#140604',c2:'#5a3a2a',band:.8,lit:.5,rise:300,lump:.5}); K.flare(tx,ty,120,{pal:PG,s:200,dur:.12,gain:2}); K.sparks(tx,ty,40,{pal:PG,n:10,sp:[300,1100],up:1100,life:[.2,.55]}); GFX.light(tx,ty,620,PF.l,.8,.35,{z:80}); Cn.shake(.35);
-        if(i!==1&&i!==4){ K.cool(tx,ty,{kind:'scorch',r:210,pal:PF,life:2.9,start:.15,light:0}); fsFire(tx,ty,fr,fh,Math.max(.9,TE-.2-.2*[2,0,0,3,0,1][i]-(TF+T))); } }); });
+        if(i!==1&&i!==4){ K.cool(tx,ty,{kind:'scorch',r:210,pal:PF,life:2.9,start:.15,light:0}); fsFire(tx,ty,fr,fh,Math.max(.9,TE-.85-.16*[2,0,0,3,0,1][i]-(TF+T))); } }); });
     // what the wall leaves where it passed: a scorched band and patches of burning ground, each lit as the wall reaches it and
     // cooling by itself; half of them carry a low fire that goes out one after another
     K.cool(cx,cy,{kind:'ring',r:hw*.86,pal:PF,life:3.4,start:.3,grow:.35,light:0,delay:fsRingT(hw*.6,RM,R0,RD)});
     [.6,1.75,2.7,3.9,4.75,5.9].forEach((a,i)=>{ const d=hw*(.62+.4*h01(i*6.7+2)), px=cx+Math.cos(a)*d, py=cy+Math.sin(a)*d*FSY, tw=fsRingT(d,RM,R0,RD);
       K.cool(px,py,{kind:'scorch',r:170+110*h01(i*3.1),ry:120+60*h01(i*4.3),rot:a+PI/2,pal:PF,life:1.5+.8*h01(i*8.9),start:.12,light:0,delay:tw});
-      if(i%2===0) after(tw,()=>fsFire(px,py,60,300,.8+.28*i)); }); });
+      if(i===0||i===4) after(tw,()=>fsFire(px,py,42+6*i,190+30*i,.75+.12*i)); }); });
   // ---- what is left (3.85 - 6.2): black smoke climbs where it stood, the pool crusts over from its middle outward, embers come down
   // (a column, not three equal balls: a dark low foot, a narrower lit stem drifting one way, and a wider cap leaning the other, each
   // a different size, speed and start; their lit side is the warm top)
   // (detail r3: a mushroom that climbs - a narrow dark stem going up fast, a lit stem puff above it, and a wide cap that boils up out of
   // them and spreads; every puff starts low and keeps rising, the warm light on their tops, black under them)
-  after(TC+.12,()=>{ K.vsmoke(cx-40,cy-20,{s:400,z:80,dur:2.6,rise:1000,a:.95,c:'#0a0706',c2:'#6a4a36',lit:.6,flow:.6,vx:-90}); K.vsmoke(cx+60,cy-60,{s:420,z:420,dur:2.4,rise:1500,a:.85,c:'#120c0a',c2:'#b08466',lit:1.1,flow:.8,vx:150,delay:.12}); GFX.light(cx,cy,1000,PF.l,.55,1.7,{z:60}); });
-  after(TC+.72,()=>K.vsmoke(cx-20,cy-110,{s:720,z:1050,dur:2.4,rise:1200,a:.7,c:'#1a1210',c2:'#c89a78',lit:1.2,flow:.9,vx:-200}));
+  after(TC+.12,()=>{ K.vsmoke(cx-40,cy-20,{s:400,z:80,dur:2.6,rise:1000,a:.95,c:'#0a0706',c2:'#6a4a36',lit:.6,flow:.6,vx:-90}); K.vsmoke(cx+60,cy-60,{s:420,z:420,dur:2,rise:1500,a:.75,c:'#120a08',c2:'#8a4e30',lit:1.1,flow:.8,vx:150,delay:.12}); GFX.light(cx,cy,1000,PF.l,.55,1.7,{z:60}); });
+  after(TC+.72,()=>K.vsmoke(cx-20,cy-110,{s:720,z:1050,dur:1.7,rise:1200,a:.5,c:'#160c0a',c2:'#8a5236',lit:1.2,flow:.9,vx:-200}));
   after(TE-1.3,()=>{ Cn.back(1.2); GFX.ambient(1,1,1,2); });
   after(TE,()=>{ st.dead=true; ultStop(); }); }
 
@@ -771,7 +771,7 @@ function wBurst(x,y,o={}){ if(!F.on) return; const r=o.r||150, h=o.h||r*3, dur=o
 // asset pass r2: ONE PUFF of smoke as a grain (the kit's dust state, so no new draw): it leaves small and low, climbs, widens and turns
 // as it goes and drifts downwind. wSmoke lets puffs off a narrow foot for a while (a column thin below, spreading above, ember light under
 // its foot) - in place of a standing grey volume.
-function wPuff(x,y,z,o){ GFX.pt({x,y,z,vx:o.wx*(.4+.6*Math.random())+(Math.random()-.5)*70,vy:o.wy*(.4+.6*Math.random())+(Math.random()-.5)*30,vz:o.up*(.6+.7*Math.random()),g:-o.up*.12,drag:.55,life:1.5+Math.random()*1.1,s:o.s*(.5+.5*Math.random()),grow:o.s*(1.7+1.5*Math.random()),rot:Math.random()*TAU,vr:(Math.random()-.5)*1.8,m:5,b:'alpha',c:GFX.rgb(Math.random()<.35?'#5a4a40':o.c||'#342c2a'),c2:'#000000',c3:'#5a5266',er:.9,ns:1.3,w:1,pri:1,a:Math.min(.85,o.a*1.6),L:0,fade:'in'}); }
+function wPuff(x,y,z,o){ GFX.pt({x,y,z,vx:o.wx*(.4+.6*Math.random())+(Math.random()-.5)*70,vy:o.wy*(.4+.6*Math.random())+(Math.random()-.5)*30,vz:o.up*(.6+.7*Math.random()),g:-o.up*.12,drag:.55,life:1.1+Math.random()*.8,s:o.s*(.5+.5*Math.random()),grow:o.s*(1.7+1.5*Math.random()),rot:Math.random()*TAU,vr:(Math.random()-.5)*1.8,m:5,b:'alpha',c:GFX.rgb(Math.random()<.35?'#4a3024':o.c||'#2a1c18'),c2:'#000000',c3:'#5a3622',er:.9,ns:1.3,w:1,pri:1,a:Math.min(.85,o.a*1.6),L:0,fade:'in'}); }
 function wSmoke(x,y,o={}){ if(!F.on) return; const dur=o.dur||1.5, rate=(o.rate||12)*(GFX.QK||1), r=o.r||40, W={wx:(o.wind||[90,0])[0],wy:(o.wind||[90,0])[1],up:o.up||300,s:o.s||44,a:o.a||.42,c:o.c}; let n=0;
   if(o.glow!==0) after(o.delay||0,()=>GFX.light(x,y,r*4+160,PF.l,.4*(o.glow||1),dur,{z:30,flick:.3}));
   GFX.add(dur,(k,t)=>{ const want=Math.floor(rate*t*(1-.35*k)); let m=0; while(n<want&&m++<6){ n++; wPuff(x+(Math.random()-.5)*r*2,y+(Math.random()-.5)*r*FSY,10+Math.random()*30,W);
@@ -954,10 +954,10 @@ function ultWings(id){ timers.length=0; ultStart(id); const Cn=X.cine, {hw,hh}=v
       // burns as it passes - a ragged front of fire of every height with gaps, each tongue flickering on its own and burning down to nothing
       const RG0=hw*.62, RG1=hw*1.9, RGD=1.5, rgr=tt=>mix(RG0,RG1,eo3(sat(tt/RGD)))*.78;
       K.vring(x0,y0,{r:RG1,r0:RG0,dur:RGD,heat:1.25,pal:PF,tube:.024,lump:2.2,freq:7,smoke:.4,a:.26,c:'#1a1210',c2:'#6a5040'});
-      if(VOLX&&VOLX.on){ const CR=fsCol(2.2), CD=fsCol(1.1); GFX.add(1,(k,tt)=>{ const R=rgr(tt), fa=1-smo(sat((k-.3)/.7));
-        for(let i=0;i<14;i++){ const h1=hash1(i*5.7), a=(i+.85*(hash1(i*3.1)-.5))/14*TAU, on=sat((Math.sin(tt*(9+5*h1)+i*2.3)+Math.sin(tt*(5.3+3*h1)+i)*.7+.9)*1.5); if(on<.05) continue;
+      if(VOLX&&VOLX.on){ const CR=fsCol(2.2), CD=fsCol(1.1); GFX.add(1,(k,tt)=>{ const R=rgr(tt);
+        for(let i=0;i<9;i++){ const h1=hash1(i*5.7), fa=1-smo(sat((k-.12-.34*hash1(i*6.9))/.5)), a=(i+.9*(hash1(i*3.1)-.5))/9*TAU, on=sat((Math.sin(tt*(9+5*h1)+i*2.3)+Math.sin(tt*(5.3+3*h1)+i)*.7+.9)*1.5); if(on<.05||fa<.03) continue;
           // asset pass r2: heights and widths drawn apart (one tall tongue in four, the rest low and broad) and leaning further out
-          const L=((h1>.75?820:h1>.4?440:240)+160*hash1(i*9.3))*fa*on+60, cd=Math.cos(a), sn=Math.sin(a), Rr=R*(1+.06*(hash1(i*2.2)-.5)), mx=x0+cd*Rr, my=y0+sn*Rr*FSY, w=(80+170*hash1(i*4.4))*(.4+.6*fa);
+          const L=((h1>.75?820:h1>.4?440:240)+160*hash1(i*9.3))*fa*on+60*fa, cd=Math.cos(a), sn=Math.sin(a), Rr=R*(1-.3*hash1(i*2.2)*sat(tt*2)), mx=x0+cd*Rr, my=y0+sn*Rr*FSY, w=(80+170*hash1(i*4.4))*(.4+.6*fa);
           // asset pass r1: each tongue of the wall is a flame leaning out with the front (broad foot, narrow ragged tip going to smoke,
           // swaying), not a straight round-ended jet; as the wall burns out its foot lifts off the floor
           const ln=.32+.34*hash1(i*1.3)+.06*Math.sin(tt*3.1+i*1.7), sl=Math.sin(ln), e=L/2, lf=L*.25*(1-fa)*(1-fa);
@@ -987,14 +987,14 @@ function ultWings(id){ timers.length=0; ultStart(id); const Cn=X.cine, {hw,hh}=v
         PR.push({x:x0+c*(150+l*.5),y:W.y+s*(150+l*.5)*FSY,rx:l*.5,ry:(270+120*hs)*1.45,rot:a,c:.02+.2*hash1(i*5.3+sd*2),a,l,sd,i}); }
       wingPrint(PR,TE-TR+.9);
       // low fires in the print, no two alike, each burning down to nothing - shorter and thinner until only sparks are left - the far ones last
-      PR.filter(q=>q.i>0&&(q.i!==3||q.sd>0)).forEach((q,n)=>{ const hs=hash1(q.i*7.7+q.sd*3), u=.3+.5*hash1(q.i*2.9+q.sd), cx=x0+Math.cos(q.a)*(150+q.l*u), cy=W.y+Math.sin(q.a)*(150+q.l*u)*FSY;
-        const r0=70+90*hs, h0=300+560*hash1(q.i*9.1+q.sd*4), dur=1+1*u+.3*hs, dl=.05+.05*n, c=wTongue(cx,cy,{r:r0,h:h0,dur,rise:.14,out:.25,pal:PF,dir:q.a+(hs-.5)*.8,lean:.22+.38*hs,forks:n%2?1:2,taper:.58,turb:.85,embers:0,delay:dl});
+      PR.filter(q=>q.i>0&&(q.i!==3||q.sd>0)).forEach((q,n)=>{ const hs=hash1(q.i*7.7+q.sd*3), u=.3+.5*hash1(q.i*2.9+q.sd), cx=x0+Math.cos(q.a)*(150+q.l*u), cy=W.y+Math.sin(q.a)*(150+q.l*u)*FSY+(hash1(q.i*4.1+q.sd*7)-.5)*150;
+        const r0=70+90*hs, h0=300+560*hash1(q.i*9.1+q.sd*4), dur=.55+1.1*hash1(q.i*5.5+q.sd*2), dl=.05+.05*n, c=wTongue(cx,cy,{r:r0,h:h0,dur,rise:.14,out:.25,pal:PF,dir:q.a+(hs-.5)*.8,lean:.22+.38*hs,forks:n%2?1:2,taper:.58,turb:.85,embers:0,delay:dl});
         GFX.add(dur,(kk,tk)=>{ const qq=smo(sat((kk-.2)/.8)), fl=Math.sin(tk*(11+6*hs)+n)*.5+Math.sin(tk*(23+9*hs)+n*2.1)*.5; c.h=h0*(1-.9*qq)*(1+.22*fl*(.4+qq)); c.r=r0*(1-.72*qq); c.a=1-qq*qq*sat(.6-.8*fl); },dl);
         after(dl+dur-.25,()=>embers(cx,cy,40,5,50));
         // asset pass r2: as each fire burns down its smoke goes up off the same spot (grains off a narrow foot, spreading downwind)
-        if(n%2) wSmoke(cx,cy,{dur:1.3+.6*hs,rate:12,r:r0*.4,up:300,s:60+35*hs,a:.45,wind:[q.sd*120,-30],delay:dl+dur*(.3+.3*hs)}); });
+        if(n%2) wSmoke(cx,cy,{dur:.8+.4*hs,rate:10,r:r0*.4,up:300,s:60+35*hs,a:.34,wind:[q.sd*120,-30],delay:dl+dur*(.3+.3*hs)}); });
       // one big roll of smoke off the left wing, a smaller later one off the right (asset pass r2: grains off the burning print, not a standing volume)
-      for(const sd of [-1,1]){ const q=PR[sd<0?1:5], L=sd<0; wSmoke(q.x,q.y,{dur:L?2:1.5,rate:L?22:15,r:L?110:80,up:340,s:L?95:75,a:.45,wind:[sd*150,-40],delay:L?.3:.8}); }
+      for(const sd of [-1,1]){ const q=PR[sd<0?1:5], L=sd<0; wSmoke(q.x,q.y,{dur:L?1.2:.9,rate:L?20:14,r:L?110:80,up:340,s:L?95:75,a:.36,wind:[sd*150,-40],delay:L?.2:.45}); }
       K.sparks(x0,y0,200,{pal:PG,n:14,sp:[700,2600],up:2200,life:[.4,1]}); K.chunks(x0,cyf,{n:5,r:260,sp:[500,1600],up:1900});
       GFX.light(x0,y0+100,1100,PF.l,.5,1.8,{z:60}); });
     after(.05,()=>Cn.shake(1)); after(.2,()=>Cn.shake(.8));
@@ -1061,7 +1061,7 @@ function e3Mound(M,SL){ if(!F.on||!(F.solids&&F.solids())) return; const km=K.ma
   GFX.add(9,()=>{ if(M.dead) return; const td=M.gone?M.t-M.gone:-1, hot=M.hot, up=M.up, t=M.t;
     if(td<0&&up>0){ const top=620*up*(1+.2*M.sw);
       // smoke standing on the summit, taller with every heave
-      if(VQ3&&VQ3.on&&t>1.5){ const q=sat((t-1.5)/(M.T2-1.5)), ez=170+330*q+90*M.sw; VQ3.add('column',M.x-40,M.y-70,top*.8+ez,{ex:330*(.7+.5*q),ey:330*(.7+.5*q),ez,pa:[.46,.16,2.1,2.2],pb:[0,1.1,.95,1],dens:8.5*sat((t-1.5)/.4),gain:1,seed:13.7,smoke:1,fire:1,rim:.3,amb:.2,key:1.05,glow:0,cS:'#0f0b0a',cK:e3x('#4a3c36','#b0602c',q),ord:M.y-6}); }
+      if(VQ3&&VQ3.on&&t>1.5){ const q=sat((t-1.5)/(M.T2-1.5)), ez=170+330*q+90*M.sw; VQ3.add('column',M.x-40,M.y-70,top*.8+ez,{ex:330*(.7+.5*q),ey:330*(.7+.5*q),ez,pa:[.46,.16,2.1,2.2],pb:[0,1.1,.95,1],dens:4.8*sat((t-1.5)/.4),gain:1,seed:13.7,smoke:1,fire:1,rim:.3,amb:.2,key:1.05,glow:0,cS:'#0f0908',cK:e3x('#6a3418','#b0602c',q),ord:M.y-6}); }
       // the whole cone turns slowly as it is driven up (the cluster, not each block in place); every heave kicks its light and bulk (M.kk) in
       // step with the shock leaving it; in the breath it lifts and slams back down (M.lz)
       const ang=.11*Math.min(t,M.T2)+.06*M.sw, ca=Math.cos(ang), sa=Math.sin(ang), kk=M.kk||0, lz=M.lz||0;
@@ -1150,25 +1150,25 @@ const e3Fling=(e,dur)=>{ let lt=0, lx=e.x, ly=e.y, lz=e.z; GFX.add(dur,(k,t)=>{ 
 function e3Mush(M){ return GFX.add(9,()=>{ if(M.dead||!M.gone||!VQ3||!VQ3.on) return; const td=M.t-M.gone, C=K.vc(PF), up=eo3(sat(td/.24)), burn=sat((td-.5)/.8), late=e3s(sat((td-1)/1.4)), fd=sat((td-1.05)/1.1), thin=Math.pow(1-fd,1.8), fh=sat((td-1.2)/1.1), thinH=Math.pow(1-fh,1.8), dy=-300*late, HS=820,
       lift=600*e3s(fd), top=2*HS+140*late, ez=Math.max(60,(top-140*late-lift)/2), zc=top-ez, wide=1+.22*late+.25*fd;
     if(fd>=1&&fh>=1) return;
-    if(!F.low&&td>.1) VQ3.add('column',M.x,M.y+dy*.35-40,zc*.92,{ex:300*3.3*(1+.3*late),ey:300*3.3*(1+.3*late),ez:ez*.92,pa:[.46,.16,2.1,2.2],pb:[0,1.1,.95,eo3(sat((td-.1)/.4))],dens:9*sat((td-.1)/.3)*thin,gain:1,seed:13.7,smoke:1,fire:1,rim:.3,amb:.2,key:1.05,glow:0,cS:'#0f0b0a',cK:e3x('#a85a2c','#4a3c36',sat(td/1.4)),ord:M.y-3});
-    VQ3.add('column',M.x,M.y+dy*.35,zc,{ex:300*2.2*wide,ey:300*2.2*wide,ez,pa:[.36,.08,2.9,4.2-2.4*burn],pb:[1.18*(1-burn*burn),1.7,.85+.3*burn+.4*fd,up],dens:10.5*thin,gain:1.12,seed:5.3,smoke:mix(.14,1,burn),fire:.5,rim:.4*burn,amb:.06,key:1.25,lit:.5,ld:[-.35,-.2,.92],glow:.5*(1-burn),...C,cS:e3x(PF.d,'#120d0c',burn),cK:burn>.2?'#55443c':C.cK,ord:M.y-2});
+    if(!F.low&&td>.1) VQ3.add('column',M.x,M.y+dy*.35-40,zc*.92,{ex:300*3.3*(1+.3*late),ey:300*3.3*(1+.3*late),ez:ez*.92,pa:[.46,.16,2.1,2.2],pb:[0,1.1,.95,eo3(sat((td-.1)/.4))],dens:9*sat((td-.1)/.3)*thin,gain:1,seed:13.7,smoke:1,fire:1,rim:.3,amb:.2,key:1.05,glow:0,cS:'#0f0908',cK:e3x('#a85a2c','#3e2820',sat(td/1.4)),ord:M.y-3});
+    VQ3.add('column',M.x,M.y+dy*.35,zc,{ex:300*2.2*wide,ey:300*2.2*wide,ez,pa:[.36,.08,2.9,4.2-2.4*burn],pb:[1.18*(1-burn*burn),1.7,.85+.3*burn+.4*fd,up],dens:10.5*thin,gain:1.12,seed:5.3,smoke:mix(.14,1,burn),fire:.5,rim:.4*burn,amb:.06,key:1.25,lit:.5,ld:[-.35,-.2,.92],glow:.5*(1-burn),...C,cS:e3x(PF.d,'#120d0c',burn),cK:burn>.2?'#4a2e22':C.cK,ord:M.y-2});
     const g=K.eo5(sat(td/.34)), cool=sat(td/1.1), e=sat((td-.1)/2.3), zh=1240*eo3(sat(td/.3))+200*late+560*e3s(sat((td-.2)/1.8)), sH=780*(.9+.24*e3s(sat((td-.1)/1.3))+.1*late);
     // the head: for its first tenth of a second the white core shows through; then the heat draws in to a rolling core (the falloff steepens and the
     // lumps turn over inside it) and the outside of it goes over to black smoke, lit on one side, the crown first
     const wc=1-sat(td/.14);
-    VQ3.add('blast',M.x,M.y+dy,zh,{ex:sH*1.25,ey:sH*1.25,ez:sH*.86,pa:[.3+.52*g+.1*e,.7+.18*e,2.6,Math.min(.6,td*.7)],pb:[(1.75+.9*wc)*(1-cool*cool),mix(.55,2.1,sat(td/.6)),1,.3+.6*e],dens:(15-8*e)*thinH,gain:1.4,seed:9.1,smoke:1,fire:.72,...C,cS:'#080505',cK:e3x('#b8602e','#6e5a50',cool),amb:.05,key:1.35,rim:.36,glow:.7*(1-cool),band:.55*sat((td-.12)/.3),btop:mix(.95,.7,cool),lit:.7,flow:1.2,ld:[-.35,-.2,.92],ord:M.y-1}); }); }
+    VQ3.add('blast',M.x,M.y+dy,zh,{ex:sH*1.25,ey:sH*1.25,ez:sH*.86,pa:[.3+.52*g+.1*e,.7+.18*e,2.6,Math.min(.6,td*.7)],pb:[(1.75+.9*wc)*(1-cool*cool),mix(.55,2.1,sat(td/.6)),1,.3+.6*e],dens:(15-8*e)*thinH,gain:1.4,seed:9.1,smoke:1,fire:.72,...C,cS:'#080505',cK:e3x('#b8602e','#54382a',cool),amb:.05,key:1.35,rim:.36,glow:.7*(1-cool),band:.55*sat((td-.12)/.3),btop:mix(.95,.7,cool),lit:.7,flow:1.2,ld:[-.35,-.2,.92],ord:M.y-1}); }); }
 // the surges: bodies of fire tumbling out over the floor from the foot of the burst, every one a different size, speed and reach. Each rolls
 // out once, slows, burns down to smoke where it stopped and thins (not a ring: there is floor between them)
-function e3Surge(M,LB){ LB.forEach((L,i)=>after(L.dl,()=>{ if(!VQ3||!VQ3.on) return; const a=Math.atan2(L.sa,L.ca), dur=L.T+.5, C=K.vc(PF), sd=e3h(i*7.7)*20, x=M.x+L.ca*200, y=M.y+L.sa*200*FSY, r=L.s*.62, p0=.04+.1*e3h(i*5.7);
+function e3Surge(M,LB){ LB.forEach((L,i)=>after(L.dl,()=>{ if(!VQ3||!VQ3.on) return; const a=Math.atan2(L.sa,L.ca), dur=L.T+.4, C=K.vc(PF), sd=e3h(i*7.7)*20, x=M.x+L.ca*200, y=M.y+L.sa*200*FSY, r=L.s*.62, p0=.04+.1*e3h(i*5.7);
     // the tongue never stops: it bursts most of its length out in the first tenth of a second, then keeps creeping outward to its last frame
     // while it cools - the heat drops (its far end, always the coolest, goes over to black smoke first) and the smoke share rises; its far
     // end curls up off the floor
     GFX.add(dur,(k,t)=>{ const len=260+L.R*(.6*eo3(sat(t/.11))+.4*sat((t-.11)/(dur-.11))), pitch=p0+L.cu*e3s(sat((t-.1)/(L.T+.2))), cool=e3s(sat((t-.18)/(dur-.18))), g=sat(t/.1), f=sat((t-(dur-.3))/.3), Lh=len/2, cp=Math.cos(pitch);
-      VQ3.add('jet',x+Math.cos(a)*cp*Lh,y+Math.sin(a)*cp*Lh*FSY,80+Math.sin(pitch)*Lh,{ex:Lh,ey:r*1.25*(1+.25*cool),ez:r*1.25*(1+.3*cool),yaw:a,pitch,pa:[150/(r*1.25),.8,2.6,7],pb:[.95*(1-.7*cool),1.1+.5*cool,.2+g*1.3,-.3+f*1.3],
-        dens:10*(1-.35*cool),gain:1.06*(1-.3*cool),seed:sd,smoke:mix(.12,.9,cool),fire:.5,rim:.3*cool,...C,cS:e3x(PF.d,'#0c0807',cool),cK:'#3e3430',amb:.05,key:1,band:.5,btop:.72,lit:.4,flow:1}); });
+      VQ3.add('jet',x+Math.cos(a)*cp*Lh,y+Math.sin(a)*cp*Lh*FSY,80+Math.sin(pitch)*Lh,{ex:Lh,ey:r*1.25*(1+.25*cool),ez:r*1.25*(1+.3*cool),yaw:a,pitch,pa:[150/(r*1.25),.8,2.6,7],pb:[.95*(1-.88*cool),1.1+.5*cool,.2+g*1.3,-.3+f*1.3],
+        dens:10*(1-.35*cool),gain:1.06*(1-.3*cool),seed:sd,smoke:mix(.12,.9,cool),fire:.5,rim:.3*cool,...C,cS:e3x(PF.d,'#0c0807',cool),cK:'#3c261e',amb:.05,key:1,band:.5,btop:.72,lit:.4,flow:1}); });
     const tx=M.x+L.ca*(200+L.R*.92), ty=M.y+L.sa*(200+L.R*.92)*FSY;
     after(L.T*.7,()=>{ e3Dust(tx,ty,{n:6,r:L.s*.4,dir:a,spread:.8,sp:[300,800],a:.42}); K.sparks(tx,ty,30,{pal:PF,n:8,dir:a,spread:.7,sp:[300,1000],up:900,life:[.3,.7]}); });
-    if(i%2===0) K.vsmoke(tx,ty,{s:L.s*.62,z:40,dur:1.15,rise:280,a:.6,delay:L.T}); })); }
+    if(i%2===0) K.vsmoke(tx,ty,{s:L.s*.62,z:40,dur:1,rise:280,a:.45,c:'#0c0807',c2:'#5a3424',delay:L.T}); })); }
 // the rock of the cone coming down: each piece flies an arc dragging sparks, lands (dust, sparks, a kick), bounces once, rolls to a stop and lies
 // there with its fire going out; in the last second it crumbles
 function e3Rocks(M,RK,life){ if(!F.on||!(F.solids&&F.solids())) return; const pos=(r,t)=>{ if(t<r.T){ const u=t/r.T; return [u,r.z0*(1-u)+4*r.H*u*(1-u)]; } const u2=sat((t-r.T)/.34); return [1+r.b*u2,4*r.H*.09*u2*(1-u2)]; };
@@ -1211,7 +1211,7 @@ function ultErupt(id){ ultStart(id); if(F&&F.prepDeep) F.prepDeep(); const Cn=X.
   // the surges of the burst (none aimed at him: he is straight down the field) and the rock that comes down
   // asset pass r3: no mirrored pair - each surge its own reach, weight and curl (a long low one to the right, a short fat one on the left that
   // rolls straight up, the rest in between): [direction (deg), reach (screens), size, how far it curls up off the floor]
-  const LB=[[-62,1.1,440,.8],[-12,1.55,330,.2],[70,.32,300,.5],[128,.5,360,.35],[203,.62,620,1.0],[250,1.3,300,.4],[160,1.2,280,.3],[318,.7,460,.7]].map(([deg,R,s,cu],i)=>{ const a=deg*PI/180; return {ca:Math.cos(a),sa:Math.sin(a),R:hw*R,s,cu,T:.4+.5*e3h(i*2.1),dl:.03+.22*e3h(i*8.7),sd:3.1+i*1.7}; });
+  const LB=[[-62,.9,440,.8],[-12,1.15,360,.45],[70,.32,300,.5],[128,.5,360,.35],[203,.62,620,1.0],[250,1,300,.4],[172,.85,320,.6],[318,.7,460,.7]].map(([deg,R,s,cu],i)=>{ const a=deg*PI/180; return {ca:Math.cos(a),sa:Math.sin(a),R:hw*R,s,cu,T:.4+.5*e3h(i*2.1),dl:.03+.22*e3h(i*8.7),sd:3.1+i*1.7}; });
   const RK=[-40,8,62,150,190,236,272,300].map((deg,i)=>{ const a=deg*PI/180+(e3h(i*2.7)-.5)*.2; return {ca:Math.cos(a),sa:Math.sin(a),d:hw*(i%3===1?.28+.12*e3h(i*4.3+1):.5+.75*e3h(i*4.3+1)),T:.62+.5*e3h(i*5.1),H:1000+900*e3h(i*3.3),z0:300,b:.1+.08*e3h(i*7.3),s:140+150*e3h(i*6.1),v:i%4,ax:(e3h(i*1.3)-.5)*14,ay:(e3h(i*2.9)-.5)*14,az:(e3h(i*4.9)-.5)*8,f:i%3===0,lt:0,kd:['stone','shard','cobble','flag','stone','cobble','shard','shard'][i]}; });
 
   // ---- prepare (0 - .9): close on him, the air turns cold blue; the floor up the field bulges, splits, and red light beats under it
@@ -1339,11 +1339,98 @@ function ultErupt(id){ ultStart(id); if(F&&F.prepDeep) F.prepDeep(); const Cn=X.
       inCircle(tx,ty,300,e=>{ const h=K.marked(e,'burn'); if(h) h.pop({quiet:1}); dmg(e,Dm*.03,{push:280,up:1300,sx:tx,sy:ty}); }); }); });
   // ---- what is left (4.0 - 6.4): fires round the rim of the crater, each a different size, burn down; the mushroom breaks up into smoke that
   // lifts and thins inside the screen; ash comes down
-  [.5,1.7,2.9,4.1,5.4].forEach((a,i)=>e3Fire(Px+Math.cos(a)*(470+90*e3h(i*3.1)),Py+Math.sin(a)*(470+90*e3h(i*3.1))*FSY,56+44*e3h(i*5.3),230+300*e3h(i*7.7),1.1+1*e3h(i*2.9),TC+.5+.12*i));
+  [.7,2.6,4.5].forEach((a,i)=>e3Fire(Px+Math.cos(a)*(330+330*e3h(i*3.1)),Py+Math.sin(a)*(330+330*e3h(i*3.1))*FSY,50+60*e3h(i*5.3),200+330*e3h(i*7.7),.9+.9*e3h(i*2.9),TC+.45+.05*i));
   after(TC+.5,()=>GFX.light(Px,Py,1000,PF.l,.5,2,{z:60}));
-  [[-200,-80,640,340,0],[170,-140,900,300,.18],[-20,-200,1150,260,.34]].forEach(([dx,dy,z,s,dl])=>after(TC+1.25+dl,()=>K.vsmoke(Px+dx,Py+dy,{s,z,dur:1.25,rise:300,a:.7,vx:-140})));
+  [[-200,-80,640,340,0],[150,-160,980,280,.2]].forEach(([dx,dy,z,s,dl])=>after(TC+1.25+dl,()=>K.vsmoke(Px+dx,Py+dy,{s,z,dur:1.1,rise:300,a:.5,c:'#0c0807',c2:'#5e3826',vx:-140})));
   after(TE-1,()=>{ Cn.back(.95); GFX.ambient(1,1,1,2); });
   after(TE,()=>{ M.dead=true; ultStop(); }); }
 
-X.reg('pyro',{sk,order,basic:{fn:basic,cd:()=>.9*(1-.05*(L('py_basic')-1))},skills:SKILL,ults:{py_ult1:ultStorm,py_ult2:ultWings,py_ult3:ultErupt}});
+// PHOENIX (py_ult2, 2026-11-25): a phoenix is born out of his fire, climbs, and comes down on the field.
+//  gather  0 - .8   every ember on the field is drawn to him; the fire at his feet thickens
+//  born   .8 - 1.5  it stands up out of that fire behind him with its wings still folded about it (it burns in from the foot)
+//  climb 1.5 - 2.7  the wings open and beat; it climbs out of the top of the picture's middle, a tail of fire streaming down from it, the
+//                   camera drawing back to keep it; what its heat passes over is set burning
+//  hang  2.7 - 3.0  it hangs at the top with its wings raised and cries; the field holds its breath, a hot spot swelling where it will land
+//  stoop 3.0 - 3.3  it folds and falls head first, faster and faster, dragging its whole tail down after it
+//  blow   3.3       it goes into the floor: a ball of fire, a front running out to the edges, the floor split and molten, every body thrown
+//  after  3.3 - 6.1 the fire it left burns as one body, breaks up, and goes out from the far edge inward; burning feathers come down
+// The bird is three paintings of real fire (folded, rising, stooping: assets/v3_phoenix_*.webp, their own colours, laid on as light) carried
+// by live fire: its wash runs through the picture so the feathers lick, a volume of fire rides in its chest and streams behind it.
+let PHX=null;
+function phxMats(){ if(PHX) return PHX; const mk=tex=>F.mat({kind:2,tex,nz:'billow',n1:[2.4,2.4,.02,-.55],n2:[1.7,1.7,.05,-1.1],dist:.03,mdist:1,ero:-1,soft:.12,cB:'#ffffff',cC:'#ffe9b0',gain:1.5,op:0});
+  PHX={fold:mk('v3_phoenix_fold'),rise:mk('v3_phoenix_rise'),dive:mk('v3_phoenix_dive'),ASP:{fold:.568,rise:1.478,dive:.557}}; return PHX; }
+if(F&&F.on) for(const n of ['v3_phoenix_fold','v3_phoenix_rise','v3_phoenix_dive']) F.img(n);
+function ultPhoenix(id){ timers.length=0; ultStart(id); const Cn=X.cine, {hw,hh}=view(), Dm=70000*A.mul(id), x0=pl.x, y0=pl.gy;
+  const TB=.8, TU=1.5, TH=2.7, TD=3.0, TC=3.3, TE=6.1, bx=x0, by=y0-150, ZT=1180, st={}, P=phxMats(), vol=K.vok&&K.vok();
+  // where it comes down: on the thickest of them if they are near, else just ahead of him (never on him)
+  const tg=densest(1300), ix=tg?mix(x0,tg.x,.8):x0+pl.f*160, iy=tg?mix(y0,tg.y,.8)-40:y0-340;
+  S([['gx01',.1],['gx03',.6,{kick:[-.8,.6]}],['gx06',.14,{kick:[2,-1.6]}],['gx07',TD-.9],['gx09',.1],['gx12',.2,{kick:[2,-1.6]}],['gx14',9]]);
+  // ---- gather
+  GFX.ambient(.5,.4,.4,2.5); Cn.move({x:x0,y:y0-BODY*.7,zoom:1.3,tilt:.06},.5,'io'); SFX.fire&&SFX.fire(2.4,.5); Cn.drone(40,.3);
+  st.g=K.gather(x0,y0-10,BODY*.5,{dur:TB,pal:PF,r:460,R:1700,n:1.2,shells:2,gain:.9});
+  K.cool(x0,y0,{kind:'scorch',r:360,pal:PF,life:TC+1,hot:.7,grow:.6,light:0});
+  const Lh=GFX.light(bx,by,700,PF.l,.2,.3,{hold:TC,z:200,flick:.1});
+  // ---- the bird: one clock for its place, its pose, its wing beat and the fire it carries
+  // height of its middle, its size (half height), and how far it has crossed from where it was born to where it lands
+  const zOf=t=>t<TU?mix(250,430,eo3(sat((t-TB)/(TU-TB)))):t<TH?mix(430,ZT,Math.pow(sat((t-TU)/(TH-TU)),1.25)*(2-Math.pow(sat((t-TU)/(TH-TU)),1.25))):t<TD?ZT+40*Math.sin((t-TH)/(TD-TH)*PI):ZT*(1-Math.pow(sat((t-TD)/(TC-TD)),2.2))+140;
+  const cross=t=>t<TH?0:eo3(sat((t-TH)/(TC-TH))), posX=t=>mix(bx,ix,cross(t)), posY=t=>mix(by,iy,cross(t));
+  let jet=null, chest=null, E=0, tp=0;
+  if(F.on) GFX.add(TC-TB+.02,(k,t0)=>{ const t=t0+TB; if(st.hit) return; const dt=Math.max(0,t0-tp); tp=t0;
+    const x=posX(t), y=posY(t), z=zOf(t), born=eo3(sat((t-TB)/.5)), open=sat((t-TU+.12)/.3), stoop=sat((t-TD+.06)/.12), beat=Math.sin((t-TU)*8.4), fl=1+.03*Math.sin(t*31)+.02*Math.sin(t*47);
+    Lh.x=x; Lh.y=y; Lh.z=z; Lh.a=.4+.6*born; Lh.r=900+700*sat((t-TU)/(TH-TU));
+    // folded -> rising (the two cross over as the wings open) -> stooping
+    if(open<1){ const s=mix(420,620,born); F.bill(P.fold,x,y,z,s*P.ASP.fold*fl,s*fl,0,{a:(1-open)*born,ero:mix(.85,-1,born),gain:1.5+.8*(1-born)}); }
+    if(open>0&&stoop<1){ const s=mix(620,880,sat((t-TU)/.5))*(1+.04*beat), wx=1+.11*beat*open; F.bill(P.rise,x,y,z+s*.12*beat,s*P.ASP.rise*wx*fl,s*(1-.06*beat)*fl,.04*Math.sin(t*2.2),{a:open*(1-stoop),gain:1.55+.25*sat((t-TH)/.3)}); }
+    if(stoop>0){ const fall=sat((t-TD)/(TC-TD)), s=mix(760,1080,fall)*fl, lean=Math.atan2(ix-bx,(ZT)/1)*-.5*fall; F.bill(P.dive,x,y,z+s*.25,s*P.ASP.dive*(1-.12*fall),s*(1+.25*fall),lean,{a:stoop,gain:1.7+.6*fall}); }
+    // the fire it carries: a heart in its chest, and what streams off it (down as it climbs, up behind it as it falls)
+    if(vol){ if(!chest) chest=K.vorb(x,y,z,{r:120,dur:TC-TB,pal:PF,heat:1.2,core:.4,in:.3,out:.04,spin:2.4,band:.6,flow:.9,gain:.7});
+      chest.x=x; chest.y=y; chest.z=z-40; chest.r=mix(90,170,born)*(stoop?1.25:1);
+      if(!jet&&t>TB+.3) jet=K.vjet(x,y,z,0,{len:300,r:120,r0:60,dur:TC-t+.04,pal:PF,pitch:-1.5,heat:1.25,turb:1,speed:6,in:.25,out:.05,band:.9,btop:.6,lit:.5,flow:1.2,gain:.9});
+      if(jet){ const up=stoop>0; jet.x=x; jet.y=y; jet.z=up?z+260:z-180; jet.pitch=up?1.5:-1.5; jet.len=up?mix(500,2300,sat((t-TD)/(TC-TD))):mix(260,900,sat((t-TU)/(TH-TU))); jet.r=up?190:mix(110,170,open); } }
+    // sparks and burning feathers shed along its path
+    E+=dt*(40+90*open)*(GFX.QK||1); while(E>=1){ E-=1; const w=(Math.random()-.5)*2, s=520*open+160;
+      if(Math.random()<.75) streak(x+w*s,y,z+rand(-.4,.5)*s*.6,rand(-120,120)+w*260,rand(-40,40),stoop?rand(600,1500):rand(-420,-120),rand(.35,.8),{g:stoop?-200:500,s:rand(3,6)});
+      else GFX.pt({x:x+w*s,y,z:z+rand(-.3,.4)*s*.6,vx:w*180+rand(-60,60),vy:rand(-30,30),vz:rand(-260,-60),g:260,drag:.9,life:rand(.8,1.5),s:rand(7,13),rot:rand(0,TAU),vr:rand(-7,7),m:8,c:GFX.rgb(Math.random()<.5?PG.m:PF.b),fade:'in',L:3}); } },TB);
+  // ---- born
+  after(TB,()=>{ if(st.g) st.g.release({s:1.2,ring:0}); K.flare(bx,by,BODY,{pal:PG,s:520,dur:.2,gain:2.4}); K.vblast(bx,by,{s:340,z:60,rise:300,dur:1,heat:1.3,fire:.6,smoke:.2,pal:PF,band:.7,lit:.5,c:'#1c120e',c2:'#6a4632'});
+    K.sparks(bx,by,BODY,{pal:PG,n:26,sp:[400,1600],up:1700,life:[.4,.9]}); Cn.shake(.5); sfx('boom',1,.5); SFX.roar&&SFX.roar(1.1,.6); GFX.ambient(.62,.44,.38,3);
+    Cn.move({x:x0,y:y0-360,zoom:1,tilt:.1},.6,'io'); });
+  // ---- climb: the camera goes with it; its heat sets light to what is under it
+  after(TU,()=>{ Cn.move({x:mix(x0,ix,.4),y:y0-820,zoom:.56,tilt:.2,roll:.015},TH-TU,'io'); SFX.whoosh&&SFX.whoosh(1.1,.7); Cn.shake(.3);
+    K.dust(bx,by,{n:12,r:120,sp:[300,1000],a:.4,c:'#2a1a12',c3:'#8a5a3a',life:1.2});
+    for(const e of onScreen(300)) if(!e.dead){ burn(e,3,1,.9); dmg(e,e.d.boss?Dm*.08:Math.min(Dm*.08,e.hp*.2),{sx:bx,sy:by}); } });
+  [.25,.55,.85].forEach(d=>after(TU+d,()=>{ sfx('whoosh',.5,.8); Cn.shake(.18); }));
+  // ---- hang: the cry, the held breath, the floor heating where it will land
+  after(TH,()=>{ SFX.roar&&SFX.roar(1.5,1); Cn.SND.shing&&Cn.SND.shing(.8,.4); Cn.hush(TD-TH,{a:.5}); K.flare(posX(TH),posY(TH),ZT,{pal:PG,s:760,sx:1.8,sy:.7,dur:.26,gain:2.2}); Cn.move({x:mix(x0,ix,.7),y:iy-520,zoom:.62,tilt:.24,roll:0},TD-TH,'io');
+    K.cool(ix,iy,{kind:'scorch',r:520,pal:PF,life:TC-TH+.3,hot:1,grow:TC-TH,light:0}); const Lw=GFX.light(ix,iy,500,PG.l,.2,TC-TH,{z:80}); GFX.add(TC-TH,k=>{ Lw.a=.2+1*k*k; Lw.r=500+700*k; }); });
+  // ---- stoop
+  after(TD,()=>{ SFX.whoosh&&SFX.whoosh(1.8,1); Cn.move({x:mix(x0,ix,.85),y:iy-240,zoom:.72,tilt:.14},TC-TD,'in'); });
+  // ---- the blow
+  after(TC,()=>{ st.hit=1; if(jet) jet.dead=true; if(chest) chest.dead=true; Lh.t=Lh.life;
+    Cn.peak(ix,iy-60,{ca:.03,blur:.15,tint:'#ff7a20',hold:.05,out:.28}); hitstop=Math.max(hitstop,.1); Cn.shake(1.7); after(.08,()=>Cn.shake(1.2)); after(.2,()=>Cn.shake(.8)); Cn.SND.hit(1.2); sfx('boom',2.4,1); SFX.sub&&SFX.sub(1);
+    GFX.light(ix,iy,hw*1.6,PF.l,1.2,.6,{z:300}); GFX.light(ix,iy,900,'#fff2d0',1.1,.16,{z:90}); GFX.ambient(.95,.6,.42,9); after(.15,()=>GFX.ambient(.62,.44,.38,2.5));
+    Cn.move({x:mix(x0,ix,.6),y:mix(y0,iy,.6)-240,zoom:.58,tilt:.18,roll:0},.35,'out');
+    K.flare(ix,iy,80,{pal:PG,s:900,dur:.12,gain:2.6});
+    K.vblast(ix,iy,{s:780,z:80,rise:420,dur:1.7,heat:1.4,fire:.7,smoke:.4,pal:PF,band:.7,lit:.5,flow:.7,c:'#1c120e',c2:'#6a4632'});
+    K.vring(ix,iy,{r:hw*1.5,r0:260,dur:.6,tube:.06,heat:1.2,pal:PF,lump:2.2,freq:6,lit:.5,a:.42,c:'#1c120e',c2:'#6a4632'});
+    K.shock(ix,iy,{r:hw*1.5,pal:PF,dur:.65,gain:1}); GFX.ripple(ix,iy,hw*1.6,{life:.6,s:.8});
+    K.cool(ix,iy,{kind:'crater',r:520,pal:PF,life:TE-TC+1.5,hot:.6,start:.1,light:0}); K.cool(ix,iy,{kind:'lava',r:330,pal:PF,life:TE-TC+.8,hot:.75,light:0});
+    K.cool(ix,iy,{kind:'crack2',r:hw*1.05,pal:PF,life:TE-TC+1,hot:.85,grow:.2,light:0});
+    K.sparks(ix,iy,60,{pal:PG,n:44,sp:[900,3200],up:2400,life:[.4,1.1],s:3,len:.09});
+    if(K.chunks) K.chunks(ix,iy,{n:4,r:240,sp:[400,1200],up:1600,kind:'stone',s:[20,48],rock:'#3a302a',pal:PF,life:1.2});
+    // what it leaves is one fire: it catches where it struck and runs out, joined at the foot, then breaks up and burns down
+    K.firefield(ix,iy,{n:F.low?7:12,r:hw*.95,s:[260,820],from:[ix,iy],speed:3800,dur:2.5,out:1.25,pal:PF,keep:[x0,y0,260],delay:.05});
+    // every body is thrown as the front reaches it; the killing blow waits until they have flown
+    for(const e of onScreen(300)){ if(e.dead) continue; const d=dist2(e,ix,iy), dl=Math.min(.45,d/3800);
+      after(dl,()=>{ if(e.dead) return; K.knock(e,{from:[ix,iy],dist:460,up:2500,stun:1.4}); burn(e,2.6,1,1); }); }
+    after(.55,()=>Cn.sweep(ix,iy,Dm*.8,{speed:4200,push:1.2,max:.4})); });
+  // ---- after: burning feathers drift down over the whole field; the light dies; home
+  after(TC+.3,()=>{ let n=0; GFX.add(2.2,(k,t)=>{ const want=Math.floor(t*(50-34*k)*(GFX.QK||1)); while(n<want){ n++; const px=ix+(h01(n*1.9)-.5)*hw*2.6, py=iy+(h01(n*4.3)-.5)*hh*2.2;
+      GFX.pt({x:px,y:py,z:500+h01(n*6.1)*700,vx:-70+(h01(n*2.7)-.5)*120,vy:-10,vz:-(120+h01(n*8.3)*160),g:0,drag:.25,life:1.5+h01(n*3.1)*.8,s:5+h01(n*9.7)*7,rot:h01(n*5.3)*TAU,vr:(h01(n*7.9)-.5)*7,m:8,c:GFX.rgb(n%3?PF.m:PG.m),fade:'in',L:3}); } }); });
+  after(TC+1.6,()=>GFX.ambient(.78,.62,.56,1));
+  let fin=false; const end=()=>{ if(fin) return; fin=true; ultStop(); };
+  after(TE-1.1,()=>{ Cn.back(1); GFX.ambient(1,1,1,1.6); });
+  after(TE,end); }
+
+X.reg('pyro',{sk,order,basic:{fn:basic,cd:()=>.9*(1-.05*(L('py_basic')-1))},skills:SKILL,ults:{py_ult1:ultStorm,py_ult2:ultPhoenix,py_ult3:ultErupt}});
 })();

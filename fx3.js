@@ -74,8 +74,9 @@ void main(){
  }else{
   // painted colour texture: tint, dissolve by the noise field, hot dissolve edge
   float keep=smoothstep(pr.z,pr.z+pr.w,nz+.001);float e=smoothstep(pr.z-.08,pr.z,nz)-keep;
-  float al=tx.a*keep*pw.w;
-  gl_FragColor=vec4((tx.rgb*cB*pw.y*keep+cC*e*tx.a*pw.y)*pw.w,al*pw.z);
+  // fd.z: the foot of a standing picture melts into the floor (kit update 12; 0 = off, as before)
+  float fb=fd.z>0.?smoothstep(0.,fd.z,v.y):1.;float al=tx.a*keep*pw.w*fb;
+  gl_FragColor=vec4((tx.rgb*cB*pw.y*keep+cC*e*tx.a*pw.y)*pw.w*fb,al*pw.z);
  }}`;
 const GVS=`attribute vec3 p;varying vec2 v;void main(){v=p.xy*.5+.5;gl_Position=vec4(p.xy,0.,1.);}`;
 const GFS=`#ifdef GL_FRAGMENT_PRECISION_HIGH
