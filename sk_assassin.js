@@ -26,7 +26,7 @@
       ink=F.mat({tex:'v3_gash',nz:'veins',n1:[3,1,0,0],nk:.27,pw:.68,ero:.1,soft:.26,
         cA:'#06060b',cB:'#09090e',cM:'#0c0c16',cC:'#131323',op:1});
       tornEdge=F.mat({tex:'v3_fissure_b',nz:'veins',n1:[4,1.2,-.27,.1],n2:[3,2,-.09,.04],
-        dist:.027,nk:.36,ero:.07,soft:.22,rk:[.46,1.04],cA:'#130c19',cB:'#784059',cM:'#ffb578',cC:'#fff1bf',op:.78});
+        dist:.027,nk:.36,ero:.07,soft:.22,rk:[.46,1.04],cA:'#0d0a1c',cB:'#4b3590',cM:'#c4a6ff',cC:'#f4ecff',op:.78});
     }
     return {painted,ink};
   }
@@ -125,12 +125,12 @@
   }
   // Low, dark tearing edge of the second dagger. Its near side lifts the broken paving as it passes.
   function rupture(path,depth,fogAt) {
-    if(!F.on){ stroke(path,gold,depth*.54,{draw:.22,hold:.04,fade:.4,heavy:true}); return; }
-    const m=materials(), shared=K.mats(), c=colors(gold), draw=.22;
+    if(!F.on){ stroke(path,iris,depth*.54,{draw:.22,hold:.04,fade:.4,heavy:true}); return; }
+    const m=materials(), shared=K.mats(), c=colors(iris), draw=.22;
     GFX.add(.92,(k,t)=>{
       const head=Math.max(.005,sat(t/draw)), fade=sat((t-.26)/.66), tail=.88*fade*fade;
       const pts=sample(path,Math.min(tail,head-.002),head,depth*.33,t,35);
-      if(window.AssassinCuts?.fracture(pts,gold,{t,fade,depth,fogAt,path})) return;
+      if(window.AssassinCuts?.fracture(pts,iris,{t,fade,depth,fogAt,path})) return;
       const face=[], rim=[];
       for(let i=0;i<pts.length;i++){
         const q=pts[i],u=mix(tail,head,i/(pts.length-1)), h=q.w*(.4+.42*Math.sin(u*14+.3)**2+.36*Math.sin(u*31)**6)*(1-fade);
@@ -145,17 +145,16 @@
     for(const [i,u] of stones.entries()){
       const q=path(u), q1=path(u+.02), th=Math.atan2((q1.y-q.y)/FSY,q1.x-q.x);
       const side=i%2?1:-1, size=depth*(.13+.08*Math.sin(u*pi)), delay=draw*u;
-      if(F.solids?.()){
-        GFX.add(1.52,(k,t)=>{
-          const lift=Math.sin(pi*sat(t/.54)), out=sat((t-.64)/.86), dist=size*.82*sat(t/.54);
-          F.solid('slab',i%4,q.x-side*Math.sin(th)*dist,q.y+side*Math.cos(th)*dist*FSY,size*(.16+.72*lift)*(1-out),{
-            M:F.xf({sx:size*1.5,sy:size,sz:size*.9,rx:side*(1.1-.7*lift),ry:-.12,rz:th}),
-            alb:'#34313a',emis:'#be805d',rimC:'#d6bc9d',spec:.36,rim:.35,detail:1,strata:4,
-            glow:.48*(1-k),edge:.07,heat:.15*(1-k),ero:.8*out,clip:0,seed:u*13,
-            shadow:F.low?null:[.55,.28,.4*(1-out)]});
-        },delay);
-      }
-      after(delay,()=>K.dust(q.x,q.y,{n:4,r:32,dir:th+side*pi*.34,spread:.4,sp:[170,560],s:1.22,a:.49,life:.78,c:'#31303b',c3:'#ad968a'}));
+      // Torn black vapour peels off the cut instead of lifted paving: ragged flakes with a violet rim.
+      after(delay,()=>{
+        for(let j=0;j<(F.low?2:4);j++){
+          const a=th+side*pi*(.3+.3*Math.random()), v=size*(1.6+2.2*Math.random());
+          GFX.pt({x:q.x,y:q.y,z:8+20*Math.random(),vx:Math.cos(a)*v,vy:Math.sin(a)*v*FSY,vz:90+160*Math.random(),g:-40,drag:2.2,
+            life:.7+.4*Math.random(),s:size*(.3+.25*Math.random()),grow:size*.9,m:5,b:'alpha',c:GFX.rgb('#07060d'),c2:'#000000',
+            c3:'#4a3a7e',er:.95,ns:1.6,w:1,a:.78,L:0});
+        }
+        K.dust(q.x,q.y,{n:3,r:28,dir:th+side*pi*.34,spread:.4,sp:[170,520],s:1.1,a:.42,life:.7,c:'#0d0b16',c3:'#5c4f8c'});
+      });
     }
   }
   function impact(x,y,z,dir,p,scale=1) {
@@ -183,7 +182,12 @@
       const release=3.325+follower*.056+(pair%2)*.026+(crossing?.072:0);
       const leader=pair%2===0 && !follower;
       const p=pair%2?iris:frost;
-      const size=r*(follower?.055:leader?.088:.078)*(crossing?.91:1);
+      // Depth tiers: four large blades sweep close to the lens, the followers sit
+      // behind them and the crossing wave is small, dim and high in the air.
+      const tier=crossing?0:follower?1:2;
+      const size=r*(tier===2?(leader?.13:.112):tier===1?.06:.052);
+      const dim=tier===2?0:tier===1?.24:.44;
+      const back=3.96+(lane%8)*.011+(crossing?.035:0);
       const bankPass=t=>lane===1?Math.sin(pi*sat((t-1.30)/.93))**2:0;
       const bite=[1.21,1.63,2.00,2.30][pair], approach=side*(.44+pair*.13);
       const hunts=!crossing&&!follower;
@@ -210,7 +214,14 @@
         });
       }
       function flight(t) {
-        const age=Math.max(0,t-launch), open=1-(1-sat(age/.64))**2;
+        if(t>back){
+          // Recall: the blade is yanked back into the assassin's hand, slow off the mark, then fast.
+          const from=flight(back), u=sat((t-back)/.24), w=u*u*u;
+          return {x:mix(from.x,x,w),y:mix(from.y,y,w),z:mix(from.z,BODY*.62,w)+r*.06*Math.sin(pi*u)};
+        }
+        // A blade slows as it banks and snaps forward out of the turn, so its speed is never constant.
+        const age0=Math.max(0,t-launch), age=age0-.12*Math.sin(age0*2.9+lane*.9)+.12*Math.sin(lane*.9);
+        const open=1-(1-sat(age0/.64))**2;
         const angle=a+side*(age*(crossing?1.68:2.15)+.54*Math.sin(3.3*age+pair)+.68*open);
         const reach=r*(.14+(.69+.18*Math.sin(age*3.5+a)+follower*.17-(crossing?.15:0))*open);
         const front=Math.sin(angle), lift=r*(.075+.17*(1+front)*.5+.17*Math.sin(age*2.7+a)**2+(crossing?.076:0));
@@ -251,11 +262,14 @@
         if(t>=release){
           // Elevation falls as the fan opens toward the camera, so its tips
           // stay separated in projection as well as in world space.
-          const v=sat((t-release)/.96);
-          const travel=1-(1-v)**1.85, arch=Math.sin(pi*travel);
+          // Explodes out of the contact, then hangs quivering in the fan until the recall.
+          const v=sat((t-release)/.62);
+          const travel=1-(1-v)**4.2, arch=Math.sin(pi*travel);
           q.x=f.x+side*r*((.80+.35*Math.sin(pi*fan))*travel+.24*arch);
           q.y=f.y+r*FSY*((fan*.82-.29)*travel-.12*arch);
           q.z=f.z*(1-travel)+r*((.37-.18*fan)*travel+(.30-.11*fan)*arch);
+          const quiver=sat((t-release-.3)/.1)*Math.exp(-Math.max(0,t-release-.4)*3);
+          q.z+=quiver*5*Math.sin(t*61+lane*2.3); q.x+=quiver*4*Math.sin(t*53+lane);
         }
         return q;
       }
@@ -279,15 +293,20 @@
         const a=history[idx], b=i===lastTick?flight((i+1)/hz):history[(idx+1)%history.length], k=f-i;
         return {x:mix(a.x,b.x,k),y:mix(a.y,b.y,k),z:mix(a.z,b.z,k)};
       }
-      knives.push({lane,launch,recall,release,advance,past,bankPass,p,size,leader,skimAt,crossing});
+      knives.push({lane,launch,recall,release,advance,past,bankPass,p,size,leader,skimAt,crossing,dim,back,tier});
     }
     function frame(t) {
+      const glints=chain(), clearing=[];
       for(const b of knives){
         if(t<b.launch) continue;
         const burst=t>=b.release, age=t-(burst?b.release:b.launch);
         // The silence before the finisher has no blades hanging over its point of contact.
-        const alpha=sat(age/(burst?.065:.11))*(burst?1-sat((age-.37)/.60):1-sat((t-b.recall-.31)/.12));
+        const alpha=sat(age/(burst?.065:.11))*(burst?1-sat((t-b.back-.2)/.04):1-sat((t-b.recall-.31)/.12));
         if(alpha<.015) continue;
+        if(burst && t>b.back+.2 && !b.home){
+          b.home=true;
+          if(b.lane%4===0) K.sparks(x,y,BODY*.62,{pal:steel,n:3,sp:[140,420],up:160,life:[.1,.24]});
+        }
         b.advance(t);
         const p=b.past(t), prev=b.past(t-.012);
         const rot=Math.atan2((p.y-p.z)-(prev.y-prev.z),p.x-prev.x);
@@ -322,19 +341,23 @@
         }
         if(F.on){
           const m=K.mats(), c=colors(shade);
-          const wake=alpha*(1-obscured*.82);
-          if(!window.AssassinCuts?.sweep(trail,shade,{trail:true,t,fade:1-alpha,side:b.lane%2?1:-1,edgePoints:edges,fogAt:mist.fogAt})){
+          const wake=alpha*(1-obscured*.82)*(1-b.dim);
+          if(b.tier===2 && clearing.length<6) clearing.push({x:p.x,y:p.y,z:p.z,s:alpha});
+          if(!window.AssassinCuts?.sweep(trail,shade,{trail:true,t,fade:1-wake,side:b.lane%2?1:-1,edgePoints:edges,fogAt:mist.fogAt})){
             F.ribbon(m.trB,trail,{...c,a:.72*wake,gain:1.7,ero:.1,t0:b.lane*.7,ord:6});
           }
-          if(window.AssassinBlades?.draw(p,prev,len,roll,shade,alpha,8,obscured,mist.fogAt)) continue;
+          // Each blade catches the light on its own beat as it rolls: a short four-point star on the steel.
+          const hot=.5+.5*Math.cos(t*(8.5+1.37*(b.lane%5))+b.lane*2.71+roll*.5);
+          if(hot>.8){
+            const g=(hot-.8)/.2*alpha*(1-b.dim), s=Math.sin(rot), co=Math.cos(rot);
+            const gx=p.x+co*len*.3, gy=p.y, gz=p.z-s*len*.3, L1=len*(b.tier===2?.55:.32)*g, L2=L1*.45, w=(b.tier===2?7:4)*g;
+            glints.add([{x:gx-co*L1,y:gy,z:gz+s*L1,w:0},{x:gx,y:gy,z:gz,w},{x:gx+co*L1,y:gy,z:gz-s*L1,w:0}]);
+            glints.add([{x:gx+s*L2,y:gy,z:gz+co*L2,w:0},{x:gx,y:gy,z:gz,w:w*.8},{x:gx-s*L2,y:gy,z:gz-co*L2,w:0}]);
+          }
+          if(window.AssassinBlades?.draw(p,prev,len,roll,shade,alpha,8,Math.min(.9,obscured+b.dim),mist.fogAt)) continue;
           if(daggerImage.ok) F.bill(body,p.x,p.y,p.z,len,len*.33*bank,rot,
             {cB:burst?shade.h:'#ffffff',cC:shade.m,ero:(1-alpha)*.69-.08,gain:1.28,
               a:alpha,ord:8});
-          const hot=.5+.5*Math.cos(t*14+b.lane*1.9);
-          if(b.lane%2===0 && hot>.78){
-            F.bill(m.glowO,p.x+Math.cos(rot)*len*.45,p.y,p.z-Math.sin(rot)*len*.45,
-              len*(b.leader?.42:.26),len*.09,rot+.85,{...c,gain:2.4,a:alpha*(hot-.78)/.22,ord:9});
-          }
         } else {
           fx.save(); fx.lineCap='round';
           for(let j=1;j<trail.length;j++){
@@ -349,6 +372,9 @@
           fx.restore();
         }
       }
+      if(!F.on) return;
+      if(glints.pts.length>1) F.ribbon(K.mats().trC,glints.pts,{cA:steel.b,cB:steel.m,cM:steel.h,cC:'#ffffff',gain:3,ero:.02,ord:9});
+      mist.clear?.(clearing);
     }
     if(F.on) GFX.add(life,(k,t)=>frame(t)); else X.draw(life,k=>frame(k*life));
   }
@@ -434,11 +460,52 @@
       for(const q of seg) pts.push(q);
     }};
   }
+  // Screen-wide rends. Each one is drawn from its root to its point in a few frames: heavy at the
+  // root, needle-thin at the point, with a dark wake under a lit edge and a white core.
+  // All rends share three ribbons, so any number of them costs three draws.
+  function rends() {
+    const start=RT, list=[];
+    function frame(t){
+      if(!F.on) return;
+      const wake=chain(), edge=chain(), core=chain();
+      for(const c of list){
+        const age=t-c.at;
+        if(age<0 || age>c.life) continue;
+        const head=1-(1-sat(age/c.draw))**3, tail=sat((age-c.draw-c.hold)/(c.life-c.draw-c.hold))**1.4;
+        const fade=1-sat((age-c.draw-c.hold)/(c.life-c.draw-c.hold));
+        const ca=Math.cos(c.a), sa=Math.sin(c.a), n=18, seg=[];
+        for(let i=0;i<n;i++){
+          const u=mix(tail,head,i/(n-1)), s=(u-.5)*c.len;
+          const w=c.w*Math.min(1,u*14)*Math.min(1,(1-u)*7)*(.1+.9*(1-u)**1.3)*(1+.5*Math.exp(-u*9))*(.4+.6*fade);
+          seg.push({x:c.x+ca*s-sa*c.bow*Math.sin(pi*u),y:c.y+sa*s+ca*c.bow*Math.sin(pi*u),z:c.z,w,u});
+        }
+        if(!c.lit && head>.5){
+          c.lit=true;
+          for(const u of [.2,.42,.64]){
+            const q=seg[Math.round(u*(n-1))];
+            K.sparks(q.x,q.y,q.z,{pal:c.p,n:F.low?3:6,dir:c.a,spread:.22,sp:[620,1500],up:180,life:[.14,.34]});
+          }
+          if(c.heavy) GFX.light(c.x,c.y,c.len*.4,c.p.l,.7,.2,{z:c.z});
+        }
+        wake.add(seg.map(q=>({...q,w:q.w*1.9*fade})));
+        edge.add(seg.map(q=>({...q,w:q.w*fade})));
+        core.add(seg.map(q=>({...q,w:q.w*.2*(c.heavy?1.4:1)})));
+      }
+      const m=materials(), shared=K.mats();
+      if(wake.pts.length>1) F.ribbon(m.ink,wake.pts,{a:.62,ord:6.5,ero:.08});
+      if(edge.pts.length>1) F.ribbon(shared.smB,edge.pts,{...colors(steel),cA:iris.d,cB:iris.b,a:.9,gain:2.2,ero:.1,ord:7.5});
+      if(core.pts.length>1) F.ribbon(shared.trC,core.pts,{cA:steel.b,cB:steel.m,cM:steel.h,cC:'#ffffff',gain:3.1,ero:.04,ord:9.5});
+    }
+    GFX.add(4.6,(k,t)=>frame(t));
+    return {cut(x,y,z,a,len,w,{delay=0,bow=0,p=steel,heavy=false,draw=.07,hold=.05,life=.46}={}){
+      list.push({x,y,z,a,len,w,bow,p,heavy,draw,hold,life,at:RT-start+delay});
+    }};
+  }
   // Phantom knives. Every dash leaves a few hanging in the mist along its path. They turn on the
   // finisher's victim, converge through it on the closing bite and lodge in the nearest bodies or
   // the paving, then cool and split apart. Two giant blades cross over the victim at the same instant.
   function phantoms(x,y,radius,mist,focus) {
-    const start=RT, life=5.2, cap=F.low?12:24, knives=[], bits=[], giants=[];
+    const start=RT, life=4.7, cap=F.low?12:24, knives=[], bits=[], giants=[];
     const ev={aim:Infinity,hush:Infinity,fire:Infinity,cross:Infinity};
     let body=null;
     const hash=i=>{const s=Math.sin(i*12.9898+4.13)*43758.5453; return s-Math.floor(s);};
@@ -551,7 +618,9 @@
       for(const k of live){
         const dest=k.e?center(k.e):k.g;
         k.tt=Math.min(.2,Math.max(.06,dist(dest)/4800));
-        k.stick=now+.075+k.tt; k.brk=k.stick+.62+.7*hash(k.n*9.1);
+        k.stick=now+.075+k.tt;
+        // Every lodged knife cracks into black vapour inside half a second, outermost last.
+        k.brk=Math.max(k.stick+.3,now+.6+.32*sat(dist(dest)/radius)+.06*hash(k.n*9.1));
       }
     }
     // The giants share the hooks' arcs but not their timing: both pass the victim on the climax frame.
@@ -642,7 +711,7 @@
         const hilt=step(q.p,q.d,-g.len*.9), len=g.len*whole, p=step(hilt,q.d,len*.9);
         const pieces=Math.floor(crack*5);
         while(g.shed<pieces){ g.shed++; shatter(step(p,q.d,len*1.02),q.d,g.len*.32,iris,t,1,.62,.8); }
-        blade(p,q.d,len,g.roll+q.s*1.4,steel,sat((q.s+.14)/.06)*.58,.48,false);
+        blade(p,q.d,len,g.roll+q.s*1.4,steel,sat((q.s+.14)/.06)*.92,.12,false);
         if(!gpu) continue;
         const pass=1-Math.min(1,Math.abs(q.s)/.09);
         if(pass>0) core.add([{...step(p,q.d,-len*.2),w:0},{...step(p,q.d,len*.5),w:14*pass},{...step(p,q.d,len*1.14),w:0}]);
@@ -690,10 +759,20 @@
     const echo=bladeEchoes(C);
     const spread=Math.min(hw*.99,hh*2.16), depth=Math.min(hh*.82,spread*.62);
     const radius=Math.min(hw*.78,hh*1.48), finalTime=3.15;
-    const mist=window.AssassinMist(x,y,{radius:radius*1.04,duration:4.16});
+    const mist=window.AssassinMist(x,y,{radius:radius*1.04,duration:4.16,openAt:3.52});
     let focal={x,y,z:BODY*.61};
     skyDaggers(x,y,radius,()=>focal,mist);
     const ghosts=phantoms(x,y,radius,mist,()=>focal);
+    const rend=rends();
+    // Two crossing rends tear the whole screen between the dashes; the second X is wider and lower.
+    for(const [when,a0,wide,cx0,cy0] of [[1.28,.40,.95,x-hw*.08,y-BODY*.2],[2.56,.30,1.1,x+hw*.06,y-BODY*.05]]){
+      after(when,()=>{
+        for(const s of [-1,1]){
+          rend.cut(cx0,cy0,BODY*.55,s*a0,hw*2.4*wide,s<0?150:120,{delay:s<0?0:.075,bow:s*hh*.05,p:s<0?steel:iris});
+        }
+        X.sfx('slash',1.25,.42); C.shake(.18);
+      });
+    }
     C.move({x,y:y-BODY*.44,zoom:1.12,tilt:.065,roll:-.017},.44);
     GFX.ambient(.66,.68,.78,3);
     C.SND.inhale(.55,.29);
@@ -729,7 +808,13 @@
       }
       mist.part?.(path,draw,r*(dive?.18:.14),p);
       if(dive) window.MK?.assassinEcho?.(path,{draw,yaw:dir,pal:p,heroBeat:i===1||i===5,fogAt:mist.fogAt});
-      stroke(path,p,r*(dive?.19:.25),{draw,hold:dive?.025:.08,fade:dive?.25:.31,fogAt:mist.fogAt});
+      const main=i===1||i===4;
+      stroke(path,p,r*(main?.27:dive?.19:.25),{draw,hold:dive?.025:.08,fade:dive?.25:.31,fogAt:mist.fogAt});
+      // Sparks are thrown off the edge as it passes, along the cut.
+      for(const u of (F.low?[.5]:[.34,.58,.82])) after(draw*u,()=>{
+        const q=path(u), q1=path(u+.02), d=Math.atan2((q1.y-q.y)/FSY,q1.x-q.x);
+        K.sparks(q.x,q.y,q.z,{pal:p,n:main?7:4,dir:d,spread:.3,sp:[380,1100],up:220,life:[.12,.3]});
+      });
       ghosts.leave(path,draw,p);
       after(draw+.045,()=>afterglow(path,i%2?frost:iris,r*(dive?.15:.21),side,mist.fogAt));
       after(draw*.76,()=>{
@@ -788,9 +873,9 @@
       C.move({x:focal.x-45,y:focal.y-BODY*.55,zoom:1.01,tilt:.14,roll:.009},.13,'out');
       mist.strike(.08,1.5); mist.strike(pi+.08,1.5);
       after(.065,()=>{
-        mist.part?.(second,.22,depth*.36,gold);
+        mist.part?.(second,.22,depth*.36,iris);
         rupture(second,depth,mist.fogAt);
-        groundCut(second,gold,depth*.20,1.46);
+        groundCut(second,iris,depth*.20,1.46);
       });
       C.shake(.36); C.SND.shing(.82,.46);
       const {x:cx,y:cy}=focal;
@@ -800,17 +885,21 @@
       targets.sort((a,b)=>distance(a)-distance(b));
       const primary=targets.includes(focal.target)?focal.target:targets[0];
       after(.175,()=>{
-        hitstop=Math.max(hitstop,.068); C.shake(.82); C.SND.hit(.72);
-        C.peak(cx,cy-focal.z,{ca:.006,blur:.014,hold:.035,out:.115});
+        hitstop=Math.max(hitstop,.085); C.shake(.82); C.SND.hit(.72);
+        C.peak(cx,cy-focal.z,{ca:.009,blur:.03,hold:.035,out:.13,tint:'#dfe4ff',a:.5});
+        // The climax X spans the whole screen through the victim; the floor splits under it.
+        for(const s of [-1,1]) rend.cut(cx,cy,focal.z,s*.46,hw*3.1,250,{bow:s*hh*.03,p:s<0?steel:iris,heavy:true,draw:.05,hold:.07,life:.42});
+        K.cool(cx,cy,{kind:'crack2',r:radius*.42,pal:iris,life:1.5,hot:.85,grow:.06,light:0});
+        GFX.ripple(cx,cy,radius*1.6,{life:.5,s:.55});
         K.flare(cx,cy,focal.z,{s:128,pal:gold,sx:2.1,sy:.24,dur:.135});
-        impact(cx,cy,focal.z,.22,gold,1.54);
+        impact(cx,cy,focal.z,.22,iris,1.54);
         // The second cut kicks a short V of mist away from the struck body.
         for(const side of [-1,1]){
           const peel=u=>({x:cx+(u*.81+.19*u*u)*depth*.86,
             y:cy+side*Math.sin(u*pi*.63)*depth*.53*FSY,z:14+depth*.09*Math.sin(u*pi)});
           mist.part?.(peel,.14,depth*.32,gold);
           K.dust(cx,cy,{r:22,n:F.low?4:8,dir:side*.69,spread:.28,sp:[280,880],up:250,
-            a:.56,s:1.2,c:'#3d3541',c3:'#dbc4ac',life:.64});
+            a:.56,s:1.2,c:'#0d0b16',c3:'#6e5f9e',life:.64});
         }
         C.move({x:cx+62,y:cy-BODY*.53,zoom:.80,tilt:.19,roll:.022},.17,'out');
         X.sfx('slash',.65,.7);
@@ -855,8 +944,8 @@
       GFX.ambient(.82,.84,.90,1.8);
       C.move({x,y:y-BODY*.45,zoom:1,tilt:.06,roll:0},.64);
     });
-    after(4.05,()=>{C.back(.83); GFX.ambient(1,1,1,2);});
-    after(5.25,()=>X.ultStop());
+    after(4.0,()=>{C.back(.7); GFX.ambient(1,1,1,2);});
+    after(4.78,()=>X.ultStop());
   }
   const ordinary=window.AssassinSkills;
   const ults={as_ult1:ultimate};

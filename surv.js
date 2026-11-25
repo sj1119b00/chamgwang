@@ -7,10 +7,10 @@
 (()=>{
 const G=RPG, A=G.api, SV=()=>A.SV, SK=A.SK, VER=41;
 const ZL=.42, ZP=.5, DUR=300, BOSS_T=240, CAP=340, SPD=430, BODY=170, FAR=1e5;
-const CLS_ORDER=['sword','mage','fist','shaman','pyro','assassin'];
-const NAMES={sword:'소드맨',mage:'메이지',fist:'파이터',shaman:'샤먼',pyro:'파이로',assassin:'암살자'};
-const CRIM={sword:'#ffb3c0',mage:'#e6d4ff',fist:'#bff4ff',shaman:'#c8ffe8',pyro:'#ffd0a8',assassin:'#e1ddff'};
-const CCOL={sword:'#ff3355',mage:'#b48cff',fist:'#55ddff',shaman:'#3dffb0',pyro:'#ff7a2a',assassin:'#a9afff'};
+const CLS_ORDER=['sword','mage','fist','shaman','pyro','assassin','axe'];
+const NAMES={sword:'소드맨',mage:'메이지',fist:'파이터',shaman:'샤먼',pyro:'파이로',assassin:'암살자',axe:'버서커'};
+const CRIM={sword:'#ffb3c0',mage:'#e6d4ff',fist:'#bff4ff',shaman:'#c8ffe8',pyro:'#ffd0a8',assassin:'#e1ddff',axe:'#ffc9a8'};
+const CCOL={sword:'#ff3355',mage:'#b48cff',fist:'#55ddff',shaman:'#3dffb0',pyro:'#ff7a2a',assassin:'#a9afff',axe:'#ff5a14'};
 const EN={
   shard:{img:'shard',hp:700,spd:170,r:40,dmg:6,gem:1,sc:.56,h:300},
   archer:{img:'archer',hp:600,spd:150,r:38,dmg:8,gem:2,sc:.56,h:290,ranged:true},
@@ -30,7 +30,7 @@ const V={t:0,ch:0,en:[],pj:[],gems:[],items:[],nums:[],shards:[],mk:[],orbs:[],z
 G.surv=V;
 const CH=()=>CHAP[V.ch];
 const CLS={};
-const classReady=c=>!!CLS[c]&&(c!=='assassin'||!!window.MK);
+const classReady=c=>!!CLS[c]&&((c!=='assassin'&&c!=='axe')||!!window.MK);
 const FSY=.58;   // vertical squash of anything lying on the floor (tiles, rings, magic circles) for this camera   // class -> {basic:{fn,cd}, skills:{id:{fn,passive}}, ults:{id:fn}, onHurt, glow}
 
 // ============================================================ small helpers
@@ -668,9 +668,9 @@ G.firstSkills=c=>{ const L=(A.ORDER[c]||[]).filter(id=>SK[id]&&SK[id].type==='sk
 const inView=(x,y,k=.5)=>{ const {hw,hh}=view(); return [clamp(x,cam.x-hw*k,cam.x+hw*k),clamp(y,cam.y-hh*k+BODY*.5,cam.y+hh*k+BODY*.5)]; };
 G.sv={V,A,SK,BODY,CH,CHAP,EN,CLS,CCOL,NAMES,spawn,shock1,inView,FSY,draw:(life,fn,delay=0)=>V.draws.push({t0:RT+delay,life,fn}),nearest,countIn,densest,angTo,face,seq,dmg,hitFx,inCircle,inCircleS,inSector,inLine,sfx,view,onScreen,tdV,dropFx,ultStart,ultStop,ultHit,addVfx,burst,fring,heal,hurt,
   fmtN,reg(c,def){ CLS[c]=def; if(def.sk) Object.assign(SK,def.sk); if(def.order) A.ORDER[c]=def.order; if(G.mode==='menu') A.menuRender(); if(G.mode==='surv'&&c===pl.cls) buildBar(); }};
-for(const f of ['hub','fx3','vol3','gfx','vfx3','vkit3','cine','assassin_flow','assassin_mist','assassin_blades','assassin_cuts','assassin_ground','assassin_skills','assassin_eclipse','assassin_loom',...CLS_ORDER.map(c=>'sk_'+c),'mk','mk_sword']){
+for(const f of ['hub','fx3','vol3','gfx','vfx3','vkit3','cine','assassin_flow','assassin_mist','assassin_blades','assassin_cuts','assassin_ground','assassin_skills','assassin_eclipse','assassin_loom','axe_skills','axe_ult1','axe_ult2','axe_ult3',...CLS_ORDER.map(c=>'sk_'+c),'mk','mk_sword']){
   const s=document.createElement('script'); s.src=`${f}.js?v=${VER}`; s.async=false;
-  if(f==='mk') s.onload=()=>{ if(G.mode==='menu'&&pl.cls==='assassin') A.menuRender(); else if(G.mode==='surv'&&V.practice) buildPractice(); };
+  if(f==='mk') s.onload=()=>{ if(G.mode==='menu'&&(pl.cls==='assassin'||pl.cls==='axe')) A.menuRender(); else if(G.mode==='surv'&&V.practice) buildPractice(); };
   document.body.appendChild(s);
 }
 if(G.mode==='menu') A.menuRender();

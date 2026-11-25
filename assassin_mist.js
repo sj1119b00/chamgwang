@@ -29,7 +29,7 @@
     uniform vec2 invTarget,frontScale;
     uniform vec4 state;
     uniform vec4 cutA[8],cutB[8],lamp[2],wake[2];
-    uniform vec4 actors[8],groundFlash;
+    uniform vec4 actors[8],groundFlash,holes[6];
     uniform vec3 lampRGB[2],lampTail[2],groundColor;
     uniform float steps;
     float noise3(vec3 p){
@@ -171,6 +171,20 @@
       d+=.36*thin*inner*(1.-smoothstep(.025,.089,abs(w.z-crest+.016)));
       return vec2(d+bank.x*(1.-.60*min(1.,d))+bank.z,max(bank.y,crest));
     }
+    // Soot gathers into heavy banks with clear gaps between them, so the floor and
+    // the knives read through the holes. state.w is the radius already blown open
+    // by the closing gust; the displaced soot piles up just outside it.
+    float clumps(vec3 w){
+      vec3 q=vec3(w.xy*vec2(2.3,2.9)+vec2(.13,-.06)*state.x,w.z*1.6+.07*state.x);
+      float n=noise3(q+vec3(31.7,12.3,5.9))*.68+noise3(q*2.3+vec3(-4.1,9.2,2.2))*.32;
+      float k=mix(.03,1.95,smoothstep(.42,.63,n));
+      float open=state.w;
+      if(open>0.){
+        float r=length(w.xy*vec2(1.,1.45)), pile=(r-open-.28)/.16;
+        k*=smoothstep(open-.06,open+.32,r)*(1.+1.4*exp(-pile*pile));
+      }
+      return k;
+    }
     void main(){
       // The sightline intersects the ground, then rises towards the viewer.
       float y0=-screen.y/.58;
@@ -195,7 +209,13 @@
         float z=high-(float(i)+.025+.95*fract(jitter+float(i)*.618034))*dz;
         vec3 w=vec3(screen.x,y0+z/.58,z);
         vec2 f=field(w,true);
-        float density=f.x, slit=0., rim=0., pulse=0.;
+        float ck=clumps(w);
+        float density=f.x*ck, slit=0., rim=0., pulse=0.;
+        for(int j=0;j<6;j++){
+          vec4 h=holes[j]; if(h.w<=0.)continue;
+          vec3 g=(w-h.xyz)*vec3(1.,1.6,1.2);
+          density*=1.-.86*h.w*exp(-dot(g,g)*95.);
+        }
         vec3 displaced=w,scatter=vec3(0.);
         for(int j=0;j<8;j++){
           vec4 a=cutA[j], b=cutB[j]; if(b.w<=0.)continue;
@@ -238,8 +258,8 @@
         density=density*(1.-.98*slit)+density*pulse*.92;
         if(density<.012)continue;
         vec3 sun=vec3(-.49,-.40,.76);
-        float d1=field(w+sun*.092,false).x;
-        float d2=field(w+sun*.218,false).x;
+        float d1=field(w+sun*.092,false).x*ck;
+        float d2=field(w+sun*.218,false).x*ck;
         float sunT=exp(-3.6*d1-1.65*d2);
         float sky=clamp((w.z+.045)/max(f.y,.09),0.,1.);
         vec3 light=vec3(.013,.015,.018)+vec3(.018,.023,.031)*sky*sky;
@@ -259,7 +279,7 @@
       if(bodyZ<.001){
         vec3 floorPoint=vec3(screen.x,y0,0.);
         shade=(field(floorPoint+vec3(-.042,-.034,.085),false).x*.15
-             +field(floorPoint+vec3(-.107,-.087,.205),false).x*.16)*state.z;
+             +field(floorPoint+vec3(-.107,-.087,.205),false).x*.16)*state.z*min(1.,clumps(floorPoint+vec3(-.07,-.06,.14)));
       }
       gl_FragColor=vec4(radiance,1.-T*(1.-shade));
     }`;
@@ -279,7 +299,7 @@
       gl.bindAttribLocation(program,0,'p');gl.linkProgram(program);
       if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw new Error(gl.getProgramInfoLog(program));
       const u={};
-      for(const n of ['anchor','camera','halfSize','state','cutA[0]','cutB[0]','lamp[0]','lampRGB[0]','lampTail[0]','wake[0]','actors[0]','steps','fieldNoise','sceneMask','invTarget','frontScale','groundFlash','groundColor'])u[n]=gl.getUniformLocation(program,n);
+      for(const n of ['anchor','camera','halfSize','state','cutA[0]','cutB[0]','lamp[0]','lampRGB[0]','lampTail[0]','wake[0]','actors[0]','steps','fieldNoise','sceneMask','invTarget','frontScale','groundFlash','groundColor','holes[0]'])u[n]=gl.getUniformLocation(program,n);
       gpu={program,u};
     }catch(err){gpuFailed=true;console.warn('Assassin fog shader',err);}
     finally{for(const sh of shaders)gl.deleteShader(sh);}
@@ -299,20 +319,35 @@
     };
     return (interp(X,Y)*(1-c)+interp(X+37,Y+17)*c)/255;
   }
-  window.AssassinMist=function(x,y,{radius=1100,duration=4}={}){
+  window.AssassinMist=function(x,y,{radius=1100,duration=4,openAt}={}){
     window.AssassinFlow?.prepare?.();
     const R=Math.max(120,radius), life=Math.max(.1,duration), start=RT;
+    const blowAt=openAt??life-.55;
     const frontX=2*S*cam.z*R/W,frontY=2*S*cam.z*R*depth/H;
     const cuts=[], lights=[], wakes=[];
     const A=new Float32Array(32),B=new Float32Array(32),L=new Float32Array(8),C=new Float32Array(6),winds=new Float32Array(8);
-    const tails=new Float32Array(6),actors=new Float32Array(32);
-    let endAt=Infinity,phase=0,radiusNow=.42,strength=0,canvas,lastPaint=-10,pixels,bounds,flash;
+    const tails=new Float32Array(6),actors=new Float32Array(32),holes=new Float32Array(24);
+    let endAt=Infinity,phase=0,radiusNow=.42,strength=0,open=0,canvas,lastPaint=-10,pixels,bounds,flash,clearAt=-1;
     function timing(t){
       phase=t*4/life;
       radiusNow=.49+.54*ease(.12,1.33,phase)-.095*ease(2.64,3.08,phase)+.10*ease(3.16,3.65,phase);
-      strength=ease(0,.25,phase)*(1-ease(3.18,4,phase))*(1-ease(0,.34,RT-endAt));
+      const blow=ease(0,.42,t-blowAt);
+      open=blow>0?-.3+2.7*blow:0;
+      strength=ease(0,.25,phase)*(1-ease(blowAt+.12,life,t))*(1-ease(0,.34,RT-endAt));
+    }
+    // Same banks and gaps as the shader's clumps(), for the knives' atmospheric perspective.
+    function clumps(px,py,pz){
+      const qx=px*2.3+.13*phase,qy=py*2.9-.06*phase,qz=pz*1.6+.07*phase;
+      const n=sample(qx+31.7,qy+12.3,qz+5.9)*.68+sample(qx*2.3-4.1,qy*2.3+9.2,qz*2.3+2.2)*.32;
+      let k=.03+1.92*ease(.42,.63,n);
+      if(open>0){const r=Math.hypot(px,py*1.45),pile=(r-open-.28)/.16;k*=ease(open-.06,open+.32,r)*(1+1.4*Math.exp(-pile*pile));}
+      return k;
     }
     function coarse(px,py,pz,accurate=false){
+      const d=coarseField(px,py,pz,accurate);
+      return d>0?d*clumps(px,py,pz):d;
+    }
+    function coarseField(px,py,pz,accurate=false){
       if(pz<0 || pz>.68)return 0;
       const t=RT-start;
       const center=1-ease(.51,1.47,Math.hypot(px*.93,py*1.1));
@@ -393,7 +428,9 @@
       gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,G.tScene);gl.uniform1i(u.sceneMask,1);
       gl.activeTexture(gl.TEXTURE0);gl.uniform2f(u.invTarget,1/VOL.rt.w,1/VOL.rt.h);
       gl.uniform3f(u.anchor,x,y,R);gl.uniform4f(u.camera,-cam.x+cam.sx,-cam.y+cam.sy,S*cam.z,cam.rot);
-      gl.uniform2f(u.halfSize,W/2,H/2);gl.uniform4f(u.state,phase,radiusNow,strength,0);
+      gl.uniform2f(u.halfSize,W/2,H/2);gl.uniform4f(u.state,phase,radiusNow,strength,open);
+      if(RT-clearAt>.05)holes.fill(0);
+      gl.uniform4fv(u['holes[0]'],holes);
       gl.uniform2f(u.frontScale,frontX,frontY);
       if(flash&&RT-flash.at<.28){
         gl.uniform4f(u.groundFlash,flash.x,flash.y,flash.z,flash.gain*(1-ease(0,.28,RT-flash.at)));
@@ -462,6 +499,11 @@
       strike(a,s=1){wakes.push({a,s,at:RT});if(wakes.length>2)wakes.shift();},
       part(path,draw,width){if(typeof path==='function'&&width>0&&RT<endAt){cuts.push({path,draw:Math.max(.04,draw||.16),width:Math.min(R*.22,Math.max(63,width*.71)),at:RT});if(cuts.length>2)cuts.shift();}},
       end(){endAt=Math.min(RT,endAt);},
+      // Up to six blades push the soot away from themselves this frame.
+      clear(list){
+        holes.fill(0);clearAt=RT;
+        for(let j=0;j<Math.min(6,list.length);j++){const q=list[j];holes.set([(q.x-x)/R,(q.y-y)/(depth*R),q.z/R,q.s??1],j*4);}
+      },
       fogAt(p){
         if(!p||RT>start+life)return 0;
         timing(RT-start);

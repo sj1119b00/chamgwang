@@ -6,13 +6,13 @@
 'use strict';
 (()=>{
 const G=RPG, A=G.api, S=G.sv, SV=()=>A.SV;
-const ORDER=['sword','mage','fist','shaman','pyro','assassin'];
+const ORDER=['sword','mage','fist','shaman','pyro','assassin','axe'];
 const NAMES=S.NAMES, CHAP=S.CHAP||[];
-const EN_N={sword:'BLADE',mage:'ARCANIST',fist:'STRIKER',shaman:'SPIRIT LINK',pyro:'PYROMANCER',assassin:'PHANTOM'};
-const ROLE={sword:'근접',mage:'원거리',fist:'근접',shaman:'정령',pyro:'원거리',assassin:'근접'};
+const EN_N={sword:'BLADE',mage:'ARCANIST',fist:'STRIKER',shaman:'SPIRIT LINK',pyro:'PYROMANCER',assassin:'PHANTOM',axe:'BERSERKER'};
+const ROLE={sword:'근접',mage:'원거리',fist:'근접',shaman:'정령',pyro:'원거리',assassin:'근접',axe:'근접'};
 const LORE={sword:'검을 익힌 후손. 빛의 칼날 하나로 구역의 질서를 가른다.',mage:'피가 짙게 발현된 후손. 공간을 접어 무리를 한꺼번에 지운다.',fist:'맨몸으로 싸우는 법을 익힌 후손. 연타와 충격파로 밀어붙인다.',
-  shaman:'정령과 동기화하는 후손. 보이지 않는 것들을 불러 싸운다.',pyro:'플라즈마를 다루는 후손. 닿는 모든 것을 태운다.',assassin:'그림자처럼 움직이는 후손. 보이기 전에 끝낸다.'};
-const HER={sword:'#ff5a7a',mage:'#a98bff',fist:'#56d8ff',shaman:'#4fffb8',pyro:'#ff9a4a',assassin:'#b9c0ff'};
+  shaman:'정령과 동기화하는 후손. 보이지 않는 것들을 불러 싸운다.',pyro:'플라즈마를 다루는 후손. 닿는 모든 것을 태운다.',assassin:'그림자처럼 움직이는 후손. 보이기 전에 끝낸다.',axe:'불타는 거대 도끼를 휘두르는 후손. 내려치는 곳마다 땅이 탄다.'};
+const HER={sword:'#ff5a7a',mage:'#a98bff',fist:'#56d8ff',shaman:'#4fffb8',pyro:'#ff9a4a',assassin:'#b9c0ff',axe:'#ff7a3a'};
 
 // ============================================================ the seven experiment zones (story: each has grown a king; the player subdues them)
 // play order, king titles and colours are provisional: the story has not fixed them yet
@@ -42,7 +42,7 @@ function hsave(){ if(G.noSave) return; try{ localStorage.setItem(HK,JSON.stringi
 const SLOTS=[['w','무기','WEAPON'],['a','수트','SUIT'],['t','모듈','MODULE']];
 const RAR=[['표준','STANDARD','#c9d6e6'],['강화','ENHANCED','#5ad1ff'],['프로토타입','PROTOTYPE','#c77dff'],['특이점','SINGULAR','#ffb547']];
 const RM=[1,1.35,1.75,2.3], MAXP=5, BAG=16;
-const WBASE={sword:'포톤 블레이드',mage:'위상 포커스',fist:'키네틱 너클',shaman:'스피릿 링크',pyro:'플라즈마 이미터',assassin:'모노 대거'};
+const WBASE={sword:'포톤 블레이드',mage:'위상 포커스',fist:'키네틱 너클',shaman:'스피릿 링크',pyro:'플라즈마 이미터',assassin:'모노 대거',axe:'헤비 액스'};
 const WT=['시제','표준','개량','퀀텀','싱귤러','오리진'];
 const AT=['패브릭 수트','나노 수트','하드라이트 베스트','위상 장갑복','퀀텀 쉘','오리진 수트'];
 const TT=['데이터 칩','신경 링크','동기화 코어','신호 증폭기','퀀텀 코어','시그널 프래그먼트'];
@@ -296,6 +296,7 @@ const holo=document.createElement('style'); holo.id='hubholo'; holo.textContent=
 .hub .title h1,#rmenu.hub .title h1{text-shadow:-1.5px 0 rgba(255,80,190,.35),1.5px 0 rgba(127,243,255,.45),0 2px 30px rgba(0,0,0,.6)}
 /* zone detail: hologram city with the holo map inset */
 .hub .zfeed{position:relative} .hub .zmini{position:absolute;right:8px;bottom:8px;width:34%;aspect-ratio:16/9;border-color:rgba(127,243,255,.6)}
+.hub .zmap{width:47%;cursor:pointer;background:radial-gradient(ellipse at 50% 45%,rgba(10,40,48,.9),rgba(2,10,14,.94))} .hub .zmap canvas{display:block;width:100%;height:100%}
 /* battle buttons: same projected light */
 #shud .c{border-radius:3px!important;border:1px solid rgba(127,243,255,.45)!important;background:linear-gradient(180deg,rgba(127,243,255,.14),rgba(127,243,255,.03)),repeating-linear-gradient(0deg,rgba(127,243,255,.07) 0 1px,transparent 1px 3px),rgba(4,16,20,.6)!important;box-shadow:0 0 10px rgba(127,243,255,.18),inset 0 0 12px rgba(127,243,255,.12)!important}
 #shud .c span{color:#DDFBFF;text-shadow:0 0 6px rgba(127,243,255,.6),0 1px 2px #000!important}
@@ -312,6 +313,14 @@ const holo=document.createElement('style'); holo.id='hubholo'; holo.textContent=
 #shud .xb i{background:${HC}!important;box-shadow:0 0 8px ${HC}}
 #shud .me{clip-path:none!important;border-radius:2px;box-shadow:inset 0 0 20px rgba(127,243,255,.08)}
 #shud .pz{clip-path:none!important;border-color:rgba(127,243,255,.5)!important;color:${HC}!important;box-shadow:0 0 10px rgba(127,243,255,.25)}
+.hub .chz{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+.hub .chz .sw{display:flex;align-items:center;gap:5px;height:24px;padding:0 8px 0 4px;border:1px solid rgba(127,243,255,.25);background:rgba(4,16,20,.55);color:#cfefff;font:600 10.5px ${KR};cursor:pointer;border-radius:2px}
+.hub .chz .sw i{width:14px;height:14px;border-radius:50%;box-shadow:0 0 8px currentColor;border:1px solid rgba(255,255,255,.5)}
+.hub .chz .sw.lk{color:#EBA74E;opacity:.8} .hub .chz .sw.lk i{filter:saturate(.6) brightness(.8)}
+.hub .chz .sw.on{border-color:${HC};box-shadow:0 0 10px rgba(127,243,255,.45);background:rgba(127,243,255,.16)}
+.hub .chz .sw.arm{border-color:#EBA74E;box-shadow:0 0 12px rgba(235,167,78,.6)}
+.hub .top .back,.hub .purse span,.hub .top b,.hub .top .hk{white-space:nowrap}
+@media (max-width:760px){ .hub .top .hk{letter-spacing:.08em;font-size:9px} .hub .crest small{display:none} .hub .top .back small{display:none} .hub .top .back{min-width:0;width:auto;padding:0 12px;flex:none} .hub .purse span{padding-left:8px;padding-right:8px} .hub .top{gap:6px} }
 `; document.head.appendChild(holo);
 
 // ============================================================ stick figures (enemies in battle, descendants in menus)
@@ -385,12 +394,14 @@ function heroFigure(g,H,cls,t,col){ const R=rig(H,{ph:Math.sin(t*1.6)*.12,stride
   if(cls==='mage'||cls==='shaman'||cls==='pyro') A1=arm(1.05+br,.5);
   if(cls==='fist'){ A1=arm(.9,2.0); A2=arm(.7,2.2); }
   if(cls==='assassin'){ A1=arm(.8,1.2); A2=arm(-.5,1.6); }
+  if(cls==='axe'){ A1=arm(1.15+br,.35); A2=arm(1.0-br,.6); }
   const Am={A1,A2}, lw=H*.06, h1=A1[1];
   for(const pass of [0,1]){ g.strokeStyle=pass?col:INK; g.lineWidth=pass?lw:lw+H*.04; g.lineCap='round'; g.lineJoin='round'; g.beginPath(); limbs(g,R,Am); g.stroke();
     g.fillStyle=pass?col:INK; g.beginPath(); g.arc(R.head[0],R.head[1],R.hr+(pass?0:H*.02),0,TAU); g.fill(); }
   visor(g,R,ac);
   if(cls==='sword') lightLine(g,h1,P(h1,Math.PI-.35,H*.5),lw*.45,ac);
   else if(cls==='assassin') for(const a of [A1,A2]) lightLine(g,a[1],P(a[1],Math.PI-.9,H*.2),lw*.35,ac);
+  else if(cls==='axe'){ const hd=P(h1,Math.PI-.5,H*.55); lightLine(g,P(h1,Math.PI-.5,-H*.12),hd,lw*.4,'#8a5a3a'); g.fillStyle=ac; g.beginPath(); g.moveTo(hd[0],hd[1]); g.lineTo(hd[0]-H*.2,hd[1]-H*.06); g.quadraticCurveTo(hd[0]-H*.26,hd[1]+H*.1,hd[0]-H*.16,hd[1]+H*.22); g.lineTo(hd[0]-H*.02,hd[1]+H*.14); g.closePath(); g.fill(); glow(g,hd[0]-H*.18,hd[1]+H*.08,H*.16,'#ff5a14',.8); }
   else if(cls==='fist') for(const a of [A1,A2]) glow(g,a[1][0],a[1][1],H*.1,ac,.9);
   else { const c=[h1[0]+H*.06,h1[1]-H*.08]; glow(g,c[0],c[1],H*.18,ac,.9); g.fillStyle='#ffffff'; g.beginPath(); g.arc(c[0],c[1],H*.03,0,TAU); g.fill();
     g.strokeStyle=hexA(ac,.8); g.lineWidth=Math.max(1,H*.008);
@@ -431,7 +442,7 @@ function drawFx(t,scr){ const w=fxc.clientWidth|0, h=fxc.clientHeight|0; if(!w||
     else { p.y-=H*.0016*p.v; p.x+=Math.sin(t*.6+p.l*9)*d*.3; if(p.y<-4){ p.y=H+4; p.x=Math.random()*W; }
       fg.fillStyle=`rgba(235,190,120,${.18+.25*Math.sin(t*1.3+p.l*7)**2})`; fg.fillRect(p.x,p.y,d*1.6,d*1.6); } } }
 function drawPortrait(c,cls,t){ const w=c.clientWidth|0; if(!w) return; const dpr=Math.min(2,window.devicePixelRatio||1), s=Math.round(w*dpr); if(c.width!==s){ c.width=s; c.height=s; }
-  const g=c.getContext('2d'); g.setTransform(1,0,0,1,0,0); g.clearRect(0,0,s,s); const ok=!!S.CLS[cls]&&(cls!=='assassin'||!!window.MK);
+  const g=c.getContext('2d'); g.setTransform(1,0,0,1,0,0); g.clearRect(0,0,s,s); const ok=!!S.CLS[cls]&&((cls!=='assassin'&&cls!=='axe')||!!window.MK);
   glow(g,s*.5,s*.62,s*.42,HER[cls],ok?.3:.1); g.save(); g.translate(s*.5,s*.96); heroFigure(g,s*.9,cls,t+ORDER.indexOf(cls),ok?'#EDEAE4':'#3a4644'); g.restore(); }
 // a generated GIF as a live feed; it disappears if the file is missing
 const feed=(n,label,cls='')=>`<div class="feed ${cls}"><img src="${MENU}${n}.gif" alt="" onerror="this.parentNode.style.display='none'"><span class="tag"><i></i>${label}</span></div>`;
@@ -470,7 +481,7 @@ const ICO={
 let scr='title', qSel=null, hSel=null, smTab='bag', booted=false;
 const ui=document.createElement('div'); ui.className='ui';
 const mmss=s=>Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0');
-const ready=c=>!!S.CLS[c]&&(c!=='assassin'||!!window.MK);
+const ready=c=>!!S.CLS[c]&&((c!=='assassin'&&c!=='axe')||!!window.MK);
 const openCh=()=>Math.min(CHAP.length-1,SV().chClear||0);
 const zno=i=>String(ZONES[i].no).padStart(2,'0');
 const seg=n=>`<div class="seg">${[0,1,2,3,4,5,6].map(i=>`<i class="${i<n?'on':''}"></i>`).join('')}</div>`;
@@ -519,20 +530,23 @@ function viewQuest(){ const sv=SV(), open=openCh(); if(qSel==null||(qSel!=='seal
   const det=seal?`<div class="feed zfeed" style="border-color:rgba(226,81,63,.45)"><img src="${MENU}m_arcadia.webp" alt=""><span class="tag"><i></i>SOUTHERN CONTROL · SIGNAL SEALED</span></div>
     <div class="zinfo panel"><div class="big"><b style="color:${RD}">??</b><span>남부 관제실</span></div><div class="lore">1903년 이후 봉인된 곳. 일곱 왕의 기록이 모두 모이면 이 문이 열린다.</div>
     <div class="btn" style="margin-top:6px;display:flex;align-items:center;border-style:dashed;color:${MU}">신호 봉인 — 레온의 기록 ${Math.min(7,sv.chClear||0)} / 7</div></div>`
-   :`<div class="feed zfeed"><img src="${MENU}v_${ZK[i]}.webp" alt=""><span class="tag"><i></i>ZONE ${zno(i)} · ${Z.en}</span>${feed('g_map','HOLO MAP','zmini')}</div>
+   :`<div class="feed zfeed"><img src="${MENU}v_${ZK[i]}.webp" alt=""><span class="tag"><i></i>ZONE ${zno(i)} · ${Z.en}</span><div class="feed zmini zmap"><canvas width="640" height="360" data-zmap></canvas><span class="tag"><i></i>HOLO MAP · SECTOR ${zno(i)}</span></div></div>
     <div class="zinfo panel"><div class="big"><b>${zno(i)}</b><span>${Z.no}구역 · ${Z.name}</span></div><div class="lore">${Z.lore}</div>
     <div class="zgrid"><div><small>구역의 왕</small><b style="color:${Z.acc}">${Z.king}</b></div><div><small>권장 레벨</small><b style="color:${lvc}">LV ${c.rec}</b></div><div><small>${clr?'최고 기록':'첫 제압 보상'}</small><b>${clr?(best?mmss(best):'-'):'레온의 기록'}</b></div></div>
-    <button class="btn pri" data-act="embark" style="margin-top:8px;display:flex;align-items:center;justify-content:space-between"><span>구역 진입 · 5:00 생존 후 왕 제압</span>${arrow}</button></div>`;
+    <button class="btn pri" data-act="embark" style="margin-top:8px;display:flex;align-items:center;justify-content:space-between"><span>구역 진입 · 신호 노드 3개 파괴 후 왕 제압</span>${arrow}</button></div>`;
   return topBar(true,'구역 지도','Prometheus zones · 7 sectors')+`<div class="sheet"><div class="zlist panel scroll">${rows}</div><div class="zdet">${det}</div></div><div class="toast panel"></div>`; }
 function iconOf(id){ return G.sv_icon?G.sv_icon(id):''; }
+function chromaRow(id){ const C=G.chroma; if(!C) return ''; const L=C.options(id), cur=C.sel(id);
+  return `<div class="chz"><button class="sw ${cur<0?'on':''}" data-cz="${id}|-1" title="기본"><i style="background:linear-gradient(135deg,#ddd,#555)"></i></button>`+L.map((o,k)=>{ const own=C.owned(id,k);
+    return `<button class="sw ${cur===k?'on':''} ${own?'':'lk'}" data-cz="${id}|${k}"><i style="background:${C.swatch(id,k)}"></i><span>${own?o[0]:C.price(id,k)}</span></button>`; }).join('')+'</div>'; }
 function viewTrain(){ const sv=SV(), ids=A.ORDER[pl.cls]||[];
   const rows=ids.map(id=>{ const s=S.SK[id]; if(!s) return ''; const un=A.unlocked(id), lv=A.sLv(id), ev=lv>=5;
     const tag=s.type==='ult'?'궁극기':s.type==='basic'?'기본 공격':`재사용 ${A.cdOf(id).toFixed(1)}초`;
     const act=un&&s.type!=='ult'?`<button class="btn sbtn ${sv.sp>0&&!ev?'pri':''}" data-up="${id}" ${sv.sp<1||ev?'disabled':''}>${ev?'진화 완료':lv===4?'진화':'강화'}</button>`:'';
-    return `<div class="row ${un?'':'lock'}">${iconOf(id)}<div class="tx"><b>${s.name}</b><span class="tg">${tag}</span><p>${un?s.desc+(s.evo&&s.type!=='ult'?` <span class="cr">진화: ${s.evo}</span>`:''):'LV '+s.lv+'에 해제'}</p></div><div class="lvl">${s.type==='ult'?'':ev?'★ EVO':'LV '+lv+'/5'}</div>${act}</div>`; }).join('');
+    return `<div class="row ${un?'':'lock'}">${iconOf(id)}<div class="tx"><b>${s.name}</b><span class="tg">${tag}</span><p>${un?s.desc+(s.evo&&s.type!=='ult'?` <span class="cr">진화: ${s.evo}</span>`:''):'LV '+s.lv+'에 해제'}</p>${un?chromaRow(id):''}</div><div class="lvl">${s.type==='ult'?'':ev?'★ EVO':'LV '+lv+'/5'}</div>${act}</div>`; }).join('');
   return topBar(true,'시뮬레이터','Skill matrix')+`<div class="sheet"><div class="panel col" style="flex:2;min-width:0"><div class="scroll" style="flex:1">${ready(pl.cls)?rows:'<div class="mut">전투 데이터 동기화 중…</div>'}</div></div>
     <div class="panel col" style="flex:1;min-width:190px"><div class="scroll" style="flex:1"><h3><small>COMBAT SIMULATION</small>모의 전투</h3><div class="lore">홀로그램 표적을 상대로 모든 스킬과 궁극기를 시험합니다. 기록과 보상은 남지 않습니다.</div>
-    <div class="rule"></div><div class="kv"><span>스킬 포인트</span><b style="color:${AM}">${sv.sp}</b></div><div class="kv"><span>다음 레벨까지</span><b>${Math.max(0,A.needExp(sv.lv)-sv.exp)} EXP</b></div></div>
+    <div class="rule"></div><div class="kv"><span>스킬 포인트</span><b style="color:${AM}">${sv.sp}</b></div><div class="kv"><span>크레딧</span><b style="color:${AM}">${H.gold}</b></div><div class="lore" style="margin-top:6px">스킬 아래 색을 눌러 크레딧으로 해금하고 바꿀 수 있습니다. 궁극기는 두 가지 색이 있습니다.</div><div class="kv"><span>다음 레벨까지</span><b>${Math.max(0,A.needExp(sv.lv)-sv.exp)} EXP</b></div></div>
     <div style="padding-top:10px"><button class="btn" style="width:100%" data-act="practice" ${ready(pl.cls)?'':'disabled'}>시뮬레이션 시작<small>RUN</small></button></div></div></div><div class="toast panel"></div>`; }
 function itemCard(it,sub){ const r=RAR[it.rar]; return `<div class="gem" style="--r:${r[2]}">${ICO[it.slot]}</div><div class="tx" style="flex:1;min-width:0"><div class="itn" style="--r:${r[2]}">${itName(it)}</div><div class="its">${itStat(it)} <span class="mut" style="font-size:10.5px">· ${r[0]} · T${it.tier}</span>${sub?' '+sub:''}</div></div>`; }
 function viewSmith(){ const g=gearOf(pl.cls);
@@ -571,8 +585,12 @@ G.menuOverride=el=>{ const sv=SV(); sv.opt=sv.opt||{}; sv.opt.stick=true;
   on('[data-h]',b=>{ hSel=b.dataset.h; R(); });
   on('[data-act=pick]',()=>{ const c=hSel; if(!ready(c)) return; if(c!==pl.cls){ A.swapClass(c); setClass(c,true); } booted=true; go('town'); });
   on('[data-q]',b=>{ const v=b.dataset.q; if(v==='seal'){ qSel='seal'; R(); return; } const k=+v; if(k>openCh()){ toast('앞 구역의 왕을 먼저 제압해야 합니다'); return; } qSel=k; R(); });
+  { const zc=ui.querySelector('canvas[data-zmap]'); if(zc){ drawZmap(zc,performance.now()/1000); zc.onclick=e=>{ e.stopPropagation(); const k=zmapPick(zc,e); if(k==='seal'){ qSel='seal'; R(); } else if(k>=0){ if(k>openCh()){ toast('앞 구역의 왕을 먼저 제압해야 합니다'); return; } qSel=k; R(); } }; } }
   on('[data-act=embark]',()=>{ if(!ready(pl.cls)||qSel==='seal') return; goFull(); G.survStart(qSel); });
   on('[data-act=practice]',()=>{ if(!ready(pl.cls)) return; goFull(); G.survStart(openCh(),{practice:true}); });
+  on('[data-cz]',b=>{ const C=G.chroma; if(!C) return; const [id,ks]=b.dataset.cz.split('|'), k=+ks; if(k<0||C.owned(id,k)){ C.pick(id,k); R(); return; }
+    const c=C.price(id,k); if(H.gold<c){ toast(`크레딧이 부족합니다 · ${c} 필요`); return; } if(b.dataset.arm!=='1'){ ui.querySelectorAll('[data-arm]').forEach(x=>{ x.dataset.arm=''; x.classList.remove('arm'); }); b.dataset.arm='1'; b.classList.add('arm'); toast(`${C.options(id)[k][0]} · ${c} 크레딧 — 한 번 더 누르면 해금`); return; }
+    C.buy(id,k); R(); toast(`${C.options(id)[k][0]} 해금`); });
   on('[data-up]',b=>{ const id=b.dataset.up; if(sv.sp<1||A.sLv(id)>=5) return; sv.sp--; sv.sl[id]=A.sLv(id)+1; A.save(); R(); });
   on('[data-opt]',b=>{ const k=b.dataset.opt; sv.opt[k]=!sv.opt[k]; A.save(); R(); });
   on('[data-tab]',b=>{ smTab=b.dataset.tab; R(); });
@@ -581,19 +599,60 @@ G.menuOverride=el=>{ const sv=SV(); sv.opt=sv.opt||{}; sv.opt.stick=true;
   on('[data-buy]',b=>{ const k=+b.dataset.buy, it=H.stock[k]; if(!it||H.gold<buyOf(it)||H.stash.length>=BAG) return; H.gold-=buyOf(it); H.stock.splice(k,1); it.id=H.uid++; H.stash.push(it); hsave(); R(); toast(itName(it)+' 제작 완료'); });
   on('[data-upg]',b=>{ const it=byId(+b.dataset.upg); if(!it||it.plus>=MAXP||H.gold<upOf(it)) return; H.gold-=upOf(it); it.plus=(it.plus||0)+1; hsave(); R(); toast(itName(it)+' 강화 완료'); });
 };
+// ============================================================ holo map: the continent cut into the seven sectors; the chosen one is lit in its own colour
+const AUS=[[114,-22],[113.5,-25],[115,-30],[115,-34],[117.5,-35],[123,-33.8],[126,-32.3],[131,-31.5],[134,-32.8],[136,-35],[137.5,-33],[138,-35],[140,-37.8],[143.5,-38.8],[146.3,-39],[148,-37.8],[150,-37.4],[150.5,-35.5],[151.3,-33.8],[153,-31],[153.6,-28],[153,-25.5],[151,-23.5],[149,-21],[146,-18.8],[145.4,-16],[145,-14.5],[143.5,-14],[142.5,-10.7],[141.5,-13],[141.5,-16.5],[140,-17.6],[137.5,-16],[135.5,-14.8],[136.8,-12.2],[133,-11.3],[131,-12.2],[130,-13],[129.5,-15],[128,-15],[126.5,-14],[125,-15],[123.5,-17],[122,-18.2],[120,-19.8],[117,-20.6]];
+const TAS=[[144.7,-40.7],[148.3,-40.9],[148,-43.2],[146,-43.6],[145.2,-42.2]];
+const ZSEED=[[150.3,-29.5],[121.5,-20.5],[144.5,-36.3],[133.5,-15.5],[133,-25.5],[118.5,-29.5],[143.8,-21.5]], SEAL=[138.6,-34.9];
+const MW=640, MH=360, MSC=9.7, mpt=([lo,la])=>[MW/2+(lo-133.5)*MSC,(-la-8.5)*MSC];
+let ZM=null;
+function zmapBuild(){ const mk=()=>{ const c=document.createElement('canvas'); c.width=MW; c.height=MH; return c; };
+  const c=mk(), g=c.getContext('2d'); g.beginPath(); for(const P of [AUS,TAS]){ P.forEach((p,i)=>{ const [x,y]=mpt(p); i?g.lineTo(x,y):g.moveTo(x,y); }); g.closePath(); } g.fillStyle='#fff'; g.fill();
+  const land=g.getImageData(0,0,MW,MH).data, SD=ZSEED.map(mpt), lab=new Int8Array(MW*MH).fill(-1);
+  for(let y=0;y<MH;y++) for(let x=0;x<MW;x++){ const i=y*MW+x; if(land[i*4+3]<128) continue; let b=0, bd=1e9; SD.forEach(([sx,sy],k)=>{ const d=(x-sx)**2+(y-sy)**2; if(d<bd){ bd=d; b=k; } }); lab[i]=b; }
+  const masks=ZSEED.map((_,k)=>{ const m=mk(), mg=m.getContext('2d'), D=mg.createImageData(MW,MH); for(let i=0;i<lab.length;i++) if(lab[i]===k){ D.data[i*4]=D.data[i*4+1]=D.data[i*4+2]=D.data[i*4+3]=255; } mg.putImageData(D,0,0); return m; });
+  const edge=mk(), eg=edge.getContext('2d'), E=eg.createImageData(MW,MH);
+  for(let y=1;y<MH-1;y++) for(let x=1;x<MW-1;x++){ const i=y*MW+x, a=lab[i]; if(a<0) continue; const n=[lab[i+1],lab[i-1],lab[i+MW],lab[i-MW]];
+    if(n.some(v=>v!==a)){ const coast=n.some(v=>v<0); E.data[i*4]=127; E.data[i*4+1]=243; E.data[i*4+2]=255; E.data[i*4+3]=coast?235:120; } }
+  eg.putImageData(E,0,0);
+  const ctr=ZSEED.map((_,k)=>{ let sx=0, sy=0, n=0; for(let i=0;i<lab.length;i++) if(lab[i]===k){ sx+=i%MW; sy+=i/MW|0; n++; } return [sx/n,sy/n]; });
+  ZM={lab,masks,edge,ctr,tint:new Map(),scratch:mk()}; }
+function zTint(k,c){ const key=k+c; let t=ZM.tint.get(key); if(t) return t; t=document.createElement('canvas'); t.width=MW; t.height=MH; const g=t.getContext('2d'); g.drawImage(ZM.masks[k],0,0); g.globalCompositeOperation='source-in'; g.fillStyle=c; g.fillRect(0,0,MW,MH); ZM.tint.set(key,t); return t; }
+function drawZmap(cv,t){ if(!ZM) zmapBuild(); const g=cv.getContext('2d'), sel=qSel==='seal'||qSel==null?-1:qSel, open=openCh(), clr=SV().chClear||0;
+  g.clearRect(0,0,MW,MH);
+  g.strokeStyle='rgba(127,243,255,.07)'; g.lineWidth=1; g.beginPath(); for(let x=16;x<MW;x+=32){ g.moveTo(x,0); g.lineTo(x,MH); } for(let y=12;y<MH;y+=32){ g.moveTo(0,y); g.lineTo(MW,y); } g.stroke();
+  ZONES.forEach((z,k)=>{ const on=k===sel, lk=k>open; g.globalAlpha=on?.5+.14*Math.sin(t*3.2):lk?.06:k<clr?.22:.13; g.drawImage(zTint(k,on||k<clr?z.acc:HC),0,0); });
+  if(sel>=0){ const z=ZONES[sel], s=ZM.scratch, sg=s.getContext('2d');
+    g.save(); g.globalAlpha=.55; g.shadowColor=z.acc; g.shadowBlur=26; g.drawImage(zTint(sel,z.acc),0,0); g.restore();
+    /* a scan band sweeps down the lit sector only */
+    sg.clearRect(0,0,MW,MH); const yb=((t*.45)%1)*MH*1.3-MH*.15, gr=sg.createLinearGradient(0,yb-40,0,yb+40); gr.addColorStop(0,'rgba(255,255,255,0)'); gr.addColorStop(.5,'rgba(255,255,255,.75)'); gr.addColorStop(1,'rgba(255,255,255,0)');
+    sg.fillStyle=gr; sg.fillRect(0,yb-40,MW,80); sg.fillStyle='rgba(255,255,255,.18)'; for(let y=0;y<MH;y+=4) sg.fillRect(0,y,MW,1);
+    sg.globalCompositeOperation='destination-in'; sg.drawImage(ZM.masks[sel],0,0); sg.globalCompositeOperation='source-over'; g.globalAlpha=.5; g.drawImage(s,0,0); }
+  g.globalAlpha=.85; g.drawImage(ZM.edge,0,0); g.globalAlpha=1;
+  g.textAlign='center'; g.textBaseline='middle';
+  ZONES.forEach((z,k)=>{ const [x,y]=ZM.ctr[k], on=k===sel, lk=k>open; g.font=`700 ${on?30:19}px ${MONO}`; g.fillStyle=on?'#fff':lk?'rgba(127,243,255,.3)':k<clr?z.acc:'rgba(200,250,255,.8)';
+    if(on){ g.shadowColor=z.acc; g.shadowBlur=16; } g.fillText(String(z.no).padStart(2,'0'),x,y); g.shadowBlur=0;
+    if(on){ g.font=`600 13px ${MONO}`; g.fillStyle=z.acc; g.fillText(z.en,x,y+24); } });
+  const [sx,sy]=mpt(SEAL), b=.5+.5*Math.sin(t*5); g.fillStyle=`rgba(226,81,63,${.5+.5*b})`; g.beginPath(); g.arc(sx,sy,5+2*b,0,TAU); g.fill();
+  g.strokeStyle=`rgba(226,81,63,${.6*(1-b)})`; g.lineWidth=2; g.beginPath(); g.arc(sx,sy,9+10*(1-b),0,TAU); g.stroke(); }
+function zmapPick(cv,e){ if(!ZM) return -1; const r=cv.getBoundingClientRect(), x=Math.floor((e.clientX-r.left)/r.width*MW), y=Math.floor((e.clientY-r.top)/r.height*MH);
+  const [sx,sy]=mpt(SEAL); if((x-sx)**2+(y-sy)**2<18*18) return 'seal'; return ZM.lab[y*MW+x]??-1; }
+
 let lastBg=0;
 (function loop(t){ requestAnimationFrame(loop); floorSwap(); if(G.mode!=='menu'||!A.menuEl.classList.contains('on')||!bgBox.isConnected) return; if(t-lastBg<33) return; lastBg=t; drawFx(t/1000,scr);
-  for(const c of A.menuEl.querySelectorAll('canvas[data-hero]')) drawPortrait(c,c.dataset.hero,t/1000); })(0);
+  for(const c of A.menuEl.querySelectorAll('canvas[data-hero]')) drawPortrait(c,c.dataset.hero,t/1000);
+  for(const c of A.menuEl.querySelectorAll('canvas[data-zmap]')) drawZmap(c,t/1000); })(0);
 
 // ============================================================ zone result: credits, gear, Leon's record (surv.js finish() hands over through G.hubResult)
-G.hubResult=o=>{ const tb=1+stat('t')/100; let gold, item=null, sold=0;
+G.hubResult=o=>{ const tb=1+stat('t')/100, D=G.dun&&G.dun.result(); let gold, item=null, sold=0;
   if(o.win){ gold=Math.round((60*(o.ch+1)+o.kills*.6)*tb); item=newItem(tierOf(o.ch),rollRar(o.ch,o.first)); }
-  else { gold=Math.round(30*(o.ch+1)*Math.min(1,o.t/300)*tb+o.kills*.2); if(o.t>90&&Math.random()<.35) item=newItem(tierOf(o.ch),0); }
+  else { gold=Math.round(30*(o.ch+1)*Math.min(1,(D?D.nodes/3:o.t/300))*tb+o.kills*.2); if((D?D.nodes>0:o.t>90)&&Math.random()<.35) item=newItem(tierOf(o.ch),0); }
+  /* the zone map's caches: their credits, and gear found on the way */
+  if(D){ gold+=Math.round(D.gold*tb); for(let i=0;i<D.loot&&H.stash.length<BAG;i++){ H.stash.push(newItem(tierOf(o.ch),rollRar(o.ch,false))); H.fresh=(H.fresh||0)+1; } }
   H.gold+=gold; if(item){ if(H.stash.length<BAG){ H.stash.push(item); H.fresh=(H.fresh||0)+1; } else { sold=sellOf(item); H.gold+=sold; } }
   restock(); hsave();
   const Z=ZONES[o.ch], el=o.el, rec=Math.min(7,SV().chClear||0); el.classList.add('hubr');
   el.innerHTML=`<div class="hub"><div class="hres panel"><div class="c1"><span class="hk" style="color:${o.win?AM:RD}">${o.win?'ZONE '+zno(o.ch)+' · SUBDUED':'SIGNAL LOST'}</span><h2 class="${o.win?'w':'l'}">${o.win?'구역 제압':'신호 소실'}</h2>
-    <div class="sub">${Z.no}구역 · ${Z.name} · ${mmss(o.t)} 생존${o.win?' · '+Z.king+' 제압':''}${!o.win&&Math.round(o.t)>o.prev?' · 최고 기록':''}</div>
+    <div class="sub">${Z.no}구역 · ${Z.name} · ${D?`${mmss(D.el)} · 노드 ${D.nodes}/${D.total} · 보급 ${D.chests}/${D.chestsN}`:mmss(o.t)+' 생존'}${o.win?' · '+Z.king+' 제압':''}${!D&&!o.win&&Math.round(o.t)>o.prev?' · 최고 기록':''}</div>
     ${o.win&&o.first?`<div class="sync"><div style="display:flex;justify-content:space-between"><span>레온의 기록 동기화</span><b style="font-family:${MONO};color:${AM}">${rec} / 7</b></div>${seg(rec)}${o.next?`<span class="mut" style="font-weight:400">${ZONES[o.ch+1].no}구역 신호가 열렸다 — ${ZONES[o.ch+1].name}</span>`:''}</div>`:''}
     <div class="grid"><div><small>처치</small><b>${o.kills}</b></div><div><small>입힌 피해</small><b>${S.fmtN(Math.round(o.dmg))}</b></div><div><small>경험치</small><b>+${o.exp}</b></div><div><small>크레딧</small><b class="cr">+${gold+sold}</b></div></div></div><div class="c2">
     ${item?`<span class="hk">${sold?'보관함이 가득 차 분해함':'RECOVERED GEAR'}</span><div class="loot row panel" style="padding:10px 12px">${itemCard(item)}</div>`:''}
@@ -609,6 +668,8 @@ G.hubResult=o=>{ const tb=1+stat('t')/100; let gold, item=null, sold=0;
 
 // after a run the menu opens on the base
 { const tm=A.toMenu; A.toMenu=G.api.toMenu=function(){ if(booted) scr='town'; return tm.apply(this,arguments); }; }
-G.hub={get H(){ return H; },go,newItem,stat,ZONES,reset(){ H=freshH(); restock(); hsave(); }};
+G.hub={get H(){ return H; },go,newItem,stat,ZONES,save:hsave,reset(){ H=freshH(); restock(); hsave(); }};
+// zone maps (dun.js) and skill colours (chroma.js) build on surv.js, which this file loads before
+for(const f of ['dun','chroma']){ const sc=document.createElement('script'); sc.src=f+'.js?v=1'; document.head.appendChild(sc); }
 if(G.mode==='menu') A.menuRender();
 })();

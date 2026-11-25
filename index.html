@@ -2353,6 +2353,8 @@ const CLASSES={
     cut:{bg:'#2a0800',box:'#c43a0a',iris:['#fff6d0','#ff9a2a','#8a1a00'],subc:'#ffc48a'}},
   assassin:{name:'암살자',en:'ASSASSIN',aura:'#a9afff',eye:'#e5f0ff',idle:'idle',basic:'쌍단도',
     ults:[{name:'흑무연참',en:'BLACK MIST'}],cut:{bg:'#090b18',box:'#353354',iris:['#eff8ff','#a9afff','#353354'],subc:'#cddaff'}},
+  axe:{name:'버서커',en:'BERSERKER',aura:'#ff5a14',eye:'#ffe2b0',idle:'idle',basic:'도끼질',
+    ults:[{name:'신부강림',en:'DIVINE AXE'}],cut:{bg:'#1a0602',box:'#8a1a06',iris:['#fff4d8','#ffc24a','#8a1a06'],subc:'#ffd27a'}},
 };
 function setClass(c,quiet){
   if(lock&&!quiet) return; const C=CLASSES[c]; pl.cls=c; pl.target=C.idle; pl.auraC=C.aura; pl.eyeC=C.eye; chain=0; chainT=0; resetChains();
@@ -2594,7 +2596,7 @@ function ribbon(g,ch,w0,col){
   g.strokeStyle=col; g.lineCap='round';
   for(let i=1;i<ch.length;i++){ g.lineWidth=Math.max(1,w0*(1-i/ch.length)); g.beginPath(); g.moveTo(ch[i-1].x,ch[i-1].y); g.lineTo(ch[i].x,ch[i].y); g.stroke(); }
 }
-const SCARF={sword:'#c40c28',mage:'#5a22c8',fist:'#ff7a1d',shaman:'#1aa878',pyro:'#6a1608',assassin:'#514e83'};
+const SCARF={sword:'#c40c28',mage:'#5a22c8',fist:'#ff7a1d',shaman:'#1aa878',pyro:'#6a1608',assassin:'#514e83',axe:'#8a1a06'};
 function limb(g,a,b,w1,w2){ w1*=BK; w2*=BK; const an=Math.atan2(b[1]-a[1],b[0]-a[0]), n=an+Math.PI/2, c=Math.cos(n), s=Math.sin(n);
   g.beginPath(); g.moveTo(a[0]+c*w1,a[1]+s*w1); g.lineTo(b[0]+c*w2,b[1]+s*w2); g.arc(b[0],b[1],w2,n,n-Math.PI,true); g.lineTo(a[0]-c*w1,a[1]-s*w1); g.arc(a[0],a[1],w1,n-Math.PI,n-TAU,true); g.closePath(); g.fill(); }
 function smoothPoly(g,P){ const n=P.length; g.beginPath(); g.moveTo((P[n-1][0]+P[0][0])/2,(P[n-1][1]+P[0][1])/2);

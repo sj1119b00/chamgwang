@@ -38,7 +38,9 @@ const STY={
     base:{gr:0,lw:[0,0,1],hr:[.14,.14,-.17],hl:[.05,-.16,-.24],lean:.09,hy:-.2,cy:.16}},
   assassin:{w:'daggers',bl:.37,hilt:.075,acc:'#888bbf',acc2:'#43445f',sash:'#716f97',tint:[.61,.64,.79],scarf:[8,1.5],hat:'cowl',
     base:{gr:0,lw:[0,0,1],hip:[0,0,.415],hy:-.34,cy:.16,lean:.24,hd:.16,hp:-.1,fr:[.17,.11,0],fl:[-.19,-.11,0],
-      hr:[-.10,.22,-.15],hl:[.20,-.14,-.15],sw:[-.84,.5,.14],kr:.38,kl:.45}} };
+      hr:[-.10,.22,-.15],hl:[.20,-.14,-.15],sw:[-.84,.5,.14],kr:.38,kl:.45}},
+  axe:{w:'axe',bl:.5,hilt:.3,acc:'#ff5a14',acc2:'#8a1a06',sash:'#a8240a',tint:[1.1,.9,.82],scarf:[8,2.5],
+    base:{gr:0,sf:0,sh:0,lw:[0,1,0],hip:[0,0,.47],hy:-.2,cy:.15,lean:.12,fr:[.12,.12,0],fl:[-.14,-.11,0],hr:[.12,.17,-.12],hl:[.2,-.05,-.1],sw:[-.45,.1,.88],hd:.08,kr:.3,kl:.32}} };
 let ST=STY.sword, BASE=DEF;
 const BASES={}; for(const k in STY) BASES[k]=Object.assign({},DEF,STY[k].base);
 function setCls(c){ ST=STY[c]||STY.sword; BASE=BASES[c]||DEF; if(c==='assassin')window.AssassinFlow?.prepare(); }
@@ -79,6 +81,12 @@ function solve(P){ const J={}, hy=P.hy, fp=[cos(hy),sin(hy),0], rp=[-sin(hy),cos
     const leftDir=nrm(add(add(sub(J.hl,J.el),mul(f,.15)),mul(u,.035)));
     J.lb=add(J.hl,mul(leftDir,.032)); J.lt=add(J.lb,mul(leftDir,ST.bl)); J.lp=add(J.lb,mul(leftDir,-ST.hilt));
   }
+  if(ST.w==='axe'){
+    // the head: a broad bearded blade whose edge faces the way the haft travels (his forward, taken square to the haft), and a short spike behind
+    let bd=sub(f,mul(sdir,dot(f,sdir))); if(len(bd)<.2) bd=sub(u,mul(sdir,dot(u,sdir))); bd=nrm(bd); J.bd=bd;
+    const T=J.st, at=(s,b)=>add(add(T,mul(sdir,s)),mul(bd,b));
+    J.xa=at(-.03,0); J.xb=at(.05,.2); J.xc=at(-.12,.27); J.xd=at(-.29,.2); J.xe=at(-.2,0); J.xs=at(-.11,-.11);
+  }
   J.f=f; J.r=r; J.u=u; return J; }
 
 // ------------------------------------------------------------------ clips
@@ -98,6 +106,7 @@ CLIPS.idle={fn(){ const b=sin(RT*2.1), P=clone(BASE), w=ST.w;
   if(w==='daggers'){ P.hip[2]+=.004*b; P.hl[2]+=.008*b; return P; }
   if(w==='fists'){ const q=sin(RT*5.2), q2=sin(RT*2.6); P.hip=[.012*q2,0,.455+.012*q]; P.hr=[.17+.012*q2,.09,-.04+.01*q]; P.hl=[.27-.012*q2,-.07,-.09+.01*q]; P.fr=[.15,.11,.012*Math.max(0,q)]; P.fl=[-.17,-.1,.012*Math.max(0,-q)]; return P; }
   if(w==='orb'){ P.hip=[0,0,.5+.005*b]; P.lean=.09+.012*b; P.hr=[.14,.14,-.17+.012*sin(RT*3.1)]; return P; }
+  if(w==='axe'){ P.hip=[0,0,.47+.004*b]; P.lean=BASE.lean+.012*b; P.hr=[.12,.17,-.12+.006*b]; return P; }
   P.hip=[0,0,.5+.004*b]; P.lean=BASE.lean+.01*b; if(ST.hat==='cone'){ P.hl=[.17,-.03,-.07+.006*b]; P.sw=[-.08+.02*sin(RT*.9),.1,1]; } else P.hr=[.17,.17,-.12+.005*b]; return P; }};
 CLIPS.run={fn(){ const p=st.phase, k=Math.min(1,st.spd/380), foot=(q,y)=>{ q=((q%1)+1)%1; if(q<.42){ const s=q/.42; return [.25-.57*s,y,0]; } const s=(q-.42)/.58, e=s*s*(3-2*s); return [-.32+.57*e,y,.05+.2*Math.pow(sin(PI*Math.pow(s,.75)),1.2)]; };
   const a=sin(2*PI*p), P=clone(BASE); P.hip=[.02,0,.435+.022*cos(4*PI*p+.5)]; P.fr=[0,0,0]; P.fl=[0,0,0]; P.hy=.14*a; P.cy=-.3*a; P.lean=.2+.22*k; P.hd=.16*a; P.hp=-.18; P.fr=foot(p,.06); P.fl=foot(p+.5,-.06);
@@ -107,6 +116,7 @@ CLIPS.run={fn(){ const p=st.phase, k=Math.min(1,st.spd/380), foot=(q,y)=>{ q=((q
   if(w==='daggers'){ P.hip[2]-=.046; P.lean=.30+.15*k; P.hr=[-.11-.05*a,.20,-.13]; P.hl=[.14+.06*a,-.16,-.12]; P.sw=[-.94,.25,.06]; }
   else if(w==='fists'){ P.lean=.3+.2*k; P.hr=[.1+.2*a,.13,-.12-.06*a]; P.hl=[.1-.2*a,-.13,-.12+.06*a]; P.cy=-.42*a; }
   else if(w==='orb'){ P.hr=[.12+.03*a,.2,-.1]; P.hl=[.02-.16*a,-.15,-.2+.04*a]; P.lean=.24+.16*k; }
+  else if(w==='axe'){ P.lean=.22+.14*k; P.lw=[0,1,0]; P.hr=[.08,.2,-.1+.02*a]; P.sw=[-.6,.1,.78]; }
   else if(ST.hat==='cone'){ P.lean=.12+.12*k; P.hr=[.1,.2,-.14+.02*a]; P.sw=[.25,.1,.95]; P.hl=[.14,-.05,-.08]; P.hip=[.02,0,.455+.014*cos(4*PI*p+.5)]; P.cy=-.16*a; }
   else { P.hr=[.06,.21,-.16+.02*a]; P.sw=[-.55,.05,.82]; P.hl=[.04-.15*a,-.16,-.2+.04*a]; }
   return P; }};
@@ -279,11 +289,38 @@ CLIPS.assassinCut={keys:[
   [.25,{cy:.24,hr:[.12,.20,-.21],hl:[.20,-.15,-.10],sw:[.63,.58,-.52]},'io'],
   [.34,STY.assassin.base,'io']
 ]};
+// ---- axe (berserker): two hands on a long haft. chop = over the head and down through the floor, sweep = flat across the front right to left,
+// rise = from the floor up past the head, throw = overhand release, raise = held high for an ultimate, plant = driven into the floor and leaned on
+CLIPS.xChop={keys:[
+  [.12,{hip:[-.03,0,.5],hy:-.1,cy:-.2,lean:-.12,lw:[0,1,0],hr:[.02,.12,.28],sw:[-.55,0,.83],hd:-.1,hp:-.3},'out'],
+  [.2,{hip:[.1,0,.38],lean:.5,fr:[.28,.11,0],fl:[-.22,-.1,0],hr:[.36,.06,-.18],sw:[.55,0,-.83],hd:.2,hp:.25,cy:.3,tr:1,kr:.5},'in'],
+  [.36,{hr:[.35,.06,-.2],sw:[.5,0,-.86],tr:0},'spring'],
+  [.62,{},'io'] ]};
+CLIPS.xSweep={keys:[
+  [.1,{hip:[-.02,0,.46],hy:-.6,cy:-.3,lean:.1,lw:[0,1,0],hr:[.05,.3,0],sw:[-.3,.9,.1],hd:.2},'out'],
+  [.2,{hip:[.06,0,.43],hy:.5,cy:.5,lean:.25,fr:[.22,.12,0],fl:[-.2,-.1,0],hr:[.3,-.15,-.02],sw:[.3,-.93,.05],tr:1,hd:-.2},'in'],
+  [.34,{hr:[.28,-.18,-.03],sw:[.1,-.98,0],tr:0},'spring'],
+  [.6,{},'io'] ]};
+CLIPS.xRise={keys:[
+  [.1,{hip:[.02,0,.4],lean:.4,lw:[0,1,0],hr:[.2,.15,-.35],sw:[.6,0,-.8],kr:.5,kl:.5,cy:.2},'out'],
+  [.2,{hip:[0,0,.53],lean:-.15,hr:[.15,.1,.3],sw:[.1,0,.99],hp:-.35,tr:1,fr:[.15,.1,0],fl:[-.15,-.1,0]},'in'],
+  [.36,{hr:[.14,.1,.32],tr:0},'spring'],
+  [.6,{},'io'] ]};
+CLIPS.xThrow={keys:[
+  [.12,{hr:[-.05,.18,.25],sw:[-.7,.1,.7],lean:-.1,hy:-.3,lw:[0,0,1]},'out'],
+  [.2,{hr:[.4,.1,.05],sw:[.95,0,.1],lean:.35,hy:.3,fr:[.25,.11,0],tr:1},'in'],
+  [.5,{tr:0},'io'] ]};
+CLIPS.xRaise={keys:[
+  [.3,{hip:[0,0,.5],lean:-.05,lw:[0,1,0],hr:[.06,.1,.33],sw:[.05,0,1],hp:-.4,fr:[.13,.12,0],fl:[-.14,-.11,0]},'back'],
+  [9,{},'lin'] ]};
+CLIPS.xPlant={keys:[
+  [.15,{hip:[.05,0,.4],lean:.35,lw:[0,1,0],hr:[.3,.1,-.15],sw:[.4,0,-.92],kr:.5,kl:.45,fr:[.2,.12,0],fl:[-.2,-.11,0]},'in'],
+  [9,{},'lin'] ]};
 for(const k in CLIPS) compile(CLIPS[k]);
 
 // ------------------------------------------------------------------ state
 const M={clip:CLIPS.idle,name:'idle',t:0,yaw:0,from:null,fromYaw:0,blend:0,bt:0,P:clone(DEF),J:null,slide:null,px:null,py:null,loco:true,ghosts:[],scarf:null,hair:null,speed:1};
-const on=()=>G.mode==='surv'&&!!STY[pl.cls]&&(pl.cls==='assassin'||A.STK());
+const on=()=>G.mode==='surv'&&!!STY[pl.cls]&&(pl.cls==='assassin'||pl.cls==='axe'||A.STK());
 function cur(t){ let P=sample(M.clip,t,M.from); if(M.blend>0&&M.bt<M.blend&&M.from) P=blendPose(M.from,P,EASE.io(M.bt/M.blend)); return P; }
 // re-express a pose held under one facing in the frame of another
 function reyaw(P,d){ const o=clone(P); o.hip=rotZ(o.hip,d); o.fr=rotZ(o.fr,d); o.fl=rotZ(o.fl,d); o.hy=wrap(o.hy+d); return o; }
@@ -373,6 +410,18 @@ function cowl(g,head,facing,yaw,r,flat){
   g.lineTo(.63,.91); g.lineTo(.14,1.09); g.closePath(); g.fillStyle='#343448'; g.fill();
   g.strokeStyle='#77758c'; g.lineWidth=.045; g.beginPath(); g.moveTo(-.95,.62); g.lineTo(.12,.87); g.lineTo(.66,.72); g.stroke(); g.restore();
 }
+// the berserker's heavy axe: a dark haft with iron bands, a broad blackened head and an edge that glows like metal out of a forge
+function axeDraw(g,S,flat){
+  const p=S.sp, t=S.st, A=S.xa, B=S.xb, Cc=S.xc, D=S.xd, E=S.xe, K=S.xs; g.lineCap='round'; g.lineJoin='round';
+  if(flat){ g.strokeStyle=flat; g.lineWidth=5; g.beginPath(); g.moveTo(p[0],p[1]); g.lineTo(t[0],t[1]); g.stroke(); g.fillStyle=flat; g.beginPath(); g.moveTo(A[0],A[1]); g.lineTo(B[0],B[1]); g.quadraticCurveTo(Cc[0]*2-(B[0]+D[0])/2,Cc[1]*2-(B[1]+D[1])/2,D[0],D[1]); g.lineTo(E[0],E[1]); g.closePath(); g.fill(); return; }
+  g.strokeStyle='#0d0a10'; g.lineWidth=8; g.beginPath(); g.moveTo(p[0],p[1]); g.lineTo(t[0],t[1]); g.stroke(); g.strokeStyle='#5a3420'; g.lineWidth=4.6; g.stroke();
+  g.strokeStyle='#2a2226'; g.lineWidth=7; for(const u of [.08,.5]){ g.beginPath(); g.moveTo(mixn(p[0],t[0],u),mixn(p[1],t[1],u)); g.lineTo(mixn(p[0],t[0],u+.05),mixn(p[1],t[1],u+.05)); g.stroke(); }
+  const cx=Cc[0]*2-(B[0]+D[0])/2, cy=Cc[1]*2-(B[1]+D[1])/2;
+  g.fillStyle='#1c1618'; g.strokeStyle='#0d0a10'; g.lineWidth=1.6; g.beginPath(); g.moveTo(A[0],A[1]); g.lineTo(K[0],K[1]); g.lineTo(E[0],E[1]); g.closePath(); g.fill(); g.stroke();
+  const gr=g.createLinearGradient(A[0],A[1],Cc[0],Cc[1]); gr.addColorStop(0,'#231b1c'); gr.addColorStop(.6,'#4a3a36'); gr.addColorStop(1,'#7a5a4a');
+  g.fillStyle=gr; g.beginPath(); g.moveTo(A[0],A[1]); g.lineTo(B[0],B[1]); g.quadraticCurveTo(cx,cy,D[0],D[1]); g.lineTo(E[0],E[1]); g.closePath(); g.fill(); g.stroke();
+  g.strokeStyle='#ff7a2a'; g.lineWidth=3.2; g.beginPath(); g.moveTo(B[0],B[1]); g.quadraticCurveTo(cx,cy,D[0],D[1]); g.stroke(); g.strokeStyle='#ffe2a8'; g.lineWidth=1.2; g.stroke();
+  if(g===ctx){ fx.save(); fx.globalCompositeOperation='lighter'; fx.lineCap='round'; fx.strokeStyle='rgba(255,90,20,.35)'; fx.lineWidth=11; fx.beginPath(); fx.moveTo(B[0],B[1]); fx.quadraticCurveTo(cx,cy,D[0],D[1]); fx.stroke(); fx.restore(); } }
 function figure(g,J,ox,oy,yaw,o={}){ const S={}; for(const k in J) if(Array.isArray(J[k])&&k!=='f'&&k!=='r'&&k!=='u'&&k!=='hf'&&k!=='sdir') S[k]=proj(J[k],ox,oy,yaw);
   const flat=o.flat, L=o.L||lightOf(ox,oy), C=flat?null:pal(L), items=[];
   for(const [a,b,ra,rb,kd] of SEG) items.push({d:(S[a][2]+S[b][2])/2+(kd==='t'?0:0),a:S[a],b:S[b],ra:ra*SC,rb:rb*SC,kd});
@@ -388,12 +437,14 @@ function figure(g,J,ox,oy,yaw,o={}){ const S={}; for(const k in J) if(Array.isAr
     }
   }
   else if(ST.w==='staff') items.push({d:(S.sp[2]+S.st[2])/2+.003,kd:'staff'});
+  else if(ST.w==='axe') items.push({d:(S.sp[2]+S.st[2])/2+.003,kd:'axe'});
   else if(ST.w==='orb') items.push({d:S.hr[2]+.01,kd:'orb'});
   items.sort((p,q)=>p.d-q.d);
   for(const it of items){
     if(it.kd==='mantle'){ mantle(g,S.nk,it.shoulder,it.elbow,it.hem,flat); continue; }
     if(it.kd==='dagger'){ dagger(g,it.grip,it.guard,it.tip,flat); continue; }
     if(it.kd==='h'&&ST.hat==='cowl'){ cowl(g,it.a,J.hf,yaw,it.r*1.09,flat); continue; }
+    if(it.kd==='axe'){ axeDraw(g,S,flat); continue; }
     if(it.kd==='staff'){ const p=S.sp, t=S.st; g.lineCap='round'; if(flat){ g.strokeStyle=flat; g.lineWidth=4; g.beginPath(); g.moveTo(p[0],p[1]); g.lineTo(t[0],t[1]); g.stroke(); continue; }
       g.strokeStyle='#0d0a10'; g.lineWidth=7; g.beginPath(); g.moveTo(p[0],p[1]); g.lineTo(t[0],t[1]); g.stroke(); g.strokeStyle=ST.bell?'#7a5a36':'#4a3a5e'; g.lineWidth=4; g.stroke();
       g.strokeStyle='#d9b45a'; g.lineWidth=5; g.beginPath(); g.moveTo(mixn(p[0],t[0],.86),mixn(p[1],t[1],.86)); g.lineTo(mixn(p[0],t[0],.9),mixn(p[1],t[1],.9)); g.stroke();

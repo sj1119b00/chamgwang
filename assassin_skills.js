@@ -461,8 +461,9 @@
       if(F.on)K.coolLine(src.x,src.y,q.x,q.y,{w:30,pal:bIris,life:1.2,hot:.45,grow:.06});
       else sparks(q,orchid,ang+pi);
       if(!evo)return;
-      // The X: a second rift rises across the first, just short of where the body came up.
-      const c=place(q,ang,-Math.min(150,reach*.4),0,125),cross=u=>place(c,ang+1.2,lerp(-260,260,u),0,40+190*u);
+      // The X: a second rift cuts down across the first, just short of where the body came up.
+      const c=rift((reach-Math.min(150,reach*.4)+50)/(reach+120));
+      const cross=u=>{const s=lerp(-280,280,u),p=place(c,ang+.75,s,0,0);p.z=Math.max(20,c.z-s*.38);return p;};
       beat(.06,()=>{
         bRift(cross,{draw:.08,gap:52,hold:.24,p:bSteel});
         sweepDamage(cross,0,1,.08,67,o=>strike(o,d*.74,src));
@@ -484,9 +485,10 @@
       return {p,b:{x:p.x-ca*10+qv,y:p.y-sa*10*FSY,z:p.z+22}};
     };
     // A wire wound from the wedge up and in: s 0 at the wedge .. 1 at the top of the cage.
-    const wire=(g,t,s)=>{
+    // Each wedge sends two wires winding opposite ways, so the cage is a crossed lattice.
+    const wire=(g,t,s,turn=1)=>{
       const taut=ease((t-.2)/.11),pull=ease((t-TIGHT)/.1),slack=ease((t-.5)/.32);
-      const a=g.a+s*1.3+(1-taut)*.08*Math.sin(s*pi*5-t*48+g.a*3);
+      const a=g.a+turn*s*1.3+(1-taut)*.08*Math.sin(s*pi*5-t*48+g.a*3+turn);
       const rad=r*(1-.7*s)*(1-.5*pull*Math.sqrt(s));
       const z=lerp(52+150*s,4,slack*(.35+.65*s))-60*slack*(1-slack)*Math.sin(pi*s);
       return place(q,a,rad,0,z);
@@ -508,15 +510,18 @@
         }
         if(st.broke)continue;
         const P=peg(g,t);knife(P.p,P.b,64,0,bSteel,1);
-        const head=ease((t-g.land)/.18),m=F.low?8:14,sp=((t-.12)*4.2+g.i*.23)%1,pts=[];
+        const head=ease((t-g.land)/.18),m=F.low?8:14,sp=((t-.12)*4.2+g.i*.23)%1;
         if(!F.on){strip(s=>wire(g,t,s),0,head,7,bSteel,t,1-slack);continue;}
-        for(let j=0;j<=m;j++){
-          const s=j/m*head,w=wire(g,t,s),bead=1+1.8*Math.exp(-Math.pow((j/m-sp)/.08,2))*(1-pull);
-          w.w=7*(1-.35*s)*bead;pts.push(w);
+        for(const turn of [1,-1]){
+          const pts=[];
+          for(let j=0;j<=m;j++){
+            const s=j/m*head,w=wire(g,t,s,turn),bead=1+1.6*Math.exp(-Math.pow((j/m-sp)/.08,2))*(1-pull);
+            w.w=10*(1-.35*s)*bead;pts.push(w);
+          }
+          wires.push(pts);
         }
-        wires.push(pts);
       }
-      bLines(wires,bSteel,{ink:.45,mid:.75,core:.4,gain:1.15-.6*slack,ero:.08+.6*sat((t-.75)/.22),ulen:160,t0:-t*2});
+      bLines(wires,bSteel,{ink:.5,mid:.7,core:.36,gain:1.1-.6*slack,ero:.08+.6*sat((t-.75)/.22),ulen:160,t0:-t*2});
       // A loop of wire round each bound waist until the bind ends, then it snaps.
       const rings=[];
       for(const b of st.bound){
@@ -548,10 +553,10 @@
       X.sfx('slash',1.56,.34);
       if(hits){hitstop=Math.max(hitstop,.045);X.cine.shake(.22);}
       if(!F.on){sparks({...q,z:56},frost,ang);return;}
-      K.flare(q.x,q.y,200,{pal:bWhite,s:150,dur:.16});
+      K.flare(q.x,q.y,200,{pal:bIris,s:105,dur:.14});
       for(const g of pegs){const m=place(q,g.a+.65,r*.55,0,120);K.sparks(m.x,m.y,m.z,{pal:bSteel,n:F.low?2:4,sp:[200,700],up:300,life:[.1,.25]});}
       K.cool(q.x,q.y,{kind:'crack2',r:Math.round(r*.7),pal:bIris,life:1.3,hot:.4});
-      GFX.light(q.x,q.y,r*1.8,bSteel.l,.8,.3,{z:120});
+      GFX.light(q.x,q.y,r*1.6,bSteel.l,.6,.3,{z:120});
     });
     return true;
   }
@@ -645,8 +650,8 @@
       const dx=Math.cos(yaw)*Math.sin(tilt),dy=Math.sin(yaw)*Math.sin(tilt),dz=Math.cos(tilt);
       axes.push({dx,dy,dz});
       if(F.on&&F.solids()){
-        F.solid('spike',i,q.x,q.y,q.z,{sx:size*.5,sy:size*.44,sz:size,ry:tilt,rz:yaw,
-          alb:iron,emis:'#000000',rimC:bSteel.h,rim:1.25,spec:4.2,heat:0,vein:0,bump:.22,tone:.45,a,ord:5});
+        F.solid('spike',i,q.x,q.y,q.z,{sx:size*.66,sy:size*.58,sz:size,ry:tilt,rz:yaw,
+          alb:iron,emis:'#000000',rimC:bSteel.m,rim:.65,spec:2.4,heat:0,vein:0,bump:.22,tone:.4,a,ord:5});
       }else if(F.on){
         F.ribbon(K.mats().trB,[{...q,w:size*.16},{x:q.x+dx*size,y:q.y+dy*size*FSY,z:q.z+dz*size,w:.01}],{...bCol(bSteel),a,gain:.8,ord:5});
       }else{
@@ -663,7 +668,7 @@
     const src=hero(),center=chest(e),ang=facing(src,center),d=damage(id),evo=rank(id)>=5;
     const traps=[place(center,ang,-34,0,0),place(center,ang,99,162,0),place(center,ang,68,-164,0)];
     arm(e);X.sfx('whoosh',.93,.37);light({...center,z:18},bSteel);
-    const SIZE=100,REST=SIZE*.33,BOOM=.64,GONE=1.28,st={broke:false,burst:false};
+    const SIZE=112,REST=SIZE*.33,BOOM=.64,GONE=1.28,st={broke:false,burst:false};
     // Fixed shapes drawn once: the star scar each lands in, and the needles each throws up.
     const T=traps.map((trap,i)=>{
       const lag=.034*i,dir=ang+bR(-.25,.25),slide=bR(22,40);
@@ -714,7 +719,7 @@
       if(!F.on)return;
       const cool=Math.min(...T.map(c=>c.cool??0));
       bLines(scars,bIris,{layer:'g',ink:.75,mid:.45,core:.12,gain:1.3*(1-.75*cool),ero:.1+.5*sat((t-.95)/.3),ulen:120});
-      bLines(glints,bSteel,{ink:0,mid:.9,core:.6,gain:.75+.35*Math.sin(t*7),ulen:80,ord:3});
+      bLines(glints,bSteel,{ink:0,mid:.6,core:.45,gain:.5+.3*Math.sin(t*7),ulen:80,ord:3});
       if(needles.length){
         const k=t-BOOM;
         bLines(needles,bSteel,{ink:.9,mid:.6,core:.28,gain:1.2-.5*sat((k-.15)/.2),ero:.08+.7*sat((k-.22)/.14),ulen:120,ord:3});
@@ -741,7 +746,7 @@
       trigger(.60,new Set(),{push:120,up:600});
       X.sfx('slash',1.7,.4);hitstop=Math.max(hitstop,.05);X.cine.shake(.25);
       if(!F.on)return;
-      for(const c of T){K.flare(c.rest.x,c.rest.y,70,{pal:bWhite,s:150,dur:.14});K.sparks(c.rest.x,c.rest.y,40,{pal:bSteel,n:F.low?4:8,sp:[400,1100],up:700,life:[.12,.3]});}
+      for(const c of T){K.flare(c.rest.x,c.rest.y,70,{pal:bIris,s:90,dur:.12});K.sparks(c.rest.x,c.rest.y,40,{pal:bSteel,n:F.low?4:8,sp:[400,1100],up:700,life:[.12,.3]});}
       GFX.light(center.x,center.y,420,bSteel.l,.8,.3,{z:80});
     });
     return true;
@@ -856,7 +861,7 @@
         q.w=w*Math.pow(Math.sin(pi*(.04+.92*k)),.55)*(.35+.65*k)*(1-.35*f);body.push(q);
       }
       const a=1-f*f*f;
-      bLines([body],p,{a,ink:.9,mid:.5,core:0,ero:.1+.5*f,ulen:420,t0:t*.5,gain:.85});
+      bLines([body],p,{a,ink:1,mid:.36,core:0,ero:.1+.5*f,ulen:420,t0:t*.5,gain:.85});
       // Which way is out (away from the hero on the screen) decides the side of the main edge.
       const m=n>>1,probe=bShift(body.slice(m-1,m+2),()=>10)[1],sy=v=>v.y-v.z;
       const out=Math.hypot(probe.x-src.x,sy(probe)-sy(src))>Math.hypot(body[m].x-src.x,sy(body[m])-sy(src))?1:-1;
@@ -885,7 +890,7 @@
         const span=r*(.89+.18*Math.sin(pi*u))+(i&&evo?35:0);
         return place(src,a,span,0,i?40+u*180+28*Math.sin(pi*u):34+Math.sin(pi*u)*24);
       };
-      bWing(path,src,{w:i?74:66,p,delay,feather:i});
+      bWing(path,src,{w:i?92:84,p,delay,feather:i});
       const swing=()=>{
         if(i)X.sfx('slash',1.43,.45);
         let first=true;
