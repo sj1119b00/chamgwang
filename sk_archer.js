@@ -480,12 +480,12 @@
       const turnX=(bx-ax)*(nx-bx)<=0&&edge(bx,x,hw*.93),turnY=(by-ay)*(ny-by)<=0&&edge(by,cy,hh*.88);
       if((turnX||turnY)&&(!turns.length||j/N-turns[turns.length-1]>.012))turns.push(j/N);
     }
-    return {at,pAt,timeOf,pts,times,N,turns:turns.slice(0,72)};
+    return {at,pAt,timeOf,pts,times,N,z,turns:turns.slice(0,72)};
   }
   // The lines behind the arrow are afterimages: bright where it has just been,
   // thinning and dimming with age. Each age band is a single stroke.
   function afterimage(course,now,ink,fade) {
-    const {pts,times,N}=course,bright=!A.SV.opt?.calm&&ink,bands=bright?1:12,life=2.4;
+    const {pts,times,N}=course,bright=!A.SV.opt?.calm&&ink,bands=bright?1:9,life=2.4;
     let head=0;
     while(head<N&&times[head+1]<=now)head++;
     if(head<1)return;
@@ -522,6 +522,30 @@
       fx.beginPath();fx.moveTo(a.x+nx,a.y-a.z+ny);fx.quadraticCurveTo(m.x+nx*1.35,m.y-m.z+ny*1.35,b.x+nx,b.y-b.z+ny);fx.stroke();
     }
     fx.restore();
+  }
+  // The one arrow scores the floor it flies over: a charred furrow under its course
+  // with an ember core that cools from white-gold to dull red and then goes dark.
+  function furrow(course,now,fade) {
+    const {pts,times,N,z}=course,bands=8,life=3.2;
+    let head=0;
+    while(head<N&&times[head+1]<=now)head++;
+    if(head<1)return;
+    ctx.save();ctx.translate(0,z);ctx.lineJoin='round';ctx.lineCap='round';
+    for(let b=bands-1;b>=0;b--){
+      const lo=now-life*(b+1)/bands,hi=now-life*b/bands;
+      let i0=-1,i1=-1;
+      for(let j=0;j<=head;j++){
+        if(times[j]<lo||times[j]>hi)continue;
+        if(i0<0)i0=j;
+        i1=j;
+      }
+      if(i1<=i0)continue;
+      const seg=pts.slice(Math.max(0,i0-1),i1+1),age=(b+.5)/bands,hot=(1-age)**2;
+      ctx.globalAlpha=fade*(1-age*age)*.85;line(ctx,seg,'#030807',36);
+      ctx.globalAlpha=fade*(1-age)*.8;line(ctx,seg,age<.25?'#ffd28a':age<.6?'#c9692c':'#5a1f14',6+12*hot);
+      if(age<.2){ctx.globalAlpha=fade*(1-age*5);line(ctx,seg,'#fff6dc',4.5);}
+    }
+    ctx.restore();
   }
   function acceleratedWhoosh(index,duration,pan) {
     if(index===1||index===2||index===6||index===12||index===18){
@@ -583,7 +607,7 @@
     animate(stop+1.3,(k,t)=>{
       if(t<loose)return;
       const fade=1-ease(sat((t-blastAt-.25)/1.6));
-      if(fade>0)afterimage(course,t,t>=inkAt&&t<blastAt,fade);
+      if(fade>0){furrow(course,Math.min(t,inkAt),fade);afterimage(course,t,t>=inkAt&&t<blastAt,fade);}
       if(t>inkAt)return;
       const p=course.pAt(t),head=course.at(p),prev=course.at(Math.max(0,p-.0015)),a=Math.atan2(head.y-prev.y,head.x-prev.x);
       airWake(wake(t,.3),1,stage);
@@ -596,6 +620,22 @@
       ribbon(wake(t,.08),0,.99,wind,hw*.037,.84,true);
     });
     sonicKills(id,course,stage);
+    // The arrow is heard as it is seen: one pass-by for every equal stretch of the course,
+    // so the beat quickens and the pitch climbs with its speed.
+    const passes=low()?30:48;
+    for(let k=1;k<passes;k++){
+      const when=course.timeOf(k/passes);
+      later(when,()=>{
+        const v=sat((course.pAt(when+.02)-course.pAt(when-.02))/.02);
+        X.sfx('whoosh',.85+1.6*v,.2+.24*v);
+        if(k%(v>.55?3:v>.4?2:1))return;
+        const p1=k/passes,a=course.at(Math.max(0,p1-.004)),b=course.at(p1);
+        K.coolLine(a.x,a.y,b.x,b.y,{pal:brass,w:54+34*v,life:1.4,hot:.85,grow:.05,gain:1.6,light:0,shed:0});
+        K.sparks(b.x,b.y,12,{pal:brass,n:low()?3:6,dir:Math.atan2((b.y-a.y)/FSY,b.x-a.x),spread:.5,sp:[360,1100],up:520,life:[.14,.34]});
+        GFX.light(b.x,b.y,340,brass.l,.5,.14,{z:30});
+        X.sfx('slash',1.1+1.2*v,.13+.08*v);trauma=Math.min(1,trauma+.05);
+      });
+    }
     // The floor answers under the course: dust thrown back along the path and a ripple of pressed air.
     for(let t=loose+.1;t<inkAt-.05;t+=low()?.14:.075){
       later(t,()=>{

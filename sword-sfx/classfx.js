@@ -522,11 +522,15 @@ Object.assign(ULT,{
   },
   // 천궁일선: 큰 시위 → 화살이 나는 동안의 제트 소리(grp fly, 먹 순간 tick에 끊김) + 급선회마다 소닉붐(cue sonic) → 마지막 폭발
   ar_ult1:{
-    bed:()=>[L('R_dr4',-11,{...AM,until:4}),L('R_creak_2',-4,{...FX,until:.62}),L('R_r4',-11,{...FX})],
-    draw:()=>[], whoosh:()=>[],
+    bed:()=>[L('R_dr4',-11,{...AM,until:5.2}),L('R_creak_2',-4,{...FX,until:.3}),L('R_r4',-11,{...FX})],
+    draw:()=>[],
+    // one arrow pass-by for every equal stretch of its course: the game raises the pitch and shortens the gaps as the arrow speeds up
+    whoosh:([p=1,v=.3])=>[L('R_arrow_wh',dB(v,.3)-5,{cents:ct(p)*.9,until:.22,panJit:.7,...SW}),L('R_flyby',dB(v,.3)-9,{cents:ct(p)*.9,until:.2,panJit:.7,...SW})],
+    // the arrowhead tearing a gash in the stone floor: a short rock scrape and a ricochet ring, pitched with its speed
+    slash:([p=1,v=.2])=>[RR(ROCK,dB(v,.2)-7,{cents:ct(p)*.6,until:.18,panJit:.7,...IM}),L('R_rico_2',dB(v,.2)-12,{cents:ct(p)*.6,hp:1800,until:.22,panJit:.7,...FX})],
     inhale:([d=.54])=>[L('R_powerup',-9,{fit:d,endAt:true,...FX})],
     release:()=>[L('R_twang_2',2,{...IM}),L('R_loose',0,{...IM}),L('R_whipcrack',-2,{...FX}),L('R_sonic',-4,{cut:.6,...IM}),
-      L('R_sonic_tail',-9,{...SW,grp:'fly',until:3.2}),L('R_jet_1',-10,{...AM,grp:'fly',until:3.2})],
+      L('R_sonic_tail',-9,{...SW,grp:'fly',until:4.7}),L('R_jet_1',-10,{...AM,grp:'fly',until:4.7})],
     cue_sonic:([g=.6,r=1,pan=0])=>[L('R_sonic',dB(g,.8)-1,{pan,cents:ct(r),cut:.45,...IM}),L('R_whipcrack',dB(g,.8)-3,{pan,hp:1500,...FX}),L('K_whip',dB(g,.8)-7,{pan,...SW}),L('A_explo_low',dB(g,.8)-6,{cut:.3,...LO})],
     knock:()=>[RR(AHIT,-5,{jit:100,...IM}),L('R_flyby',-8,{jit:200,panJit:.6,...SW})],
     tick:()=>[{stop:'fly',fade:.05},L('R_twang_1',-4,{...BL}),L('R_xbow_0',-8,{...BL})],
