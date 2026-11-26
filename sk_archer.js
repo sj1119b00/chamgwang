@@ -6,7 +6,7 @@
   const mix = (a,b,t) => a+(b-a)*t, ease = t => t*t*(3-2*t);
   const wind = {d:'#072a31',b:'#16877d',m:'#8ee5c8',h:'#effff1',l:'#68ebc3',s:'#d0fff0'};
   const brass = {d:'#311b19',b:'#ad6632',m:'#f5ca74',h:'#fff9db',l:'#edbb63',s:'#fff0bc'};
-  const night = {d:'#0e1837',b:'#505d99',m:'#b3c8ff',h:'#f2f8ff',l:'#8eaaff',s:'#d7dcff'};
+  const night = {d:'#0b1440',b:'#3f55d8',m:'#9db4ff',h:'#f2f8ff',l:'#7f9cff',s:'#d7dcff'};
   const point = (x,y,z=0) => ({x,y,z});
   const fromHero = () => point(pl.x+pl.f*55,pl.gy,BODY*.66);
   const onEnemy = e => point(e.x,e.y,(e.z||0)+e.h*.48);
@@ -88,36 +88,71 @@
       else X.draw(life,k=>{if(epoch===castEpoch)paintGpu(k,k*life);},delay);
     }
   }
-  function flight(path,duration,p=wind,len=115,w=22) {
-    const scale=len<=150?1.48:1.16,tail=.19;
-    animate(duration,k=>arrow(path(k),path(Math.max(0,k-.012)),len*scale),null);
+  // A painted streak behind a moving head: hair-thin at the tail, full width
+  // just behind the head. tip 0 keeps the head blunt (two halves meeting).
+  function streak(path,u0,u1,p,width,alpha=1,tip=.7) {
+    if (u1<=u0 || alpha<=.001) return;
+    const n=12, pts=[];
+    for(let j=0;j<=n;j++){
+      const f=j/n,q=path(mix(u0,u1,f));
+      pts.push({...q,w:width*(.05+.95*f**.6)*(1-f**6*tip)});
+    }
+    if (FX3.on) {
+      const m=K.mats(), color={cA:p.d,cB:p.b,cM:p.m,cC:p.h};
+      FX3.ribbon(m.trB,pts,{...color,gain:2.7,ero:.14,a:alpha,ord:4});
+      for (const q of pts) q.w*=.34;
+      FX3.ribbon(m.trC,pts,{...color,gain:4.2,a:alpha,ord:5});
+    } else {
+      const flat=pts.map(q=>[q.x,q.y-q.z]);
+      fx.save();fx.globalAlpha=alpha;line(fx,flat,p.b,width*.66);line(fx,flat,p.h,width*.16);fx.restore();
+    }
+  }
+  function flight(path,duration,p=wind,len=240,w=60,tail=.22) {
+    animate(duration,k=>arrow(path(k),path(Math.max(0,k-.012)),len),null);
     animate(duration+tail,null,(k,t)=>{
       const head=sat(t/duration), cooling=sat((t-duration)/tail);
-      const tailAt=Math.min(.99,Math.max(0,head-.77)+cooling*.74);
-      ribbon(path,tailAt,head,p,w*1.36,(1-cooling)**1.17);
+      streak(path,Math.min(.99,Math.max(0,head-.7)+cooling*.69),head,p,w,(1-cooling)**1.2);
     });
   }
   function nock(e,sec=.15) { X.face(X.angTo(e));pose('draw',sec); }
-  function release() {
+  function release(p=wind) {
     pose('release',.24);X.sfx('whoosh',1.65,.23);
     const q=fromHero();
-    animate(.15,k=>{fx.save();fx.globalAlpha=(1-k)*.85;star(fx,q.x,q.y-q.z,47*(.32+.68*Math.sin(Math.PI*k)),wind.h,.65);fx.restore();});
+    K.flare(q.x,q.y,q.z,{pal:p,s:130,sx:2.1,sy:.4,dur:.13,gain:2.2});
+    if(!FX3.on) animate(.15,k=>{fx.save();fx.globalAlpha=(1-k)*.85;star(fx,q.x,q.y-q.z,47*(.32+.68*Math.sin(Math.PI*k)),p.h,.65);fx.restore();});
   }
   function hitAt(e,p,pw=1) {
     if (!e.dead) X.hitFx(e,p.l,pw);
+  }
+  // The first bodies of a cast get the kit's full reaction, the rest the cheap flash.
+  function struck(e,p,i,pw=1.1) {
+    if (e.dead) return;
+    if (i<3 && FX3.on) K.ehit(e,{pal:p,pw,ring:0}); else hitAt(e,p,pw);
   }
   function impactAt(q,p,r=155) {
     K.flare(q.x,q.y,q.z,{pal:p,s:r,sx:1.7,sy:.45,dur:.22,gain:1});
     GFX.light(q.x,q.y,r*2.3,p.l,.55,.25,{z:q.z});
     K.sparks(q.x,q.y,q.z,{pal:p,n:low()?3:7,sp:[160,530],up:300,life:[.16,.36]});
   }
-  function normalShot(e,dmg,p=wind,len=120,extra={}) {
+  // One landing: a volume body, a white-hot core, the floor lit and scarred.
+  function blast(q,p,s,o={}) {
+    const z=o.z??s*.3;
+    K.vblast(q.x,q.y,{pal:p,s,z,smoke:o.smoke||0,dur:.45,fire:.26,rise:s*.22,heat:o.heat||.75,lump:.62});
+    K.flare(q.x,q.y,z,{pal:p,s:s*.5,dur:.12,gain:2});
+    GFX.light(q.x,q.y,s*2.6,p.l,o.light||.75,.32,{z:140});
+    if(o.scar && !FX3.low) K.cool(q.x,q.y,{kind:o.scar,r:s*(o.scarR||.8),pal:p,life:o.life||1.5,start:.2,light:0});
+    K.sparks(q.x,q.y,z,{pal:p,n:low()?4:10,sp:[300,1100],up:520});
+    trauma=Math.min(1,trauma+(o.shake??.25));
+    if(o.stop && !A.SV.opt?.calm) hitstop=Math.max(hitstop,o.stop);
+  }
+  function normalShot(e,dmg,p=wind) {
     const start=fromHero(),end=onEnemy(e),dur=Math.max(.10,Math.min(.3,Math.hypot(end.x-start.x,end.y-start.y)/3600));
     // Interpolate towards the moving target until contact, even while the player strafes.
     const path=u=>arcPath(start,e.dead?end:onEnemy(e),20)(u);
-    flight(path,dur,p,len,24); later(dur,()=>{
+    flight(path,dur,p,210,44,.16); later(dur,()=>{
       if(e.dead) return;
-      hitAt(e,p); X.dmg(e,dmg,{kb:.25,sx:start.x,sy:start.y,...extra});
+      hitAt(e,p,1.2); GFX.light(e.x,e.y,260,p.l,.4,.16,{z:60});
+      X.dmg(e,dmg,{kb:.25,sx:start.x,sy:start.y});
     });
   }
   const sk={ar_basic:{cls:'archer',type:'basic',name:'깃시위',lv:1,desc:'시위를 당겨 가장 가까운 적의 몸통에 깃화살을 꽂는다.'}};
@@ -128,105 +163,198 @@
   }
   function basic() {
     const e=X.nearest(1100); if(!e) return false;
-    nock(e,.105); later(.105,()=>{ release(); normalShot(e,1040*A.mul('ar_basic'),wind,137); }); return true;
+    nock(e,.105); later(.105,()=>{ release(); normalShot(e,1040*A.mul('ar_basic')); }); return true;
   }
+  // Three (five) broad feathers of wind open from the bow; each lane is left scored in the floor.
   skill('ar_fan','삼우개화',1,4.5,1140,'세 발의 화살을 부채꼴로 펼쳐 앞을 휩쓴다.','다섯 발을 펼치고 부채의 바깥쪽까지 꿰뚫는다.',(d,up)=>{
     const e=X.nearest(1060); if(!e) return false;
     nock(e);const a=X.angTo(e),n=up?5:3;
-    later(.15,()=>{release(); const p=fromHero(),hit=new Set();
+    later(.15,()=>{release(); const p=fromHero(),hit=new Set(),L=1090;let shown=0;
+      K.dust(pl.x,pl.gy,{n:low()?3:6,dir:a+Math.PI,spread:.7,sp:[220,560],a:.36});
+      GFX.light(p.x+Math.cos(a)*L*.45,p.y+Math.sin(a)*L*.45,L*.62,wind.l,.62,.36,{z:90});
       for(let i=0;i<n;i++){
-        const ang=a+(i-(n-1)*.5)*.162;
-        const end=point(p.x+Math.cos(ang)*1090,p.y+Math.sin(ang)*1090,p.z*.75);
-        flight(arcPath(p,end,42),.26,wind,130,25);
+        const ang=a+(i-(n-1)*.5)*.162,ca=Math.cos(ang),sa=Math.sin(ang);
+        const end=point(p.x+ca*L,p.y+sa*L,p.z*.75);
+        flight(arcPath(p,end,42),.26,wind,270,up?92:78,.3);
+        if(!FX3.low && i%2===(n>>1)%2) K.coolLine(p.x+ca*190,p.y+sa*190,end.x,end.y,{pal:wind,w:up?34:28,life:1.15,grow:.26,start:.28,light:0,shed:0});
         X.inLine(p.x,p.y,end.x,end.y,44,t=>{
-          if(hit.has(t))return;hit.add(t);const dt=.26*sat(Math.hypot(t.x-p.x,t.y-p.y)/1090);
-          later(dt,()=>{if(!t.dead){hitAt(t,wind);X.dmg(t,d,{kb:.38});}});
+          if(hit.has(t))return;hit.add(t);const dt=.26*sat(Math.hypot(t.x-p.x,t.y-p.y)/L);
+          later(dt,()=>{if(!t.dead){struck(t,wind,shown++);X.dmg(t,d,{kb:0,push:up?260:190,sx:p.x,sy:p.y});}});
         });
       }
     });return true;
   });
+  // One heavy bronze head bores a straight glowing furrow, a wind helix wound round its wake.
   skill('ar_drill','나선 관통시',1,5.8,1910,'회전하는 청동 화살촉이 일직선으로 적을 관통한다.','관통 폭이 넓어지고 종점에 압력파를 낸다.',(d,up)=>{
     const e=X.nearest(1340);if(!e)return false;nock(e,.23);const a=X.angTo(e);
-    later(.23,()=>{release();const p=fromHero(),L=1450,end=point(p.x+Math.cos(a)*L,p.y+Math.sin(a)*L,p.z*.8),path=arcPath(p,end);
-      flight(path,.31,brass,215,66);
-      animate(.31,null,k=>{
-        const helix=u=>{const q=path(u),r=27*Math.sin(u*32);q.x+=r*Math.sin(a);q.y-=r*Math.cos(a);q.z+=22*Math.cos(u*32);return q;};
-        ribbon(helix,Math.max(0,k-.51),k,wind,14,.84);
+    later(.23,()=>{release(brass);X.sfx('whoosh',.9,.5);const p=fromHero(),L=1450,ca=Math.cos(a),sa=Math.sin(a),end=point(p.x+ca*L,p.y+sa*L,p.z*.8),path=arcPath(p,end);
+      const wide=up?105:68,rad=up?92:66;let shown=0;
+      flight(path,.31,brass,430,up?150:118,.32);
+      animate(.31+.24,null,(k,t)=>{
+        const head=sat(t/.31),fade=1-sat((t-.31)/.24);
+        const helix=u=>{const q=path(u),r=rad*Math.sin(u*19);q.x+=r*sa;q.y-=r*ca;q.z+=rad*.8*Math.cos(u*19);return q;};
+        streak(helix,Math.max(0,head-.72),head,wind,58,fade);
       });
-      X.inLine(p.x,p.y,end.x,end.y,up?105:68,t=>later(.31*sat(Math.hypot(t.x-p.x,t.y-p.y)/L),()=>{if(!t.dead){hitAt(t,brass);X.dmg(t,d,{kb:.6});}}));
-      if(up) later(.31,()=>{K.shock(end.x,end.y,{r:280,pal:brass,dur:.4});X.inCircle(end.x,end.y,280,t=>X.dmg(t,d*.55));});
+      K.coolLine(p.x+ca*150,p.y+sa*150,end.x,end.y,{pal:brass,w:wide*.62,life:1.6,grow:.3,start:.12,light:0});
+      GFX.light(p.x+ca*L*.5,p.y+sa*L*.5,L*.6,brass.l,.7,.42,{z:80});
+      K.dust(pl.x,pl.gy,{n:low()?3:7,dir:a+Math.PI,spread:.6,sp:[260,640],a:.4});
+      trauma=Math.min(1,trauma+.2);
+      X.inLine(p.x,p.y,end.x,end.y,wide,t=>later(.31*sat(Math.hypot(t.x-p.x,t.y-p.y)/L),()=>{if(!t.dead){struck(t,brass,shown++,1.3);X.dmg(t,d,{kb:0,push:230,sx:p.x,sy:p.y});}}));
+      later(.31,()=>{
+        if(!up){impactAt(end,brass,190);return;}
+        K.flare(end.x,end.y,end.z,{pal:brass,s:230,dur:.14,gain:2.2});K.vring(end.x,end.y,{r:330,r0:60,dur:.5,pal:brass,heat:.6,tube:.15});
+        K.shock(end.x,end.y,{r:280,pal:brass,dur:.4});K.cool(end.x,end.y,{kind:'crack2',r:290,pal:brass,life:1.6,start:.15,light:0});
+        GFX.light(end.x,end.y,760,brass.l,.8,.32,{z:140});K.sparks(end.x,end.y,end.z,{pal:brass,n:low()?4:10,sp:[300,1100],up:520});
+        trauma=Math.min(1,trauma+.35);X.sfx('boom',1.2,.5);
+        X.inCircle(end.x,end.y,280,t=>X.dmg(t,d*.55,{kb:0,push:260,sx:end.x,sy:end.y}));
+      });
     });return true;
   });
+  // He leaps away on a ribbon of wind and, still in the air, shoots the ground he left.
   skill('ar_step','비연보',2,5.4,1500,'깃털을 흩날리며 입력 방향으로 도약하고, 출발점을 밟은 적을 쏜다.','출발점에 깃가시가 두 번 터진다.',(d,up)=>{
     const e=X.nearest(760);if(!e)return false;const p=fromHero(),a=X.angTo(e);
     X.face(a);pose('dash',.2);const end=point(pl.x+Math.cos(a)*470,pl.gy+Math.sin(a)*395);
     V.dash={x0:pl.x,y0:pl.gy,x1:end.x,y1:end.y,t:0,dur:.17};
     RPG.inv=Math.max(RPG.inv,.33);X.sfx('whoosh',1.4,.45);
+    const leap=arcPath(p,{...end,z:BODY*.44},70);
+    K.trail(Array.from({length:12},(_,i)=>leap(i/11)),{pal:wind,w:100,draw:.15,dur:.42,hold:.05,gain:.8});
+    K.dust(p.x,p.y,{n:low()?3:6,dir:a+Math.PI,spread:.6,sp:[220,560],a:.38});
     for(const sign of [-1,1]){
-      const plume=u=>{const q=arcPath(p,{...end,z:BODY*.44},70)(u),w=Math.sin(Math.PI*u)*sign*70;q.x-=Math.sin(a)*w;q.y+=Math.cos(a)*w*.72;return q;};
-      animate(.42,null,k=>ribbon(plume,Math.max(0,k*1.52-.53),Math.min(1,k*2.5),wind,30,1-k*k));
+      const plume=u=>{const q=leap(u),w=Math.sin(Math.PI*u)*sign*105;q.x-=Math.sin(a)*w;q.y+=Math.cos(a)*w*.72;return q;};
+      animate(.42,null,k=>streak(plume,Math.max(0,k*1.52-.53),Math.min(1,k*2.5),wind,44,1-k*k));
     }
-    for(let i=0;i<4;i++){const f=(i+.4)/4,mid=arcPath(p,{...end,z:BODY*.44},70)(f);K.sparks(mid.x,mid.y,mid.z,{pal:wind,n:3,up:420,sp:[100,260],life:[.15,.4]});}
-    const burst=()=>{K.shock(p.x,p.y,{r:280,pal:wind,dur:.33});X.inCircle(p.x,p.y,263,t=>{hitAt(t,wind);X.dmg(t,d,{kb:.55,sx:p.x,sy:p.y});});};
-    later(.16,burst);if(up)later(.46,burst);return true;
+    const mark=point(p.x,p.y,12);
+    const burst=second=>{
+      if(second)pose('release',.2);
+      flight(arcPath(point(pl.x,pl.gy,BODY*.7),mark),.09,wind,250,second?86:70,.2);X.sfx('whoosh',1.8,.3);
+      later(.09,()=>{
+        blast(mark,wind,second?350:280,{z:70,scar:second?'crack2':'scorch',scarR:second?.95:.8,shake:second?.4:.3,stop:.04});
+        K.shock(p.x,p.y,{r:280,pal:wind,dur:.33});X.sfx('boom',1.5,.4);let shown=0;
+        X.inCircle(p.x,p.y,263,t=>{struck(t,wind,shown++,1.2);X.dmg(t,d,{kb:0,push:240,up:second?1000:500,sx:p.x,sy:p.y});});
+      });
+    };
+    later(.1,()=>burst(false));if(up)later(.4,()=>burst(true));return true;
   });
+  // The arrow lands, five thick vines whip out of the split floor, then draw tight round the pack.
   skill('ar_snare','등나무 매듭',3,7.8,1750,'적 무리에 낙하시킨 화살에서 덩굴 시위가 자라 적을 한데 묶는다.','덩굴이 더 넓게 뻗고 오래 묶는다.',(d,up)=>{
     const e=X.densest(1080,220);if(!e)return false;nock(e);
-    later(.15,()=>{release();const p=onEnemy(e),r=up?335:237;
-      flight(arcPath(fromHero(),{...p,z:10},210),.28,wind,130,27);
+    later(.15,()=>{release();const p=onEnemy(e),r=up?335:237,hold=up?1.65:1,life=hold+.25;
+      flight(arcPath(fromHero(),{...p,z:10},210),.28,wind,260,64);
       later(.28,()=>{
-        K.cool(p.x,p.y,{kind:'crack2',pal:wind,r,life:1.55});
+        K.flare(p.x,p.y,40,{pal:wind,s:r*.55,dur:.14,gain:2});GFX.light(p.x,p.y,r*2.6,wind.l,.75,.4,{z:120});
+        K.dust(p.x,p.y,{n:low()?4:9,r:40,sp:[240,640],a:.36});trauma=Math.min(1,trauma+.25);X.sfx('boom',1.35,.4);
+        K.cool(p.x,p.y,{kind:'crack2',pal:wind,r:r*1.1,life:life+.5,hot:.8});
         for(let i=0;i<5;i++){
-          const a=i*TAU/5;const coil=u=>{const ang=a+u*1.77,rr=r*(.16+.84*u);return point(p.x+Math.cos(ang)*rr,p.y+Math.sin(ang)*rr*FSY,14+48*Math.sin(Math.PI*u));};
-          animate(.85,null,k=>ribbon(coil,0,Math.min(1,k*4),wind,26,1-k*k));
+          const a=i*TAU/5+.3;
+          const coil=(v,pull)=>{const ang=a+v*1.77-pull*.5,rr=r*1.18*(.08+.92*v)*(1-.26*pull);return point(p.x+Math.cos(ang)*rr,p.y+Math.sin(ang)*rr*FSY,14+(up?120:90)*Math.sin(Math.PI*v));};
+          animate(life,null,(k,t)=>{
+            const grown=sat(t/.16),pull=ease(sat((t-.16)/.34));
+            streak(u=>coil(1-u,pull),1-grown,1,wind,up?74:60,sat((life-t)/.3),0);
+          });
         }
-        X.inCircle(p.x,p.y,r,t=>{X.dmg(t,d,{stun:up?1.65:1,kb:-.65,sx:p.x,sy:p.y});if(!t.dead)K.mark(t,'seal',{pal:wind,dur:up?1.65:1});});
+        let shown=0;
+        X.inCircle(p.x,p.y,r,t=>{struck(t,wind,shown++);X.dmg(t,d,{stun:hold,kb:-.65,sx:p.x,sy:p.y});if(!t.dead)K.mark(t,'seal',{pal:wind,dur:hold});});
       });
     });return true;
   });
+  // A glass arrow skips from body to body; its zigzag stays scored on the floor and the last skip shatters.
   skill('ar_ricochet','물수제비',4,7,1420,'유리 깃 화살이 적 사이를 차례로 튕긴다.','연쇄 횟수가 세 번에서 다섯 번으로 늘어난다.',(d,up)=>{
     const first=X.nearest(970);if(!first)return false;nock(first);
-    later(.14,()=>{release();const seen=new Set();
+    later(.14,()=>{release(night);const seen=new Set();
       function hop(p,e,n){
         seen.add(e);const end=onEnemy(e),path=u=>arcPath(p,e.dead?end:onEnemy(e),65)(u);
-        flight(path,.17,night,118,22);
-        later(.17,()=>{const q=e.dead?end:onEnemy(e);if(!e.dead){hitAt(e,night);X.dmg(e,d,{kb:.22,sx:p.x,sy:p.y});}
-          if(n<=1)return;
+        flight(path,.17,night,240,up?74:66,.36);
+        later(.17,()=>{const q=e.dead?end:onEnemy(e);
           let next=null,best=660**2;
-          for(const t of V.en){const ds=(t.x-q.x)**2+(t.y-q.y)**2;if(!t.dead&&!seen.has(t)&&ds<best){best=ds;next=t;}}
+          if(n>1)for(const t of V.en){const ds=(t.x-q.x)**2+(t.y-q.y)**2;if(!t.dead&&!seen.has(t)&&ds<best){best=ds;next=t;}}
+          if(!FX3.low)K.coolLine(p.x,p.y,q.x,e.y,{pal:night,w:34,life:1.5,grow:.02,start:.08,light:0,shed:0});
+          if(next){
+            K.art(q.x,e.y,{tex:'v3_xburst',pal:night,s:210,z:q.z,dur:.22});GFX.light(q.x,e.y,420,night.l,.6,.22,{z:q.z});
+            K.sparks(q.x,q.y,q.z,{pal:night,n:low()?3:7,sp:[240,800],up:420});X.sfx('whoosh',1.95,.2);
+          } else {
+            K.art(q.x,e.y,{tex:'v3_xburst',pal:night,s:up?430:360,z:q.z,dur:.34});K.flare(q.x,q.y,q.z,{pal:night,s:150,dur:.12,gain:2});
+            GFX.light(q.x,e.y,700,night.l,.8,.32,{z:120});K.sparks(q.x,q.y,q.z,{pal:night,n:low()?5:14,sp:[300,1200],up:520});
+            if(!FX3.low)K.cool(q.x,e.y,{kind:'scorch',r:210,pal:night,life:1.6,start:.15,light:0});
+            trauma=Math.min(1,trauma+.3);X.sfx('boom',1.7,.4);
+          }
+          if(!e.dead){struck(e,night,0,next?1.2:1.5);X.dmg(e,d,{kb:0,push:next?120:260,sx:p.x,sy:p.y});}
           if(next)hop(q,next,n-1);
         });
       }hop(fromHero(),first,up?5:3);
     });return true;
   });
+  // One arrow goes up; seven come down slanted, stand quivering in their own scorch, and the floor rolls outward.
   skill('ar_rain','소나기시',6,8.5,1570,'하늘로 올린 화살이 한 무리 위에 빗줄기처럼 비스듬히 떨어진다.','낙하 범위가 넓어지고 두 번째 소나기가 따라온다.',(d,up)=>{
     const e=X.densest(1250,240);if(!e)return false;nock(e);const x=e.x,y=e.y,r=up?330:240;
-    later(.16,()=>{release();flight(arcPath(fromHero(),point(pl.x-145,pl.gy,820)),.24,wind,128,24);});
-    function volley(){for(let i=0;i<7;i++){
-      const a=i*2.4,rr=r*Math.sqrt(i/7),q=point(x+Math.cos(a)*rr,y+Math.sin(a)*rr*FSY,7);
-      later(i*.027,()=>flight(arcPath(point(q.x-205,q.y,580+i*15),q),.22,brass,143,22));
+    later(.16,()=>{release(brass);flight(arcPath(fromHero(),point(pl.x-145,pl.gy,820)),.24,brass,260,62);});
+    function volley(second){for(let i=0;i<7;i++){
+      const a=i*2.4+(second?1.2:0),rr=r*Math.sqrt(i/7),q=point(x+Math.cos(a)*rr,y+Math.sin(a)*rr*FSY,7),sky=point(q.x-205,q.y,580+i*15);
+      later(i*.027,()=>{
+        flight(arcPath(sky,q),.22,brass,270,56,.26);
+        animate(.8,k=>arrow(q,point(q.x-70,q.y,q.z+196),190,1-ease(sat((k-.6)/.4))),null,.22);
+        later(.22,()=>{
+          K.flare(q.x,q.y,24,{pal:brass,s:130,dur:.14,gain:2.3});
+          if(i%3===0 && !low()) K.cool(q.x,q.y,{kind:'scorch',r:115,pal:brass,life:1.4,start:.25,light:0});
+          K.sparks(q.x,q.y,20,{pal:brass,n:low()?2:4,sp:[200,620],up:520,life:[.18,.4]});
+        });
+      });
     }
-    later(.32,()=>{impactAt(point(x,y,20),brass,130);X.inCircle(x,y,r,t=>{hitAt(t,brass);X.dmg(t,d,{kb:.3});});});}
-    later(.29,volley);if(up)later(.72,volley);return true;
+    later(.32,()=>{
+      K.vring(x,y,{r:r*1.25,r0:r*.3,dur:.6,pal:brass,heat:.55,tube:.13});
+      K.cool(x,y,{kind:'crack',pal:brass,r:r*.85,life:1.6,hot:.7,grow:.05,light:0});
+      GFX.light(x,y,r*2.6,brass.l,.85,.36,{z:140});X.sfx('boom',1.45,.42);
+      trauma=Math.min(1,trauma+.32);let shown=0;
+      X.inCircle(x,y,r,t=>{struck(t,brass,shown++);X.dmg(t,d,{kb:0,push:150,up:600,sx:x,sy:y});});
+    });}
+    later(.29,()=>volley(false));if(up)later(.72,()=>volley(true));return true;
   });
+  // Two stars are pinned either side of the pack; the string between them snaps taut as one blade of starlight.
   skill('ar_bind','쌍성시',8,9.4,2450,'두 별을 화살로 박고 팽팽해진 별빛 시위로 그 사이의 적을 벤다.','두 별 사이의 거리가 늘고 시위가 한 차례 더 튕긴다.',(d,up)=>{
     const e=X.densest(1260,258);if(!e)return false;nock(e);const p=onEnemy(e),r=up?530:380;
     const a=X.angTo(e)+Math.PI*.51,ends=[-1,1].map(s=>point(p.x+s*Math.cos(a)*r,p.y+s*Math.sin(a)*r*.8,65));
-    later(.16,()=>{release();ends.forEach(q=>flight(arcPath(fromHero(),q,110),.23,night,128,20));});
-    const snap=()=>{ends.forEach(q=>impactAt(q,night,120));
-      animate(.4,null,(k,t)=>{const path=u=>{const q=arcPath(...ends)(u);q.z+=Math.sin(u*Math.PI*3)*Math.sin(t*60)*60*(1-k)**3;return q;};ribbon(path,0,1,night,31,(1-k)**.7);});
-      X.inLine(ends[0].x,ends[0].y,ends[1].x,ends[1].y,95,t=>{hitAt(t,night);X.dmg(t,d,{stun:.35,kb:.4});});};
-    later(.42,snap);if(up)later(.7,snap);return true;
+    const span=arcPath(...ends);
+    later(.16,()=>{release(night);ends.forEach(q=>{
+      flight(arcPath(fromHero(),q,110),.23,night,250,58);
+      K.vorb(q.x,q.y,q.z+30,{pal:night,r:78,dur:up?.68:.42,in:.06,out:.14,delay:.23});
+    });});
+    const snap=second=>{
+      ends.forEach(q=>{K.flare(q.x,q.y,q.z+30,{pal:night,s:200,dur:.14,gain:1.8});K.sparks(q.x,q.y,q.z,{pal:night,n:low()?3:7,sp:[240,800],up:420});});
+      GFX.light(p.x,p.y,r*1.4,night.l,.45,.34,{z:120});
+      if(!second && !FX3.low) K.coolLine(ends[0].x,ends[0].y,ends[1].x,ends[1].y,{pal:night,w:44,life:1.8,grow:.04,start:.12,light:0});
+      animate(.44,null,(k,t)=>{
+        const amp=Math.sin(t*60)*75*(1-k)**3;
+        for(const half of [0,1]){
+          const path=u=>{const v=half?1-u*.5:u*.5,q=span(v);q.z+=30+Math.sin(v*Math.PI)*amp;return q;};
+          streak(path,0,1,night,second?120:96,(1-k)**.7,0);
+        }
+      });
+      X.sfx('whoosh',2.1,.4);trauma=Math.min(1,trauma+.3);
+      if(!A.SV.opt?.calm)hitstop=Math.max(hitstop,.04);
+      let shown=0;
+      X.inLine(ends[0].x,ends[0].y,ends[1].x,ends[1].y,95,t=>{struck(t,night,shown++,1.4);X.dmg(t,d,{stun:.35,kb:.4});});
+    };
+    later(.42,()=>snap(false));if(up)later(.7,()=>snap(true));return true;
   });
+  // The heaviest arrow: a high golden arc, then the floor caves, stones jump and the pack goes up with them.
   skill('ar_pin','황금 못',10,11.7,3180,'무거운 황금 화살이 적을 꿰뚫고 바닥에 박혀 주변을 들어 올린다.','충격 지점이 갈라지며 2차 피해를 준다.',(d,up)=>{
     const e=X.densest(1350,245);if(!e)return false;nock(e,.29);
-    later(.29,()=>{release();const q=point(e.x,e.y,0);const p=fromHero();
-      flight(arcPath(p,q,330),.4,brass,245,62);
-      later(.4,()=>{impactAt(q,brass,220);K.cool(q.x,q.y,{kind:'crack2',pal:brass,r:338,life:1.65});K.chunks(q.x,q.y,{n:5,r:65,sp:[170,480],up:850,s:[14,27]});X.sfx('boom',.9,.46);
+    later(.29,()=>{release(brass);X.sfx('whoosh',.8,.5);const q=point(e.x,e.y,0);const p=fromHero();
+      flight(arcPath(p,q,330),.4,brass,440,124,.3);
+      later(.4,()=>{
+        blast(q,brass,320,{z:80,scar:'crater',scarR:.7,life:2,shake:.5,stop:.06,light:.68,smoke:.45});
+        K.cool(q.x,q.y,{kind:'crack2',pal:brass,r:338,life:1.65,light:0});
+        K.shock(q.x,q.y,{r:420,pal:brass,dur:.45,gain:.8});
+        K.chunks(q.x,q.y,{n:low()?3:6,r:70,sp:[170,520],up:1300,s:[34,80],pal:brass});X.sfx('boom',.9,.46);
         const prev=arcPath(p,q,330)(.94);
-        animate(.96,(k,t)=>{const from={...prev,x:prev.x+Math.sin(t*40)*19*Math.exp(-t*8)};arrow(q,from,238,1-ease(sat((k-.67)/.33)));});
-        X.inCircle(q.x,q.y,295,t=>{hitAt(t,brass);X.dmg(t,d,{up:720,kb:.6});});
-        if(up)later(.32,()=>{K.shock(q.x,q.y,{r:390,pal:brass});X.inCircle(q.x,q.y,365,t=>X.dmg(t,d*.58,{kb:.75}));});
+        animate(.96,(k,t)=>{const from={...prev,x:prev.x+Math.sin(t*40)*19*Math.exp(-t*8)};arrow(q,from,420,1-ease(sat((k-.67)/.33)));});
+        let shown=0;
+        X.inCircle(q.x,q.y,295,t=>{struck(t,brass,shown++,1.5);X.dmg(t,d,{kb:0,push:200,up:1500,sx:q.x,sy:q.y});});
+        if(up)later(.32,()=>{
+          K.cool(q.x,q.y,{kind:'crack',pal:brass,r:520,life:1.9,hot:.75,grow:.06,gain:2,light:0});
+          K.shock(q.x,q.y,{r:390,pal:brass});GFX.light(q.x,q.y,900,brass.l,.7,.3,{z:140});
+          X.sfx('boom',1.2,.4);trauma=Math.min(1,trauma+.3);
+          X.inCircle(q.x,q.y,365,t=>X.dmg(t,d*.58,{kb:0,push:300,sx:q.x,sy:q.y}));
+        });
       });
     });return true;
   });
@@ -445,7 +573,7 @@
         acceleratedWhoosh(s.i,s.duration,s.dir.x*.77);
         const big=s.i<=2 || s.i===6 || s.i===12 || s.i===18;
         if(big){resonance(s.a,s.dir,s.i<3?1.20:.93);C.shake(.14); }
-        else GFX.light(s.a.x,s.a.y,300,wind.l,.43,.15,{z:s.a.z});
+        else{GFX.light(s.a.x,s.a.y,300,wind.l,.43,.15,{z:s.a.z});if(s.i<15||s.i%2===0)resonance(s.a,s.dir,.62);}
       });
     }
     later(inkAt-.14,()=>C.hush(.24,{a:.54,c:wind.l,snd:false}));
@@ -578,53 +706,37 @@
     const peakAt=3.22;later(peakAt-.18,()=>C.hush(.17,{a:.57,c:night.l}));
     marks.forEach((q,i)=>{const phase=i/marks.length*.36,hit=peakAt+phase;
       const a=point(q.x-278-(i%3)*115,q.y-90,q.z+760+(i%4)*90);
-      later(hit-.38,()=>flight(arcPath(a,q,70),.38,i%3?night:brass,175,38));
-      later(hit,()=>{if(i%3===0){impactAt(q,brass,165);K.cool(q.x,q.y,{pal:night,kind:'crack2',r:210,life:2.15,light:0});}});
+      later(hit-.38,()=>flight(arcPath(a,q,70),.38,i%3?night:brass,300,84));
+      later(hit,()=>{K.flare(q.x,q.y,30,{pal:i%3?night:brass,s:150,dur:.14,gain:2});if(i%3===0){impactAt(q,brass,165);K.cool(q.x,q.y,{pal:night,kind:'crack2',r:210,life:2.15,light:0});}});
     });
-    victims.forEach(({e},i)=>later(peakAt+(i%Math.max(1,marks.length))/marks.length*.36,()=>{if(!e.dead){hitAt(e,night);X.ultHit(e,7200*A.mul(id),x,y);}}));
-    later(peakAt,()=>{peak(x,y,night);K.shock(x,y,{pal:night,r:hw*.98,dur:.79,gain:.7});});
+    victims.forEach(({e},i)=>later(peakAt+(i%Math.max(1,marks.length))/marks.length*.36,()=>{if(!e.dead){struck(e,night,i>>1,1.3);X.ultHit(e,7200*A.mul(id),x,y);}}));
+    // The stag kicks off: the floor under it answers before the stars fall.
+    later(1.48,()=>{K.shock(x,y,{pal:night,r:hw*.42,dur:.6,gain:.55});K.dust(x,y,{n:low()?4:10,r:80,sp:[260,700],a:.36});GFX.light(x,y,hw*.8,night.l,.6,.5,{z:200});X.sfx('whoosh',.7,.5);});
+    later(peakAt,()=>{peak(x,y,night);K.shock(x,y,{pal:night,r:hw*.98,dur:.79,gain:.7});X.sfx('boom',.85,.6);
+      K.cool(x,y,{kind:'ring',pal:night,r:hw*.5,life:2.4,light:0});
+    });
     endUlt(5.13);
   }
-  function solarDisc(x,y,r,t,k) {
-    if(r<1 || k<=0)return;
-    ctx.save();ctx.translate(x,y);ctx.globalAlpha=k;
-    const shade=ctx.createRadialGradient(r*.32,-r*.36,r*.1,0,0,r);
-    shade.addColorStop(0,'#433d43');shade.addColorStop(.50,'#25272d');shade.addColorStop(.94,'#131b24');shade.addColorStop(1,'#a17d54');
-    ctx.beginPath();ctx.arc(0,0,r,0,TAU);ctx.fillStyle=shade;ctx.fill();ctx.restore();
-    fx.save();fx.translate(x,y);fx.globalAlpha=k;
-    const sun=fx.createRadialGradient(0,0,r*.87,0,0,r*1.85);
-    sun.addColorStop(0,'rgba(243,195,104,0)');sun.addColorStop(.13,'rgba(251,199,107,.50)');sun.addColorStop(.31,'rgba(231,152,71,.17)');sun.addColorStop(1,'rgba(185,101,41,0)');
-    fx.fillStyle=sun;fx.fillRect(-r*1.9,-r*1.9,r*3.8,r*3.8);
-    for(let i=0;i<24;i++){
-      const a=i*2.39996+t*.095,sz=.03+.14*(.5+.5*Math.sin(i*3.7+t*1.45)),tail=.13+.21*(i%4)/3;
-      fx.save();fx.rotate(a);fx.beginPath();fx.moveTo(r*.99,0);
-      fx.bezierCurveTo(r*(1+sz*.35),-r*tail*.48,r*(1+sz*1.35),-r*tail*.81,r*(1+sz),-r*tail);
-      fx.bezierCurveTo(r*(1+sz*.76),-r*tail*.59,r*(1+sz*.03),-r*tail*.21,r*.99,0);
-      fx.fillStyle=i%3?'#b8763d':'#f5d48d';fx.fill();fx.restore();
-    }
-    fx.beginPath();fx.arc(0,0,r*1.012,t*.2,t*.2+TAU);fx.strokeStyle='#f1c483';fx.lineWidth=Math.max(2,r*.028);fx.stroke();
-    fx.beginPath();fx.arc(-.022*r,-.016*r,r*1.023,-2.74+t*.08,-.48+t*.08);fx.strokeStyle='#fff3ce';fx.lineWidth=r*.043;fx.stroke();
-    star(fx,-r*.73,-r*.69,r*.45,'#fff4ca',.73);fx.restore();
-  }
-  function greatbow(stage) {
-    const {x,y,hw,hh}=stage,im=plate('ar_eclipse_bow'),span=Math.min(hw*1.37,hh*2.10),life=4.12,shoot=3.18;
+  function greatbow(stage,shoot) {
+    const {x,y,hw,hh}=stage,im=plate('ar_eclipse_bow'),span=Math.min(hw*1.37,hh*2.10),life=shoot+.95;
     animate(life,(k,t)=>{
-      const form=ease(sat(t/.9)),draw=ease(sat((t-.75)/1.92)),end=sat((t-shoot)/.75);
+      const form=ease(sat(t/.8)),draw=ease(sat((t-.6)/(shoot-.8))),end=sat((t-shoot-.2)/.75);
       const recoil=t>shoot?Math.sin((t-shoot)*24)*Math.exp(-(t-shoot)*8):0;
       const size=span*(.57+.43*form),h=size*400/960,z=BODY*.60+hh*.056;
       const fade=form*(1-end*end); if(!fade)return;
       const top=-.628*h,side=.455*size, angle=(1-form)*.69+draw*.07+recoil*.105;
-      const tie=(t<shoot?mix(-h*.39,h*.31,draw):top-recoil*h*.26);
+      // The bow is held belly to the sky: grip on top, tips hanging at the archer's sides, string drawn downward.
+      const grip=-.6*h,rest=grip-top,tie=t<shoot?mix(rest,h*.45,draw):rest+recoil*h*.26;
       const floorY=y-z;
       fx.save();fx.translate(x,floorY);fx.globalAlpha=fade;
       for(const s of [-1,1]){
-        const ang=s*angle,c=Math.cos(ang),sn=Math.sin(ang),tx=s*side*c-top*sn,ty=s*side*sn+top*c;
+        const ang=s*angle,c=Math.cos(ang),sn=Math.sin(ang),tx=s*side*c-top*sn,ty=grip-(s*side*sn+top*c);
         line(fx,[[tx,ty],[0,tie]],'#487e81',8);
         line(fx,[[tx,ty],[0,tie]],'#e6f6ca',2.4);
         for(let j=1;j<7;j++){const f=(j/7+t*.6)%1;star(fx,tx*f,mix(tie,ty,f),4+5*Math.sin(Math.PI*f),'#e8f7d1');}
       }
       fx.restore();
-      ctx.save();ctx.translate(x,floorY);ctx.globalAlpha=fade;
+      ctx.save();ctx.translate(x,floorY+grip);ctx.scale(1,-1);ctx.globalAlpha=fade;
       for(const sign of [-1,1]){
         ctx.save();ctx.rotate(sign*angle);
         if(imageReady(im)) {
@@ -635,28 +747,8 @@
           ctx.quadraticCurveTo(sign*size*.32,h*.18,sign*side,top);ctx.stroke();
         }ctx.restore();
       }ctx.restore();
-      const r=Math.min(hh*.29,hw*.14)*(.20+.8*draw),sunY=floorY+top-h*.09;
-      if(t<shoot){solarDisc(x,sunY,r,t,fade*sat((t-.20)/.83));
-        fx.save();fx.translate(x,sunY);fx.rotate(-.29+.10*t);fx.globalAlpha=fade*draw*.75;
-        for(let j=0;j<2;j++){
-          const rx=r*(1.41+j*.27),ry=r*(.32+j*.39),phase=t*(j?-.28:.4);
-          fx.beginPath();fx.ellipse(0,0,rx,ry,j*.83,phase+.22,phase+Math.PI*.89);
-          fx.strokeStyle=j?wind.m:brass.m;fx.lineWidth=r*.014;fx.stroke();
-          fx.beginPath();fx.ellipse(0,0,rx,ry,j*.83,phase+Math.PI*1.14,phase+Math.PI*1.94);fx.stroke();
-          fx.save();fx.rotate(j*.83);
-          for(let n=0;n<16;n++){
-            const a=Math.PI*n/8+phase,c=Math.cos(a),s=Math.sin(a);
-            line(fx,[[c*rx,s*ry],[c*(rx+r*.047),s*(ry+r*.047)]],brass.m,r*.011);
-          }
-          star(fx,rx*Math.cos(phase),ry*Math.sin(phase),r*.154,j?wind.h:brass.h);fx.restore();
-        }fx.restore();
-        const head=point(x,y,z-tie+h*.85);
-        arrow(head,point(x,y,z-tie+h*.28),h*.89,fade*draw);
-      } else {
-        const fly=Math.min(1,(t-shoot)/.26);
-        const dest=sunY-(hh*.68)*fly*fly;
-        solarDisc(x,dest,r*(1-.44*fly),t,fade*(1-sat((t-shoot-.2)/.18)));
-      }
+      // The one great arrow rides the string, head to the sky, until the release hands it to its flight.
+      if(t<shoot) arrow(point(x,y,z-tie+h*1.38),point(x,y,z-tie),h*1.45,fade*draw);
     });
   }
   function corona(stage) {
@@ -686,29 +778,64 @@
   }
   function eclipse(id) {
     const stage=startUlt(id,brass,X.nearest(Infinity)),{x,y,hw,hh}=stage;
-    greatbow(stage);C.SND.gong(.45);
+    const shoot=2.3,fall=4.1,drop=.26,land=fall+drop;
+    const h=Math.min(hw*1.37,hh*2.10)*400/960,len=h*1.45,sky=hh*3.2,nockZ=BODY*.60+hh*.056+h*.93;
+    // The arrow returns ahead of the archer, slanting in from behind the shoulder.
+    const tx=x+pl.f*Math.min(hw*.3,hh*.62),ty=y+hh*.06,target=point(tx,ty,0);
+    const descent=arcPath(point(tx-pl.f*hh*.5,ty,sky),target);
+    greatbow(stage,shoot);C.SND.gong(.45);
     C.move({x,y:y-BODY*.65,zoom:.82,tilt:.07,roll:0},1);
     let charge;
-    later(.79,()=>{pose('draw',2.32);C.SND.inhale(1.8,.34);charge=K.gather(x,y,BODY*.94,{pal:brass,r:108,R:730,n:.32,dur:2.16,shells:1,gain:.48});});
-    later(2.62,()=>{C.move({x,y:y-BODY*.8,zoom:.91,tilt:.034,roll:.009},.49);});
-    later(2.99,()=>{charge?.end();C.hush(.18,{a:.52,c:brass.l});});
-    later(3.18,()=>{release();C.SND.shing(.65,.44);});
-    later(3.41,()=>{
-      C.move({x,y:y-BODY*.46,zoom:.74,tilt:.09,roll:-.012},.31);
-      peak(x,y,brass);corona(stage);impactAt(point(x,y,BODY*.9),brass,298);
-      K.cool(x,y,{pal:brass,kind:'crack2',r:515,life:2.35});
+    later(.6,()=>{pose('draw',shoot-.6);C.SND.inhale(shoot-.75,.34);charge=K.gather(x,y,BODY*.94,{pal:brass,r:108,R:730,n:.32,dur:shoot-.75,shells:1,gain:.48});});
+    later(shoot-.2,()=>{charge?.end();C.hush(.18,{a:.52,c:brass.l});});
+    later(shoot,()=>{
+      release(brass);C.SND.shing(.65,.44);X.sfx('whoosh',.6,.6);
+      flight(arcPath(point(x,y,nockZ),point(x,y,sky)),.34,brass,len,150,.3);
+      K.shock(x,y,{r:520,pal:brass,dur:.45,gain:.7});K.dust(x,y,{n:low()?5:10,sp:[300,820],a:.4});
+      GFX.light(x,y,900,brass.l,.9,.3,{z:BODY});trauma=Math.min(1,trauma+.4);
+      C.move({x:mix(x,tx,.5),y:y-BODY*.5,zoom:.74,tilt:.1,roll:0},.8);
+    });
+    // The arrow is gone. The field dims and waits.
+    later(shoot+.4,()=>GFX.ambient(.4,.46,.58,2.2));
+    later(fall-.62,()=>{
+      C.SND.inhale(.6,.3);GFX.light(tx,ty,760,brass.l,.75,.7,{z:120});
+      K.shock(tx,ty,{r:110,r0:720,dur:.6,pal:brass,gain:.55});
+      animate(.62,k=>{
+        const r=mix(520,150,k);
+        ctx.save();ctx.globalAlpha=.5*k;ctx.fillStyle='#04080c';
+        ctx.beginPath();ctx.ellipse(tx,ty,r,r*FSY,0,0,TAU);ctx.fill();ctx.restore();
+      },k=>streak(descent,0,1,brass,18+50*k,.2+.5*k,0));
+    });
+    later(fall-.16,()=>C.hush(.16,{a:.5,c:brass.l}));
+    later(fall,()=>{flight(descent,drop,brass,len*1.3,230,.25);X.sfx('whoosh',.5,.7);});
+    later(land,()=>{
+      C.move({x:mix(x,tx,.6),y:ty-BODY*.46,zoom:.72,tilt:.1,roll:-.012},.3);
+      peak(tx,ty,brass);corona({...stage,x:tx,y:ty});X.sfx('boom',.8,.7);GFX.ambient(.7,.66,.56,6);
+      blast(target,brass,Math.min(hw,hh)*.62,{smoke:.5,heat:1.2,scar:'crater',scarR:.9,life:3.2,shake:.6,stop:.09,light:1});
+      K.vcolumn(tx,ty,{r:hh*.16,h:hh*1.5,pal:brass,dur:.85,rise:.1,out:.5,twist:1.2,turb:.9});
+      K.vring(tx,ty,{r:hw*.8,r0:140,dur:.7,a:.65,pal:brass,heat:.6,tube:.12});
+      K.cool(tx,ty,{pal:brass,kind:'ring',r:760,life:2.6,light:0});
+      K.cool(tx,ty,{pal:brass,kind:'crack2',r:560,life:2.6});
+      K.chunks(tx,ty,{pal:brass,n:low()?4:7,r:120,sp:[300,900],up:1500,s:[20,44]});
+      // The shaft stays standing in the crater, shivering, before it burns away.
+      const prev=descent(.93);
+      animate(1.1,(k,t)=>{
+        const from={...prev,x:prev.x+Math.sin(t*40)*22*Math.exp(-t*8)};
+        arrow(target,from,len*1.3,1-ease(sat((k-.6)/.4)));
+      });
       const r=Math.hypot(hw,hh/FSY)*1.13;
+      let shown=0;
       for(const e of X.onScreen(460)){
-        const dist=sat(Math.hypot(e.x-x,(e.y-y)/FSY)/r);
-        later(.89*(1-Math.sqrt(1-dist)),()=>{if(!e.dead){hitAt(e,brass,1.1);X.ultHit(e,10500*A.mul(id),x,y);}});
+        const dist=sat(Math.hypot(e.x-tx,(e.y-ty)/FSY)/r);
+        later(.89*(1-Math.sqrt(1-dist)),()=>{if(!e.dead){struck(e,brass,shown++>>1,1.4);X.ultHit(e,10500*A.mul(id),tx,ty);}});
       }
     });
-    endUlt(5.49);
+    endUlt(land+2.1);
   }
   const ultimates={
     ar_ult1:[1,'천궁일선','한 발의 화살이 소리를 추월한다. 전장 전역의 적과 보스를 차례로 꿰뚫어 처치하고, 급선회한 자리에 소닉붐을 남긴다.',sonic],
     ar_ult2:[5,'별자리 장송곡','별빛으로 수사슴의 별자리를 잇는다. 사슴이 도약하면 별들이 화살이 되어 전장에 쏟아진다.',requiem],
-    ar_ult3:[12,'일식의 대궁','금빛 날개로 엮은 대궁을 열어 검은 태양을 쏜다. 일식이 깨지며 빛의 해일이 사방으로 퍼져나간다.',eclipse],
+    ar_ult3:[12,'일식의 대궁','금빛 날개로 엮은 대궁으로 거대한 화살을 하늘 끝까지 쏘아 올린다. 사라졌던 화살이 어두워진 하늘에서 떨어져 꽂히며 빛의 해일이 사방으로 퍼져나간다.',eclipse],
   };
   const ults={};
   for(const [id,[lv,name,desc,cast]] of Object.entries(ultimates)){

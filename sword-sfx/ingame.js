@@ -22,7 +22,10 @@ const until=f=>new Promise(r=>{ const h=setInterval(()=>{ if(f()){ clearInterval
   if(!lib&&!pack) return;
   await load('swsfx.js'); await load('classfx.js');
   const E=SwordSFX; await E.init(BASE); if(pack) E.usePack(pack,VER);
-  await until(()=>window.RPG?.sv?.CLS?.fist&&RPG.sv.CLS.sword&&window.K3&&RPG.sv.cine&&typeof SFX!=='undefined');
+  // the class scripts load one after another (surv.js CLS_ORDER): ClassFX wraps each class's casts, so wait until the last one
+  // has registered (the gunner and the archer come after the fist). A class file that never arrives must not silence the rest.
+  const giveUp=performance.now()+15000, allCls=()=>(RPG.sv.CLS_ORDER||[]).every(c=>RPG.sv.CLS[c]);
+  await until(()=>window.RPG?.sv?.CLS?.fist&&RPG.sv.CLS.sword&&window.K3&&RPG.sv.cine&&typeof SFX!=='undefined'&&(allCls()||performance.now()>giveUp));
   window.SwordPreview=window.SwordPreview||{};
   // our side joins the game's audio context, so start it only once the game has made one
   const unlock=()=>{ if(E.ctx||(typeof AC!=='undefined'&&AC)) E.resume(); }; addEventListener('pointerdown',unlock,{passive:true}); addEventListener('keydown',unlock);
@@ -40,6 +43,10 @@ const until=f=>new Promise(r=>{ const h=setInterval(()=>{ if(f()){ clearInterval
       buffers.forEach((buffer,i)=>{ if(!buffer) E.buf.delete(ids[i]); });
     }finally{ fistLoading=false; retryFistAt=Math.max(retryFistAt,performance.now()+10000); }
   }
+  // ranged classes: decode the class's clips when it is picked, so the first shot is on time. Not a gate: until a clip is
+  // decoded (or if it is missing) that layer is simply skipped and the game's own sound plays alone.
+  let warmCls=null;
+  function warmRanged(cls){ if(warmCls===cls||!E.ctx) return; warmCls=cls; for(const id of ClassFX.rangedClips(cls)) if(E.clips[id]) E.load(id); }
   // sound ends with the picture: effect activity (draw calls + particles + running effects) drives the tail gate
   let bedCls=null;
   let packCls=null;
@@ -48,6 +55,7 @@ const until=f=>new Promise(r=>{ const h=setInterval(()=>{ if(f()){ clearInterval
     // join the game's audio as soon as it exists (the fist waits for its clips, which needs our side running)
     if(!E.ctx&&typeof AC!=='undefined'&&AC) E.graph();
     if(pl.cls==='fist'||RPG.sv.A.SV.cls==='fist') warmFist();
+    if(ClassFX.RANGED[pl.cls]&&(!E.pack||E.pack.packs[pl.cls])) warmRanged(pl.cls); else warmCls=null;
     if(!inSurv()||!E.ctx){
       if(bedCls==='fist'){ E.stopAll(); E.setBed(null); bedCls=null; }
       return;
