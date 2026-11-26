@@ -1,0 +1,6238 @@
+{
+ "A_swish_0": {
+  "onset_ms": 71.77083333333334,
+  "file": "lib/clips/A_swish_0.wav",
+  "take": "9f6335b23f4c_00",
+  "member": "Sonniss.com - GDC 2019 - Game Audio Bundle Part 5of8/Rock The Speakerbox - Melee/MELEE - CK - ROPE WHOOSH Fast Light 01.wav",
+  "role": "swing_light",
+  "dur": 0.38,
+  "peak_ms": 73.8125,
+  "proc": {
+   "lufs": -17,
+   "eq": [
+    [
+     "hp",
+     260,
+     0.707
+    ],
+    [
+     "peak",
+     3200,
+     0.9,
+     3
+    ]
+   ],
+   "fout": 60
+  }
+ },
+ "A_swish_1": {
+  "onset_ms": 77.22916666666667,
+  "file": "lib/clips/A_swish_1.wav",
+  "take": "9f6335b23f4c_01",
+  "member": "Sonniss.com - GDC 2019 - Game Audio Bundle Part 5of8/Rock The Speakerbox - Melee/MELEE - CK - ROPE WHOOSH Fast Light 01.wav",
+  "role": "swing_light",
+  "dur": 0.36,
+  "peak_ms": 79.64583333333333,
+  "proc": {
+   "lufs": -17,
+   "eq": [
+    [
+     "hp",
+     260,
+     0.707
+    ],
+    [
+     "peak",
+     3200,
+     0.9,
+     3
+    ]
+   ],
+   "fout": 60
+  }
+ },
+ "A_swish_2": {
+  "onset_ms": 84.85416666666666,
+  "file": "lib/clips/A_swish_2.wav",
+  "take": "9f6335b23f4c_02",
+  "member": "Sonniss.com - GDC 2019 - Game Audio Bundle Part 5of8/Rock The Speakerbox - Melee/MELEE - CK - ROPE WHOOSH Fast Light 01.wav",
+  "role": "swing_light",
+  "dur": 0.46,
+  "peak_ms": 97.02083333333333,
+  "proc": {
+   "lufs": -17,
+   "eq": [
+    [
+     "hp",
+     260,
+     0.707
+    ],
+    [
+     "peak",
+     3200,
+     0.9,
+     3
+    ]
+   ],
+   "fout": 60
+  }
+ },
+ "A_swish_3": {
+  "onset_ms": 73.5625,
+  "file": "lib/clips/A_swish_3.wav",
+  "take": "9f6335b23f4c_05",
+  "member": "Sonniss.com - GDC 2019 - Game Audio Bundle Part 5of8/Rock The Speakerbox - Melee/MELEE - CK - ROPE WHOOSH Fast Light 01.wav",
+  "role": "swing_light",
+  "dur": 0.34,
+  "peak_ms": 107.0625,
+  "proc": {
+   "lufs": -17,
+   "eq": [
+    [
+     "hp",
+     260,
+     0.707
+    ],
+    [
+     "peak",
+     3200,
+     0.9,
+     3
+    ]
+   ],
+   "fout": 60
+  }
+ },
+ "A_blade_swing": {
+  "onset_ms": 70.4375,
+  "file": "lib/clips/A_blade_swing.wav",
+  "take": "6c963b6aa22d_00",
+  "member": "David Dumais Audio - Melee Weapons Sound Effects Pack 2/METLFric_SWING SCRAPE Swift Melee Weapon Swing With A Long Blade 14_DDUMAIS_MWP2.wav",
+  "role": "swing_heavy",
+  "dur": 0.9,
+  "peak_ms": 113.72916666666667,
+  "proc": {
+   "lufs": -15,
+   "eq": [
+    [
+     "hp",
+     150,
+     0.707
+    ],
+    [
+     "peak",
+     4500,
+     1.0,
+     2.5
+    ]
+   ],
+   "len": 0.9,
+   "fout": 180
+  }
+ },
+ "A_hi_swing": {
+  "onset_ms": 76.45833333333334,
+  "file": "lib/clips/A_hi_swing.wav",
+  "take": "dd5a2617068a_00",
+  "member": "David Dumais Audio - Weapon Sounds - Weapon Swings/MeleeSwingsPack_96khz_Stereo_HighSwings15.wav",
+  "role": "swing_light",
+  "dur": 0.42791666666666667,
+  "peak_ms": 80.35416666666667,
+  "proc": {
+   "lufs": -17,
+   "eq": [
+    [
+     "hp",
+     300,
+     0.707
+    ],
+    [
+     "hs",
+     6000,
+     0.707,
+     3
+    ]
+   ],
+   "fout": 80
+  }
+ },
+ "A_slash": {
+  "onset_ms": 122.9375,
+  "file": "lib/clips/A_slash.wav",
+  "take": "8c5b20db1477_00",
+  "member": "David Dumais Audio - Melee Weapons Sound Effects Pack 1/SWSH_Sword Slash Impact V2 Assorted 18_DDUMAIS_NONE.wav",
+  "role": "contact_cut",
+  "dur": 0.82,
+  "peak_ms": 125.39583333333334,
+  "proc": {
+   "lufs": -13,
+   "eq": [
+    [
+     "hp",
+     90,
+     0.707
+    ],
+    [
+     "peak",
+     2500,
+     1.0,
+     2
+    ]
+   ],
+   "attack": 3,
+   "fout": 160
+  }
+ },
+ "A_stab_0": {
+  "onset_ms": 7.375,
+  "file": "lib/clips/A_stab_0.wav",
+  "take": "21791184eea8_00",
+  "member": "Sonniss.com - GDC 2018 - Game Audio Bundle Part 1of8/Articulated Sounds - Bones & Blood - Gore Elements/GORE Impact stab dagger in bodyparts flesh.wav",
+  "role": "contact_cut",
+  "dur": 0.19,
+  "peak_ms": 11.208333333333334,
+  "proc": {
+   "lufs": -16,
+   "eq": [
+    [
+     "hp",
+     350,
+     0.707
+    ]
+   ],
+   "len": 0.35,
+   "attack": 2,
+   "fout": 90
+  }
+ },
+ "A_stab_1": {
+  "onset_ms": 20.9375,
+  "file": "lib/clips/A_stab_1.wav",
+  "take": "21791184eea8_02",
+  "member": "Sonniss.com - GDC 2018 - Game Audio Bundle Part 1of8/Articulated Sounds - Bones & Blood - Gore Elements/GORE Impact stab dagger in bodyparts flesh.wav",
+  "role": "contact_cut",
+  "dur": 0.21,
+  "peak_ms": 28.604166666666668,
+  "proc": {
+   "lufs": -16,
+   "eq": [
+    [
+     "hp",
+     350,
+     0.707
+    ]
+   ],
+   "len": 0.35,
+   "attack": 2,
+   "fout": 90
+  }
+ },
+ "A_stab_2": {
+  "onset_ms": 15.145833333333334,
+  "file": "lib/clips/A_stab_2.wav",
+  "take": "21791184eea8_06",
+  "member": "Sonniss.com - GDC 2018 - Game Audio Bundle Part 1of8/Articulated Sounds - Bones & Blood - Gore Elements/GORE Impact stab dagger in bodyparts flesh.wav",
+  "role": "contact_cut",
+  "dur": 0.28,
+  "peak_ms": 17.895833333333332,
+  "proc": {
+   "lufs": -16,
+   "eq": [
+    [
+     "hp",
+     350,
+     0.707
+    ]
+   ],
+   "len": 0.35,
+   "attack": 2,
+   "fout": 90
+  }
+ },
+ "A_stab_3": {
+  "onset_ms": 94.85416666666667,
+  "file": "lib/clips/A_stab_3.wav",
+  "take": "21791184eea8_07",
+  "member": "Sonniss.com - GDC 2018 - Game Audio Bundle Part 1of8/Articulated Sounds - Bones & Blood - Gore Elements/GORE Impact stab dagger in bodyparts flesh.wav",
+  "role": "contact_cut",
+  "dur": 0.35,
+  "peak_ms": 104.3125,
+  "proc": {
+   "lufs": -16,
+   "eq": [
+    [
+     "hp",
+     350,
+     0.707
+    ]
+   ],
+   "len": 0.35,
+   "attack": 2,
+   "fout": 90
+  }
+ },
+ "A_steel_0": {
+  "onset_ms": 14.145833333333334,
+  "file": "lib/clips/A_steel_0.wav",
+  "take": "1fd9285445f9_00",
+  "member": "344 Audio - Historical Weapons Vol. 2/WEAPSwrd_Sword Slide Cuts, Metallic, Impact CM4 2_344 Audio_Medieval Weapons Vol 2.wav",
+  "role": "contact_metal",
+  "dur": 0.22,
+  "peak_ms": 17.0625,
+  "proc": {
+   "lufs": -19,
+   "eq": [
+    [
+     "hp",
+     900,
+     0.707
+    ],
+    [
+     "peak",
+     5500,
+     1.2,
+     -5
+    ],
+    [
+     "lp",
+     9000,
+     0.707
+    ]
+   ],
+   "len": 0.22,
+   "fout": 90,
+   "fcurve": 3
+  }
+ },
+ "A_steel_1": {
+  "onset_ms": 11.854166666666668,
+  "file": "lib/clips/A_steel_1.wav",
+  "take": "1fd9285445f9_02",
+  "member": "344 Audio - Historical Weapons Vol. 2/WEAPSwrd_Sword Slide Cuts, Metallic, Impact CM4 2_344 Audio_Medieval Weapons Vol 2.wav",
+  "role": "contact_metal",
+  "dur": 0.22,
+  "peak_ms": 14.979166666666666,
+  "proc": {
+   "lufs": -19,
+   "eq": [
+    [
+     "hp",
+     900,
+     0.707
+    ],
+    [
+     "peak",
+     5500,
+     1.2,
+     -5
+    ],
+    [
+     "lp",
+     9000,
+     0.707
+    ]
+   ],
+   "len": 0.22,
+   "fout": 90,
+   "fcurve": 3
+  }
+ },
+ "A_steel_2": {
+  "onset_ms": 15.8125,
+  "file": "lib/clips/A_steel_2.wav",
+  "take": "1fd9285445f9_03",
+  "member": "344 Audio - Historical Weapons Vol. 2/WEAPSwrd_Sword Slide Cuts, Metallic, Impact CM4 2_344 Audio_Medieval Weapons Vol 2.wav",
+  "role": "contact_metal",
+  "dur": 0.22,
+  "peak_ms": 19.25,
+  "proc": {
+   "lufs": -19,
+   "eq": [
+    [
+     "hp",
+     900,
+     0.707
+    ],
+    [
+     "peak",
+     5500,
+     1.2,
+     -5
+    ],
+    [
+     "lp",
+     9000,
+     0.707
+    ]
+   ],
+   "len": 0.22,
+   "fout": 90,
+   "fcurve": 3
+  }
+ },
+ "A_steel_3": {
+  "onset_ms": 10.395833333333334,
+  "file": "lib/clips/A_steel_3.wav",
+  "take": "1fd9285445f9_05",
+  "member": "344 Audio - Historical Weapons Vol. 2/WEAPSwrd_Sword Slide Cuts, Metallic, Impact CM4 2_344 Audio_Medieval Weapons Vol 2.wav",
+  "role": "contact_metal",
+  "dur": 0.22,
+  "peak_ms": 13.5,
+  "proc": {
+   "lufs": -19,
+   "eq": [
+    [
+     "hp",
+     900,
+     0.707
+    ],
+    [
+     "peak",
+     5500,
+     1.2,
+     -5
+    ],
+    [
+     "lp",
+     9000,
+     0.707
+    ]
+   ],
+   "len": 0.22,
+   "fout": 90,
+   "fcurve": 3
+  }
+ },
+ "A_thud_0": {
+  "onset_ms": 151.3125,
+  "file": "lib/clips/A_thud_0.wav",
+  "take": "b7a640961849_00",
+  "member": "David Dumais Audio - Melee Weapons Sound Effects Pack 2/SWSH_SWING IMPACTS Quick Heavy Weapon Swing To Thud Impact Var 01_DDUMAIS_MWP2.wav",
+  "role": "body",
+  "dur": 1.04,
+  "peak_ms": 203.29166666666669,
+  "proc": {
+   "lufs": -16,
+   "eq": [
+    [
+     "hp",
+     45,
+     0.707
+    ],
+    [
+     "peak",
+     250,
+     1.0,
+     2
+    ],
+    [
+     "lp",
+     5000,
+     0.707
+    ]
+   ],
+   "fout": 120
+  }
+ },
+ "A_thud_1": {
+  "onset_ms": 130.16666666666669,
+  "file": "lib/clips/A_thud_1.wav",
+  "take": "b7a640961849_03",
+  "member": "David Dumais Audio - Melee Weapons Sound Effects Pack 2/SWSH_SWING IMPACTS Quick Heavy Weapon Swing To Thud Impact Var 01_DDUMAIS_MWP2.wav",
+  "role": "body",
+  "dur": 0.99,
+  "peak_ms": 155.04166666666666,
+  "proc": {
+   "lufs": -16,
+   "eq": [
+    [
+     "hp",
+     45,
+     0.707
+    ],
+    [
+     "peak",
+     250,
+     1.0,
+     2
+    ],
+    [
+     "lp",
+     5000,
+     0.707
+    ]
+   ],
+   "fout": 120
+  }
+ },
+ "A_thud_2": {
+  "onset_ms": 156.70833333333334,
+  "file": "lib/clips/A_thud_2.wav",
+  "take": "b7a640961849_06",
+  "member": "David Dumais Audio - Melee Weapons Sound Effects Pack 2/SWSH_SWING IMPACTS Quick Heavy Weapon Swing To Thud Impact Var 01_DDUMAIS_MWP2.wav",
+  "role": "body",
+  "dur": 0.77,
+  "peak_ms": 160.52083333333334,
+  "proc": {
+   "lufs": -16,
+   "eq": [
+    [
+     "hp",
+     45,
+     0.707
+    ],
+    [
+     "peak",
+     250,
+     1.0,
+     2
+    ],
+    [
+     "lp",
+     5000,
+     0.707
+    ]
+   ],
+   "fout": 120
+  }
+ },
+ "A_thud_3": {
+  "onset_ms": 149.16666666666666,
+  "file": "lib/clips/A_thud_3.wav",
+  "take": "b7a640961849_07",
+  "member": "David Dumais Audio - Melee Weapons Sound Effects Pack 2/SWSH_SWING IMPACTS Quick Heavy Weapon Swing To Thud Impact Var 01_DDUMAIS_MWP2.wav",
+  "role": "body",
+  "dur": 1.0100208333333334,
+  "peak_ms": 214.60416666666669,
+  "proc": {
+   "lufs": -16,
+   "eq": [
+    [
+     "hp",
+     45,
+     0.707
+    ],
+    [
+     "peak",
+     250,
+     1.0,
+     2
+    ],
+    [
+     "lp",
+     5000,
+     0.707
+    ]
+   ],
+   "fout": 120
+  }
+ },
+ "A_metal_hit": {
+  "onset_ms": 18.541666666666668,
+  "file": "lib/clips/A_metal_hit.wav",
+  "take": "807907c64dd4_00",
+  "member": "SmartSoundFX – Medieval/SWORD Hit Metal 02.wav",
+  "role": "contact_metal",
+  "dur": 0.4,
+  "peak_ms": 25.979166666666668,
+  "proc": {
+   "lufs": -13,
+   "eq": [
+    [
+     "hp",
+     200,
+     0.707
+    ],
+    [
+     "peak",
+     4700,
+     1.5,
+     -4
+    ],
+    [
+     "lp",
+     9000,
+     0.707
+    ]
+   ],
+   "len": 0.4,
+   "fout": 180,
+   "fcurve": 3
+  }
+ },
+ "A_ring": {
+  "onset_ms": 5.395833333333333,
+  "file": "lib/clips/A_ring.wav",
+  "take": "18bb32a7a096_00",
+  "member": "Sonniss.com - GDC 2019 - Game Audio Bundle Part 2of8/L.A. Sounds - Transition Movement Pack 002/Sword Ring Scrape Gleam 02.wav",
+  "role": "shimmer",
+  "dur": 0.7,
+  "peak_ms": 341.8125,
+  "proc": {
+   "lufs": -27,
+   "eq": [
+    [
+     "hp",
+     1200,
+     0.707
+    ],
+    [
+     "peak",
+     3400,
+     1.4,
+     -4
+    ],
+    [
+     "lp",
+     8000,
+     0.707
+    ]
+   ],
+   "ofs": 1.3,
+   "len": 0.7,
+   "fin": 6,
+   "fout": 400,
+   "fcurve": 3
+  }
+ },
+ "A_draw": {
+  "onset_ms": 843.5208333333334,
+  "file": "lib/clips/A_draw.wav",
+  "take": "a390677a4277_01",
+  "member": "Sonniss.com - GDC 2019 - Game Audio Bundle Part 5of8/Rock The Speakerbox - Hero/HERO - DESIGNED - SWORD Unsheathe.wav",
+  "role": "draw",
+  "dur": 1.35,
+  "peak_ms": 1043.875,
+  "proc": {
+   "lufs": -17,
+   "eq": [
+    [
+     "hp",
+     400,
+     0.707
+    ],
+    [
+     "peak",
+     5000,
+     1.2,
+     -4
+    ],
+    [
+     "lp",
+     10000,
+     0.707
+    ]
+   ],
+   "len": 1.35,
+   "fout": 250,
+   "fcurve": 3
+  }
+ },
+ "A_draw_short": {
+  "onset_ms": 16.416666666666668,
+  "file": "lib/clips/A_draw_short.wav",
+  "take": "a390677a4277_00",
+  "member": "Sonniss.com - GDC 2019 - Game Audio Bundle Part 5of8/Rock The Speakerbox - Hero/HERO - DESIGNED - SWORD Unsheathe.wav",
+  "role": "draw",
+  "dur": 0.6,
+  "peak_ms": 355.4375,
+  "proc": {
+   "lufs": -18,
+   "eq": [
+    [
+     "hp",
+     400,
+     0.707
+    ],
+    [
+     "peak",
+     5000,
+     1.2,
+     -4
+    ],
+    [
+     "lp",
+     10000,
+     0.707
+    ]
+   ],
+   "ofs": 0.55,
+   "len": 0.6,
+   "fin": 10,
+   "fout": 200,
+   "fcurve": 3
+  }
+ },
+ "A_sheath": {
+  "onset_ms": 45.541666666666664,
+  "file": "lib/clips/A_sheath.wav",
+  "take": "bb211b34633f_00",
+  "member": "David Dumais Audio - Melee Weapons Sound Effects Pack 1/METLFric_Designed Metal Sword Sheath 04_DDUMAIS_NONE.wav",
+  "role": "click",
+  "dur": 0.67,
+  "peak_ms": 273.9791666666667,
+  "proc": {
+   "lufs": -15,
+   "eq": [
+    [
+     "hp",
+     600,
+     0.707
+    ]
+   ],
+   "fout": 120
+  }
+ },
+ "A_click": {
+  "onset_ms": 13.0,
+  "file": "lib/clips/A_click.wav",
+  "take": "4e23dc1e1a44_00",
+  "member": "Epic Stock Media - HD Lock And Mechanism Sound Design Kit/MECHLtch_Click Deep Mechanism Latch Button Nearfield Thunk 02_ESM_HDLM.wav",
+  "role": "click",
+  "dur": 0.24,
+  "peak_ms": 16.666666666666668,
+  "proc": {
+   "lufs": -14,
+   "eq": [
+    [
+     "hp",
+     120,
+     0.707
+    ],
+    [
+     "peak",
+     3000,
+     1.0,
+     3
+    ]
+   ],
+   "fout": 60
+  }
+ },
+ "A_lowthud": {
+  "onset_ms": 46.41666666666667,
+  "file": "lib/clips/A_lowthud.wav",
+  "take": "bde4dc7c9d51_00",
+  "member": "Shapeforms - Hit & Punch/IMPACT_LOW_THUD_10.wav",
+  "role": "punch",
+  "dur": 0.20472916666666666,
+  "peak_ms": 85.08333333333333,
+  "proc": {
+   "lufs": -14,
+   "eq": [
+    [
+     "hp",
+     35,
+     0.707
+    ]
+   ],
+   "fout": 60
+  }
+ },
+ "A_ground": {
+  "onset_ms": 17.0,
+  "file": "lib/clips/A_ground.wav",
+  "take": "eb22d8a4abee_00",
+  "member": "Sonniss.com - GDC 2018 - Game Audio Bundle Part 5of8/Soundrangers - Foley Elements Rocks, Dirt And Stone/boulder_impact_on_stones_14.wav",
+  "role": "ground",
+  "dur": 1.0666666666666667,
+  "peak_ms": 46.1875,
+  "proc": {
+   "lufs": -14,
+   "eq": [
+    [
+     "hp",
+     50,
+     0.707
+    ],
+    [
+     "peak",
+     180,
+     1.0,
+     2
+    ]
+   ],
+   "fout": 300
+  }
+ },
+ "A_debris": {
+  "onset_ms": 363.7291666666667,
+  "file": "lib/clips/A_debris.wav",
+  "take": "2dc56a45eee6_00",
+  "member": "Sonniss.com - GDC 2018 - Game Audio Bundle Part 5of8/Soundrangers - Foley Elements Rocks, Dirt And Stone/dirt_collapse_05.wav",
+  "role": "debris",
+  "dur": 1.6,
+  "peak_ms": 401.2916666666667,
+  "proc": {
+   "lufs": -22,
+   "eq": [
+    [
+     "hp",
+     250,
+     0.707
+    ]
+   ],
+   "len": 1.6,
+   "fout": 500
+  }
+ },
+ "A_explo_low": {
+  "onset_ms": 31.666666666666668,
+  "file": "lib/clips/A_explo_low.wav",
+  "take": "919ce50c8d0b_00",
+  "member": "Sonniss.com - GDC 2019 - Game Audio Bundle Part 1of8/344 Audio - Low Frequency Elements/Explosive Hit 10 Filtered, Low End.wav",
+  "role": "boom",
+  "dur": 1.51,
+  "peak_ms": 147.83333333333334,
+  "proc": {
+   "lufs": -16,
+   "eq": [
+    [
+     "hp",
+     30,
+     0.707
+    ]
+   ],
+   "fout": 400
+  }
+ },
+ "A_hi_swing_rev": {
+  "onset_ms": 328.0208333333333,
+  "file": "lib/clips/A_hi_swing_rev.wav",
+  "take": "dd5a2617068a_00",
+  "member": "David Dumais Audio - Weapon Sounds - Weapon Swings/MeleeSwingsPack_96khz_Stereo_HighSwings15.wav",
+  "role": "suck",
+  "dur": 0.42791666666666667,
+  "peak_ms": 348.0,
+  "proc": {
+   "lufs": -18,
+   "eq": [
+    [
+     "hp",
+     300,
+     0.707
+    ]
+   ],
+   "reverse": true,
+   "fin": 150,
+   "fout": 10
+  }
+ },
+ "A_slide": {
+  "onset_ms": 237.27083333333331,
+  "file": "lib/clips/A_slide.wav",
+  "take": "b3a799fef0b6_05",
+  "member": "Justsoundeffects - Melee Weapons/WEAPSwrd_Weapon 03 Slow Scrapes_JSE_MW.wav",
+  "role": "blade_ring",
+  "dur": 1.1,
+  "peak_ms": 346.9791666666667,
+  "proc": {
+   "lufs": -23,
+   "eq": [
+    [
+     "hp",
+     1500,
+     0.707
+    ],
+    [
+     "lp",
+     9000,
+     0.707
+    ]
+   ],
+   "fout": 200,
+   "fcurve": 3
+  }
+ },
+ "A_scrape_up": {
+  "onset_ms": 263.7083333333333,
+  "file": "lib/clips/A_scrape_up.wav",
+  "take": "b3a799fef0b6_03",
+  "member": "Justsoundeffects - Melee Weapons/WEAPSwrd_Weapon 03 Slow Scrapes_JSE_MW.wav",
+  "role": "blade_ring",
+  "dur": 0.8899791666666667,
+  "peak_ms": 524.8333333333334,
+  "proc": {
+   "lufs": -23,
+   "eq": [
+    [
+     "hp",
+     1500,
+     0.707
+    ],
+    [
+     "lp",
+     9000,
+     0.707
+    ]
+   ],
+   "fout": 160,
+   "fcurve": 3
+  }
+ },
+ "B_swing_low": {
+  "onset_ms": 177.125,
+  "file": "lib/clips/B_swing_low.wav",
+  "take": "f462e0b5fddc_00",
+  "member": "David Dumais Audio - Weapon Sounds - Weapon Swings/MeleeSwingsPack_96khz_Stereo_LowSwings31.wav",
+  "role": "swing_heavy",
+  "dur": 1.1,
+  "peak_ms": 222.02083333333334,
+  "proc": {
+   "lufs": -14,
+   "eq": [
+    [
+     "hp",
+     40,
+     0.707
+    ],
+    [
+     "peak",
+     120,
+     1.0,
+     2
+    ]
+   ],
+   "len": 1.1,
+   "fout": 220
+  }
+ },
+ "B_swing_design": {
+  "onset_ms": 76.75,
+  "file": "lib/clips/B_swing_design.wav",
+  "take": "b8feaa0cdfbf_00",
+  "member": "David Dumais Audio - Weapon Sounds - Weapon Swings/MeleeSwingsPack_96khz_Mono_DesignedSwings12.wav",
+  "role": "swing_heavy",
+  "dur": 1.1,
+  "peak_ms": 345.875,
+  "proc": {
+   "lufs": -14,
+   "eq": [
+    [
+     "hp",
+     45,
+     0.707
+    ]
+   ],
+   "fout": 200
+  }
+ },
+ "B_whoosh_0": {
+  "onset_ms": 175.95833333333331,
+  "file": "lib/clips/B_whoosh_0.wav",
+  "take": "78fcd2414947_00",
+  "member": "Justsoundeffects - Transition Whooshes Vol. 1/WHSH_Whoosh Short 06_JSE_TW1.wav",
+  "role": "swing_heavy",
+  "dur": 0.9,
+  "peak_ms": 221.875,
+  "proc": {
+   "lufs": -15,
+   "eq": [
+    [
+     "hp",
+     70,
+     0.707
+    ],
+    [
+     "peak",
+     1200,
+     1.0,
+     2
+    ]
+   ],
+   "fout": 160
+  }
+ },
+ "B_whoosh_1": {
+  "onset_ms": 159.77083333333334,
+  "file": "lib/clips/B_whoosh_1.wav",
+  "take": "78fcd2414947_01",
+  "member": "Justsoundeffects - Transition Whooshes Vol. 1/WHSH_Whoosh Short 06_JSE_TW1.wav",
+  "role": "swing_heavy",
+  "dur": 0.79,
+  "peak_ms": 200.35416666666666,
+  "proc": {
+   "lufs": -15,
+   "eq": [
+    [
+     "hp",
+     70,
+     0.707
+    ],
+    [
+     "peak",
+     1200,
+     1.0,
+     2
+    ]
+   ],
+   "fout": 160
+  }
+ },
+ "B_whoosh_2": {
+  "onset_ms": 154.72916666666666,
+  "file": "lib/clips/B_whoosh_2.wav",
+  "take": "78fcd2414947_03",
+  "member": "Justsoundeffects - Transition Whooshes Vol. 1/WHSH_Whoosh Short 06_JSE_TW1.wav",
+  "role": "swing_heavy",
+  "dur": 0.7800208333333334,
+  "peak_ms": 195.35416666666666,
+  "proc": {
+   "lufs": -15,
+   "eq": [
+    [
+     "hp",
+     70,
+     0.707
+    ],
+    [
+     "peak",
+     1200,
+     1.0,
+     2
+    ]
+   ],
+   "fout": 160
+  }
+ },
+ "B_whoosh_3": {
+  "onset_ms": 393.2291666666667,
+  "file": "lib/clips/B_whoosh_3.wav",
+  "take": "78fcd2414947_04",
+  "member": "Justsoundeffects - Transition Whooshes Vol. 1/WHSH_Whoosh Short 06_JSE_TW1.wav",
+  "role": "swing_heavy",
+  "dur": 1.17,
+  "peak_ms": 492.35416666666663,
+  "proc": {
+   "lufs": -15,
+   "eq": [
+    [
+     "hp",
+     70,
+     0.707
+    ],
+    [
+     "peak",
+     1200,
+     1.0,
+     2
+    ]
+   ],
+   "fout": 160
+  }
+ },
+ "B_power_whoosh": {
+  "onset_ms": 237.91666666666666,
+  "file": "lib/clips/B_power_whoosh.wav",
+  "take": "31df26379509_00",
+  "member": "Sonniss.com - GDC 2019 - Game Audio Bundle Part 2of8/L.A. Sounds - Transition Movement Pack 002/Power Whoosh Large 05.wav",
+  "role": "swing_heavy",
+  "dur": 2.32,
+  "peak_ms": 515.0625,
+  "proc": {
+   "lufs": -14,
+   "eq": [
+    [
+     "hp",
+     40,
+     0.707
+    ]
+   ],
+   "fout": 300
+  }
+ },
+ "B_pass_low": {
+  "onset_ms": 337.27083333333337,
+  "file": "lib/clips/B_pass_low.wav",
+  "take": "64327ca37fdb_00",
+  "member": "Chupapsound - Essential Scifi/WHOOSH PASS SF LOW.wav",
+  "role": "swing_heavy",
+  "dur": 1.69,
+  "peak_ms": 880.7916666666666,
+  "proc": {
+   "lufs": -15,
+   "eq": [
+    [
+     "hp",
+     32,
+     0.707
+    ]
+   ],
+   "fout": 200
+  }
+ },
+ "B_thud_0": {
+  "onset_ms": 151.52083333333331,
+  "file": "lib/clips/B_thud_0.wav",
+  "take": "b7a640961849_01",
+  "member": "David Dumais Audio - Melee Weapons Sound Effects Pack 2/SWSH_SWING IMPACTS Quick Heavy Weapon Swing To Thud Impact Var 01_DDUMAIS_MWP2.wav",
+  "role": "body",
+  "dur": 1.16,
+  "peak_ms": 224.72916666666669,
+  "proc": {
+   "lufs": -13,
+   "eq": [
+    [
+     "hp",
+     38,
+     0.707
+    ],
+    [
+     "ls",
+     90,
+     0.707,
+     3
+    ]
+   ],
+   "fout": 150
+  }
+ },
+ "B_thud_1": {
+  "onset_ms": 124.58333333333334,
+  "file": "lib/clips/B_thud_1.wav",
+  "take": "b7a640961849_05",
+  "member": "David Dumais Audio - Melee Weapons Sound Effects Pack 2/SWSH_SWING IMPACTS Quick Heavy Weapon Swing To Thud Impact Var 01_DDUMAIS_MWP2.wav",
+  "role": "body",
+  "dur": 0.84,
+  "peak_ms": 180.39583333333334,
+  "proc": {
+   "lufs": -13,
+   "eq": [
+    [
+     "hp",
+     38,
+     0.707
+    ],
+    [
+     "ls",
+     90,
+     0.707,
+     3
+    ]
+   ],
+   "fout": 150
+  }
+ },
+ "B_thud_2": {
+  "onset_ms": 175.27083333333331,
+  "file": "lib/clips/B_thud_2.wav",
+  "take": "b7a640961849_09",
+  "member": "David Dumais Audio - Melee Weapons Sound Effects Pack 2/SWSH_SWING IMPACTS Quick Heavy Weapon Swing To Thud Impact Var 01_DDUMAIS_MWP2.wav",
+  "role": "body",
+  "dur": 0.95,
+  "peak_ms": 287.875,
+  "proc": {
+   "lufs": -13,
+   "eq": [
+    [
+     "hp",
+     38,
+     0.707
+    ],
+    [
+     "ls",
+     90,
+     0.707,
+     3
+    ]
+   ],
+   "fout": 150
+  }
+ },
+ "B_thud_3": {
+  "onset_ms": 185.5625,
+  "file": "lib/clips/B_thud_3.wav",
+  "take": "b7a640961849_10",
+  "member": "David Dumais Audio - Melee Weapons Sound Effects Pack 2/SWSH_SWING IMPACTS Quick Heavy Weapon Swing To Thud Impact Var 01_DDUMAIS_MWP2.wav",
+  "role": "body",
+  "dur": 1.39,
+  "peak_ms": 270.2083333333333,
+  "proc": {
+   "lufs": -13,
+   "eq": [
+    [
+     "hp",
+     38,
+     0.707
+    ],
+    [
+     "ls",
+     90,
+     0.707,
+     3
+    ]
+   ],
+   "fout": 150
+  }
+ },
+ "B_punch_wet": {
+  "onset_ms": 23.875,
+  "file": "lib/clips/B_punch_wet.wav",
+  "take": "a26d4eeccdf5_00",
+  "member": "Sonniss.com - GDC 2018 - Game Audio Bundle Part 3of8/Gamemaster Audio - Punch and Combat Sounds/punch_grit_wet_impact_05.wav",
+  "role": "punch",
+  "dur": 0.36,
+  "peak_ms": 34.854166666666664,
+  "proc": {
+   "lufs": -13,
+   "eq": [
+    [
+     "hp",
+     45,
+     0.707
+    ]
+   ],
+   "fout": 120
+  }
+ },
+ "B_slasher": {
+  "onset_ms": 5.375,
+  "file": "lib/clips/B_slasher.wav",
+  "take": "4ae96bb91ac6_00",
+  "member": "344 Audio - Jump Scares/Slasher Hit  05.wav",
+  "role": "punch",
+  "dur": 0.79,
+  "peak_ms": 10.666666666666666,
+  "proc": {
+   "lufs": -13,
+   "eq": [
+    [
+     "hp",
+     40,
+     0.707
+    ]
+   ],
+   "fout": 300
+  }
+ },
+ "B_boom_cav": {
+  "onset_ms": 37.645833333333336,
+  "file": "lib/clips/B_boom_cav.wav",
+  "take": "b0ba2e6489d0_00",
+  "member": "Sonniss.com - GDC 2019 - Game Audio Bundle Part 1of8/344 Audio - Low Frequency Elements/Trailer Hit Cavernous 10 Filtered, Low End.wav",
+  "role": "boom",
+  "dur": 3.6,
+  "peak_ms": 40.27083333333333,
+  "proc": {
+   "lufs": -14,
+   "eq": [
+    [
+     "hp",
+     28,
+     0.707
+    ]
+   ],
+   "len": 3.6,
+   "fout": 1400
+  }
+ },
+ "B_boom_metal": {
+  "onset_ms": 244.83333333333331,
+  "file": "lib/clips/B_boom_metal.wav",
+  "take": "681a449badaa_00",
+  "member": "Jake Fielding - Haunted Metal Vol.1 - Cinematic Hits & Impacts/DSGNBoom_Cinematic Metallic Hit, Boom, Trailer, Sub_JF_Haunted Metal Vol 1_60.wav",
+  "role": "boom",
+  "dur": 4.2,
+  "peak_ms": 265.6875,
+  "proc": {
+   "lufs": -13,
+   "eq": [
+    [
+     "hp",
+     30,
+     0.707
+    ]
+   ],
+   "len": 4.2,
+   "fout": 1500
+  }
+ },
+ "B_boom_metal2": {
+  "onset_ms": 368.20833333333337,
+  "file": "lib/clips/B_boom_metal2.wav",
+  "take": "721476043c58_00",
+  "member": "Jake Fielding - Haunted Metal Vol.1 - Cinematic Hits & Impacts/DSGNBoom_Cinematic Metallic Hit, Boom, Trailer, Sub_JF_Haunted Metal Vol 1_02.wav",
+  "role": "boom",
+  "dur": 4.5,
+  "peak_ms": 371.0625,
+  "proc": {
+   "lufs": -13,
+   "eq": [
+    [
+     "hp",
+     30,
+     0.707
+    ]
+   ],
+   "len": 4.5,
+   "fout": 1600
+  }
+ },
+ "B_boom_modern": {
+  "onset_ms": 1.6041666666666667,
+  "file": "lib/clips/B_boom_modern.wav",
+  "take": "9675ae37540d_00",
+  "member": "BluezoneCorp - Modern Cinematic Impact/Bluezone_BC0294_modern_cinematic_impact_boom_003.wav",
+  "role": "boom",
+  "dur": 3.5,
+  "peak_ms": 7.041666666666667,
+  "proc": {
+   "lufs": -12,
+   "eq": [
+    [
+     "hp",
+     28,
+     0.707
+    ]
+   ],
+   "len": 3.5,
+   "fout": 1400
+  }
+ },
+ "B_boom_chef": {
+  "onset_ms": 231.29166666666669,
+  "file": "lib/clips/B_boom_chef.wav",
+  "take": "2c58c0b9557c_00",
+  "member": "Marek Klemczak - ARTA Cinematic Sound FX Pack/DSGNBoom_Impact Hit_Chef Audio_Cinematic Sound FX_10.wav",
+  "role": "boom",
+  "dur": 2.6,
+  "peak_ms": 457.3333333333333,
+  "proc": {
+   "lufs": -12,
+   "eq": [
+    [
+     "hp",
+     30,
+     0.707
+    ]
+   ],
+   "len": 2.6,
+   "fout": 900
+  }
+ },
+ "B_bigmetal": {
+  "onset_ms": 20.708333333333332,
+  "file": "lib/clips/B_bigmetal.wav",
+  "take": "704c95b67b10_00",
+  "member": "Sonniss.com - GDC 2018 - Game Audio Bundle Part 7of8/Wakerone - Trailer Pack/6 Big Metal Hit .wav",
+  "role": "braam",
+  "dur": 4.5,
+  "peak_ms": 64.125,
+  "proc": {
+   "lufs": -13,
+   "eq": [
+    [
+     "hp",
+     30,
+     0.707
+    ]
+   ],
+   "len": 4.5,
+   "fout": 1500
+  }
+ },
+ "B_downer_fast": {
+  "onset_ms": 10.395833333333334,
+  "file": "lib/clips/B_downer_fast.wav",
+  "take": "dc9c0a6ac45e_00",
+  "member": "344 Audio - Bass Drops & Downers Vol. 2/DSGNBass_Bass Drop & Downer Fast 12_344 Audio_Bass Drops & Downers Vol 2.wav",
+  "role": "sub",
+  "dur": 2.61,
+  "peak_ms": 21.083333333333332,
+  "proc": {
+   "lufs": -15,
+   "eq": [
+    [
+     "hp",
+     25,
+     0.707
+    ]
+   ],
+   "fout": 600
+  }
+ },
+ "B_downer_slow": {
+  "onset_ms": 22.916666666666664,
+  "file": "lib/clips/B_downer_slow.wav",
+  "take": "4e4704b9146e_00",
+  "member": "344 Audio - Bass Drops & Downers Vol. 2/DSGNBass_Bass Drop & Downer Slow 07_344 Audio_Bass Drops & Downers Vol 2.wav",
+  "role": "sub",
+  "dur": 3.98,
+  "peak_ms": 30.458333333333332,
+  "proc": {
+   "lufs": -16,
+   "eq": [
+    [
+     "hp",
+     25,
+     0.707
+    ]
+   ],
+   "fout": 1200
+  }
+ },
+ "B_tone_downer": {
+  "onset_ms": 20.833333333333332,
+  "file": "lib/clips/B_tone_downer.wav",
+  "take": "73d02c90b0bd_00",
+  "member": "344 Audio - Bass Drops & Downers Vol. 3/DSGNBass_Tone Downer (Reverb)_344 Audio_Bass Drops and Downers Vol 3.wav",
+  "role": "sub",
+  "dur": 4.68,
+  "peak_ms": 875.2916666666667,
+  "proc": {
+   "lufs": -16,
+   "eq": [
+    [
+     "hp",
+     25,
+     0.707
+    ]
+   ],
+   "ofs": 0.4,
+   "fout": 1500
+  }
+ },
+ "B_deep_thud": {
+  "onset_ms": 92.77083333333333,
+  "file": "lib/clips/B_deep_thud.wav",
+  "take": "ca3a991c0042_00",
+  "member": "Sonniss.com - GDC 2019 - Game Audio Bundle Part 1of8/Baxter Audio - IMPACT/10 Hit Deep Thud.wav",
+  "role": "sub",
+  "dur": 2.5,
+  "peak_ms": 131.4375,
+  "proc": {
+   "lufs": -14,
+   "eq": [
+    [
+     "hp",
+     25,
+     0.707
+    ]
+   ],
+   "len": 2.5,
+   "fout": 900
+  }
+ },
+ "B_explosion": {
+  "onset_ms": 7.958333333333333,
+  "file": "lib/clips/B_explosion.wav",
+  "take": "d1271cab00b7_00",
+  "member": "BluezoneCorp - Detonation - Explosion/Bluezone_BC0277_explosion_urban_004_02.wav",
+  "role": "explosion",
+  "dur": 3.08,
+  "peak_ms": 13.208333333333334,
+  "proc": {
+   "lufs": -12,
+   "eq": [
+    [
+     "hp",
+     35,
+     0.707
+    ]
+   ],
+   "fout": 1000
+  }
+ },
+ "B_debris": {
+  "onset_ms": 1429.0,
+  "file": "lib/clips/B_debris.wav",
+  "take": "a34d2b9fa48d_01",
+  "member": "Tatak Audio - Rocks and Debris/Tatak_ROCKS_Falling Heavy Dusty Debris.wav",
+  "role": "debris",
+  "dur": 3.0,
+  "peak_ms": 2168.9791666666665,
+  "proc": {
+   "lufs": -20,
+   "eq": [
+    [
+     "hp",
+     120,
+     0.707
+    ]
+   ],
+   "len": 3.0,
+   "fout": 1200
+  }
+ },
+ "B_collapse": {
+  "onset_ms": 25.1875,
+  "file": "lib/clips/B_collapse.wav",
+  "take": "559b0a16d437_00",
+  "member": "BluezoneCorp - Building Collapse/Bluezone_BC0275_building_collapse_debris_falling_rock_008.wav",
+  "role": "debris",
+  "dur": 3.2,
+  "peak_ms": 1303.6666666666667,
+  "proc": {
+   "lufs": -19,
+   "eq": [
+    [
+     "hp",
+     60,
+     0.707
+    ]
+   ],
+   "ofs": 1.9,
+   "len": 3.2,
+   "fin": 40,
+   "fout": 1300
+  }
+ },
+ "B_thunder": {
+  "onset_ms": 202.47916666666666,
+  "file": "lib/clips/B_thunder.wav",
+  "take": "faa01c3927ad_00",
+  "member": "InspectorJ - Essentials 01 Thunder/THUN_InsJ_Thunder_Extremely-Close_03.wav",
+  "role": "tail",
+  "dur": 5.0,
+  "peak_ms": 209.20833333333334,
+  "proc": {
+   "lufs": -16,
+   "eq": [
+    [
+     "hp",
+     35,
+     0.707
+    ]
+   ],
+   "len": 5.0,
+   "fout": 2200
+  }
+ },
+ "B_rumble": {
+  "onset_ms": 641.9166666666667,
+  "file": "lib/clips/B_rumble.wav",
+  "take": "456133073f77_00",
+  "member": "InspectorJ - Essentials 01 Thunder/THUN_InsJ_Thunder_Distant_01_EQ.wav",
+  "role": "tail",
+  "dur": 5.0,
+  "peak_ms": 653.3333333333334,
+  "proc": {
+   "lufs": -20,
+   "eq": [
+    [
+     "hp",
+     30,
+     0.707
+    ],
+    [
+     "lp",
+     2500,
+     0.707
+    ]
+   ],
+   "ofs": 1.8,
+   "len": 5,
+   "fin": 200,
+   "fout": 2500
+  }
+ },
+ "B_riser": {
+  "onset_ms": 1839.2291666666667,
+  "file": "lib/clips/B_riser.wav",
+  "take": "c33a4c5c726a_00",
+  "member": "344 Audio - Cymbals From Hell/Disturbing Risers 06.wav",
+  "role": "riser",
+  "dur": 2.6,
+  "peak_ms": 2508.75,
+  "proc": {
+   "lufs": -18,
+   "eq": [
+    [
+     "hp",
+     150,
+     0.707
+    ]
+   ],
+   "ofs": 1.0,
+   "len": 2.6,
+   "fin": 400,
+   "fout": 60
+  }
+ },
+ "B_rev_flutter": {
+  "onset_ms": 691.0208333333333,
+  "file": "lib/clips/B_rev_flutter.wav",
+  "take": "48d2de20d08e_00",
+  "member": "Sonniss.com - GDC 2019 - Game Audio Bundle Part 2of8/L.A. Sounds - Transitions 003/Reverse Flutter Riser 01.wav",
+  "role": "suck",
+  "dur": 2.4,
+  "peak_ms": 2127.9375,
+  "proc": {
+   "lufs": -16,
+   "eq": [
+    [
+     "hp",
+     40,
+     0.707
+    ]
+   ],
+   "ofs": 2.6,
+   "len": 2.4,
+   "fin": 300,
+   "fout": 30
+  }
+ },
+ "B_rev_trans": {
+  "onset_ms": 338.60416666666663,
+  "file": "lib/clips/B_rev_trans.wav",
+  "take": "e0f0bd0bd5b0_00",
+  "member": "Sonniss.com - GDC 2019 - Game Audio Bundle Part 2of8/MatiasMacSD - INFILTRATION/Fx_Reverse_Transition-03.wav",
+  "role": "suck",
+  "dur": 1.9,
+  "peak_ms": 540.8333333333334,
+  "proc": {
+   "lufs": -15,
+   "eq": [
+    [
+     "hp",
+     40,
+     0.707
+    ]
+   ],
+   "len": 1.9,
+   "fin": 100,
+   "fout": 40
+  }
+ },
+ "C_tex_whoosh": {
+  "onset_ms": 232.8125,
+  "file": "lib/clips/C_tex_whoosh.wav",
+  "take": "a7385cb4088d_00",
+  "member": "Sonniss.com - GDC 2018 - Game Audio Bundle Part 5of8/Soundrangers - Whooshes And Transitions/texture_whoosh_02_fast_02.wav",
+  "role": "swing_light",
+  "dur": 0.8045416666666667,
+  "peak_ms": 276.5208333333333,
+  "proc": {
+   "lufs": -16,
+   "eq": [
+    [
+     "hp",
+     200,
+     0.707
+    ],
+    [
+     "hs",
+     5000,
+     0.707,
+     2
+    ]
+   ],
+   "fout": 200
+  }
+ },
+ "C_scifi_whoosh": {
+  "onset_ms": 303.8958333333333,
+  "file": "lib/clips/C_scifi_whoosh.wav",
+  "take": "c6880dc25e97_00",
+  "member": "Rescopic Sound - Distinct Whooshes/WHSH_Pure SciFi-Whoosh Fast 03_RSCPC_DW.wav",
+  "role": "swing_heavy",
+  "dur": 1.44,
+  "peak_ms": 489.70833333333337,
+  "proc": {
+   "lufs": -15,
+   "eq": [
+    [
+     "hp",
+     60,
+     0.707
+    ]
+   ],
+   "fout": 300
+  }
+ },
+ "C_whoosh_fast": {
+  "onset_ms": 140.02083333333334,
+  "file": "lib/clips/C_whoosh_fast.wav",
+  "take": "7497cd41f626_00",
+  "member": "Sound Spark LLC - Whooshes Impacts and Transitions/Whoosh_Fast_02.wav",
+  "role": "swing_light",
+  "dur": 0.77,
+  "peak_ms": 172.0,
+  "proc": {
+   "lufs": -16,
+   "eq": [
+    [
+     "hp",
+     80,
+     0.707
+    ]
+   ],
+   "fout": 200
+  }
+ },
+ "C_spell_whoosh": {
+  "onset_ms": 322.625,
+  "file": "lib/clips/C_spell_whoosh.wav",
+  "take": "19f64e32da17_00",
+  "member": "CB Sound Design - Whoosh And Push/W_a_P_Spell_Whoosh_19.wav",
+  "role": "swing_heavy",
+  "dur": 1.17,
+  "peak_ms": 360.5625,
+  "proc": {
+   "lufs": -15,
+   "eq": [
+    [
+     "hp",
+     60,
+     0.707
+    ]
+   ],
+   "fout": 260
+  }
+ },
+ "C_wind_rush": {
+  "onset_ms": 83.04166666666667,
+  "file": "lib/clips/C_wind_rush.wav",
+  "take": "c9f233cf3c24_00",
+  "member": "344 Audio - Elemental Palette Designed Vol. 1/WINDDsgn_Wind, Rush, Whoosh, Long x5 01_344 Audio_Elemental Palette Designed Vol 1.wav",
+  "role": "wind",
+  "dur": 1.0387083333333333,
+  "peak_ms": 108.10416666666667,
+  "proc": {
+   "lufs": -19,
+   "eq": [
+    [
+     "hp",
+     150,
+     0.707
+    ]
+   ],
+   "fout": 300
+  }
+ },
+ "C_doppler": {
+  "onset_ms": 59.458333333333336,
+  "file": "lib/clips/C_doppler.wav",
+  "take": "f5748c53aa50_00",
+  "member": "Sonniss.com - GDC 2019 - Game Audio Bundle Part 5of8/Sound Spark LLC – Magic Spells, Buffs and Attacks/Arcane_Spell_Doppler_Shift_03.wav",
+  "role": "flyby_blade",
+  "dur": 1.4,
+  "peak_ms": 102.625,
+  "proc": {
+   "lufs": -16,
+   "eq": [
+    [
+     "hp",
+     60,
+     0.707
+    ]
+   ],
+   "len": 1.4,
+   "fout": 400
+  }
+ },
+ "C_energy_cut": {
+  "onset_ms": 87.35416666666666,
+  "file": "lib/clips/C_energy_cut.wav",
+  "take": "a12a2ca13ccd_00",
+  "member": "Rogue Waves - Anime Studio/WEAPSwrd_Mecha Energy Sword Cut_RogueWaves_AnimeStudio.wav",
+  "role": "contact_cut",
+  "dur": 1.1599791666666666,
+  "peak_ms": 104.83333333333333,
+  "proc": {
+   "lufs": -14,
+   "eq": [
+    [
+     "hp",
+     150,
+     0.707
+    ]
+   ],
+   "fout": 300
+  }
+ },
+ "C_fmw_hit": {
+  "onset_ms": 89.875,
+  "file": "lib/clips/C_fmw_hit.wav",
+  "take": "3d1fc23b7f50_00",
+  "member": "Audio Summoners - Future Melee Weapons/FMW_Weapon_Hit10C.wav",
+  "role": "contact_cut",
+  "dur": 1.1772916666666666,
+  "peak_ms": 155.66666666666669,
+  "proc": {
+   "lufs": -13,
+   "eq": [
+    [
+     "hp",
+     50,
+     0.707
+    ]
+   ],
+   "fout": 300
+  }
+ },
+ "C_special": {
+  "onset_ms": 319.4166666666667,
+  "file": "lib/clips/C_special.wav",
+  "take": "dc0f9ec8fe9e_00",
+  "member": "Epic Stock Media - Tower Defense Game/DSGNStngr_Action Deploy Units Sword Slice Special Move Layered Swish 04_ESM_TDG.wav",
+  "role": "charge",
+  "dur": 2.2199791666666666,
+  "peak_ms": 385.875,
+  "proc": {
+   "lufs": -14,
+   "eq": [
+    [
+     "hp",
+     45,
+     0.707
+    ]
+   ],
+   "fout": 500
+  }
+ },
+ "C_fmw_fx": {
+  "onset_ms": 64.77083333333333,
+  "file": "lib/clips/C_fmw_fx.wav",
+  "take": "e6f5468887a7_00",
+  "member": "Audio Summoners - Future Melee Weapons/FMW_Weapon_Layer_FX_24.wav",
+  "role": "charge",
+  "dur": 1.51,
+  "peak_ms": 128.75,
+  "proc": {
+   "lufs": -16,
+   "eq": [
+    [
+     "hp",
+     60,
+     0.707
+    ]
+   ],
+   "fout": 400
+  }
+ },
+ "C_texture": {
+  "onset_ms": 27.104166666666664,
+  "file": "lib/clips/C_texture.wav",
+  "take": "6eb28725d6ce_00",
+  "member": "Audio Summoners - Future Melee Weapons/FMW_Weapon_Foley_SciFi_Texture_05.wav",
+  "role": "charge",
+  "dur": 2.08,
+  "peak_ms": 1190.7916666666667,
+  "proc": {
+   "lufs": -18,
+   "eq": [
+    [
+     "hp",
+     100,
+     0.707
+    ]
+   ],
+   "fout": 400
+  }
+ },
+ "C_dark_cast": {
+  "onset_ms": 155.0625,
+  "file": "lib/clips/C_dark_cast.wav",
+  "take": "4d287473a9ad_00",
+  "member": "David Dumais Audio - Spells Magic 1/Magic_Spells_CastLong_Combo_Dark02.wav",
+  "role": "charge",
+  "dur": 3.2,
+  "peak_ms": 408.08333333333337,
+  "proc": {
+   "lufs": -17,
+   "eq": [
+    [
+     "hp",
+     70,
+     0.707
+    ]
+   ],
+   "len": 3.2,
+   "fin": 60,
+   "fout": 900
+  }
+ },
+ "C_charge_down": {
+  "onset_ms": 75.97916666666667,
+  "file": "lib/clips/C_charge_down.wav",
+  "take": "fb4ca7db1413_00",
+  "member": "Rogue Waves - Anime Studio/DSGNMisc_Charge Down Classic 1_RogueWaves_AnimeStudio.wav",
+  "role": "charge",
+  "dur": 1.54,
+  "peak_ms": 225.58333333333334,
+  "proc": {
+   "lufs": -16,
+   "eq": [
+    [
+     "hp",
+     300,
+     0.707
+    ]
+   ],
+   "fout": 300
+  }
+ },
+ "C_surge": {
+  "onset_ms": 44.916666666666664,
+  "file": "lib/clips/C_surge.wav",
+  "take": "f291c1548965_00",
+  "member": "Sonniss.com - GDC 2018 - Game Audio Bundle Part 3of8/Gamemaster Audio - Magic and Spell Sounds/electric_surge_blast_04.wav",
+  "role": "elec",
+  "dur": 1.6,
+  "peak_ms": 676.6041666666666,
+  "proc": {
+   "lufs": -14,
+   "eq": [
+    [
+     "hp",
+     80,
+     0.707
+    ]
+   ],
+   "fout": 400
+  }
+ },
+ "C_zap": {
+  "onset_ms": 42.375,
+  "file": "lib/clips/C_zap.wav",
+  "take": "4f354c75a7e1_00",
+  "member": "Rogue Waves - Druid Magic/ELECZap_Bug zapper zapping, electricity, crackle,_RogueWaves_DruidMagic_37.wav",
+  "role": "elec",
+  "dur": 0.6,
+  "peak_ms": 43.354166666666664,
+  "proc": {
+   "lufs": -18,
+   "eq": [
+    [
+     "hp",
+     600,
+     0.707
+    ]
+   ],
+   "len": 0.6,
+   "fout": 200
+  }
+ },
+ "C_elec_cast": {
+  "onset_ms": 121.54166666666667,
+  "file": "lib/clips/C_elec_cast.wav",
+  "take": "8e7a8364790f_00",
+  "member": "David Dumais Audio - Electricity Magic 1/Magic_Spells_CastLong_Electricity11.wav",
+  "role": "elec",
+  "dur": 2.4,
+  "peak_ms": 250.79166666666669,
+  "proc": {
+   "lufs": -17,
+   "eq": [
+    [
+     "hp",
+     120,
+     0.707
+    ]
+   ],
+   "len": 2.4,
+   "fout": 1000
+  }
+ },
+ "C_crystal": {
+  "onset_ms": 5.770833333333334,
+  "file": "lib/clips/C_crystal.wav",
+  "take": "1f6b9f12c674_00",
+  "member": "Sonniss.com - GDC 2019 - Game Audio Bundle Part 2of8/Impact Soundworks - Super FX 8 and 16-bit Video Game SFX/Misc_Glass_Crystal_Shatter.wav",
+  "role": "shatter",
+  "dur": 1.32,
+  "peak_ms": 20.083333333333336,
+  "proc": {
+   "lufs": -16,
+   "eq": [
+    [
+     "hp",
+     400,
+     0.707
+    ]
+   ],
+   "fout": 500
+  }
+ },
+ "C_glass": {
+  "onset_ms": 1.3541666666666667,
+  "file": "lib/clips/C_glass.wav",
+  "take": "3df4f486cde8_00",
+  "member": "BluezoneCorp - Broken Glass/Bluezone_BC0274_glass_impact_break_002.wav",
+  "role": "shatter",
+  "dur": 0.91,
+  "peak_ms": 6.3125,
+  "proc": {
+   "lufs": -16,
+   "eq": [
+    [
+     "hp",
+     300,
+     0.707
+    ]
+   ],
+   "fout": 400
+  }
+ },
+ "C_mixed_impact": {
+  "onset_ms": 20.104166666666664,
+  "file": "lib/clips/C_mixed_impact.wav",
+  "take": "193f5ebea86f_00",
+  "member": "Sonniss.com - GDC 2019 - Game Audio Bundle Part 1of8/3maze - IMPACTUS/mixed_impact_013.wav",
+  "role": "contact_metal",
+  "dur": 1.18,
+  "peak_ms": 33.208333333333336,
+  "proc": {
+   "lufs": -14,
+   "eq": [
+    [
+     "hp",
+     80,
+     0.707
+    ]
+   ],
+   "fout": 500
+  }
+ },
+ "C_air_impact": {
+  "onset_ms": 20.979166666666668,
+  "file": "lib/clips/C_air_impact.wav",
+  "take": "a2c8a8ddd076_00",
+  "member": "David Dumais Audio - Air Magic 1/Magic_Spells_Impact_Air24.wav",
+  "role": "boom",
+  "dur": 1.81,
+  "peak_ms": 94.375,
+  "proc": {
+   "lufs": -14,
+   "eq": [
+    [
+     "hp",
+     50,
+     0.707
+    ]
+   ],
+   "fout": 500
+  }
+ },
+ "C_magic_flow": {
+  "onset_ms": 219.875,
+  "file": "lib/clips/C_magic_flow.wav",
+  "take": "4cebe82a787d_00",
+  "member": "Alexander Kopeikin - Emotion and Magic/magic, energy flow, astonishment-001.wav",
+  "role": "shimmer",
+  "dur": 3.2,
+  "peak_ms": 1976.4791666666665,
+  "proc": {
+   "lufs": -20,
+   "eq": [
+    [
+     "hp",
+     300,
+     0.707
+    ]
+   ],
+   "ofs": 12.6,
+   "len": 3.2,
+   "fin": 300,
+   "fout": 1200
+  }
+ },
+ "C_air_charm": {
+  "onset_ms": 555.6458333333333,
+  "file": "lib/clips/C_air_charm.wav",
+  "take": "4e20fa15f649_00",
+  "member": "David Dumais Audio - Air Magic 1/Magic_Spells_CastLong_Air_Charm02.wav",
+  "role": "shimmer",
+  "dur": 3.0,
+  "peak_ms": 1742.3125,
+  "proc": {
+   "lufs": -20,
+   "eq": [
+    [
+     "hp",
+     250,
+     0.707
+    ]
+   ],
+   "ofs": 3.6,
+   "len": 3.0,
+   "fin": 500,
+   "fout": 800
+  }
+ },
+ "C_fire_growl": {
+  "onset_ms": 366.3125,
+  "file": "lib/clips/C_fire_growl.wav",
+  "take": "13f9804fe221_00",
+  "member": "Epic Stock Media - Elemental Mutation Whooshes and Impacts/FIREWhsh_Whoosh Fire Deep Growl Monster Saturated Crisp 03_ESM_EMWI.wav",
+  "role": "fire",
+  "dur": 2.0,
+  "peak_ms": 724.0625,
+  "proc": {
+   "lufs": -15,
+   "eq": [
+    [
+     "hp",
+     40,
+     0.707
+    ]
+   ],
+   "fout": 400
+  }
+ },
+ "C_fire_burst": {
+  "onset_ms": 19.375,
+  "file": "lib/clips/C_fire_burst.wav",
+  "take": "ca42e0c23309_00",
+  "member": "Sonniss.com - GDC 2018 - Game Audio Bundle Part 3of8/Gregor Quendel – Designed Fire/Designed Fire - Swooshes - Burst, evolving 34.wav",
+  "role": "fire",
+  "dur": 3.0,
+  "peak_ms": 160.5,
+  "proc": {
+   "lufs": -14,
+   "eq": [
+    [
+     "hp",
+     40,
+     0.707
+    ]
+   ],
+   "ofs": 4.6,
+   "len": 3.0,
+   "fin": 20,
+   "fout": 1400
+  }
+ },
+ "C_fire_impact": {
+  "onset_ms": 41.270833333333336,
+  "file": "lib/clips/C_fire_impact.wav",
+  "take": "9d7594efe6ef_00",
+  "member": "Sonniss.com - GDC 2018 - Game Audio Bundle Part 3of8/Gregor Quendel – Designed Fire/Designed Fire - Impacts - Large, ignition 03.wav",
+  "role": "explosion",
+  "dur": 4.0,
+  "peak_ms": 1173.4375,
+  "proc": {
+   "lufs": -13,
+   "eq": [
+    [
+     "hp",
+     35,
+     0.707
+    ]
+   ],
+   "ofs": 7.6,
+   "len": 4.0,
+   "fin": 30,
+   "fout": 1800
+  }
+ },
+ "C_torch": {
+  "onset_ms": 187.79166666666666,
+  "file": "lib/clips/C_torch.wav",
+  "take": "cd6c31a37a72_00",
+  "member": "Sonniss.com - GDC 2018 - Game Audio Bundle Part 5of8/Soundrangers - Whooshes And Transitions/torch_whoosh_20.wav",
+  "role": "fire",
+  "dur": 1.01,
+  "peak_ms": 432.4166666666667,
+  "proc": {
+   "lufs": -17,
+   "eq": [
+    [
+     "hp",
+     60,
+     0.707
+    ]
+   ],
+   "fout": 300
+  }
+ },
+ "C_rev_demon": {
+  "onset_ms": 1100.5833333333333,
+  "file": "lib/clips/C_rev_demon.wav",
+  "take": "4b65decacf65_00",
+  "member": "Sound Spark LLC - Metal Souls/Metal_Souls_Vocalization_Textures_Reverse_Delay_Demon_03.wav",
+  "role": "suck",
+  "dur": 2.62,
+  "peak_ms": 1784.125,
+  "proc": {
+   "lufs": -18,
+   "eq": [
+    [
+     "hp",
+     150,
+     0.707
+    ]
+   ],
+   "fin": 200,
+   "fout": 30
+  }
+ },
+ "C_rev_interf": {
+  "onset_ms": 353.4583333333333,
+  "file": "lib/clips/C_rev_interf.wav",
+  "take": "d872326a2298_00",
+  "member": "MatiasMacSD - Affright/Fx_Reverse_Interference-02.wav",
+  "role": "suck",
+  "dur": 2.1333333333333333,
+  "peak_ms": 453.5625,
+  "proc": {
+   "lufs": -17,
+   "eq": [
+    [
+     "hp",
+     120,
+     0.707
+    ]
+   ],
+   "fin": 150,
+   "fout": 20
+  }
+ },
+ "X_step_0": {
+  "onset_ms": 20.604166666666668,
+  "file": "lib/clips/X_step_0.wav",
+  "take": "22bdf2c249c5_01",
+  "member": "Sonniss.com - GDC 2018 - Game Audio Bundle Part 4of8/Joshua Reinhardt - Ultimate Bare Feet Expansion/BOOT_CONC CLEAN_WALK.R.wav",
+  "role": "foot",
+  "dur": 0.23,
+  "peak_ms": 22.416666666666668,
+  "proc": {
+   "lufs": -24,
+   "eq": [
+    [
+     "hp",
+     70,
+     0.707
+    ],
+    [
+     "peak",
+     3500,
+     1.0,
+     -3
+    ]
+   ],
+   "fout": 60
+  }
+ },
+ "X_step_1": {
+  "onset_ms": 14.625,
+  "file": "lib/clips/X_step_1.wav",
+  "take": "22bdf2c249c5_08",
+  "member": "Sonniss.com - GDC 2018 - Game Audio Bundle Part 4of8/Joshua Reinhardt - Ultimate Bare Feet Expansion/BOOT_CONC CLEAN_WALK.R.wav",
+  "role": "foot",
+  "dur": 0.37,
+  "peak_ms": 16.729166666666668,
+  "proc": {
+   "lufs": -24,
+   "eq": [
+    [
+     "hp",
+     70,
+     0.707
+    ],
+    [
+     "peak",
+     3500,
+     1.0,
+     -3
+    ]
+   ],
+   "fout": 60
+  }
+ },
+ "X_step_2": {
+  "onset_ms": 18.395833333333332,
+  "file": "lib/clips/X_step_2.wav",
+  "take": "22bdf2c249c5_10",
+  "member": "Sonniss.com - GDC 2018 - Game Audio Bundle Part 4of8/Joshua Reinhardt - Ultimate Bare Feet Expansion/BOOT_CONC CLEAN_WALK.R.wav",
+  "role": "foot",
+  "dur": 0.31997916666666665,
+  "peak_ms": 20.666666666666668,
+  "proc": {
+   "lufs": -24,
+   "eq": [
+    [
+     "hp",
+     70,
+     0.707
+    ],
+    [
+     "peak",
+     3500,
+     1.0,
+     -3
+    ]
+   ],
+   "fout": 60
+  }
+ },
+ "X_step_3": {
+  "onset_ms": 21.229166666666668,
+  "file": "lib/clips/X_step_3.wav",
+  "take": "22bdf2c249c5_27",
+  "member": "Sonniss.com - GDC 2018 - Game Audio Bundle Part 4of8/Joshua Reinhardt - Ultimate Bare Feet Expansion/BOOT_CONC CLEAN_WALK.R.wav",
+  "role": "foot",
+  "dur": 0.39,
+  "peak_ms": 23.020833333333336,
+  "proc": {
+   "lufs": -24,
+   "eq": [
+    [
+     "hp",
+     70,
+     0.707
+    ],
+    [
+     "peak",
+     3500,
+     1.0,
+     -3
+    ]
+   ],
+   "fout": 60
+  }
+ },
+ "X_step_4": {
+  "onset_ms": 14.895833333333334,
+  "file": "lib/clips/X_step_4.wav",
+  "take": "22bdf2c249c5_28",
+  "member": "Sonniss.com - GDC 2018 - Game Audio Bundle Part 4of8/Joshua Reinhardt - Ultimate Bare Feet Expansion/BOOT_CONC CLEAN_WALK.R.wav",
+  "role": "foot",
+  "dur": 0.4,
+  "peak_ms": 17.3125,
+  "proc": {
+   "lufs": -24,
+   "eq": [
+    [
+     "hp",
+     70,
+     0.707
+    ],
+    [
+     "peak",
+     3500,
+     1.0,
+     -3
+    ]
+   ],
+   "fout": 60
+  }
+ },
+ "X_step_5": {
+  "onset_ms": 18.875,
+  "file": "lib/clips/X_step_5.wav",
+  "take": "22bdf2c249c5_38",
+  "member": "Sonniss.com - GDC 2018 - Game Audio Bundle Part 4of8/Joshua Reinhardt - Ultimate Bare Feet Expansion/BOOT_CONC CLEAN_WALK.R.wav",
+  "role": "foot",
+  "dur": 0.39,
+  "peak_ms": 20.75,
+  "proc": {
+   "lufs": -24,
+   "eq": [
+    [
+     "hp",
+     70,
+     0.707
+    ],
+    [
+     "peak",
+     3500,
+     1.0,
+     -3
+    ]
+   ],
+   "fout": 60
+  }
+ },
+ "X_cloth": {
+  "onset_ms": 254.0,
+  "file": "lib/clips/X_cloth.wav",
+  "take": "5341279c77e6_03",
+  "member": "Systematic-Sound - Sound Themes - Modern Cloth Foley 01/SFX CLOTH Foley Jacket Synthetic Soft Shell Whoosh Flutter.wav",
+  "role": "cloth",
+  "dur": 1.0,
+  "peak_ms": 579.375,
+  "proc": {
+   "lufs": -22,
+   "eq": [
+    [
+     "hp",
+     180,
+     0.707
+    ]
+   ],
+   "fout": 150
+  }
+ },
+ "X_cloth2": {
+  "onset_ms": 379.9166666666667,
+  "file": "lib/clips/X_cloth2.wav",
+  "take": "db02fe691fe1_00",
+  "member": "InMotionAudio - Foley T-Shirt/FOLYClth_ClothMovement29_InMotionAudio_FoleyT-Shirt.wav",
+  "role": "cloth",
+  "dur": 0.8,
+  "peak_ms": 485.0,
+  "proc": {
+   "lufs": -24,
+   "eq": [
+    [
+     "hp",
+     300,
+     0.707
+    ]
+   ],
+   "ofs": 0.6,
+   "len": 0.8,
+   "fin": 40,
+   "fout": 200
+  }
+ },
+ "K_bell": {
+  "onset_ms": 41.041666666666664,
+  "file": "lib/clips/K_bell.wav",
+  "take": "65a2db7c9cea_00",
+  "member": "Mechanical Wave - Sound Effects Collection/BELLHand_Metallic Bell_ 22_MWSFX_SEC.wav",
+  "role": "bell",
+  "dur": 1.6,
+  "peak_ms": 46.10416666666667,
+  "proc": {
+   "lufs": -18,
+   "eq": [
+    [
+     "hp",
+     400,
+     0.707
+    ],
+    [
+     "lp",
+     11000,
+     0.707
+    ]
+   ],
+   "len": 1.6,
+   "fout": 700,
+   "fcurve": 3
+  }
+ },
+ "K_bell_low": {
+  "onset_ms": 16.916666666666668,
+  "file": "lib/clips/K_bell_low.wav",
+  "take": "17b421e6fff7_00",
+  "member": "Sonniss.com - GDC 2019 - Game Audio Bundle Part 1of8/3maze - IMPACTUS/key_hit_single_bulbul_011.wav",
+  "role": "bell",
+  "dur": 1.8,
+  "peak_ms": 22.854166666666664,
+  "proc": {
+   "lufs": -18,
+   "eq": [
+    [
+     "hp",
+     150,
+     0.707
+    ]
+   ],
+   "len": 1.8,
+   "fout": 900,
+   "fcurve": 3
+  }
+ },
+ "K_gong": {
+  "onset_ms": 2.6875,
+  "file": "lib/clips/K_gong.wav",
+  "take": "4723ed8693e4_00",
+  "member": "Eiravaein Works - 48Kilos/PotGong,strike,medium,destructive,longfade,C#,inside,flex.wav",
+  "role": "gong",
+  "dur": 4.0,
+  "peak_ms": 128.79166666666666,
+  "proc": {
+   "lufs": -14,
+   "eq": [
+    [
+     "hp",
+     45,
+     0.707
+    ]
+   ],
+   "ofs": 1.55,
+   "len": 4.0,
+   "fin": 4,
+   "fout": 2200
+  }
+ },
+ "K_gong_swell": {
+  "onset_ms": 1145.3125,
+  "file": "lib/clips/K_gong_swell.wav",
+  "take": "6568e6dec84d_00",
+  "member": "Soundopolis - Bowed Cymbal 2 HD/Bowed Cymbal 2_Mids Lows_Fienup_009.wav",
+  "role": "gong",
+  "dur": 1.6,
+  "peak_ms": 1267.375,
+  "proc": {
+   "lufs": -16,
+   "eq": [
+    [
+     "hp",
+     50,
+     0.707
+    ]
+   ],
+   "len": 1.6,
+   "fin": 300,
+   "fout": 40
+  }
+ },
+ "K_chime": {
+  "onset_ms": 81.95833333333333,
+  "file": "lib/clips/K_chime.wav",
+  "take": "18dbf4d30859_00",
+  "member": "Sonniss.com - GDC 2019 - Game Audio Bundle Part 2of8/Eiravaein Works - Helina/Helin�,windchimes,Pacific,obsidian,beads,kelppods,noclapper,nowindcatcher,twine,release,gentle,shorttail,MidSide.wav",
+  "role": "chime",
+  "dur": 3.38,
+  "peak_ms": 543.4583333333334,
+  "proc": {
+   "lufs": -24,
+   "eq": [
+    [
+     "hp",
+     1500,
+     0.707
+    ]
+   ],
+   "fout": 900
+  }
+ },
+ "K_ice_hit": {
+  "onset_ms": 32.1875,
+  "file": "lib/clips/K_ice_hit.wav",
+  "take": "0d7b4393f504_00",
+  "member": "BluezoneCorp - Ice Cracking/Bluezone_BC0278_ice_crack_break_189.wav",
+  "role": "ice",
+  "dur": 1.4,
+  "peak_ms": 45.5625,
+  "proc": {
+   "lufs": -14,
+   "eq": [
+    [
+     "hp",
+     120,
+     0.707
+    ]
+   ],
+   "len": 1.4,
+   "fout": 500
+  }
+ },
+ "K_ice_crack": {
+  "onset_ms": 7.604166666666667,
+  "file": "lib/clips/K_ice_crack.wav",
+  "take": "a19d77ad5b48_00",
+  "member": "BluezoneCorp - Ice Cracking/Bluezone_BC0278_ice_crack_break_002.wav",
+  "role": "ice",
+  "dur": 1.6,
+  "peak_ms": 227.52083333333334,
+  "proc": {
+   "lufs": -15,
+   "eq": [
+    [
+     "hp",
+     200,
+     0.707
+    ]
+   ],
+   "ofs": 1.0,
+   "len": 1.6,
+   "fin": 10,
+   "fout": 600
+  }
+ },
+ "K_ice_freeze": {
+  "onset_ms": 829.3958333333334,
+  "file": "lib/clips/K_ice_freeze.wav",
+  "take": "202dca45e224_00",
+  "member": "Sonniss.com - GDC 2018 - Game Audio Bundle Part 5of8/Soundrangers - Foley Elements Ice and Snow/ice_freeze_crack_04.wav",
+  "role": "ice",
+  "dur": 2.3284375,
+  "peak_ms": 916.9583333333334,
+  "proc": {
+   "lufs": -16,
+   "eq": [
+    [
+     "hp",
+     300,
+     0.707
+    ]
+   ],
+   "fout": 300
+  }
+ },
+ "K_ice_magic": {
+  "onset_ms": 228.70833333333334,
+  "file": "lib/clips/K_ice_magic.wav",
+  "take": "0f9970d1418a_00",
+  "member": "David Dumais Audio - Ice & Frost Magic 1/Magic_Spells_Impact_Ice13.wav",
+  "role": "ice_magic",
+  "dur": 2.27,
+  "peak_ms": 327.47916666666663,
+  "proc": {
+   "lufs": -14,
+   "eq": [
+    [
+     "hp",
+     80,
+     0.707
+    ]
+   ],
+   "fout": 700
+  }
+ },
+ "K_matter_grow": {
+  "onset_ms": 528.1875,
+  "file": "lib/clips/K_matter_grow.wav",
+  "take": "880ac62a14a1_00",
+  "member": "Sonniss.com - GDC 2018 - Game Audio Bundle Part 3of8/Gamemaster Audio - Magic and Spell Sounds/casting_charge_matter_grow_04.wav",
+  "role": "charge",
+  "dur": 1.167375,
+  "peak_ms": 1119.1458333333333,
+  "proc": {
+   "lufs": -18,
+   "eq": [
+    [
+     "hp",
+     400,
+     0.707
+    ],
+    [
+     "lp",
+     12000,
+     0.707
+    ]
+   ],
+   "fin": 200,
+   "fout": 20
+  }
+ },
+ "K_flamer": {
+  "onset_ms": 535.625,
+  "file": "lib/clips/K_flamer.wav",
+  "take": "1cb6c1de7be1_00",
+  "member": "Sonniss.com - GDC 2018 - Game Audio Bundle Part 5of8/SoundMorph - STEAMPUNK WEAPONS/Steampunk Weapons - Firestorm Flamer - set_1.wav",
+  "role": "fire",
+  "dur": 3.18,
+  "peak_ms": 748.3125,
+  "proc": {
+   "lufs": -15,
+   "eq": [
+    [
+     "hp",
+     50,
+     0.707
+    ]
+   ],
+   "fout": 800
+  }
+ },
+ "K_fire_loop": {
+  "onset_ms": 331.3125,
+  "file": "lib/clips/K_fire_loop.wav",
+  "take": "5ac2d3bcfa88_00",
+  "member": "Epic Stock Media - Synthesized Nature Loops and Sounds/FIREBurn_Loop Elements Fire Crackling Crunchy Flame Burn 03_ESM_SNLS.wav",
+  "role": "fire_loop",
+  "dur": 4.0,
+  "peak_ms": 731.1666666666666,
+  "proc": {
+   "lufs": -22,
+   "eq": [
+    [
+     "hp",
+     80,
+     0.707
+    ]
+   ],
+   "ofs": 1.0,
+   "len": 4.0,
+   "fin": 300,
+   "fout": 1200
+  }
+ },
+ "K_punch_0": {
+  "onset_ms": 66.04166666666667,
+  "file": "lib/clips/K_punch_0.wav",
+  "take": "ac6438a3d59d_00",
+  "member": "Sonniss.com - GDC 2019 - Game Audio Bundle Part 5of8/Rock The Speakerbox - Melee/MELEE - DESIGNED - HEADBUTT Crack.wav",
+  "role": "punch_heavy",
+  "dur": 0.53,
+  "peak_ms": 133.83333333333334,
+  "proc": {
+   "lufs": -14,
+   "eq": [
+    [
+     "hp",
+     45,
+     0.707
+    ]
+   ],
+   "fout": 150
+  }
+ },
+ "K_punch_1": {
+  "onset_ms": 67.45833333333333,
+  "file": "lib/clips/K_punch_1.wav",
+  "take": "ac6438a3d59d_01",
+  "member": "Sonniss.com - GDC 2019 - Game Audio Bundle Part 5of8/Rock The Speakerbox - Melee/MELEE - DESIGNED - HEADBUTT Crack.wav",
+  "role": "punch_heavy",
+  "dur": 0.5599791666666667,
+  "peak_ms": 155.70833333333334,
+  "proc": {
+   "lufs": -14,
+   "eq": [
+    [
+     "hp",
+     45,
+     0.707
+    ]
+   ],
+   "fout": 150
+  }
+ },
+ "K_punch_2": {
+  "onset_ms": 82.22916666666667,
+  "file": "lib/clips/K_punch_2.wav",
+  "take": "ac6438a3d59d_03",
+  "member": "Sonniss.com - GDC 2019 - Game Audio Bundle Part 5of8/Rock The Speakerbox - Melee/MELEE - DESIGNED - HEADBUTT Crack.wav",
+  "role": "punch_heavy",
+  "dur": 0.67,
+  "peak_ms": 135.375,
+  "proc": {
+   "lufs": -14,
+   "eq": [
+    [
+     "hp",
+     45,
+     0.707
+    ]
+   ],
+   "fout": 150
+  }
+ },
+ "K_bat_0": {
+  "onset_ms": 158.5,
+  "file": "lib/clips/K_bat_0.wav",
+  "take": "87c37f82a6e2_00",
+  "member": "Sonniss.com - GDC 2019 - Game Audio Bundle Part 5of8/Rock The Speakerbox - Melee/MELEE - DESIGNED - BASEBALL BAT Aluminum Hit Head.wav",
+  "role": "punch_heavy",
+  "dur": 0.51,
+  "peak_ms": 194.9375,
+  "proc": {
+   "lufs": -14,
+   "eq": [
+    [
+     "hp",
+     45,
+     0.707
+    ]
+   ],
+   "fout": 150
+  }
+ },
+ "K_bat_1": {
+  "onset_ms": 125.75,
+  "file": "lib/clips/K_bat_1.wav",
+  "take": "87c37f82a6e2_04",
+  "member": "Sonniss.com - GDC 2019 - Game Audio Bundle Part 5of8/Rock The Speakerbox - Melee/MELEE - DESIGNED - BASEBALL BAT Aluminum Hit Head.wav",
+  "role": "punch_heavy",
+  "dur": 0.53,
+  "peak_ms": 147.70833333333334,
+  "proc": {
+   "lufs": -14,
+   "eq": [
+    [
+     "hp",
+     45,
+     0.707
+    ]
+   ],
+   "fout": 150
+  }
+ },
+ "K_punch_deep": {
+  "onset_ms": 151.14583333333334,
+  "file": "lib/clips/K_punch_deep.wav",
+  "take": "19438abfac66_00",
+  "member": "PMSFX - Lethal Blow/PM_LB_DESIGNED_PUNCH_SIMPLE_CLEAN_DEEP_48.wav",
+  "role": "punch_heavy",
+  "dur": 0.58,
+  "peak_ms": 184.0625,
+  "proc": {
+   "lufs": -14,
+   "eq": [
+    [
+     "hp",
+     35,
+     0.707
+    ]
+   ],
+   "fout": 150
+  }
+ },
+ "K_smack": {
+  "onset_ms": 40.479166666666664,
+  "file": "lib/clips/K_smack.wav",
+  "take": "872d843d6c91_00",
+  "member": "Sonniss.com - GDC 2019 - Game Audio Bundle Part 5of8/Rock The Speakerbox - Melee/MELEE - CK - FLOG Leather Hit Smack 01.wav",
+  "role": "punch_heavy",
+  "dur": 0.36,
+  "peak_ms": 53.70833333333333,
+  "proc": {
+   "lufs": -15,
+   "eq": [
+    [
+     "hp",
+     60,
+     0.707
+    ]
+   ],
+   "fout": 100
+  }
+ },
+ "K_jab_0": {
+  "onset_ms": 47.97916666666667,
+  "file": "lib/clips/K_jab_0.wav",
+  "take": "c8f2ff73df62_00",
+  "member": "Justsoundeffects - Transition Whooshes Vol. 1/SWSH_Woodstick Swish 03_JSE_TW1.wav",
+  "role": "punch_whoosh",
+  "dur": 0.25,
+  "peak_ms": 57.395833333333336,
+  "proc": {
+   "lufs": -18,
+   "eq": [
+    [
+     "hp",
+     150,
+     0.707
+    ]
+   ],
+   "fout": 80
+  }
+ },
+ "K_jab_1": {
+  "onset_ms": 37.020833333333336,
+  "file": "lib/clips/K_jab_1.wav",
+  "take": "c8f2ff73df62_01",
+  "member": "Justsoundeffects - Transition Whooshes Vol. 1/SWSH_Woodstick Swish 03_JSE_TW1.wav",
+  "role": "punch_whoosh",
+  "dur": 0.23997916666666666,
+  "peak_ms": 44.333333333333336,
+  "proc": {
+   "lufs": -18,
+   "eq": [
+    [
+     "hp",
+     150,
+     0.707
+    ]
+   ],
+   "fout": 80
+  }
+ },
+ "K_jab_2": {
+  "onset_ms": 44.791666666666664,
+  "file": "lib/clips/K_jab_2.wav",
+  "take": "c8f2ff73df62_03",
+  "member": "Justsoundeffects - Transition Whooshes Vol. 1/SWSH_Woodstick Swish 03_JSE_TW1.wav",
+  "role": "punch_whoosh",
+  "dur": 0.25,
+  "peak_ms": 49.916666666666664,
+  "proc": {
+   "lufs": -18,
+   "eq": [
+    [
+     "hp",
+     150,
+     0.707
+    ]
+   ],
+   "fout": 80
+  }
+ },
+ "K_whip": {
+  "onset_ms": 144.52083333333331,
+  "file": "lib/clips/K_whip.wav",
+  "take": "8a2d3ae89073_00",
+  "member": "David Dumais Audio - Melee Weapons Sound Effects Pack 2/WEAPWhip_WHIP Snap Crack 05_DDUMAIS_MWP2.wav",
+  "role": "punch_whoosh",
+  "dur": 1.15,
+  "peak_ms": 441.2708333333333,
+  "proc": {
+   "lufs": -17,
+   "eq": [
+    [
+     "hp",
+     200,
+     0.707
+    ]
+   ],
+   "fout": 200
+  }
+ },
+ "K_rock_0": {
+  "onset_ms": 34.104166666666664,
+  "file": "lib/clips/K_rock_0.wav",
+  "take": "1fa025cd7c8c_00",
+  "member": "PMSFX - Rocky Impacts/PM_RI_Designed_19 Rocks Impact Hit Big LFE Heavy Designed.wav",
+  "role": "rock_impact",
+  "dur": 1.06,
+  "peak_ms": 38.45833333333333,
+  "proc": {
+   "lufs": -13,
+   "eq": [
+    [
+     "hp",
+     35,
+     0.707
+    ]
+   ],
+   "fout": 400
+  }
+ },
+ "K_rock_1": {
+  "onset_ms": 28.3125,
+  "file": "lib/clips/K_rock_1.wav",
+  "take": "5b0a05858665_00",
+  "member": "PMSFX - Rocky Impacts/PM_RI_Designed_7 Rocks Impact Hit Big LFE Heavy Designed.wav",
+  "role": "rock_impact",
+  "dur": 1.33,
+  "peak_ms": 54.5,
+  "proc": {
+   "lufs": -13,
+   "eq": [
+    [
+     "hp",
+     35,
+     0.707
+    ]
+   ],
+   "fout": 500
+  }
+ },
+ "K_brick": {
+  "onset_ms": 9.5,
+  "file": "lib/clips/K_brick.wav",
+  "take": "cb3f27e24f54_00",
+  "member": "Sonniss.com - GDC 2018 - Game Audio Bundle Part 5of8/Soundrangers - Foley Elements Rocks, Dirt And Stone/brick_impact_debris_02.wav",
+  "role": "rock_impact",
+  "dur": 0.71,
+  "peak_ms": 93.89583333333333,
+  "proc": {
+   "lufs": -18,
+   "eq": [
+    [
+     "hp",
+     150,
+     0.707
+    ]
+   ],
+   "fout": 300
+  }
+ },
+ "K_quake": {
+  "onset_ms": 156.625,
+  "file": "lib/clips/K_quake.wav",
+  "take": "301b692f1e8c_00",
+  "member": "BluezoneCorp - Alien Tripod/Bluezone_BC0292_alien_tripod_debris_rock_collapse_earthquake_rumble_large_005.wav",
+  "role": "earth_rumble",
+  "dur": 3.4,
+  "peak_ms": 849.4166666666667,
+  "proc": {
+   "lufs": -16,
+   "eq": [
+    [
+     "hp",
+     30,
+     0.707
+    ]
+   ],
+   "ofs": 1.8,
+   "len": 3.4,
+   "fin": 200,
+   "fout": 1500
+  }
+ },
+ "K_thunder_strike": {
+  "onset_ms": 55.75,
+  "file": "lib/clips/K_thunder_strike.wav",
+  "take": "90cd866a7ff5_00",
+  "member": "Sonniss.com - GDC 2018 - Game Audio Bundle Part 5of8/Soundrangers – Thunder/thunder_strike_03.wav",
+  "role": "thunder_close",
+  "dur": 4.5,
+  "peak_ms": 237.60416666666669,
+  "proc": {
+   "lufs": -13,
+   "eq": [
+    [
+     "hp",
+     30,
+     0.707
+    ]
+   ],
+   "ofs": 0.45,
+   "len": 4.5,
+   "fin": 5,
+   "fout": 2500
+  }
+ },
+ "K_plasma": {
+  "onset_ms": 119.08333333333333,
+  "file": "lib/clips/K_plasma.wav",
+  "take": "54a4ee59c230_00",
+  "member": "SmartSoundFX - Futuristic/CANNON Plasma Shot Tonal High 10.wav",
+  "role": "magic_cast",
+  "dur": 1.19,
+  "peak_ms": 127.0625,
+  "proc": {
+   "lufs": -15,
+   "eq": [
+    [
+     "hp",
+     60,
+     0.707
+    ]
+   ],
+   "fout": 400
+  }
+ },
+ "K_water_cast": {
+  "onset_ms": 319.6875,
+  "file": "lib/clips/K_water_cast.wav",
+  "take": "fbc7313cb24a_00",
+  "member": "David Dumais Audio - Water Magic 1/Magic_Spells_CastLong_Water_General05.wav",
+  "role": "water",
+  "dur": 2.499979166666667,
+  "peak_ms": 610.0833333333333,
+  "proc": {
+   "lufs": -16,
+   "eq": [
+    [
+     "hp",
+     80,
+     0.707
+    ]
+   ],
+   "len": 2.5,
+   "fout": 900
+  }
+ },
+ "K_splash": {
+  "onset_ms": 108.27083333333333,
+  "file": "lib/clips/K_splash.wav",
+  "take": "1736e34fab0f_00",
+  "member": "Bluezone - Splash/Bluezone_BC0256_water_splash_small_008.wav",
+  "role": "water",
+  "dur": 1.1299791666666668,
+  "peak_ms": 124.77083333333333,
+  "proc": {
+   "lufs": -16,
+   "eq": [
+    [
+     "hp",
+     80,
+     0.707
+    ]
+   ],
+   "fout": 300
+  }
+ },
+ "K_beam": {
+  "onset_ms": 460.3541666666667,
+  "file": "lib/clips/K_beam.wav",
+  "take": "28030d26b8ea_06",
+  "member": "Sonniss.com - GDC 2018 - Game Audio Bundle Part 2of8/Bluezone Corporation - Distant Wave - Cinematic Ambient Sounds/Bluezone_BC0234_ambience_sfx_004.wav",
+  "role": "beam",
+  "dur": 4.000020833333333,
+  "peak_ms": 519.2916666666667,
+  "proc": {
+   "lufs": -18,
+   "eq": [
+    [
+     "hp",
+     300,
+     0.707
+    ],
+    [
+     "lp",
+     12000,
+     0.707
+    ]
+   ],
+   "len": 4.0,
+   "fin": 300,
+   "fout": 800
+  }
+ },
+ "K_beam_low": {
+  "onset_ms": 507.87499999999994,
+  "file": "lib/clips/K_beam_low.wav",
+  "take": "dd1e48e724e5_00",
+  "member": "BluezoneCorp - Eternity - Ethereal Ambient/Bluezone_BC0273_eternity_synth_012.wav",
+  "role": "beam",
+  "dur": 5.0,
+  "peak_ms": 2291.0208333333335,
+  "proc": {
+   "lufs": -16,
+   "eq": [
+    [
+     "hp",
+     30,
+     0.707
+    ]
+   ],
+   "ofs": 7.0,
+   "len": 5.0,
+   "fin": 600,
+   "fout": 1500
+  }
+ },
+ "K_heart_0": {
+  "onset_ms": 27.645833333333336,
+  "file": "lib/clips/K_heart_0.wav",
+  "take": "f8c1a662d2db_27",
+  "member": "Sonniss.com - GDC 2018 - Game Audio Bundle Part 1of8/Airborne Sound - Human/Heartbeat,Sound Design,Pulse,Throb,Steady,Accelerate,Panic,Fear.wav",
+  "role": "heartbeat",
+  "dur": 0.75,
+  "peak_ms": 48.16666666666667,
+  "proc": {
+   "lufs": -14,
+   "eq": [
+    [
+     "hp",
+     25,
+     0.707
+    ]
+   ],
+   "fout": 200
+  }
+ },
+ "K_heart_1": {
+  "onset_ms": 27.479166666666664,
+  "file": "lib/clips/K_heart_1.wav",
+  "take": "f8c1a662d2db_28",
+  "member": "Sonniss.com - GDC 2018 - Game Audio Bundle Part 1of8/Airborne Sound - Human/Heartbeat,Sound Design,Pulse,Throb,Steady,Accelerate,Panic,Fear.wav",
+  "role": "heartbeat",
+  "dur": 0.75,
+  "peak_ms": 48.0,
+  "proc": {
+   "lufs": -14,
+   "eq": [
+    [
+     "hp",
+     25,
+     0.707
+    ]
+   ],
+   "fout": 200
+  }
+ },
+ "K_drone": {
+  "onset_ms": 468.8125,
+  "file": "lib/clips/K_drone.wav",
+  "take": "5e5213d43ab4_00",
+  "member": "InMotionAudio - GEODRONE/DSGNDron_Geofon17_InMotionAudio_GEODRONE.wav",
+  "role": "drone",
+  "dur": 8.000020833333334,
+  "peak_ms": 3239.4791666666665,
+  "proc": {
+   "lufs": -18,
+   "eq": [
+    [
+     "hp",
+     25,
+     0.707
+    ]
+   ],
+   "ofs": 4.0,
+   "len": 8.0,
+   "fin": 500,
+   "fout": 2000
+  }
+ },
+ "K_drone_dark": {
+  "onset_ms": 798.4791666666666,
+  "file": "lib/clips/K_drone_dark.wav",
+  "take": "07cbb4b347ba_00",
+  "member": "Submerged Tapes - Alien and Imagined Atmospheres/AAIA 33 Atmos Deep Low Spaceship Interior Rumble Growl Drone.wav",
+  "role": "drone",
+  "dur": 8.0,
+  "peak_ms": 2960.125,
+  "proc": {
+   "lufs": -16,
+   "eq": [
+    [
+     "hp",
+     25,
+     0.707
+    ]
+   ],
+   "ofs": 55.0,
+   "len": 8.0,
+   "fin": 500,
+   "fout": 2000
+  }
+ },
+ "K_choir": {
+  "onset_ms": 728.4791666666666,
+  "file": "lib/clips/K_choir.wav",
+  "take": "364347913d1f_00",
+  "member": "Bluezone - Heaven - Ethereal Ambient Samples/Bluezone_BC0270_heaven_synth_pad_atmosphere_009.wav",
+  "role": "choir",
+  "dur": 6.0,
+  "peak_ms": 2968.0833333333335,
+  "proc": {
+   "lufs": -17,
+   "eq": [
+    [
+     "hp",
+     60,
+     0.707
+    ]
+   ],
+   "ofs": 14.0,
+   "len": 6.0,
+   "fin": 800,
+   "fout": 2200
+  }
+ },
+ "K_heaven": {
+  "onset_ms": 1168.1458333333335,
+  "file": "lib/clips/K_heaven.wav",
+  "take": "e539987a2aa1_00",
+  "member": "Bluezone - Heaven - Ethereal Ambient Samples/Bluezone_BC0270_heaven_synth_texture_melodic_phrase_soft_01_03.wav",
+  "role": "choir",
+  "dur": 5.0,
+  "peak_ms": 2292.625,
+  "proc": {
+   "lufs": -17,
+   "eq": [
+    [
+     "hp",
+     100,
+     0.707
+    ]
+   ],
+   "ofs": 1.0,
+   "len": 5.0,
+   "fin": 600,
+   "fout": 2000
+  }
+ },
+ "K_moan": {
+  "onset_ms": 519.3541666666666,
+  "file": "lib/clips/K_moan.wav",
+  "take": "9a51450d9b3a_00",
+  "member": "Sonniss.com - GDC 2019 - Game Audio Bundle Part 5of8/Sound Ex Machina - Endless Drones/Abnormal&Experimental - Religious Moan.wav",
+  "role": "choir",
+  "dur": 5.0,
+  "peak_ms": 1603.9166666666667,
+  "proc": {
+   "lufs": -18,
+   "eq": [
+    [
+     "hp",
+     60,
+     0.707
+    ]
+   ],
+   "ofs": 2.0,
+   "len": 5.0,
+   "fin": 600,
+   "fout": 2000
+  }
+ },
+ "K_roar": {
+  "onset_ms": 154.66666666666669,
+  "file": "lib/clips/K_roar.wav",
+  "take": "b2112805aeee_00",
+  "member": "Chupapsound - Essential Scifi/GRWL ROAR ANGRY.wav",
+  "role": "roar",
+  "dur": 2.47,
+  "peak_ms": 1265.1041666666667,
+  "proc": {
+   "lufs": -13,
+   "eq": [
+    [
+     "hp",
+     50,
+     0.707
+    ]
+   ],
+   "fout": 600
+  }
+ },
+ "K_growl": {
+  "onset_ms": 206.27083333333331,
+  "file": "lib/clips/K_growl.wav",
+  "take": "ccf49db42706_01",
+  "member": "Sonniss.com - GDC 2018 - Game Audio Bundle Part 4of8/Olivier Girardot - Monsters/Monster Growls 4.wav",
+  "role": "roar",
+  "dur": 2.08,
+  "peak_ms": 901.6458333333334,
+  "proc": {
+   "lufs": -13,
+   "eq": [
+    [
+     "hp",
+     40,
+     0.707
+    ]
+   ],
+   "fout": 500
+  }
+ },
+ "K_knife_0": {
+  "onset_ms": 89.0625,
+  "file": "lib/clips/K_knife_0.wav",
+  "take": "12729289e0d5_06",
+  "member": "Sonniss.com - GDC 2018 - Game Audio Bundle Part 1of8/Articulated Sounds - Essential Kitchen/KITCHEN knife sharpening.wav",
+  "role": "dagger",
+  "dur": 0.35,
+  "peak_ms": 193.45833333333334,
+  "proc": {
+   "lufs": -19,
+   "eq": [
+    [
+     "hp",
+     1000,
+     0.707
+    ],
+    [
+     "lp",
+     11000,
+     0.707
+    ]
+   ],
+   "fout": 120,
+   "fcurve": 3
+  }
+ },
+ "K_knife_1": {
+  "onset_ms": 14.6875,
+  "file": "lib/clips/K_knife_1.wav",
+  "take": "12729289e0d5_08",
+  "member": "Sonniss.com - GDC 2018 - Game Audio Bundle Part 1of8/Articulated Sounds - Essential Kitchen/KITCHEN knife sharpening.wav",
+  "role": "dagger",
+  "dur": 0.28,
+  "peak_ms": 80.08333333333334,
+  "proc": {
+   "lufs": -19,
+   "eq": [
+    [
+     "hp",
+     1000,
+     0.707
+    ],
+    [
+     "lp",
+     11000,
+     0.707
+    ]
+   ],
+   "fout": 120,
+   "fcurve": 3
+  }
+ },
+ "K_breath": {
+  "onset_ms": 248.29166666666666,
+  "file": "lib/clips/K_breath.wav",
+  "take": "af425421ae45_00",
+  "member": "Sound Spark LLC - Whooshes Impacts and Transitions/Scary_Breath_Whoosh_05.wav",
+  "role": "shadow",
+  "dur": 2.4899791666666666,
+  "peak_ms": 449.95833333333337,
+  "proc": {
+   "lufs": -16,
+   "eq": [
+    [
+     "hp",
+     150,
+     0.707
+    ]
+   ],
+   "fout": 600
+  }
+ },
+ "K_ether_0": {
+  "onset_ms": 257.8541666666667,
+  "file": "lib/clips/K_ether_0.wav",
+  "take": "be244e4064ea_08",
+  "member": "Sonniss.com - GDC 2019 - Game Audio Bundle Part 1of8/Ambisound - Ethereal Breaths/Ethereal Breaths - Long Rvb Whooshes.wav",
+  "role": "spirit",
+  "dur": 2.71,
+  "peak_ms": 440.625,
+  "proc": {
+   "lufs": -16,
+   "eq": [
+    [
+     "hp",
+     150,
+     0.707
+    ]
+   ],
+   "fout": 700
+  }
+ },
+ "K_ether_1": {
+  "onset_ms": 138.91666666666666,
+  "file": "lib/clips/K_ether_1.wav",
+  "take": "be244e4064ea_13",
+  "member": "Sonniss.com - GDC 2019 - Game Audio Bundle Part 1of8/Ambisound - Ethereal Breaths/Ethereal Breaths - Long Rvb Whooshes.wav",
+  "role": "spirit",
+  "dur": 2.29,
+  "peak_ms": 216.33333333333331,
+  "proc": {
+   "lufs": -16,
+   "eq": [
+    [
+     "hp",
+     150,
+     0.707
+    ]
+   ],
+   "fout": 700
+  }
+ },
+ "K_portal": {
+  "onset_ms": 655.7291666666667,
+  "file": "lib/clips/K_portal.wav",
+  "take": "ef6cd3ba433b_00",
+  "member": "Sonniss.com - GDC 2018 - Game Audio Bundle Part 3of8/Gamemaster Audio - Magic and Spell Sounds/dark_portal_wind_effect_04.wav",
+  "role": "spirit",
+  "dur": 3.5,
+  "peak_ms": 1281.2916666666667,
+  "proc": {
+   "lufs": -17,
+   "eq": [
+    [
+     "hp",
+     60,
+     0.707
+    ]
+   ],
+   "len": 3.5,
+   "fout": 1500
+  }
+ },
+ "K_wood_0": {
+  "onset_ms": 43.791666666666664,
+  "file": "lib/clips/K_wood_0.wav",
+  "take": "352279f7206b_12",
+  "member": "344 Audio - Historical Weapons Vol. 2/WEAPBlnt_Spear And Stick Impact, Wooden MKH 2_344 Audio_Medieval Weapons Vol 2.wav",
+  "role": "wood",
+  "dur": 0.41,
+  "peak_ms": 47.91666666666667,
+  "proc": {
+   "lufs": -16,
+   "eq": [
+    [
+     "hp",
+     120,
+     0.707
+    ]
+   ],
+   "fout": 150
+  }
+ },
+ "K_wood_1": {
+  "onset_ms": 35.541666666666664,
+  "file": "lib/clips/K_wood_1.wav",
+  "take": "352279f7206b_13",
+  "member": "344 Audio - Historical Weapons Vol. 2/WEAPBlnt_Spear And Stick Impact, Wooden MKH 2_344 Audio_Medieval Weapons Vol 2.wav",
+  "role": "wood",
+  "dur": 0.6,
+  "peak_ms": 39.52083333333333,
+  "proc": {
+   "lufs": -16,
+   "eq": [
+    [
+     "hp",
+     120,
+     0.707
+    ]
+   ],
+   "fout": 150
+  }
+ },
+ "K_wood_2": {
+  "onset_ms": 15.666666666666666,
+  "file": "lib/clips/K_wood_2.wav",
+  "take": "352279f7206b_15",
+  "member": "344 Audio - Historical Weapons Vol. 2/WEAPBlnt_Spear And Stick Impact, Wooden MKH 2_344 Audio_Medieval Weapons Vol 2.wav",
+  "role": "wood",
+  "dur": 0.26360416666666664,
+  "peak_ms": 20.645833333333332,
+  "proc": {
+   "lufs": -16,
+   "eq": [
+    [
+     "hp",
+     120,
+     0.707
+    ]
+   ],
+   "fout": 150
+  }
+ },
+ "K_alarm": {
+  "onset_ms": 1.875,
+  "file": "lib/clips/K_alarm.wav",
+  "take": "1e9e3a4446c0_00",
+  "member": "Federico Soler - Effective Trailer Alarms Vol. 2/EffectiveTrailer_Alarms_Vol2_QuarterNotes_013.wav",
+  "role": "siren",
+  "dur": 2.0,
+  "peak_ms": 172.16666666666666,
+  "proc": {
+   "lufs": -18,
+   "eq": [
+    [
+     "hp",
+     200,
+     0.707
+    ]
+   ],
+   "len": 2.0,
+   "fout": 600
+  }
+ },
+ "G_impact": {
+  "onset_ms": 1.7708333333333333,
+  "file": "lib/clips/G_impact.wav",
+  "take": "1975a28805b3_00",
+  "member": "Bluezone - Black Project - Mysterious Cinematic Samples/Bluezone_BC0262_black_project_cinematic_impact_010.wav",
+  "role": "boom",
+  "dur": 3.0,
+  "peak_ms": 21.5625,
+  "proc": {
+   "lufs": -12,
+   "eq": [
+    [
+     "hp",
+     40,
+     0.707
+    ],
+    [
+     "peak",
+     900,
+     0.8,
+     2
+    ]
+   ],
+   "len": 3.0,
+   "fout": 1400
+  }
+ },
+ "G_dist_hit": {
+  "onset_ms": 13.270833333333334,
+  "file": "lib/clips/G_dist_hit.wav",
+  "take": "3382f37e310c_00",
+  "member": "344 Audio - Intense Trailer Elements/DSGNBoom_Distorted Hit 07_344 Audio_Intense Trailer Elements.wav",
+  "role": "braam",
+  "dur": 3.0,
+  "peak_ms": 94.02083333333333,
+  "proc": {
+   "lufs": -12,
+   "eq": [
+    [
+     "hp",
+     40,
+     0.707
+    ]
+   ],
+   "len": 3.0,
+   "fout": 1400
+  }
+ },
+ "G_boom_a": {
+  "onset_ms": 66.54166666666667,
+  "file": "lib/clips/G_boom_a.wav",
+  "take": "961588de0847_00",
+  "member": "Sonniss.com - GDC 2019 - Game Audio Bundle Part 2of8/Federico Soler Fern�ndez - Effective Trailer Booms/Boom 091.wav",
+  "role": "boom",
+  "dur": 3.0,
+  "peak_ms": 142.72916666666666,
+  "proc": {
+   "lufs": -13,
+   "eq": [
+    [
+     "hp",
+     30,
+     0.707
+    ]
+   ],
+   "len": 3.0,
+   "fout": 1500
+  }
+ },
+ "G_boom_b": {
+  "onset_ms": 66.375,
+  "file": "lib/clips/G_boom_b.wav",
+  "take": "8be505aeb5d4_00",
+  "member": "Sonniss.com - GDC 2019 - Game Audio Bundle Part 2of8/Federico Soler Fern�ndez - Effective Trailer Booms/Boom 040.wav",
+  "role": "boom",
+  "dur": 3.0,
+  "peak_ms": 145.35416666666669,
+  "proc": {
+   "lufs": -13,
+   "eq": [
+    [
+     "hp",
+     30,
+     0.707
+    ]
+   ],
+   "len": 3.0,
+   "fout": 1500
+  }
+ },
+ "G_metal_boom": {
+  "onset_ms": 324.5833333333333,
+  "file": "lib/clips/G_metal_boom.wav",
+  "take": "16c119cf7ea0_00",
+  "member": "Jake Fielding - Haunted Metal Vol.1 - Cinematic Hits & Impacts/DSGNBoom_Cinematic Metallic Hit, Boom, Trailer, Sub_JF_Haunted Metal Vol 1_78.wav",
+  "role": "boom",
+  "dur": 4.0,
+  "peak_ms": 330.45833333333337,
+  "proc": {
+   "lufs": -12,
+   "eq": [
+    [
+     "hp",
+     35,
+     0.707
+    ]
+   ],
+   "len": 4.0,
+   "fout": 1800
+  }
+ },
+ "G_downer": {
+  "onset_ms": 87.35416666666666,
+  "file": "lib/clips/G_downer.wav",
+  "take": "ddd0e4cb3c24_00",
+  "member": "Federico Soler Fernandez - Effective Trailer Downers/Downer 111.wav",
+  "role": "sub",
+  "dur": 3.0,
+  "peak_ms": 664.2291666666666,
+  "proc": {
+   "lufs": -13,
+   "eq": [
+    [
+     "hp",
+     28,
+     0.707
+    ]
+   ],
+   "len": 3.0,
+   "fout": 1400
+  }
+ },
+ "G_downer_b": {
+  "onset_ms": 27.0625,
+  "file": "lib/clips/G_downer_b.wav",
+  "take": "709f3418821b_00",
+  "member": "Federico Soler Fernandez - Effective Trailer Downers/Downer 049.wav",
+  "role": "sub",
+  "dur": 3.5,
+  "peak_ms": 70.52083333333334,
+  "proc": {
+   "lufs": -13,
+   "eq": [
+    [
+     "hp",
+     28,
+     0.707
+    ]
+   ],
+   "len": 3.5,
+   "fout": 1600
+  }
+ },
+ "G_far_explo": {
+  "onset_ms": 2.2916666666666665,
+  "file": "lib/clips/G_far_explo.wav",
+  "take": "2c399a9eba8a_00",
+  "member": "Stefano Cremona - Explosions/FarExplosion03.wav",
+  "role": "explosion",
+  "dur": 3.22,
+  "peak_ms": 14.770833333333334,
+  "proc": {
+   "lufs": -13,
+   "eq": [
+    [
+     "hp",
+     30,
+     0.707
+    ]
+   ],
+   "fout": 1200
+  }
+ },
+ "G_mine": {
+  "onset_ms": 17.1875,
+  "file": "lib/clips/G_mine.wav",
+  "take": "075f64d54ce3_00",
+  "member": "Pole Position - The Warfare 2 Library/Tank Mine - EXPLOSION - Mounted on Metal Beam - DISTANT - AMBEO BLD.wav",
+  "role": "explosion",
+  "dur": 2.85,
+  "peak_ms": 37.541666666666664,
+  "proc": {
+   "lufs": -12,
+   "eq": [
+    [
+     "hp",
+     35,
+     0.707
+    ],
+    [
+     "peak",
+     700,
+     0.8,
+     2
+    ]
+   ],
+   "fout": 1000
+  }
+ },
+ "G_riser": {
+  "onset_ms": 1608.2916666666667,
+  "file": "lib/clips/G_riser.wav",
+  "take": "a4487a3ee3ff_00",
+  "member": "Federico Soler Fernandez - Effective Trailer Risers/Riser 078.wav",
+  "role": "riser",
+  "dur": 3.33,
+  "peak_ms": 1821.1666666666665,
+  "proc": {
+   "lufs": -16,
+   "eq": [
+    [
+     "hp",
+     120,
+     0.707
+    ]
+   ],
+   "fin": 300,
+   "fout": 40
+  }
+ },
+ "G_riser_long": {
+  "onset_ms": 2332.1875,
+  "file": "lib/clips/G_riser_long.wav",
+  "take": "2a14e99fdee2_00",
+  "member": "Justsoundeffects - Horror Jumpscares/DSGNRise_Digital Riser 06_JSE_HJS.wav",
+  "role": "riser",
+  "dur": 5.51,
+  "peak_ms": 3254.9375,
+  "proc": {
+   "lufs": -17,
+   "eq": [
+    [
+     "hp",
+     60,
+     0.707
+    ]
+   ],
+   "fin": 500,
+   "fout": 60
+  }
+ },
+ "G_stinger": {
+  "onset_ms": 506.06249999999994,
+  "file": "lib/clips/G_stinger.wav",
+  "take": "e2f320fc25d2_00",
+  "member": "Sonniss.com - GDC 2018 - Game Audio Bundle Part 5of8/Sir Bedlam Productions – Bedlam Stingers - Cinematic Horror Sound FX/Stinger-Low13.wav",
+  "role": "braam",
+  "dur": 3.5,
+  "peak_ms": 1208.1458333333333,
+  "proc": {
+   "lufs": -14,
+   "eq": [
+    [
+     "hp",
+     28,
+     0.707
+    ]
+   ],
+   "len": 3.5,
+   "fin": 20,
+   "fout": 1500
+  }
+ },
+ "V_b1": {
+  "onset_ms": 12.895833333333334,
+  "file": "lib/clips/V_b1.wav",
+  "take": "890ea325754a_00",
+  "member": "Async Audio - Trailer Tools/Async_Impact2.wav",
+  "role": "boom",
+  "dur": 3.2,
+  "peak_ms": 464.5208333333333,
+  "proc": {
+   "lufs": -12,
+   "eq": [
+    [
+     "hp",
+     30,
+     0.707
+    ]
+   ],
+   "len": 3.2,
+   "fout": 1500
+  }
+ },
+ "V_b2": {
+  "onset_ms": 80.625,
+  "file": "lib/clips/V_b2.wav",
+  "take": "40bd5e44fa40_00",
+  "member": "Pole Position Production - The Cinematic Transformation Library/CINEMATIC - IMPACT - Hit - Upfront - 30 Warped Ripping Thundering Long Warbling tail.wav",
+  "role": "boom",
+  "dur": 3.08,
+  "peak_ms": 765.6041666666666,
+  "proc": {
+   "lufs": -12,
+   "eq": [
+    [
+     "hp",
+     30,
+     0.707
+    ]
+   ],
+   "len": 3.2,
+   "fout": 1500
+  }
+ },
+ "V_b3": {
+  "onset_ms": 47.02083333333333,
+  "file": "lib/clips/V_b3.wav",
+  "take": "f8b5b441c831_00",
+  "member": "Stefano Cremona - Explosions/DeepExplosion02.wav",
+  "role": "boom",
+  "dur": 3.2,
+  "peak_ms": 439.1875,
+  "proc": {
+   "lufs": -12,
+   "eq": [
+    [
+     "hp",
+     30,
+     0.707
+    ]
+   ],
+   "len": 3.2,
+   "fout": 1500
+  }
+ },
+ "V_b4": {
+  "onset_ms": 17.875,
+  "file": "lib/clips/V_b4.wav",
+  "take": "0e04236a16b4_00",
+  "member": "CB Sound Design - Whoosh And Push/W_a_P_Sci_Fi_Hit_3.wav",
+  "role": "boom",
+  "dur": 1.66,
+  "peak_ms": 503.2916666666667,
+  "proc": {
+   "lufs": -12,
+   "eq": [
+    [
+     "hp",
+     30,
+     0.707
+    ]
+   ],
+   "len": 3.2,
+   "fout": 1500
+  }
+ },
+ "V_b5": {
+  "onset_ms": 22.770833333333332,
+  "file": "lib/clips/V_b5.wav",
+  "take": "0785efcac4d4_00",
+  "member": "Sonniss.com - GDC 2019 - Game Audio Bundle Part 3of8/PMSFX - CineDrop/PM_CNDP_23.wav",
+  "role": "boom",
+  "dur": 3.2,
+  "peak_ms": 143.85416666666669,
+  "proc": {
+   "lufs": -12,
+   "eq": [
+    [
+     "hp",
+     30,
+     0.707
+    ]
+   ],
+   "len": 3.2,
+   "fout": 1500
+  }
+ },
+ "V_b6": {
+  "onset_ms": 320.14583333333337,
+  "file": "lib/clips/V_b6.wav",
+  "take": "97625f06cf0c_00",
+  "member": "Sonniss.com - GDC 2019 - Game Audio Bundle Part 3of8/PMSFX - CineDrop/PM_CNDP_57.wav",
+  "role": "boom",
+  "dur": 3.2,
+  "peak_ms": 587.2916666666666,
+  "proc": {
+   "lufs": -12,
+   "eq": [
+    [
+     "hp",
+     30,
+     0.707
+    ]
+   ],
+   "len": 3.2,
+   "fout": 1500
+  }
+ },
+ "V_b7": {
+  "onset_ms": 27.104166666666664,
+  "file": "lib/clips/V_b7.wav",
+  "take": "de894f9984a0_00",
+  "member": "Sonniss.com - GDC 2019 - Game Audio Bundle Part 2of8/Federico Soler Fern�ndez - Effective Trailer Hits & Impacts/Dramatic E.wav",
+  "role": "boom",
+  "dur": 3.2,
+  "peak_ms": 137.66666666666666,
+  "proc": {
+   "lufs": -12,
+   "eq": [
+    [
+     "hp",
+     30,
+     0.707
+    ]
+   ],
+   "len": 3.2,
+   "fout": 1500
+  }
+ },
+ "V_b8": {
+  "onset_ms": 1.8125,
+  "file": "lib/clips/V_b8.wav",
+  "take": "3b3e46d43ce8_00",
+  "member": "Bluezone - Nightfall - Scary Sound Effects And Ambiences/Bluezone_BC0255_impact_017.wav",
+  "role": "boom",
+  "dur": 3.2,
+  "peak_ms": 278.08333333333337,
+  "proc": {
+   "lufs": -12,
+   "eq": [
+    [
+     "hp",
+     30,
+     0.707
+    ]
+   ],
+   "len": 3.2,
+   "fout": 1500
+  }
+ },
+ "V_b9": {
+  "onset_ms": 362.9375,
+  "file": "lib/clips/V_b9.wav",
+  "take": "7260bf0b1f68_00",
+  "member": "SmartSoundFX - Impacts, Hits & Whooshes/IMPACT DARK Epic Punch_01.wav",
+  "role": "boom",
+  "dur": 3.2,
+  "peak_ms": 587.125,
+  "proc": {
+   "lufs": -12,
+   "eq": [
+    [
+     "hp",
+     30,
+     0.707
+    ]
+   ],
+   "len": 3.2,
+   "fout": 1500
+  }
+ },
+ "V_b10": {
+  "onset_ms": 7.104166666666667,
+  "file": "lib/clips/V_b10.wav",
+  "take": "92b44abbb802_00",
+  "member": "Bluezone - Black Project - Mysterious Cinematic Samples/Bluezone_BC0262_black_project_cinematic_impact_013.wav",
+  "role": "boom",
+  "dur": 2.77,
+  "peak_ms": 220.45833333333334,
+  "proc": {
+   "lufs": -12,
+   "eq": [
+    [
+     "hp",
+     30,
+     0.707
+    ]
+   ],
+   "len": 3.2,
+   "fout": 1500
+  }
+ },
+ "V_b11": {
+  "onset_ms": 110.41666666666666,
+  "file": "lib/clips/V_b11.wav",
+  "take": "b9ec7d952975_00",
+  "member": "Federico Soler Fernandez - Effective Trailer Pings/Ping 010.wav",
+  "role": "boom",
+  "dur": 3.2,
+  "peak_ms": 562.875,
+  "proc": {
+   "lufs": -12,
+   "eq": [
+    [
+     "hp",
+     30,
+     0.707
+    ]
+   ],
+   "len": 3.2,
+   "fout": 1500
+  }
+ },
+ "V_b12": {
+  "onset_ms": 21.770833333333332,
+  "file": "lib/clips/V_b12.wav",
+  "take": "8510d6180913_00",
+  "member": "344 Audio - Conspiracy Theory/Low Boom 3.wav",
+  "role": "boom",
+  "dur": 2.4,
+  "peak_ms": 33.625,
+  "proc": {
+   "lufs": -12,
+   "eq": [
+    [
+     "hp",
+     30,
+     0.707
+    ]
+   ],
+   "len": 3.2,
+   "fout": 1500
+  }
+ },
+ "V_e1": {
+  "onset_ms": 85.70833333333333,
+  "file": "lib/clips/V_e1.wav",
+  "take": "878fc6c88e10_00",
+  "member": "Sonniss.com - GDC 2018 - Game Audio Bundle Part 3of8/Gamemaster Audio - Guns, Bullets and Explosions/explosion_large_07.wav",
+  "role": "explosion",
+  "dur": 2.2799791666666667,
+  "peak_ms": 305.04166666666663,
+  "proc": {
+   "lufs": -12,
+   "eq": [
+    [
+     "hp",
+     35,
+     0.707
+    ],
+    [
+     "peak",
+     800,
+     0.8,
+     2
+    ]
+   ],
+   "len": 3.0,
+   "fout": 1400
+  }
+ },
+ "V_e2": {
+  "onset_ms": 1.6458333333333333,
+  "file": "lib/clips/V_e2.wav",
+  "take": "d10eed869502_00",
+  "member": "Bluezone - Tank - Explosion Sound Effects/Bluezone_BC0271_explosion_outdoors_large_005.wav",
+  "role": "explosion",
+  "dur": 3.0,
+  "peak_ms": 8.479166666666666,
+  "proc": {
+   "lufs": -12,
+   "eq": [
+    [
+     "hp",
+     35,
+     0.707
+    ],
+    [
+     "peak",
+     800,
+     0.8,
+     2
+    ]
+   ],
+   "len": 3.0,
+   "fout": 1400
+  }
+ },
+ "V_e3": {
+  "onset_ms": 21.166666666666668,
+  "file": "lib/clips/V_e3.wav",
+  "take": "0ff13f4a7c98_01",
+  "member": "Sonniss.com - GDC 2019 - Game Audio Bundle Part 5of8/Rock The Speakerbox - Broken/BROKEN - CK - EXPLOSION Boomy Crack.wav",
+  "role": "explosion",
+  "dur": 3.0,
+  "peak_ms": 101.6875,
+  "proc": {
+   "lufs": -12,
+   "eq": [
+    [
+     "hp",
+     35,
+     0.707
+    ],
+    [
+     "peak",
+     800,
+     0.8,
+     2
+    ]
+   ],
+   "len": 3.0,
+   "fout": 1400
+  }
+ },
+ "V_e4": {
+  "onset_ms": 17.8125,
+  "file": "lib/clips/V_e4.wav",
+  "take": "0ff13f4a7c98_02",
+  "member": "Sonniss.com - GDC 2019 - Game Audio Bundle Part 5of8/Rock The Speakerbox - Broken/BROKEN - CK - EXPLOSION Boomy Crack.wav",
+  "role": "explosion",
+  "dur": 3.0,
+  "peak_ms": 93.04166666666666,
+  "proc": {
+   "lufs": -12,
+   "eq": [
+    [
+     "hp",
+     35,
+     0.707
+    ],
+    [
+     "peak",
+     800,
+     0.8,
+     2
+    ]
+   ],
+   "len": 3.0,
+   "fout": 1400
+  }
+ },
+ "V_e5": {
+  "onset_ms": 17.895833333333332,
+  "file": "lib/clips/V_e5.wav",
+  "take": "0ff13f4a7c98_03",
+  "member": "Sonniss.com - GDC 2019 - Game Audio Bundle Part 5of8/Rock The Speakerbox - Broken/BROKEN - CK - EXPLOSION Boomy Crack.wav",
+  "role": "explosion",
+  "dur": 3.0,
+  "peak_ms": 102.1875,
+  "proc": {
+   "lufs": -12,
+   "eq": [
+    [
+     "hp",
+     35,
+     0.707
+    ],
+    [
+     "peak",
+     800,
+     0.8,
+     2
+    ]
+   ],
+   "len": 3.0,
+   "fout": 1400
+  }
+ },
+ "V_e6": {
+  "onset_ms": 53.104166666666664,
+  "file": "lib/clips/V_e6.wav",
+  "take": "0235cff6003f_00",
+  "member": "Sonniss.com - GDC 2018 - Game Audio Bundle Part 4of8/Olivier Girardot - Guns & Explosions/Explosion 8.wav",
+  "role": "explosion",
+  "dur": 3.0,
+  "peak_ms": 296.1458333333333,
+  "proc": {
+   "lufs": -12,
+   "eq": [
+    [
+     "hp",
+     35,
+     0.707
+    ],
+    [
+     "peak",
+     800,
+     0.8,
+     2
+    ]
+   ],
+   "len": 3.0,
+   "fout": 1400
+  }
+ },
+ "V_e7": {
+  "onset_ms": 57.4375,
+  "file": "lib/clips/V_e7.wav",
+  "take": "408a1612c748_00",
+  "member": "DavidDumais - Explosion SFX Pack/DESTRCrsh_Designed Car Explosion With Metal Breaking And Glass Shattering  06_DDUMAIS_NONE.wav",
+  "role": "explosion",
+  "dur": 3.0,
+  "peak_ms": 264.0416666666667,
+  "proc": {
+   "lufs": -12,
+   "eq": [
+    [
+     "hp",
+     35,
+     0.707
+    ],
+    [
+     "peak",
+     800,
+     0.8,
+     2
+    ]
+   ],
+   "len": 3.0,
+   "fout": 1400
+  }
+ },
+ "V_e8": {
+  "onset_ms": 37.25,
+  "file": "lib/clips/V_e8.wav",
+  "take": "83fe785b301a_00",
+  "member": "Sonniss.com - GDC 2018 - Game Audio Bundle Part 5of8/Soundrangers - Hydrology Underwater/explosion_underwater_blast_04.wav",
+  "role": "explosion",
+  "dur": 3.0,
+  "peak_ms": 92.02083333333333,
+  "proc": {
+   "lufs": -12,
+   "eq": [
+    [
+     "hp",
+     35,
+     0.707
+    ],
+    [
+     "peak",
+     800,
+     0.8,
+     2
+    ]
+   ],
+   "len": 3.0,
+   "fout": 1400
+  }
+ },
+ "V_e9": {
+  "onset_ms": 30.791666666666664,
+  "file": "lib/clips/V_e9.wav",
+  "take": "c8bd1faff7ff_00",
+  "member": "Shapeforms Audio - Sci-Fi Weapons Cyberpunk Arsenal/EXPLDsgn_Explosion Rumble Distorted_07_SFRMS_SCIWPNS.wav",
+  "role": "explosion",
+  "dur": 3.0,
+  "peak_ms": 98.25,
+  "proc": {
+   "lufs": -12,
+   "eq": [
+    [
+     "hp",
+     35,
+     0.707
+    ],
+    [
+     "peak",
+     800,
+     0.8,
+     2
+    ]
+   ],
+   "len": 3.0,
+   "fout": 1400
+  }
+ },
+ "V_e10": {
+  "onset_ms": 127.22916666666667,
+  "file": "lib/clips/V_e10.wav",
+  "take": "9b2e5a717315_00",
+  "member": "DavidDumais - Explosion SFX Pack/EXPLDsgn_Nuclear Explosion 07_DDUMAIS_NONE.wav",
+  "role": "explosion",
+  "dur": 3.0,
+  "peak_ms": 229.5,
+  "proc": {
+   "lufs": -12,
+   "eq": [
+    [
+     "hp",
+     35,
+     0.707
+    ],
+    [
+     "peak",
+     800,
+     0.8,
+     2
+    ]
+   ],
+   "len": 3.0,
+   "fout": 1400
+  }
+ },
+ "V_t1": {
+  "onset_ms": 160.10416666666666,
+  "file": "lib/clips/V_t1.wav",
+  "take": "a8f9f8ec4fcd_00",
+  "member": "Sonniss.com - GDC 2019 - Game Audio Bundle Part 2of8/Olivier Girardot - Natural Disasters/Rocks Falling from the Sky.wav",
+  "role": "tail",
+  "dur": 3.5,
+  "peak_ms": 226.47916666666669,
+  "proc": {
+   "lufs": -17,
+   "eq": [
+    [
+     "hp",
+     60,
+     0.707
+    ]
+   ],
+   "ofs": 2.6,
+   "len": 3.5,
+   "fin": 150,
+   "fout": 1500
+  }
+ },
+ "V_t2": {
+  "onset_ms": 545.75,
+  "file": "lib/clips/V_t2.wav",
+  "take": "9e5278ed4dee_00",
+  "member": "Bluezone - Tank - Explosion Sound Effects/Bluezone_BC0271_debris_falling_rock_dust_002.wav",
+  "role": "tail",
+  "dur": 2.17,
+  "peak_ms": 1384.0833333333333,
+  "proc": {
+   "lufs": -18,
+   "eq": [
+    [
+     "hp",
+     150,
+     0.707
+    ]
+   ],
+   "fout": 700
+  }
+ },
+ "V_t3": {
+  "onset_ms": 480.7708333333333,
+  "file": "lib/clips/V_t3.wav",
+  "take": "4f1cc2706ec8_00",
+  "member": "BluezoneCorp - Building Collapse/Bluezone_BC0275_building_collapse_debris_falling_rock_rubble_008.wav",
+  "role": "tail",
+  "dur": 3.0,
+  "peak_ms": 486.22916666666663,
+  "proc": {
+   "lufs": -17,
+   "eq": [
+    [
+     "hp",
+     60,
+     0.707
+    ]
+   ],
+   "ofs": 3.0,
+   "len": 3.0,
+   "fin": 150,
+   "fout": 1300
+  }
+ },
+ "V_t4": {
+  "onset_ms": 157.375,
+  "file": "lib/clips/V_t4.wav",
+  "take": "d4ff93cb7c16_00",
+  "member": "Rogue Waves - Druid Magic/MAGElem_Water Spell Splash Attack Medium 2_RogueWaves_DruidMagic.wav",
+  "role": "tail",
+  "dur": 1.47,
+  "peak_ms": 280.60416666666663,
+  "proc": {
+   "lufs": -17,
+   "eq": [
+    [
+     "hp",
+     100,
+     0.707
+    ]
+   ],
+   "ofs": 1.0,
+   "fin": 40,
+   "fout": 700
+  }
+ },
+ "V_d1": {
+  "onset_ms": 17.729166666666668,
+  "file": "lib/clips/V_d1.wav",
+  "take": "1e1c5e0b7415_00",
+  "member": "344 Audio - Bass Drops & Downers Vol. 2/DSGNBass_Bass Drop & Downer Medium 15_344 Audio_Bass Drops & Downers Vol 2.wav",
+  "role": "sub",
+  "dur": 3.5372916666666665,
+  "peak_ms": 31.666666666666668,
+  "proc": {
+   "lufs": -14,
+   "eq": [
+    [
+     "hp",
+     25,
+     0.707
+    ]
+   ],
+   "fout": 1200
+  }
+ },
+ "V_d2": {
+  "onset_ms": 9.020833333333334,
+  "file": "lib/clips/V_d2.wav",
+  "take": "a8d26e89bfb5_00",
+  "member": "344 Audio - Trailer Instruments Designed/Sub Drop 2.wav",
+  "role": "sub",
+  "dur": 3.0,
+  "peak_ms": 18.5625,
+  "proc": {
+   "lufs": -14,
+   "eq": [
+    [
+     "hp",
+     25,
+     0.707
+    ]
+   ],
+   "len": 3.0,
+   "fout": 1300
+  }
+ },
+ "V_d3": {
+  "onset_ms": 58.104166666666664,
+  "file": "lib/clips/V_d3.wav",
+  "take": "cbb343d37c43_00",
+  "member": "Sonniss.com - GDC 2019 - Game Audio Bundle Part 7of8/2496SoundEffects - Sound Design FX Super Pack 1/echo hit pan  subsonic pro sound effect.wav",
+  "role": "sub",
+  "dur": 2.2644583333333332,
+  "peak_ms": 334.77083333333337,
+  "proc": {
+   "lufs": -14,
+   "eq": [
+    [
+     "hp",
+     25,
+     0.707
+    ]
+   ],
+   "fout": 600
+  }
+ },
+ "V_d4": {
+  "onset_ms": 18.375,
+  "file": "lib/clips/V_d4.wav",
+  "take": "512371dd5769_00",
+  "member": "344 Audio - Bass Drops & Downers Vol. 3/DSGNBass_Rattling Downer 3_344 Audio_Bass Drops and Downers Vol 3.wav",
+  "role": "sub",
+  "dur": 2.6103125,
+  "peak_ms": 106.25,
+  "proc": {
+   "lufs": -14,
+   "eq": [
+    [
+     "hp",
+     25,
+     0.707
+    ]
+   ],
+   "ofs": 2.9,
+   "fin": 20,
+   "fout": 1200
+  }
+ },
+ "V_s1": {
+  "onset_ms": 30.375,
+  "file": "lib/clips/V_s1.wav",
+  "take": "419f25086091_00",
+  "member": "Federico Soler Fernandez - Effective Trailer Braams/Braam 004 (D).wav",
+  "role": "braam",
+  "dur": 4.0,
+  "peak_ms": 289.7708333333333,
+  "proc": {
+   "lufs": -14,
+   "eq": [
+    [
+     "hp",
+     28,
+     0.707
+    ]
+   ],
+   "ofs": 3.3,
+   "len": 4.0,
+   "fin": 30,
+   "fout": 1800
+  }
+ },
+ "V_dr1": {
+  "onset_ms": 565.1875,
+  "file": "lib/clips/V_dr1.wav",
+  "take": "0c5800b97126_00",
+  "member": "SmartSoundFX - Krypton/ATMOSPHERIC DARK Fluttering Darkness.wav",
+  "role": "drone",
+  "dur": 7.0,
+  "peak_ms": 4185.666666666667,
+  "proc": {
+   "lufs": -17,
+   "eq": [
+    [
+     "hp",
+     40,
+     0.707
+    ]
+   ],
+   "ofs": 20,
+   "len": 7.0,
+   "fin": 600,
+   "fout": 2000
+  }
+ },
+ "V_dr2": {
+  "onset_ms": 550.5625,
+  "file": "lib/clips/V_dr2.wav",
+  "take": "fd5b7d08a0ff_00",
+  "member": "Sonniss.com - GDC 2018 - Game Audio Bundle Part 4of8/MatiasMacSD - DISTORTED PERCEPTION/DP-Atmospheric element_Tension-01.wav",
+  "role": "drone",
+  "dur": 7.0,
+  "peak_ms": 3083.2291666666665,
+  "proc": {
+   "lufs": -17,
+   "eq": [
+    [
+     "hp",
+     40,
+     0.707
+    ]
+   ],
+   "ofs": 8,
+   "len": 7.0,
+   "fin": 600,
+   "fout": 2000
+  }
+ },
+ "V_dr3": {
+  "onset_ms": 681.125,
+  "file": "lib/clips/V_dr3.wav",
+  "take": "6379b957b1ef_00",
+  "member": "Sonniss.com - GDC 2019 - Game Audio Bundle Part 5of8/Sound Ex Machina - Endless Drones/Abnormal&Experimental - Multiverse Interaction.wav",
+  "role": "drone",
+  "dur": 7.0,
+  "peak_ms": 3476.166666666667,
+  "proc": {
+   "lufs": -17,
+   "eq": [
+    [
+     "hp",
+     40,
+     0.707
+    ]
+   ],
+   "ofs": 30,
+   "len": 7.0,
+   "fin": 600,
+   "fout": 2000
+  }
+ },
+ "V_dr4": {
+  "onset_ms": 471.7916666666667,
+  "file": "lib/clips/V_dr4.wav",
+  "take": "91f8b3df95da_00",
+  "member": "Sonniss.com - GDC 2019 - Game Audio Bundle Part 6of8/SoundsArchaic - Melancholy Textures/Melancholy Texture G 7.wav",
+  "role": "drone",
+  "dur": 7.000020833333333,
+  "peak_ms": 2063.833333333333,
+  "proc": {
+   "lufs": -17,
+   "eq": [
+    [
+     "hp",
+     40,
+     0.707
+    ]
+   ],
+   "ofs": 10,
+   "len": 7.0,
+   "fin": 600,
+   "fout": 2000
+  }
+ },
+ "V_dr5": {
+  "onset_ms": 534.25,
+  "file": "lib/clips/V_dr5.wav",
+  "take": "0c5d958c9cf8_00",
+  "member": "BluezoneCorp - Better World - Ethereal Ambient Samples/Bluezone_BC0276_better_world_synth_texture_complex_002.wav",
+  "role": "drone",
+  "dur": 7.0,
+  "peak_ms": 1757.7916666666667,
+  "proc": {
+   "lufs": -17,
+   "eq": [
+    [
+     "hp",
+     40,
+     0.707
+    ]
+   ],
+   "ofs": 2,
+   "len": 7.0,
+   "fin": 600,
+   "fout": 2000
+  }
+ },
+ "V_dr6": {
+  "onset_ms": 994.2916666666666,
+  "file": "lib/clips/V_dr6.wav",
+  "take": "648c8613652c_00",
+  "member": "344 Audio - Supernatural Ghosts/Ghostly Presence, Angelic, Vocal, Layer, Creepy, Horror 4.wav",
+  "role": "drone",
+  "dur": 7.000020833333333,
+  "peak_ms": 2561.5,
+  "proc": {
+   "lufs": -17,
+   "eq": [
+    [
+     "hp",
+     40,
+     0.707
+    ]
+   ],
+   "ofs": 40,
+   "len": 7.0,
+   "fin": 600,
+   "fout": 2000
+  }
+ },
+ "V_dr7": {
+  "onset_ms": 545.9583333333334,
+  "file": "lib/clips/V_dr7.wav",
+  "take": "fde2f8dd525e_00",
+  "member": "Bluezone - Lunar - Cinematic Ambient Samples/Bluezone_BC0257_ambience_011.wav",
+  "role": "drone",
+  "dur": 7.0,
+  "peak_ms": 3389.666666666667,
+  "proc": {
+   "lufs": -17,
+   "eq": [
+    [
+     "hp",
+     40,
+     0.707
+    ]
+   ],
+   "ofs": 20,
+   "len": 7.0,
+   "fin": 600,
+   "fout": 2000
+  }
+ },
+ "V_r1": {
+  "onset_ms": 2602.354166666667,
+  "file": "lib/clips/V_r1.wav",
+  "take": "457b59d5b477_00",
+  "member": "344 Audio - Trailer Instruments Designed/Riser 9.wav",
+  "role": "riser",
+  "dur": 4.699979166666667,
+  "peak_ms": 3623.1666666666665,
+  "proc": {
+   "lufs": -16,
+   "eq": [
+    [
+     "hp",
+     100,
+     0.707
+    ]
+   ],
+   "fin": 300,
+   "fout": 40
+  }
+ },
+ "V_r2": {
+  "onset_ms": 348.9375,
+  "file": "lib/clips/V_r2.wav",
+  "take": "203e780352e7_00",
+  "member": "Federico Soler Fernandez - Effective Trailer Risers/Riser 027.wav",
+  "role": "riser",
+  "dur": 4.4,
+  "peak_ms": 4227.3125,
+  "proc": {
+   "lufs": -16,
+   "eq": [
+    [
+     "hp",
+     100,
+     0.707
+    ]
+   ],
+   "ofs": 11.5,
+   "len": 4.4,
+   "fin": 400,
+   "fout": 40
+  }
+ },
+ "V_r3": {
+  "onset_ms": 3412.0,
+  "file": "lib/clips/V_r3.wav",
+  "take": "122bb994c262_00",
+  "member": "Async Audio - Trailer Reverses/Async Tonal Deep.wav",
+  "role": "riser",
+  "dur": 4.4,
+  "peak_ms": 4327.0,
+  "proc": {
+   "lufs": -16,
+   "eq": [
+    [
+     "hp",
+     60,
+     0.707
+    ]
+   ],
+   "len": 4.4,
+   "fin": 300,
+   "fout": 60
+  }
+ },
+ "V_r4": {
+  "onset_ms": 4239.666666666666,
+  "file": "lib/clips/V_r4.wav",
+  "take": "4d9ddf36f51a_00",
+  "member": "Async Audio - Trailer Reverses/Async Horror Piano.wav",
+  "role": "riser",
+  "dur": 4.8,
+  "peak_ms": 4667.25,
+  "proc": {
+   "lufs": -17,
+   "eq": [
+    [
+     "hp",
+     100,
+     0.707
+    ]
+   ],
+   "len": 4.8,
+   "fin": 300,
+   "fout": 60
+  }
+ },
+ "V_choir": {
+  "onset_ms": 87.375,
+  "file": "lib/clips/V_choir.wav",
+  "take": "d82cd727011f_00",
+  "member": "Sonniss.com - GDC 2019 - Game Audio Bundle Part 2of8/Certified Audio - Ambient Soundscapes/Church Choir_Dm.wav",
+  "role": "choir",
+  "dur": 1.8,
+  "peak_ms": 128.1875,
+  "proc": {
+   "lufs": -15,
+   "eq": [
+    [
+     "hp",
+     120,
+     0.707
+    ]
+   ],
+   "fout": 600
+  }
+ },
+ "W_s1": {
+  "onset_ms": 33.75,
+  "file": "lib/clips/W_s1.wav",
+  "take": "919ce50c8d0b_00",
+  "member": "Sonniss.com - GDC 2019 - Game Audio Bundle Part 1of8/344 Audio - Low Frequency Elements/Explosive Hit 10 Filtered, Low End.wav",
+  "role": "sub",
+  "dur": 1.5,
+  "peak_ms": 136.4375,
+  "proc": {
+   "lufs": -14,
+   "eq": [
+    [
+     "hp",
+     25,
+     0.707
+    ],
+    [
+     "lp",
+     160,
+     0.707
+    ]
+   ],
+   "len": 1.5,
+   "fout": 675
+  }
+ },
+ "W_s2": {
+  "onset_ms": 31.020833333333336,
+  "file": "lib/clips/W_s2.wav",
+  "take": "592c9504c1cb_00",
+  "member": "Federico Soler - Effective Trailer Booms Vol. 2/EffectiveTrailer_Booms_Vol2_214.wav",
+  "role": "sub",
+  "dur": 3.0,
+  "peak_ms": 52.770833333333336,
+  "proc": {
+   "lufs": -14,
+   "eq": [
+    [
+     "hp",
+     25,
+     0.707
+    ],
+    [
+     "lp",
+     200,
+     0.707
+    ]
+   ],
+   "len": 3.0,
+   "fout": 1350
+  }
+ },
+ "W_s3": {
+  "onset_ms": 38.125,
+  "file": "lib/clips/W_s3.wav",
+  "take": "76426f52b708_00",
+  "member": "Federico Soler - Effective Trailer Booms Vol. 2/EffectiveTrailer_Booms_Vol2_011.wav",
+  "role": "sub",
+  "dur": 3.0,
+  "peak_ms": 1175.5,
+  "proc": {
+   "lufs": -14,
+   "eq": [
+    [
+     "hp",
+     25,
+     0.707
+    ],
+    [
+     "lp",
+     200,
+     0.707
+    ]
+   ],
+   "len": 3.0,
+   "fout": 1350
+  }
+ },
+ "W_s4": {
+  "onset_ms": 29.645833333333332,
+  "file": "lib/clips/W_s4.wav",
+  "take": "e6747145eff8_00",
+  "member": "Federico Soler - Effective Trailer Booms Vol. 2/EffectiveTrailer_Booms_Vol2_075.wav",
+  "role": "sub",
+  "dur": 3.0,
+  "peak_ms": 49.125,
+  "proc": {
+   "lufs": -14,
+   "eq": [
+    [
+     "hp",
+     25,
+     0.707
+    ],
+    [
+     "lp",
+     200,
+     0.707
+    ]
+   ],
+   "len": 3.0,
+   "fout": 1350
+  }
+ },
+ "W_s5": {
+  "onset_ms": 5.229166666666667,
+  "file": "lib/clips/W_s5.wav",
+  "take": "e8c6218a52c2_00",
+  "member": "Sonniss.com - GDC 2019 - Game Audio Bundle Part 1of8/BlueZone -Ultimate Trailer Sound Effects/Bluezone_BC0253_impact_11.wav",
+  "role": "sub",
+  "dur": 3.0,
+  "peak_ms": 64.79166666666666,
+  "proc": {
+   "lufs": -14,
+   "eq": [
+    [
+     "hp",
+     25,
+     0.707
+    ],
+    [
+     "lp",
+     220,
+     0.707
+    ]
+   ],
+   "len": 3.0,
+   "fout": 1350
+  }
+ },
+ "W_s6": {
+  "onset_ms": 265.47916666666663,
+  "file": "lib/clips/W_s6.wav",
+  "take": "681a449badaa_00",
+  "member": "Jake Fielding - Haunted Metal Vol.1 - Cinematic Hits & Impacts/DSGNBoom_Cinematic Metallic Hit, Boom, Trailer, Sub_JF_Haunted Metal Vol 1_60.wav",
+  "role": "sub",
+  "dur": 3.0,
+  "peak_ms": 267.79166666666663,
+  "proc": {
+   "lufs": -14,
+   "eq": [
+    [
+     "hp",
+     25,
+     0.707
+    ],
+    [
+     "lp",
+     200,
+     0.707
+    ]
+   ],
+   "len": 3.0,
+   "fout": 1350
+  }
+ },
+ "W_s7": {
+  "onset_ms": 349.89583333333337,
+  "file": "lib/clips/W_s7.wav",
+  "take": "721476043c58_00",
+  "member": "Jake Fielding - Haunted Metal Vol.1 - Cinematic Hits & Impacts/DSGNBoom_Cinematic Metallic Hit, Boom, Trailer, Sub_JF_Haunted Metal Vol 1_02.wav",
+  "role": "sub",
+  "dur": 3.0,
+  "peak_ms": 377.0,
+  "proc": {
+   "lufs": -14,
+   "eq": [
+    [
+     "hp",
+     25,
+     0.707
+    ],
+    [
+     "lp",
+     200,
+     0.707
+    ]
+   ],
+   "len": 3.0,
+   "fout": 1350
+  }
+ },
+ "W_s8": {
+  "onset_ms": 23.270833333333336,
+  "file": "lib/clips/W_s8.wav",
+  "take": "7c51a5b282dc_00",
+  "member": "344 Audio - Bass Drops & Downers Vol. 3/DSGNBass_Jump Start Drop 3_344 Audio_Bass Drops and Downers Vol 3.wav",
+  "role": "sub",
+  "dur": 3.0,
+  "peak_ms": 101.16666666666667,
+  "proc": {
+   "lufs": -14,
+   "eq": [
+    [
+     "hp",
+     25,
+     0.707
+    ],
+    [
+     "lp",
+     250,
+     0.707
+    ]
+   ],
+   "len": 3.0,
+   "fout": 1350
+  }
+ },
+ "W_s9": {
+  "onset_ms": 13.729166666666668,
+  "file": "lib/clips/W_s9.wav",
+  "take": "7895787675ee_00",
+  "member": "Sonniss.com - GDC 2019 - Game Audio Bundle Part 2of8/Glitchedtones - Bass Weight - Low End Elements/Bass Sub Wub 02.wav",
+  "role": "sub",
+  "dur": 2.0,
+  "peak_ms": 44.291666666666664,
+  "proc": {
+   "lufs": -14,
+   "eq": [
+    [
+     "hp",
+     25,
+     0.707
+    ],
+    [
+     "lp",
+     160,
+     0.707
+    ]
+   ],
+   "len": 2.0,
+   "fout": 900
+  }
+ },
+ "W_s10": {
+  "onset_ms": 11.395833333333332,
+  "file": "lib/clips/W_s10.wav",
+  "take": "d72bb1ff1f72_00",
+  "member": "344 Audio - Bass Drops & Downers Vol. 1/DSGNBass_Bass Drop & Downer Medium 04_344 Audio_Bass Drops & Downers.wav",
+  "role": "sub",
+  "dur": 3.5,
+  "peak_ms": 49.291666666666664,
+  "proc": {
+   "lufs": -14,
+   "eq": [
+    [
+     "hp",
+     25,
+     0.707
+    ],
+    [
+     "lp",
+     200,
+     0.707
+    ]
+   ],
+   "len": 3.5,
+   "fout": 1575
+  }
+ },
+ "W_s11": {
+  "onset_ms": 35.270833333333336,
+  "file": "lib/clips/W_s11.wav",
+  "take": "eaabc96d9633_00",
+  "member": "Sonniss.com - GDC 2019 - Game Audio Bundle Part 2of8/Federico Soler Fern�ndez - Effective Trailer Hits & Impacts/Smash B.wav",
+  "role": "sub",
+  "dur": 3.5,
+  "peak_ms": 58.041666666666664,
+  "proc": {
+   "lufs": -14,
+   "eq": [
+    [
+     "hp",
+     25,
+     0.707
+    ],
+    [
+     "lp",
+     220,
+     0.707
+    ]
+   ],
+   "len": 3.5,
+   "fout": 1575
+  }
+ },
+ "W_s12": {
+  "onset_ms": 34.791666666666664,
+  "file": "lib/clips/W_s12.wav",
+  "take": "51727173941f_00",
+  "member": "Sonniss.com - GDC 2019 - Game Audio Bundle Part 2of8/Federico Soler Fern�ndez - Effective Trailer Hits & Impacts/Angry E.wav",
+  "role": "sub",
+  "dur": 3.5,
+  "peak_ms": 39.54166666666667,
+  "proc": {
+   "lufs": -14,
+   "eq": [
+    [
+     "hp",
+     25,
+     0.707
+    ],
+    [
+     "lp",
+     250,
+     0.707
+    ]
+   ],
+   "len": 3.5,
+   "fout": 1575
+  }
+ },
+ "W_s13": {
+  "onset_ms": 71.54166666666667,
+  "file": "lib/clips/W_s13.wav",
+  "take": "13b84bcaaf7c_00",
+  "member": "Sonniss.com - GDC 2019 - Game Audio Bundle Part 2of8/Federico Soler Fern�ndez - Effective Trailer Booms/Boom 005.wav",
+  "role": "sub",
+  "dur": 3.0,
+  "peak_ms": 96.4375,
+  "proc": {
+   "lufs": -14,
+   "eq": [
+    [
+     "hp",
+     25,
+     0.707
+    ],
+    [
+     "lp",
+     220,
+     0.707
+    ]
+   ],
+   "len": 3.0,
+   "fout": 1350
+  }
+ },
+ "W_s14": {
+  "onset_ms": 18.9375,
+  "file": "lib/clips/W_s14.wav",
+  "take": "a03354bf0bd7_00",
+  "member": "Sonniss.com - GDC 2019 - Game Audio Bundle Part 1of8/Baxter Audio - IMPACT/03 Hit Big Drum.wav",
+  "role": "sub",
+  "dur": 3.0,
+  "peak_ms": 210.9375,
+  "proc": {
+   "lufs": -14,
+   "eq": [
+    [
+     "hp",
+     25,
+     0.707
+    ],
+    [
+     "lp",
+     250,
+     0.707
+    ]
+   ],
+   "len": 3.0,
+   "fout": 1350
+  }
+ },
+ "W_s15": {
+  "onset_ms": 28.75,
+  "file": "lib/clips/W_s15.wav",
+  "take": "62e52b97f085_00",
+  "member": "Sonniss.com - GDC 2018 - Game Audio Bundle Part 2of8/Bluezone Corporation - Distant Wave - Cinematic Ambient Sounds/Bluezone_BC0234_impact_006.wav",
+  "role": "sub",
+  "dur": 3.0,
+  "peak_ms": 159.89583333333331,
+  "proc": {
+   "lufs": -14,
+   "eq": [
+    [
+     "hp",
+     25,
+     0.707
+    ],
+    [
+     "lp",
+     250,
+     0.707
+    ]
+   ],
+   "len": 3.0,
+   "fout": 1350
+  }
+ },
+ "W_s16": {
+  "onset_ms": 138.10416666666666,
+  "file": "lib/clips/W_s16.wav",
+  "take": "edadcadbe08d_02",
+  "member": "Sonniss.com - GDC 2019 - Game Audio Bundle Part 2of8/MatiasMacSD - Affix/Impact element_Tension-02.wav",
+  "role": "sub",
+  "dur": 3.5,
+  "peak_ms": 221.16666666666669,
+  "proc": {
+   "lufs": -14,
+   "eq": [
+    [
+     "hp",
+     25,
+     0.707
+    ],
+    [
+     "lp",
+     250,
+     0.707
+    ]
+   ],
+   "len": 3.5,
+   "fout": 1575
+  }
+ },
+ "P_ex1": {
+  "onset_ms": 10.854166666666666,
+  "file": "lib/clips/P_ex1.wav",
+  "take": "3bb37dd1245b_00",
+  "member": "Epic Stock Media - Anime Game/EXPLDsgn_Explosion Small Blast Enemy Death Crunchy Boom Cartoon Noisy Crash Impact Delay 03_ESM_AG.wav",
+  "role": "blast_body",
+  "dur": 1.1,
+  "peak_ms": 15.9375,
+  "proc": {
+   "lufs": -14,
+   "eq": [
+    [
+     "hp",
+     160,
+     0.707
+    ],
+    [
+     "peak",
+     700,
+     0.9,
+     2
+    ],
+    [
+     "lp",
+     9000,
+     0.707
+    ]
+   ],
+   "len": 1.1,
+   "fout": 550,
+   "attack": 6,
+   "sustain": -3
+  }
+ },
+ "P_ex2": {
+  "onset_ms": 19.208333333333336,
+  "file": "lib/clips/P_ex2.wav",
+  "take": "9b0683bc23b3_00",
+  "member": "DavidDumais - Explosion SFX Pack/EXPLReal_Medium Realistic Explosion 15_DDUMAIS_NONE.wav",
+  "role": "blast_body",
+  "dur": 1.6,
+  "peak_ms": 21.145833333333332,
+  "proc": {
+   "lufs": -14,
+   "eq": [
+    [
+     "hp",
+     160,
+     0.707
+    ],
+    [
+     "peak",
+     600,
+     0.9,
+     2
+    ],
+    [
+     "lp",
+     9000,
+     0.707
+    ]
+   ],
+   "len": 1.6,
+   "fout": 800,
+   "attack": 6,
+   "sustain": -3
+  }
+ },
+ "P_ex3": {
+  "onset_ms": 1.5208333333333333,
+  "file": "lib/clips/P_ex3.wav",
+  "take": "a7356e33ebba_00",
+  "member": "BluezoneCorp - Detonation - Explosion/Bluezone_BC0277_explosion_mortar_002_01.wav",
+  "role": "blast_body",
+  "dur": 1.5,
+  "peak_ms": 6.458333333333333,
+  "proc": {
+   "lufs": -14,
+   "eq": [
+    [
+     "hp",
+     160,
+     0.707
+    ],
+    [
+     "peak",
+     650,
+     0.9,
+     2
+    ],
+    [
+     "lp",
+     9000,
+     0.707
+    ]
+   ],
+   "len": 1.5,
+   "fout": 750,
+   "attack": 6,
+   "sustain": -3
+  }
+ },
+ "P_ex4": {
+  "onset_ms": 20.0625,
+  "file": "lib/clips/P_ex4.wav",
+  "take": "f757d364af42_01",
+  "member": "Sound Villain – Fireworks Malta/006_Strong blast with medium crackles.wav",
+  "role": "blast_body",
+  "dur": 1.4,
+  "peak_ms": 23.541666666666664,
+  "proc": {
+   "lufs": -14,
+   "eq": [
+    [
+     "hp",
+     150,
+     0.707
+    ],
+    [
+     "peak",
+     800,
+     0.9,
+     2
+    ],
+    [
+     "lp",
+     9000,
+     0.707
+    ]
+   ],
+   "len": 1.4,
+   "fout": 700,
+   "attack": 6,
+   "sustain": -3
+  }
+ },
+ "P_ex5": {
+  "onset_ms": 4.354166666666667,
+  "file": "lib/clips/P_ex5.wav",
+  "take": "3c6aba2cda66_00",
+  "member": "Sonniss.com - GDC 2018 - Game Audio Bundle Part 4of8/MatiasMacSD - DISTORTED PERCEPTION/DP-Cinematic impact_Sci-fi-03.wav",
+  "role": "blast_body",
+  "dur": 1.6,
+  "peak_ms": 33.916666666666664,
+  "proc": {
+   "lufs": -15,
+   "eq": [
+    [
+     "hp",
+     170,
+     0.707
+    ],
+    [
+     "peak",
+     700,
+     0.9,
+     2
+    ],
+    [
+     "lp",
+     9000,
+     0.707
+    ]
+   ],
+   "len": 1.6,
+   "fout": 800,
+   "attack": 6,
+   "sustain": -3
+  }
+ },
+ "P_ex6": {
+  "onset_ms": 2.2916666666666665,
+  "file": "lib/clips/P_ex6.wav",
+  "take": "2625a76228a0_00",
+  "member": "Shapeforms Audio - Sci-Fi Weapons Cyberpunk Arsenal/GUNAuto_Sci Fi Shotgun Burst_04_SFRMS_SCIWPNS.wav",
+  "role": "blast_body",
+  "dur": 1.2,
+  "peak_ms": 5.0625,
+  "proc": {
+   "lufs": -15,
+   "eq": [
+    [
+     "hp",
+     180,
+     0.707
+    ],
+    [
+     "peak",
+     900,
+     0.9,
+     2
+    ],
+    [
+     "lp",
+     9000,
+     0.707
+    ]
+   ],
+   "len": 1.2,
+   "fout": 600,
+   "attack": 6,
+   "sustain": -3
+  }
+ },
+ "P_pu1": {
+  "onset_ms": 275.4375,
+  "file": "lib/clips/P_pu1.wav",
+  "take": "d93b9b2073b7_00",
+  "member": "PMSFX - Lethal Blow/PM_LB_DESIGNED_GRAB_BLOCK_THROW_7.wav",
+  "role": "punch",
+  "dur": 0.56,
+  "peak_ms": 277.8541666666667,
+  "proc": {
+   "lufs": -15,
+   "eq": [
+    [
+     "hp",
+     120,
+     0.707
+    ],
+    [
+     "peak",
+     350,
+     1.0,
+     2
+    ]
+   ],
+   "fout": 150
+  }
+ },
+ "P_pu2": {
+  "onset_ms": 2.2916666666666665,
+  "file": "lib/clips/P_pu2.wav",
+  "take": "038d3421b673_00",
+  "member": "Sonniss.com - GDC 2018 - Game Audio Bundle Part 3of8/Glitchedtones - Impact/Impact - Abstract 05.wav",
+  "role": "crack",
+  "dur": 0.9,
+  "peak_ms": 8.979166666666666,
+  "proc": {
+   "lufs": -16,
+   "eq": [
+    [
+     "hp",
+     400,
+     0.707
+    ]
+   ],
+   "len": 0.9,
+   "fout": 500
+  }
+ },
+ "P_db1": {
+  "onset_ms": 1.5416666666666667,
+  "file": "lib/clips/P_db1.wav",
+  "take": "73ac99b96cc1_00",
+  "member": "BluezoneCorp - Building Collapse/Bluezone_BC0275_building_collapse_debris_impact_glass_short_009.wav",
+  "role": "debris",
+  "dur": 0.59,
+  "peak_ms": 4.875,
+  "proc": {
+   "lufs": -19,
+   "eq": [
+    [
+     "hp",
+     300,
+     0.707
+    ]
+   ],
+   "len": 0.6,
+   "fout": 270
+  }
+ },
+ "P_db2": {
+  "onset_ms": 3.25,
+  "file": "lib/clips/P_db2.wav",
+  "take": "ec88bd17ff28_00",
+  "member": "Sonniss.com - GDC 2018 - Game Audio Bundle Part 2of8/Bluezone Corporation - Metal Debris/Bluezone_BC0236_metal_debris_097.wav",
+  "role": "debris",
+  "dur": 1.4,
+  "peak_ms": 18.4375,
+  "proc": {
+   "lufs": -19,
+   "eq": [
+    [
+     "hp",
+     300,
+     0.707
+    ]
+   ],
+   "len": 1.4,
+   "fout": 630
+  }
+ },
+ "P_db3": {
+  "onset_ms": 120.97916666666667,
+  "file": "lib/clips/P_db3.wav",
+  "take": "b9296e1e185a_00",
+  "member": "BluezoneCorp - Building Collapse/Bluezone_BC0275_building_collapse_debris_falling_rock_rubble_glass_010.wav",
+  "role": "debris",
+  "dur": 1.4,
+  "peak_ms": 123.375,
+  "proc": {
+   "lufs": -19,
+   "eq": [
+    [
+     "hp",
+     300,
+     0.707
+    ]
+   ],
+   "len": 1.4,
+   "fout": 630
+  }
+ },
+ "P_db4": {
+  "onset_ms": 1.6666666666666667,
+  "file": "lib/clips/P_db4.wav",
+  "take": "8689f04b21bc_00",
+  "member": "BluezoneCorp - Annihilation - Mech/Bluezone_BC0287_annihilation_debris_falling_rock_001.wav",
+  "role": "debris",
+  "dur": 1.2,
+  "peak_ms": 210.04166666666666,
+  "proc": {
+   "lufs": -19,
+   "eq": [
+    [
+     "hp",
+     300,
+     0.707
+    ]
+   ],
+   "len": 1.2,
+   "fout": 540
+  }
+ },
+ "H_saw": {
+  "onset_ms": 126.22916666666667,
+  "file": "lib/clips/H_saw.wav",
+  "take": "e9a39165cbab_00",
+  "member": "Sound Spark LLC - Drone Shepard Tones/Drone_Tonal_Enigmatic_Saw_Shepard_Tone_Pitch_Rising.wav",
+  "role": "ki_hum",
+  "dur": 2.2,
+  "peak_ms": 1148.875,
+  "proc": {
+   "lufs": -16,
+   "eq": [
+    [
+     "hp",
+     70,
+     0.707
+    ],
+    [
+     "peak",
+     1400,
+     0.8,
+     4
+    ],
+    [
+     "lp",
+     7000,
+     0.707
+    ]
+   ],
+   "ofs": 2.0,
+   "len": 2.2,
+   "fin": 60,
+   "fout": 300
+  }
+ },
+ "H_two": {
+  "onset_ms": 53.0,
+  "file": "lib/clips/H_two.wav",
+  "take": "fdb782cf06ec_00",
+  "member": "Sound Spark LLC - Drone Shepard Tones/Drone_Tonal_Two_Toned_Shepard_Tone_Pitch_Rising.wav",
+  "role": "ki_hum",
+  "dur": 1.6,
+  "peak_ms": 265.79166666666663,
+  "proc": {
+   "lufs": -16,
+   "eq": [
+    [
+     "hp",
+     70,
+     0.707
+    ],
+    [
+     "peak",
+     900,
+     0.8,
+     3
+    ],
+    [
+     "lp",
+     6000,
+     0.707
+    ]
+   ],
+   "ofs": 1.0,
+   "len": 1.6,
+   "fin": 60,
+   "fout": 250
+  }
+ },
+ "H_low": {
+  "onset_ms": 55.64583333333333,
+  "file": "lib/clips/H_low.wav",
+  "take": "c678dd37f819_00",
+  "member": "Tyrann0s - Distorted Reality/EM1 Low Tone 3.wav",
+  "role": "ki_hum",
+  "dur": 2.2,
+  "peak_ms": 1263.1458333333335,
+  "proc": {
+   "lufs": -15,
+   "eq": [
+    [
+     "hp",
+     30,
+     0.707
+    ],
+    [
+     "peak",
+     180,
+     1.0,
+     3
+    ]
+   ],
+   "ofs": 0.5,
+   "len": 2.2,
+   "fin": 80,
+   "fout": 300
+  }
+ },
+ "U1_beam": {
+  "onset_ms": 251.37500000000003,
+  "file": "lib/clips/U1_beam.wav",
+  "take": "b62ebb6190d1_00",
+  "member": "Sonniss.com - GDC 2018 - Game Audio Bundle Part 1of8/Airborne Sound – Light and Dark Drones/Drone,Cyber,Deep,Pulse,Disturbing,Invasive,Loop.wav",
+  "role": "beam_roll",
+  "dur": 4.0,
+  "peak_ms": 1511.0,
+  "proc": {
+   "lufs": -15,
+   "eq": [
+    [
+     "hp",
+     30,
+     0.707
+    ],
+    [
+     "peak",
+     110,
+     1.0,
+     3
+    ],
+    [
+     "lp",
+     3000,
+     0.707
+    ]
+   ],
+   "ofs": 5.0,
+   "len": 4.0,
+   "fin": 200,
+   "fout": 400
+  }
+ },
+ "U1_rumble": {
+  "onset_ms": 190.47916666666669,
+  "file": "lib/clips/U1_rumble.wav",
+  "take": "b2004c7920fc_00",
+  "member": "Sonniss.com - GDC 2018 - Game Audio Bundle Part 4of8/Olivier Girardot - Guns & Explosions/Earthquake 3 - Big.wav",
+  "role": "beam_roll",
+  "dur": 3.999979166666667,
+  "peak_ms": 1296.25,
+  "proc": {
+   "lufs": -17,
+   "eq": [
+    [
+     "hp",
+     30,
+     0.707
+    ],
+    [
+     "lp",
+     2500,
+     0.707
+    ]
+   ],
+   "ofs": 12.0,
+   "len": 4.0,
+   "fin": 200,
+   "fout": 500
+  }
+ },
+ "U1_buzz": {
+  "onset_ms": 77.41666666666666,
+  "file": "lib/clips/U1_buzz.wav",
+  "take": "fb4c9f8a6cc6_00",
+  "member": "InMotionAudio - Arc/ELECBuzz_Buzz27_InMotionAudio_Arc.wav",
+  "role": "buzz",
+  "dur": 2.5,
+  "peak_ms": 1182.1458333333333,
+  "proc": {
+   "lufs": -18,
+   "eq": [
+    [
+     "hp",
+     200,
+     0.707
+    ],
+    [
+     "lp",
+     9000,
+     0.707
+    ]
+   ],
+   "ofs": 1.0,
+   "len": 2.5,
+   "fin": 80,
+   "fout": 300
+  }
+ },
+ "U1_blast": {
+  "onset_ms": 9.645833333333332,
+  "file": "lib/clips/U1_blast.wav",
+  "take": "ea6ea8e60e6f_00",
+  "member": "Bluezone - Tank - Explosion Sound Effects/Bluezone_BC0271_tank_artillery_cannon_shot_012.wav",
+  "role": "blast_body",
+  "dur": 3.0,
+  "peak_ms": 188.9375,
+  "proc": {
+   "lufs": -12,
+   "eq": [
+    [
+     "hp",
+     40,
+     0.707
+    ],
+    [
+     "peak",
+     500,
+     0.8,
+     2
+    ]
+   ],
+   "ofs": 0.55,
+   "len": 3.0,
+   "fin": 5,
+   "fout": 1400,
+   "attack": 4
+  }
+ },
+ "U1_crack": {
+  "onset_ms": 172.70833333333331,
+  "file": "lib/clips/U1_crack.wav",
+  "take": "f757d364af42_00",
+  "member": "Sound Villain – Fireworks Malta/006_Strong blast with medium crackles.wav",
+  "role": "debris",
+  "dur": 3.0,
+  "peak_ms": 635.375,
+  "proc": {
+   "lufs": -18,
+   "eq": [
+    [
+     "hp",
+     300,
+     0.707
+    ]
+   ],
+   "ofs": 1.0,
+   "len": 3.0,
+   "fin": 40,
+   "fout": 1200
+  }
+ },
+ "W_r1": {
+  "onset_ms": 119.29166666666667,
+  "file": "lib/clips/W_r1.wav",
+  "take": "8cc23c0743b1_00",
+  "member": "344 Audio - Trailer Instruments Designed/LFE Rumble 3.wav",
+  "role": "tail",
+  "dur": 4.0,
+  "peak_ms": 718.4791666666666,
+  "proc": {
+   "lufs": -16,
+   "eq": [
+    [
+     "hp",
+     25,
+     0.707
+    ],
+    [
+     "lp",
+     150,
+     0.707
+    ]
+   ],
+   "ofs": 2.0,
+   "len": 4.0,
+   "fin": 150,
+   "fout": 1600
+  }
+ },
+ "W_r2": {
+  "onset_ms": 445.875,
+  "file": "lib/clips/W_r2.wav",
+  "take": "2483132358c4_00",
+  "member": "Sonniss.com - GDC 2019 - Game Audio Bundle Part 2of8/L.A. Sounds - Transitions 003/Sub Low Movement 01.wav",
+  "role": "tail",
+  "dur": 3.8999791666666668,
+  "peak_ms": 654.0416666666666,
+  "proc": {
+   "lufs": -16,
+   "eq": [
+    [
+     "hp",
+     25,
+     0.707
+    ],
+    [
+     "lp",
+     160,
+     0.707
+    ]
+   ],
+   "len": 3.9,
+   "fin": 100,
+   "fout": 1300
+  }
+ },
+ "E_pyro": {
+  "onset_ms": 2673.125,
+  "file": "lib/clips/E_pyro.wav",
+  "take": "070ce412cc8c_00",
+  "member": "Sonniss.com - GDC 2018 - Game Audio Bundle Part 6of8/The Sound Keeper - Small Fire/sm-fire-cotton-02-8040.wav",
+  "role": "bed",
+  "dur": 8.0,
+  "peak_ms": 2850.0625,
+  "proc": {
+   "lufs": -20,
+   "eq": [
+    [
+     "hp",
+     60,
+     0.707
+    ]
+   ],
+   "ofs": 8,
+   "len": 8,
+   "fin": 400,
+   "fout": 400
+  }
+ },
+ "E_axe": {
+  "onset_ms": 304.4583333333333,
+  "file": "lib/clips/E_axe.wav",
+  "take": "be95410b797a_00",
+  "member": "Sonniss.com - GDC 2018 - Game Audio Bundle Part 3of8/Gregor Quendel – Designed Fire/Designed Fire - Textures - Rumbling, glitch.wav",
+  "role": "bed",
+  "dur": 8.0,
+  "peak_ms": 6650.375,
+  "proc": {
+   "lufs": -20,
+   "eq": [
+    [
+     "hp",
+     40,
+     0.707
+    ]
+   ],
+   "ofs": 8,
+   "len": 8,
+   "fin": 400,
+   "fout": 400
+  }
+ },
+ "E_fist": {
+  "onset_ms": 331.6458333333333,
+  "file": "lib/clips/E_fist.wav",
+  "take": "325d89c4e7ee_00",
+  "member": "Sonniss.com - GDC 2018 - Game Audio Bundle Part 5of8/Soundrangers - Wind/wind_blustery_08_loop.wav",
+  "role": "bed",
+  "dur": 8.0,
+  "peak_ms": 5186.708333333334,
+  "proc": {
+   "lufs": -22,
+   "eq": [
+    [
+     "hp",
+     120,
+     0.707
+    ]
+   ],
+   "ofs": 6,
+   "len": 8,
+   "fin": 400,
+   "fout": 400
+  }
+ },
+ "E_mage": {
+  "onset_ms": 401.4583333333333,
+  "file": "lib/clips/E_mage.wav",
+  "take": "d7fd45696240_00",
+  "member": "Alexander Kopeikin - Emotion and Magic/magic, energy flow, astral travel-015.wav",
+  "role": "bed",
+  "dur": 8.0,
+  "peak_ms": 5950.520833333333,
+  "proc": {
+   "lufs": -20,
+   "eq": [
+    [
+     "hp",
+     150,
+     0.707
+    ]
+   ],
+   "ofs": 30,
+   "len": 8,
+   "fin": 400,
+   "fout": 400
+  }
+ },
+ "E_assassin": {
+  "onset_ms": 455.5,
+  "file": "lib/clips/E_assassin.wav",
+  "take": "0c5800b97126_00",
+  "member": "SmartSoundFX - Krypton/ATMOSPHERIC DARK Fluttering Darkness.wav",
+  "role": "bed",
+  "dur": 8.0,
+  "peak_ms": 7133.979166666666,
+  "proc": {
+   "lufs": -21,
+   "eq": [
+    [
+     "hp",
+     60,
+     0.707
+    ]
+   ],
+   "ofs": 5,
+   "len": 8,
+   "fin": 400,
+   "fout": 400
+  }
+ },
+ "E_shaman": {
+  "onset_ms": 393.6458333333333,
+  "file": "lib/clips/E_shaman.wav",
+  "take": "648c8613652c_00",
+  "member": "344 Audio - Supernatural Ghosts/Ghostly Presence, Angelic, Vocal, Layer, Creepy, Horror 4.wav",
+  "role": "bed",
+  "dur": 8.0,
+  "peak_ms": 7187.458333333334,
+  "proc": {
+   "lufs": -20,
+   "eq": [
+    [
+     "hp",
+     100,
+     0.707
+    ]
+   ],
+   "ofs": 20,
+   "len": 8,
+   "fin": 400,
+   "fout": 400
+  }
+ },
+ "E_sword": {
+  "onset_ms": 338.9583333333333,
+  "file": "lib/clips/E_sword.wav",
+  "take": "3167891644d4_00",
+  "member": "Sonniss.com - GDC 2018 - Game Audio Bundle Part 5of8/Soundrangers - Wind/wind_desert_01_60_loop.wav",
+  "role": "bed",
+  "dur": 8.0,
+  "peak_ms": 767.8958333333334,
+  "proc": {
+   "lufs": -24,
+   "eq": [
+    [
+     "hp",
+     200,
+     0.707
+    ]
+   ],
+   "ofs": 10,
+   "len": 8,
+   "fin": 400,
+   "fout": 400
+  }
+ },
+ "F_swish_0": {
+  "onset_ms": 115.625,
+  "file": "lib/clips/F_swish_0.wav",
+  "take": "5341279c77e6_06",
+  "member": "Systematic-Sound - Sound Themes - Modern Cloth Foley 01/SFX CLOTH Foley Jacket Synthetic Soft Shell Whoosh Flutter.wav",
+  "role": "punch_whoosh",
+  "dur": 0.24,
+  "peak_ms": 118.0,
+  "proc": {
+   "lufs": -20,
+   "ofs": 0.46,
+   "len": 0.24,
+   "eq": [
+    [
+     "hp",
+     240,
+     0.707
+    ],
+    [
+     "peak",
+     1700,
+     1.0,
+     2
+    ]
+   ],
+   "fin": 8,
+   "fout": 47
+  }
+ },
+ "F_swish_1": {
+  "onset_ms": 71.27083333333334,
+  "file": "lib/clips/F_swish_1.wav",
+  "take": "07ff82de5d0a_00",
+  "member": "David Dumais Audio - Melee Weapons Sound Effects Pack 1/SWSH_Swing 3 Large 03_DDUMAIS_NONE.wav",
+  "role": "punch_whoosh",
+  "dur": 0.22,
+  "peak_ms": 80.14583333333333,
+  "proc": {
+   "lufs": -20,
+   "ofs": 0.055,
+   "len": 0.22,
+   "eq": [
+    [
+     "hp",
+     180,
+     0.707
+    ],
+    [
+     "lp",
+     8000,
+     0.707
+    ]
+   ],
+   "fin": 6,
+   "fout": 55
+  }
+ },
+ "F_body_0": {
+  "onset_ms": 19.854166666666664,
+  "file": "lib/clips/F_body_0.wav",
+  "take": "39bb0bc4da06_00",
+  "member": "Shapeforms - Hit & Punch/PUNCH_DESIGNED_LIGHT_78.wav",
+  "role": "punch",
+  "dur": 0.115,
+  "peak_ms": 21.395833333333332,
+  "proc": {
+   "lufs": -16,
+   "ofs": 0.057,
+   "len": 0.115,
+   "eq": [
+    [
+     "hp",
+     85,
+     0.707
+    ],
+    [
+     "peak",
+     950,
+     1.0,
+     1.5
+    ]
+   ],
+   "fin": 2,
+   "fout": 30
+  }
+ },
+ "F_body_1": {
+  "onset_ms": 21.875,
+  "file": "lib/clips/F_body_1.wav",
+  "take": "295f832eeec8_02",
+  "member": "344 Audio - Cinematic Fight Vol. 1/FGHTImpt_4 x Punch, Body 02_344 Audio_Cinematic Fight Vol 1.wav",
+  "role": "punch",
+  "dur": 0.17,
+  "peak_ms": 70.04166666666667,
+  "proc": {
+   "lufs": -16,
+   "ofs": 0.052,
+   "len": 0.17,
+   "eq": [
+    [
+     "hp",
+     75,
+     0.707
+    ],
+    [
+     "lp",
+     6500,
+     0.707
+    ]
+   ],
+   "fin": 2,
+   "fout": 48
+  }
+ },
+ "F_body_2": {
+  "onset_ms": 2.0416666666666665,
+  "file": "lib/clips/F_body_2.wav",
+  "take": "43a6304b1250_00",
+  "member": "Shapeforms - Hit & Punch/PUNCH_PERCUSSIVE_HEAVY_06.wav",
+  "role": "punch",
+  "dur": 0.15,
+  "peak_ms": 29.9375,
+  "proc": {
+   "lufs": -16,
+   "ofs": 0.012,
+   "len": 0.15,
+   "eq": [
+    [
+     "hp",
+     65,
+     0.707
+    ],
+    [
+     "peak",
+     1100,
+     1.0,
+     2
+    ]
+   ],
+   "fin": 2,
+   "fout": 35
+  }
+ },
+ "F_upper": {
+  "onset_ms": 2.1666666666666665,
+  "file": "lib/clips/F_upper.wav",
+  "take": "87c37f82a6e2_02",
+  "member": "Sonniss.com - GDC 2019 - Game Audio Bundle Part 5of8/Rock The Speakerbox - Melee/MELEE - DESIGNED - BASEBALL BAT Aluminum Hit Head.wav",
+  "role": "punch_heavy",
+  "dur": 0.32547916666666665,
+  "peak_ms": 14.645833333333334,
+  "proc": {
+   "lufs": -14,
+   "ofs": 0.125,
+   "len": 0.29,
+   "semis": -2,
+   "eq": [
+    [
+     "hp",
+     45,
+     0.707
+    ],
+    [
+     "peak",
+     170,
+     1.0,
+     2
+    ],
+    [
+     "lp",
+     4200,
+     0.707
+    ]
+   ],
+   "fin": 3,
+   "fout": 110
+  }
+ },
+ "F_draw": {
+  "onset_ms": 262.875,
+  "file": "lib/clips/F_draw.wav",
+  "take": "d272d2111005_00",
+  "member": "MatiasMacSD - Minacious/Whoosh_Hydraulic bomb-01.wav",
+  "role": "charge",
+  "dur": 0.38,
+  "peak_ms": 358.35416666666663,
+  "proc": {
+   "lufs": -19,
+   "len": 0.38,
+   "eq": [
+    [
+     "hp",
+     210,
+     0.707
+    ],
+    [
+     "lp",
+     10000,
+     0.707
+    ]
+   ],
+   "fin": 60,
+   "fout": 8
+  }
+ },
+ "F_compress": {
+  "onset_ms": 286.41666666666663,
+  "file": "lib/clips/F_compress.wav",
+  "take": "1f7d5ceb29ae_00",
+  "member": "Sonniss.com - GDC 2019 - Game Audio Bundle Part 5of8/Rock The Speakerbox - Sorcery/SORCERY - CK - EFFECT Reverse Explosion 02.wav",
+  "role": "charge",
+  "dur": 0.45,
+  "peak_ms": 440.5208333333333,
+  "proc": {
+   "lufs": -17,
+   "ofs": 2.3,
+   "len": 0.45,
+   "eq": [
+    [
+     "hp",
+     65,
+     0.707
+    ],
+    [
+     "peak",
+     600,
+     1.0,
+     2
+    ]
+   ],
+   "fin": 125,
+   "fout": 8
+  }
+ },
+ "F_release": {
+  "onset_ms": 17.375,
+  "file": "lib/clips/F_release.wav",
+  "take": "56335bcb278a_01",
+  "member": "Doex Studio - 90s Anime SFX Pack/Laser_Beam_004.wav",
+  "role": "magic_cast",
+  "dur": 0.38,
+  "peak_ms": 20.979166666666668,
+  "proc": {
+   "lufs": -17,
+   "len": 0.38,
+   "eq": [
+    [
+     "hp",
+     180,
+     0.707
+    ],
+    [
+     "lp",
+     8200,
+     0.707
+    ]
+   ],
+   "fin": 3,
+   "fout": 160
+  }
+ },
+ "F_burst": {
+  "onset_ms": 2.7916666666666665,
+  "file": "lib/clips/F_burst.wav",
+  "take": "cfef8c73d888_00",
+  "member": "BluezoneCorp - Detonation - Explosion/Bluezone_BC0277_weapon_smoke_grenade_launcher_003.wav",
+  "role": "magic_impact",
+  "dur": 0.46,
+  "peak_ms": 29.166666666666668,
+  "proc": {
+   "lufs": -15,
+   "len": 0.46,
+   "eq": [
+    [
+     "hp",
+     70,
+     0.707
+    ],
+    [
+     "peak",
+     1100,
+     1.0,
+     2
+    ]
+   ],
+   "fin": 2,
+   "fout": 185
+  }
+ }
+}
