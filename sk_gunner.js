@@ -452,13 +452,17 @@ function fleet(id){
     for(let j=0;j<ships.length;j++){const s=ships[j];if(t<s.start||t>s.start+s.dur)continue;const q=fly(s,t),bank=-.04+.08*Math.sin(q.k*tau+1),roll=23.8*Math.sin(q.k*tau*1.2+j*.84);
       craft(g,q.x,q.floor-q.alt,s.w*(.91+.11*Math.sin(q.k*Math.PI)),bank,t,roll);}
   });
-  for(let j=0;j<3;j++){const s=ships[j],n=j===2?3:2;
-    for(let i=0;i<n;i++){const drop=s.start+s.dur*(.29+i*(n===2?.34:.18)), q=fly(s,drop),xx=q.x+hw*.20,yy=q.floor+hh*(.18+.075*i);
+  // Each hull walks a stick of bombs across the field: many, a little smaller, scattered to both sides of its track.
+  const frac=v=>v-Math.floor(v);
+  for(let j=0;j<3;j++){const s=ships[j],n=j===2?8:5;
+    for(let i=0;i<n;i++){const drop=s.start+s.dur*(.2+.62*i/(n-1)), q=fly(s,drop);
+      const xx=q.x+hw*(.1+.16*frac(i*.37+j*.21)),yy=q.floor+hh*(.04+.36*frac(i*.618+j*.3));
       after(drop,()=>{const bay={x:q.x,y:q.floor,z:q.alt};
         K.flare(q.x,q.floor,q.alt,{s:s.w*.12,dur:.11,pal:copper,gain:1.5});
-        shell(bay,point(xx,yy),s.w*.085,copper,Math.max(25,s.w*.061),.42,()=>{
-        const rr=hh*(j===2?.29:.225);pop(xx,yy,rr,copper);hurtArea(xx,yy,rr,2400*A.mul(id),copper,{ult:true,big:true,launch:400});
-        if(j===2){X.cine.shake(.19);K.vsmoke(xx,yy,{s:rr*.58,z:rr*.40,dur:1,rise:rr*.95,vx:rr*.28,a:.5});}X.sfx('boom',.6,.35);
+        shell(bay,point(xx,yy),s.w*.085,copper,Math.max(23,s.w*.055),.42,()=>{
+        const rr=hh*(j===2?.26:.2);pop(xx,yy,rr,copper);hurtArea(xx,yy,rr,2400*A.mul(id),copper,{ult:true,big:true,launch:400});
+        if(j===2&&i%3===0)K.vsmoke(xx,yy,{s:rr*.58,z:rr*.40,dur:1,rise:rr*.95,vx:rr*.28,a:.5});
+        X.cine.shake(j===2?.16:.08);X.sfx('boom',.6+.08*(i%3),.35);
       });});
     }
   }

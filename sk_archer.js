@@ -449,18 +449,21 @@
   // One unbroken curve: a 4:5 Lissajous over the whole view that leaves the
   // archer's chest and returns to it. The arrow runs it ever faster.
   function sonicCourse(stage,t0,T) {
-    const {x,y,hw,hh}=stage,z=BODY*.7,N=560;
+    const {x,y,hw,hh}=stage,z=BODY*.7,N=840;
     // A different curve every cast: two sine harmonics per axis with random
     // whole-number frequencies, weights and mirroring. Whole numbers keep both
     // ends of the course on the archer.
     const pick=(lo,hi)=>lo+Math.floor(Math.random()*(hi-lo+1)),flip=()=>Math.random()<.5?-1:1;
-    const fx1=pick(3,5),fy1=fx1+(Math.random()<.5?1:-1),fx2=pick(1,7),fy2=pick(1,7);
+    const fx1=pick(5,7),fy1=fx1+(Math.random()<.5?1:-1),fx2=pick(1,9),fy2=pick(1,9);
     const wx=.18+.24*Math.random(),wy=.18+.24*Math.random(),sx=flip(),sy=flip(),tx=flip(),ty=flip();
     const rawX=th=>sx*(Math.sin(fx1*th)+tx*wx*Math.sin(fx2*th)),rawY=th=>sy*(Math.sin(fy1*th)+ty*wy*Math.sin(fy2*th));
     let mx=0,my=0;
     for(let j=0;j<=N;j++){const th=TAU*j/N;mx=Math.max(mx,Math.abs(rawX(th)));my=Math.max(my,Math.abs(rawY(th)));}
     const at=p=>{const th=TAU*p;return point(x+hw*.93*rawX(th)/mx,y-BODY*.52+z+hh*.88*rawY(th)/my,z);};
-    const progress=u=>.35*u+.65*u*u*u;
+    // Speed climbs through the first third of the flight and then holds at its peak.
+    const speed=u=>{const k=sat(u/.34);return .16+.84*k*k*(3-2*k);},steps=240,dist=[0];
+    for(let i=1;i<=steps;i++)dist.push(dist[i-1]+speed((i-.5)/steps));
+    const progress=u=>{const f=sat(u)*steps,i=Math.min(steps-1,Math.floor(f));return mix(dist[i],dist[i+1],f-i)/dist[steps];};
     const pAt=t=>progress(sat((t-t0)/T));
     const timeOf=p=>{
       let lo=0,hi=1;
@@ -477,7 +480,7 @@
       const turnX=(bx-ax)*(nx-bx)<=0&&edge(bx,x,hw*.93),turnY=(by-ay)*(ny-by)<=0&&edge(by,cy,hh*.88);
       if((turnX||turnY)&&(!turns.length||j/N-turns[turns.length-1]>.012))turns.push(j/N);
     }
-    return {at,pAt,timeOf,pts,times,N,turns:turns.slice(0,22)};
+    return {at,pAt,timeOf,pts,times,N,turns:turns.slice(0,30)};
   }
   // The lines behind the arrow are afterimages: bright where it has just been,
   // thinning and dimming with age. Each age band is a single stroke.
@@ -498,9 +501,25 @@
       if(i1<=i0)continue;
       const seg=pts.slice(Math.max(0,i0-1),i1+1),lit=bright?1:(1-(b+.5)/bands)**1.25;
       fx.globalAlpha=lit*fade*(bright?.85:.7);
-      line(fx,seg,bright?'#a5b5ae':'#4f9c8c',bright?13:6+15*lit);
+      line(fx,seg,bright?'#a5b5ae':'#4f9c8c',bright?20:10+22*lit);
       fx.globalAlpha=lit*fade;
-      line(fx,seg,bright?'#ffffff':b%3?'#d6f1da':'#ffe6aa',bright?7:2+5.5*lit);
+      line(fx,seg,bright?'#ffffff':b%3?'#d6f1da':'#ffe6aa',bright?11:3.5+8.5*lit);
+    }
+    fx.restore();
+  }
+  // Gusts dragged along by the arrow: tapered streaks beside and behind it,
+  // longer and more numerous the faster it flies.
+  function gusts(wakeAt,speedK,width) {
+    const n=low()?4:7;
+    fx.save();fx.lineCap='round';
+    for(let i=0;i<n;i++){
+      const side=(i%2?1:-1)*(.5+.5*Math.floor(i/2))*width,lag=.12+.11*(i%3),len=.22+.5*speedK*(.6+.4*((i*5)%4)/3);
+      const a=wakeAt(Math.max(0,1-lag-len)),m=wakeAt(Math.max(0,1-lag-len*.5)),b=wakeAt(1-lag);
+      const dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy)||1,nx=-dy/d*side,ny=dx/d*side;
+      const g=fx.createLinearGradient(a.x+nx,a.y-a.z+ny,b.x+nx,b.y-b.z+ny);
+      g.addColorStop(0,'rgba(140,220,200,0)');g.addColorStop(.7,'rgba(190,240,222,'+(.2+.3*speedK).toFixed(2)+')');g.addColorStop(1,'rgba(240,255,240,0)');
+      fx.strokeStyle=g;fx.lineWidth=2+width*.05*(1+speedK);
+      fx.beginPath();fx.moveTo(a.x+nx,a.y-a.z+ny);fx.quadraticCurveTo(m.x+nx*1.35,m.y-m.z+ny*1.35,b.x+nx,b.y-b.z+ny);fx.stroke();
     }
     fx.restore();
   }
@@ -549,7 +568,7 @@
   function sonic(id) {
     const stage=startUlt(id,wind,X.nearest(Infinity)),{x,y,hw,hh}=stage;
     C.move({x,y:y-BODY*.52,zoom:1,tilt:.022,roll:0},.3);
-    const loose=.28,inkAt=loose+1.92,blastAt=inkAt+.105,stop=3;
+    const loose=.28,inkAt=loose+2.42,blastAt=inkAt+.105,stop=3.5;
     const course=sonicCourse(stage,loose,inkAt-loose);
     const draw=K.gather(x,y,BODY*.65,{pal:wind,r:139,R:590,dur:loose,n:.41,shells:1,gain:.67});
     C.SND.inhale(loose-.06,.24);
@@ -568,6 +587,7 @@
       if(t>inkAt)return;
       const p=course.pAt(t),head=course.at(p),prev=course.at(Math.max(0,p-.0015)),a=Math.atan2(head.y-prev.y,head.x-prev.x);
       airWake(wake(t,.3),1,stage);
+      gusts(wake(t,.16),sat((course.pAt(t)-course.pAt(t-.05))*9),hw*.045);
       pressurePlate(ctx,plate('ar_mach_front'),head.x-Math.cos(a)*size*.2,head.y-head.z-Math.sin(a)*size*.2,a,size*1.64,.83);
       arrow(head,prev,size);
       fx.save();star(fx,head.x,head.y-head.z,hw*.008,brass.h,a);fx.restore();
@@ -576,6 +596,14 @@
       ribbon(wake(t,.08),0,.99,wind,hw*.037,.84,true);
     });
     sonicKills(id,course,stage);
+    // The floor answers under the course: dust thrown back along the path and a ripple of pressed air.
+    for(let t=loose+.1;t<inkAt-.05;t+=low()?.14:.075){
+      later(t,()=>{
+        const p=course.pAt(t),q=course.at(p),b=course.at(Math.max(0,p-.004)),back=Math.atan2((b.y-q.y)/FSY,b.x-q.x);
+        K.dust(q.x,q.y-q.z,{n:low()?2:4,dir:back,spread:.5,sp:[320,900],c:'#4d8478',a:.34});
+        GFX.ripple(q.x,q.y-q.z,170,{s:.16,w:.08,life:.3});
+      });
+    }
     course.turns.forEach((p,i)=>{
       const when=course.timeOf(p),next=i+1<course.turns.length?course.timeOf(course.turns[i+1]):inkAt;
       const big=i<2 || i%6===5;
@@ -636,13 +664,13 @@
   ];
   const limbs=[[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,0],[16,17,18,19,20,21],[15,22,23,24],[13,25,26,27,28,29],[12,30,31,32],[6,33,34,35,36],[34,37,38],[33,39,40,41],[40,42,43],[7,44,45,46,47],[46,48]];
   const facets=[[1,2,15],[2,3,14],[3,4,13],[4,11,13],[4,5,11],[5,6,10],[6,7,9],[2,14,15],[1,15,16],[11,12,13]];
-  function starStag(stage) {
+  function starStag(stage,rate=1) {
     const {x,y,hw,hh}=stage,R=Math.min(hw*.58,hh*.91),life=3.82;
     const atlas=plate('archer_sidereal_stag');
     // Two slowly rolling curtains of aurora drift behind the constellation.
     // The first bright thread travels towards the antlers as the figure rises.
-    animate(3.48,null,(k,t)=>{
-      const strength=sat(t/.67)*sat((3.48-t)/.68);
+    animate(3.48/rate,null,(k,t0)=>{
+      const t=t0*rate,strength=sat(t/.67)*sat((3.48-t)/.68);
       for(const s of [-1,1]){
         const mist=u=>point(x+(u-.82)*R*2.25,
           y-R*.10+s*R*.15*Math.sin(u*7+t*.5),
@@ -650,8 +678,8 @@
         ribbon(mist,0,1,s<0?night:wind,R*.08,strength*.15,true);
       }
     });
-    animate(life,(k,t)=>{
-      const form=ease(sat((t-.06)/1.29)), leap=ease(sat((t-1.48)/1.28)),shatter=ease(sat((t-2.81)/.76));
+    animate(life/rate,(k,t0)=>{
+      const t=t0*rate,form=ease(sat((t-.06)/1.29)), leap=ease(sat((t-1.48)/1.28)),shatter=ease(sat((t-2.81)/.76));
       const fade=sat(t/.35)*(1-shatter);
       if(fade<=0)return;
       const loc=stag.map(([px,py],i)=>{
@@ -696,38 +724,73 @@
   }
   function requiem(id) {
     const stage=startUlt(id,night,X.nearest(Infinity)),{x,y,hw,hh}=stage;
-    C.SND.gong(.32);starStag(stage);
-    C.move({x,y:y-BODY*.62,zoom:.84,tilt:.07,roll:.009},1.32);
+    const rate=1.35,rainAt=1.25,peakAt=2.5,sky=hh*3;
+    C.SND.gong(.32);starStag(stage,rate);
+    C.move({x,y:y-BODY*.62,zoom:.84,tilt:.07,roll:.009},.9);
     const stars=[];
     for(let i=0;i<25;i++){
       const a=i*2.39996,r=Math.sqrt((i+.65)/25);
       stars.push(point(x+hw*.96*r*Math.cos(a),y+hh*.9*r*Math.sin(a),240+110*(1+Math.sin(i*2.2))));
     }
-    animate(3.64,(k,t)=>{fx.save();fx.globalAlpha=Math.min(sat(t/.64),sat((3.64-t)/.55))*.7;
-      for(let i=0;i<stars.length;i++){const q=stars[i];star(fx,q.x,q.y-q.z,4+8*(.5+.5*Math.sin(i*2.1+t*2)),i%4?night.m:brass.m,.23);}
+    // The archer looses small arrows straight up, volley after volley. Each is gone
+    // off the top of the view in a breath, and a star lights where it went.
+    const lit=new Array(stars.length).fill(Infinity),volleys=5,per=5,bow=fromHero();
+    for(let v=0;v<volleys;v++){
+      const at0=.1+v*.115;
+      later(at0,()=>{
+        pose('release',.1);X.sfx('whoosh',1.9+v*.12,.26);C.shake(.12);
+        K.flare(bow.x,bow.y,bow.z,{pal:night,s:120,sx:.5,sy:2.2,dur:.1,gain:2.2});
+        for(let j=0;j<per;j++){
+          const i=v*per+j,q=stars[i],top=point(mix(bow.x,q.x,.55),mix(bow.y,q.y,.4),sky);
+          flight(arcPath(bow,top),.15+.02*j,i%4?night:brass,150,46,.18);
+          lit[i]=at0+.2;
+        }
+      });
+    }
+    animate(peakAt+.6,(k,t)=>{
+      fx.save();
+      for(let i=0;i<stars.length;i++){
+        const q=stars[i],born=sat((t-lit[i])/.18);
+        if(born<=0)continue;
+        fx.globalAlpha=born*sat((peakAt+.6-t)/.45)*.75;
+        star(fx,q.x,q.y-q.z,(4+8*(.5+.5*Math.sin(i*2.1+t*2)))*(2-born),i%4?night.m:brass.m,.23);
+      }
       fx.restore();
     });
-    later(1.12,()=>{pose('draw',1.1);C.SND.shing(.72,.41);});
-    later(2.04,()=>{C.SND.inhale(.68,.24);pose('release',.35);});
+    later(.78,()=>{pose('draw',1.1);C.SND.shing(.72,.41);});
+    later(rainAt-.06,()=>{C.SND.inhale(.4,.24);pose('release',.35);});
+    // The stag kicks off: the floor under it answers before the stars fall.
+    later(1.48/rate,()=>{K.shock(x,y,{pal:night,r:hw*.42,dur:.6,gain:.55});K.dust(x,y,{n:low()?4:10,r:80,sp:[260,700],a:.36});GFX.light(x,y,hw*.8,night.l,.6,.5,{z:200});X.sfx('whoosh',.7,.5);C.shake(.3);});
+    // The rain: arrows come down slanting over the whole field, thicker and thicker, before the aimed volley.
+    const drops=low()?14:30;
+    for(let n=0;n<drops;n++){
+      const f=n/drops,when=rainAt+(peakAt-rainAt-.1)*Math.pow(f,.7);
+      const q=point(x+hw*.98*(2*((n*.618)%1)-1),y+hh*.86*(2*((n*.382+.17)%1)-1),8),from=point(q.x-230-(n%3)*90,q.y-70,sky*.75);
+      later(when-.17,()=>flight(arcPath(from,q),.17,n%3?night:brass,230,60,.14));
+      later(when,()=>{
+        K.flare(q.x,q.y,24,{pal:n%3?night:brass,s:120,dur:.12,gain:1.9});trauma=Math.min(1,trauma+.05);
+        if(n%4===0){GFX.light(q.x,q.y,320,night.l,.5,.16,{z:40});K.dust(q.x,q.y,{n:3,sp:[160,460],a:.3});X.sfx('whoosh',2.2,.16);}
+        X.inCircle(q.x,q.y,170,e=>{hitAt(e,night,.9);X.dmg(e,900*A.mul(id),{kb:.2,sx:q.x,sy:q.y-200});});
+      });
+    }
     const victims=X.onScreen(450).map(e=>({e,p:onEnemy(e)}));
     // Each enemy receives the arrow aimed at it. Additional shafts fill empty
     // regions of the screen while a finite render budget covers dense packs.
     const shafts=Math.min(low()?10:18,victims.length);
     const marks=victims.slice(0,shafts).map(t=>t.p);
     for(let i=marks.length;i<(low()?11:18);i++) marks.push(point(stars[i].x,stars[i].y,9));
-    const peakAt=3.22;later(peakAt-.18,()=>C.hush(.17,{a:.57,c:night.l}));
-    marks.forEach((q,i)=>{const phase=i/marks.length*.36,hit=peakAt+phase;
-      const a=point(q.x-278-(i%3)*115,q.y-90,q.z+760+(i%4)*90);
-      later(hit-.38,()=>flight(arcPath(a,q,70),.38,i%3?night:brass,300,84));
-      later(hit,()=>{K.flare(q.x,q.y,30,{pal:i%3?night:brass,s:150,dur:.14,gain:2});if(i%3===0){impactAt(q,brass,165);K.cool(q.x,q.y,{pal:night,kind:'crack2',r:210,life:2.15,light:0});}});
+    later(peakAt-.18,()=>C.hush(.17,{a:.57,c:night.l}));
+    marks.forEach((q,i)=>{const phase=i/marks.length*.3,hit=peakAt+phase;
+      const a=point(q.x-278-(i%3)*115,q.y-90,q.z+sky*.8+(i%4)*90);
+      later(hit-.2,()=>flight(arcPath(a,q),.2,i%3?night:brass,300,84));
+      later(hit,()=>{K.flare(q.x,q.y,30,{pal:i%3?night:brass,s:150,dur:.14,gain:2});trauma=Math.min(1,trauma+.08);
+        if(i%3===0){impactAt(q,brass,165);K.cool(q.x,q.y,{pal:night,kind:'crack2',r:210,life:2.15,light:0});}});
     });
-    victims.forEach(({e},i)=>later(peakAt+(i%Math.max(1,marks.length))/marks.length*.36,()=>{if(!e.dead){struck(e,night,i>>1,1.3);X.ultHit(e,7200*A.mul(id),x,y);}}));
-    // The stag kicks off: the floor under it answers before the stars fall.
-    later(1.48,()=>{K.shock(x,y,{pal:night,r:hw*.42,dur:.6,gain:.55});K.dust(x,y,{n:low()?4:10,r:80,sp:[260,700],a:.36});GFX.light(x,y,hw*.8,night.l,.6,.5,{z:200});X.sfx('whoosh',.7,.5);});
+    victims.forEach(({e},i)=>later(peakAt+(i%Math.max(1,marks.length))/marks.length*.3,()=>{if(!e.dead){struck(e,night,i>>1,1.3);X.ultHit(e,7200*A.mul(id),x,y);}}));
     later(peakAt,()=>{peak(x,y,night);K.shock(x,y,{pal:night,r:hw*.98,dur:.79,gain:.7});X.sfx('boom',.85,.6);
       K.cool(x,y,{kind:'ring',pal:night,r:hw*.5,life:2.4,light:0});
     });
-    endUlt(5.13);
+    endUlt(peakAt+1.85);
   }
   function greatbow(stage,shoot) {
     const {x,y,hw,hh}=stage,im=plate('ar_eclipse_bow'),span=Math.min(hw*1.37,hh*2.10),life=shoot+.95;
@@ -790,7 +853,7 @@
   }
   function eclipse(id) {
     const stage=startUlt(id,brass,X.nearest(Infinity)),{x,y,hw,hh}=stage;
-    const shoot=2.3,fall=4.1,drop=.26,land=fall+drop;
+    const shoot=2.3,fall=4.1,drop=.17,land=fall+drop;
     const h=Math.min(hw*1.37,hh*2.10)*400/960,len=h*1.45,sky=hh*3.2,nockZ=BODY*.60+hh*.056+h*.93;
     // The arrow returns ahead of the archer, slanting in from behind the shoulder.
     const tx=x+pl.f*Math.min(hw*.3,hh*.62),ty=y+hh*.06,target=point(tx,ty,0);
@@ -802,9 +865,14 @@
     later(shoot-.2,()=>{charge?.end();C.hush(.18,{a:.52,c:brass.l});});
     later(shoot,()=>{
       release(brass);C.SND.shing(.65,.44);X.sfx('whoosh',.6,.6);
-      flight(arcPath(point(x,y,nockZ),point(x,y,sky)),.34,brass,len,150,.3);
-      K.shock(x,y,{r:520,pal:brass,dur:.45,gain:.7});K.dust(x,y,{n:low()?5:10,sp:[300,820],a:.4});
-      GFX.light(x,y,900,brass.l,.9,.3,{z:BODY});trauma=Math.min(1,trauma+.4);
+      // It is gone in a sixth of a second: a lance of light up the whole view, air torn upward after it.
+      flight(arcPath(point(x,y,nockZ),point(x,y,sky)),.16,brass,len,190,.36);
+      K.flare(x,y,nockZ+hh*.9,{pal:brass,s:hh*.5,sx:.2,sy:5.2,dur:.26,gain:2.4});
+      K.sparks(x,y,nockZ,{pal:brass,n:low()?10:22,sp:[30,260],up:4200,g:300,life:[.14,.34],len:.11});
+      K.shock(x,y,{r:640,pal:brass,dur:.4,gain:.85});K.dust(x,y,{n:low()?6:14,sp:[380,1000],a:.42});
+      GFX.ripple(x,y,700,{s:.4,w:.1,life:.4});
+      GFX.light(x,y,900,brass.l,.9,.3,{z:BODY});C.shake(.75);
+      if(!A.SV.opt?.calm)hitstop=Math.max(hitstop,.045);
       C.move({x:mix(x,tx,.5),y:y-BODY*.5,zoom:.74,tilt:.1,roll:0},.8);
     });
     // The arrow is gone. The field dims and waits.
@@ -819,7 +887,8 @@
       },k=>streak(descent,0,1,brass,18+50*k,.2+.5*k,0));
     });
     later(fall-.16,()=>C.hush(.16,{a:.5,c:brass.l}));
-    later(fall,()=>{flight(descent,drop,brass,len*1.3,230,.25);X.sfx('whoosh',.5,.7);});
+    later(fall,()=>{flight(descent,drop,brass,len*1.3,260,.25);X.sfx('whoosh',.5,.7);C.shake(.35);
+      K.flare(tx,ty,hh*.9,{pal:brass,s:hh*.45,sx:.2,sy:5,dur:drop+.05,gain:2.2});});
     later(land,()=>{
       C.move({x:mix(x,tx,.6),y:ty-BODY*.46,zoom:.72,tilt:.1,roll:-.012},.3);
       peak(tx,ty,brass);corona({...stage,x:tx,y:ty});X.sfx('boom',.8,.7);GFX.ambient(.7,.66,.56,6);
