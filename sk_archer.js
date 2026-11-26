@@ -449,19 +449,19 @@
   // One unbroken curve: a 4:5 Lissajous over the whole view that leaves the
   // archer's chest and returns to it. The arrow runs it ever faster.
   function sonicCourse(stage,t0,T) {
-    const {x,y,hw,hh}=stage,z=BODY*.7,N=840;
+    const {x,y,hw,hh}=stage,z=BODY*.7,N=2200;
     // A different curve every cast: two sine harmonics per axis with random
     // whole-number frequencies, weights and mirroring. Whole numbers keep both
     // ends of the course on the archer.
     const pick=(lo,hi)=>lo+Math.floor(Math.random()*(hi-lo+1)),flip=()=>Math.random()<.5?-1:1;
-    const fx1=pick(5,7),fy1=fx1+(Math.random()<.5?1:-1),fx2=pick(1,9),fy2=pick(1,9);
+    const fx1=pick(13,17),fy1=fx1+(Math.random()<.5?1:-1),fx2=pick(1,19),fy2=pick(1,19);
     const wx=.18+.24*Math.random(),wy=.18+.24*Math.random(),sx=flip(),sy=flip(),tx=flip(),ty=flip();
     const rawX=th=>sx*(Math.sin(fx1*th)+tx*wx*Math.sin(fx2*th)),rawY=th=>sy*(Math.sin(fy1*th)+ty*wy*Math.sin(fy2*th));
     let mx=0,my=0;
     for(let j=0;j<=N;j++){const th=TAU*j/N;mx=Math.max(mx,Math.abs(rawX(th)));my=Math.max(my,Math.abs(rawY(th)));}
     const at=p=>{const th=TAU*p;return point(x+hw*.93*rawX(th)/mx,y-BODY*.52+z+hh*.88*rawY(th)/my,z);};
-    // Speed climbs through the first third of the flight and then holds at its peak.
-    const speed=u=>{const k=sat(u/.34);return .16+.84*k*k*(3-2*k);},steps=240,dist=[0];
+    // Speed climbs through the opening of the flight, holds, then never stops rising over the last two seconds.
+    const speed=u=>{const k=sat(u/.186),late=sat((u-.548)/.452);return (.16+.84*k*k*(3-2*k))*(1+1.6*Math.pow(late,1.6));},steps=440,dist=[0];
     for(let i=1;i<=steps;i++)dist.push(dist[i-1]+speed((i-.5)/steps));
     const progress=u=>{const f=sat(u)*steps,i=Math.min(steps-1,Math.floor(f));return mix(dist[i],dist[i+1],f-i)/dist[steps];};
     const pAt=t=>progress(sat((t-t0)/T));
@@ -480,7 +480,7 @@
       const turnX=(bx-ax)*(nx-bx)<=0&&edge(bx,x,hw*.93),turnY=(by-ay)*(ny-by)<=0&&edge(by,cy,hh*.88);
       if((turnX||turnY)&&(!turns.length||j/N-turns[turns.length-1]>.012))turns.push(j/N);
     }
-    return {at,pAt,timeOf,pts,times,N,turns:turns.slice(0,30)};
+    return {at,pAt,timeOf,pts,times,N,turns:turns.slice(0,72)};
   }
   // The lines behind the arrow are afterimages: bright where it has just been,
   // thinning and dimming with age. Each age band is a single stroke.
@@ -568,7 +568,7 @@
   function sonic(id) {
     const stage=startUlt(id,wind,X.nearest(Infinity)),{x,y,hw,hh}=stage;
     C.move({x,y:y-BODY*.52,zoom:1,tilt:.022,roll:0},.3);
-    const loose=.28,inkAt=loose+2.42,blastAt=inkAt+.105,stop=3.5;
+    const loose=.28,inkAt=loose+4.42,blastAt=inkAt+.105,stop=5.5;
     const course=sonicCourse(stage,loose,inkAt-loose);
     const draw=K.gather(x,y,BODY*.65,{pal:wind,r:139,R:590,dur:loose,n:.41,shells:1,gain:.67});
     C.SND.inhale(loose-.06,.24);
@@ -607,7 +607,7 @@
     course.turns.forEach((p,i)=>{
       const when=course.timeOf(p),next=i+1<course.turns.length?course.timeOf(course.turns[i+1]):inkAt;
       const big=i<2 || i%6===5;
-      if(!big && low() && i%2)return;
+      if(!big && (i%2 && (low() || i>20) || i>40 && i%3))return;
       later(when,()=>{
         const q=course.at(p),n=course.at(p+.003),d=Math.hypot(n.x-q.x,n.y-q.y)||1,dir=point((n.x-q.x)/d,(n.y-q.y)/d);
         acceleratedWhoosh(i+1,next-when,dir.x*.77);

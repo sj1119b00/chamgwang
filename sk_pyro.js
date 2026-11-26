@@ -1361,7 +1361,7 @@ function phxMats(){ if(PHX) return PHX; const mk=tex=>F.mat({kind:2,tex,nz:'bill
   PHX={fold:mk('v3_phoenix_fold'),rise:mk('v3_phoenix_rise'),dive:mk('v3_phoenix_dive'),ASP:{fold:.568,rise:1.478,dive:.557}}; return PHX; }
 if(F&&F.on) for(const n of ['v3_phoenix_fold','v3_phoenix_rise','v3_phoenix_dive']) F.img(n);
 function ultPhoenix(id){ timers.length=0; ultStart(id); const Cn=X.cine, {hw,hh}=view(), Dm=70000*A.mul(id), x0=pl.x, y0=pl.gy;
-  const TB=.8, TU=1.5, TH=2.25, TD=2.5, TC=2.76, TE=5.56, bx=x0, by=y0-150, ZT=1900, st={}, P=phxMats(), vol=K.vok&&K.vok();
+  const TB=.8, TU=1.5, TH=2.0, TD=2.22, TC=2.42, TE=5.22, bx=x0, by=y0-150, ZT=2800, st={}, P=phxMats(), vol=K.vok&&K.vok();
   // where it comes down: on the thickest of them if they are near, else just ahead of him (never on him)
   const tg=densest(1300), ix=tg?mix(x0,tg.x,.8):x0+pl.f*160, iy=tg?mix(y0,tg.y,.8)-40:y0-340;
   S([['gx01',.1],['gx03',.6,{kick:[-.8,.6]}],['gx06',.14,{kick:[2,-1.6]}],['gx07',TD-.9],['gx09',.1],['gx12',.2,{kick:[2,-1.6]}],['gx14',9]]);
@@ -1396,14 +1396,14 @@ function ultPhoenix(id){ timers.length=0; ultStart(id); const Cn=X.cine, {hw,hh}
     K.sparks(bx,by,BODY,{pal:PG,n:26,sp:[400,1600],up:1700,life:[.4,.9]}); Cn.shake(.5); sfx('boom',1,.5); SFX.roar&&SFX.roar(1.1,.6); GFX.ambient(.62,.44,.38,3);
     Cn.move({x:x0,y:y0-360,zoom:1,tilt:.1},.6,'io'); });
   // ---- climb: the camera goes with it; its heat sets light to what is under it
-  after(TU,()=>{ Cn.move({x:mix(x0,ix,.4),y:y0-560,zoom:.66,tilt:.2,roll:.015},TH-TU,'io'); SFX.whoosh&&SFX.whoosh(1.1,.7); Cn.shake(.3);
+  after(TU,()=>{ Cn.move({x:mix(x0,ix,.4),y:y0-440,zoom:.72,tilt:.2,roll:.015},TH-TU,'io'); SFX.whoosh&&SFX.whoosh(1.1,.7); Cn.shake(.3);
     K.dust(bx,by,{n:12,r:120,sp:[300,1000],a:.4,c:'#2a1a12',c3:'#8a5a3a',life:1.2});
     for(const e of onScreen(300)) if(!e.dead){ burn(e,3,1,.9); dmg(e,e.d.boss?Dm*.08:Math.min(Dm*.08,e.hp*.2),{sx:bx,sy:by}); } });
   // it leaves through the top of the picture faster and faster: the air it tears through streams down past it
-  [.2,.4,.6].forEach(d=>after(TU+d,()=>{ sfx('whoosh',.5+d,.8); Cn.shake(.18+d*.5); const px=posX(TU+d), py=posY(TU+d), pz=zOf(TU+d);
+  [.12,.26,.4].forEach(d=>after(TU+d,()=>{ sfx('whoosh',.5+d,.8); Cn.shake(.2+d*.8); const px=posX(TU+d), py=posY(TU+d), pz=zOf(TU+d);
     for(let i=0;i<(F.low?6:12);i++) streak(px+rand(-380,380),py,pz+rand(-200,300),0,0,-rand(2400,3600),rand(.18,.32),{g:0,s:rand(4,8),len:.12}); }));
   // ---- hang: the cry, the held breath, the floor heating where it will land
-  after(TH,()=>{ SFX.roar&&SFX.roar(1.5,1); Cn.SND.shing&&Cn.SND.shing(.8,.4); Cn.hush(TD-TH,{a:.5}); K.flare(posX(TH),posY(TH),ZT,{pal:PG,s:760,sx:1.8,sy:.7,dur:.26,gain:2.2}); Cn.move({x:mix(x0,ix,.7),y:iy-420,zoom:.66,tilt:.24,roll:0},TD-TH,'io');
+  after(TH,()=>{ SFX.roar&&SFX.roar(1.5,1); Cn.SND.shing&&Cn.SND.shing(.8,.4); Cn.hush(TD-TH,{a:.5}); K.flare(posX(TH),posY(TH),ZT,{pal:PG,s:760,sx:1.8,sy:.7,dur:.26,gain:2.2}); Cn.move({x:mix(x0,ix,.7),y:iy-360,zoom:.7,tilt:.24,roll:0},TD-TH,'io');
     K.cool(ix,iy,{kind:'scorch',r:520,pal:PF,life:TC-TH+.3,hot:1,grow:TC-TH,light:0}); const Lw=GFX.light(ix,iy,500,PG.l,.2,TC-TH,{z:80}); GFX.add(TC-TH,k=>{ Lw.a=.2+1*k*k; Lw.r=500+700*k; }); });
   // ---- stoop
   after(TD,()=>{ SFX.whoosh&&SFX.whoosh(1.8,1); Cn.shake(.5); Cn.move({x:mix(x0,ix,.85),y:iy-240,zoom:.72,tilt:.14},TC-TD,'in');
