@@ -8,7 +8,7 @@
   const brass = {d:'#311b19',b:'#ad6632',m:'#f5ca74',h:'#fff9db',l:'#edbb63',s:'#fff0bc'};
   const night = {d:'#0b1440',b:'#3f55d8',m:'#9db4ff',h:'#f2f8ff',l:'#7f9cff',s:'#d7dcff'};
   const point = (x,y,z=0) => ({x,y,z});
-  const fromHero = () => point(pl.x+pl.f*55,pl.gy,BODY*.66);
+  const fromHero = () => point(pl.x+pl.f*62,pl.gy,BODY*.84);
   const onEnemy = e => point(e.x,e.y,(e.z||0)+e.h*.48);
   const pose = (name,time) => window.RangedHero?.pose(name,time);
   const evo = id => A.sLv(id)>=5;
@@ -115,10 +115,16 @@
     });
   }
   function nock(e,sec=.15) { X.face(X.angTo(e));pose('draw',sec); }
-  function release(p=wind) {
+  function release(p=wind,heavy=true) {
     pose('release',.24);X.sfx('whoosh',1.65,.23);
     const q=fromHero();
     K.flare(q.x,q.y,q.z,{pal:p,s:130,sx:2.1,sy:.4,dur:.13,gain:2.2});
+    trauma=Math.min(1,trauma+(heavy?.1:.05));
+    // The string's snap: a ring of pressed air at the feet and splinters of light thrown back off the bow.
+    if(heavy){
+      K.shock(pl.x,pl.gy,{r:250,dur:.24,pal:p,dust:0,light:0,gain:.45});
+      K.sparks(q.x,q.y,q.z,{pal:p,n:low()?2:5,dir:pl.f>0?Math.PI:0,spread:.7,sp:[220,640],up:320,life:[.14,.34]});
+    }
     if(!FX3.on) animate(.15,k=>{fx.save();fx.globalAlpha=(1-k)*.85;star(fx,q.x,q.y-q.z,47*(.32+.68*Math.sin(Math.PI*k)),p.h,.65);fx.restore();});
   }
   function hitAt(e,p,pw=1) {
@@ -163,7 +169,7 @@
   }
   function basic() {
     const e=X.nearest(1100); if(!e) return false;
-    nock(e,.105); later(.105,()=>{ release(); normalShot(e,1040*A.mul('ar_basic')); }); return true;
+    nock(e,.105); later(.105,()=>{ release(wind,false); normalShot(e,1040*A.mul('ar_basic')); }); return true;
   }
   // Three (five) broad feathers of wind open from the bow; each lane is left scored in the floor.
   skill('ar_fan','삼우개화',1,4.5,1140,'세 발의 화살을 부채꼴로 펼쳐 앞을 휩쓴다.','다섯 발을 펼치고 부채의 바깥쪽까지 꿰뚫는다.',(d,up)=>{
@@ -440,55 +446,61 @@
     K.dust(q.x,q.y,{n:low()?3:7,dir:a+Math.PI,spread:1.1,sp:[310,820],c:'#55857a',a:.36});
     GFX.light(q.x,q.y,rr*2.3,wind.l,.47,.26,{z:q.z});
   }
-  // Each turn is a point on the screen perimeter. Alternate the diagonals,
-  // horizontal chords and steep chords so the history fills the entire field.
-  const boundaries=[
-    [-.96,.59],[.96,-.58],[-.85,-.91],[.79,.92],[-.96,.10],[.46,-.92],
-    [-.51,.92],[.96,-.25],[-.96,-.51],[.65,.92],[-.39,-.92],[.96,.43],
-    [-.96,.79],[.23,-.92],[-.11,.92],[.88,-.91],[-.96,.30],[.96,.16],
-    [-.72,-.92],[.39,.92],[-.96,-.72],[.96,-.03],[-.38,.92],[.64,-.92]
-  ];
-  function sonicScore(stage) {
-    const {x,y,hw,hh}=stage,home=fromHero();
-    const ends=boundaries.map(([u,v],i)=>{
-      const z=BODY*(.68+.18*Math.sin(i*1.32));
-      return point(x+hw*u,y-BODY*.52+hh*v+z,z);
-    });
-    const starts=[home,...ends],destinations=[...ends,home];
-    let elapsed=.62;
-    return starts.map((a,i)=>{
-      const b=destinations[i],dx=b.x-a.x,dy=b.y-b.z-a.y+a.z,length=Math.hypot(dx,dy)||1;
-      const duration=i===0?.16:i===1?.49:i===2?.44:i===24?.10:.34*.905**(i-3);
-      const start=elapsed;elapsed+=duration;
-      const dir=point(dx/length,dy/length), bend=Math.min(hw,hh)*(.018+.012*Math.sin(i*2.1))*(i%2?1:-1);
-      function at(u){
-        const arc=Math.sin(Math.PI*u)*bend;
-        return point(mix(a.x,b.x,u)-dir.y*arc,mix(a.y,b.y,u)+dir.x*arc,mix(a.z,b.z,u));
-      }
-      const sample=t=>{const p=at(t);return [p.x,p.y-p.z];};
-      const points=Array.from({length:13},(_,j)=>sample(j/12));
-      return {i,start,end:elapsed,duration,a,b,at,points,dir,angle:Math.atan2(dir.y,dir.x)};
-    });
+  // One unbroken curve: a 4:5 Lissajous over the whole view that leaves the
+  // archer's chest and returns to it. The arrow runs it ever faster.
+  function sonicCourse(stage,t0,T) {
+    const {x,y,hw,hh}=stage,z=BODY*.7,N=560;
+    // A different curve every cast: two sine harmonics per axis with random
+    // whole-number frequencies, weights and mirroring. Whole numbers keep both
+    // ends of the course on the archer.
+    const pick=(lo,hi)=>lo+Math.floor(Math.random()*(hi-lo+1)),flip=()=>Math.random()<.5?-1:1;
+    const fx1=pick(3,5),fy1=fx1+(Math.random()<.5?1:-1),fx2=pick(1,7),fy2=pick(1,7);
+    const wx=.18+.24*Math.random(),wy=.18+.24*Math.random(),sx=flip(),sy=flip(),tx=flip(),ty=flip();
+    const rawX=th=>sx*(Math.sin(fx1*th)+tx*wx*Math.sin(fx2*th)),rawY=th=>sy*(Math.sin(fy1*th)+ty*wy*Math.sin(fy2*th));
+    let mx=0,my=0;
+    for(let j=0;j<=N;j++){const th=TAU*j/N;mx=Math.max(mx,Math.abs(rawX(th)));my=Math.max(my,Math.abs(rawY(th)));}
+    const at=p=>{const th=TAU*p;return point(x+hw*.93*rawX(th)/mx,y-BODY*.52+z+hh*.88*rawY(th)/my,z);};
+    const progress=u=>.35*u+.65*u*u*u;
+    const pAt=t=>progress(sat((t-t0)/T));
+    const timeOf=p=>{
+      let lo=0,hi=1;
+      for(let i=0;i<22;i++){const m=(lo+hi)/2;if(progress(m)<p)lo=m;else hi=m;}
+      return t0+T*hi;
+    };
+    const pts=[],times=[];
+    for(let j=0;j<=N;j++){const q=at(j/N);pts.push([q.x,q.y-q.z]);times.push(timeOf(j/N));}
+    // Every reversal near an edge of the view throws a sonic boom.
+    const turns=[],edge=(v,c,half)=>Math.abs(v-c)>half*.7;
+    const cy=y-BODY*.52;
+    for(let j=2;j<N-1;j++){
+      const [ax,ay]=pts[j-1],[bx,by]=pts[j],[nx,ny]=pts[j+1];
+      const turnX=(bx-ax)*(nx-bx)<=0&&edge(bx,x,hw*.93),turnY=(by-ay)*(ny-by)<=0&&edge(by,cy,hh*.88);
+      if((turnX||turnY)&&(!turns.length||j/N-turns[turns.length-1]>.012))turns.push(j/N);
+    }
+    return {at,pAt,timeOf,pts,times,N,turns:turns.slice(0,22)};
   }
-  function strokeEtching(score,now,ink,fade) {
+  // The lines behind the arrow are afterimages: bright where it has just been,
+  // thinning and dimming with age. Each age band is a single stroke.
+  function afterimage(course,now,ink,fade) {
+    const {pts,times,N}=course,bright=!A.SV.opt?.calm&&ink,bands=bright?1:12,life=2.4;
+    let head=0;
+    while(head<N&&times[head+1]<=now)head++;
+    if(head<1)return;
     fx.save();fx.lineJoin='round';fx.lineCap='round';
-    const bright=!A.SV.opt?.calm&&ink;
-    for(const s of score){
-      if(s.start>now) break;
-      const u=sat((now-s.start)/s.duration),age=Math.max(0,now-s.end);
-      const lit=bright?1:.52+.37*Math.exp(-age*1.06);
-      let pts=s.points;
-      if(u<1){
-        const last=s.at(u);pts=pts.slice(0,1+Math.floor(u*12));pts.push([last.x,last.y-last.z]);
+    for(let b=0;b<bands;b++){
+      const lo=now-life*(b+1)/bands,hi=now-life*b/bands;
+      let i0=-1,i1=-1;
+      for(let j=0;j<=head;j++){
+        if(!bright&&(times[j]<lo||times[j]>hi))continue;
+        if(i0<0)i0=j;
+        i1=j;
       }
-      fx.globalAlpha=lit*fade*(bright?.85:.54);
-      line(fx,pts,bright?'#a5b5ae':s.i%4?'#549988':'#ad9a66',bright?13:16);
+      if(i1<=i0)continue;
+      const seg=pts.slice(Math.max(0,i0-1),i1+1),lit=bright?1:(1-(b+.5)/bands)**1.25;
+      fx.globalAlpha=lit*fade*(bright?.85:.7);
+      line(fx,seg,bright?'#a5b5ae':'#4f9c8c',bright?13:6+15*lit);
       fx.globalAlpha=lit*fade;
-      line(fx,pts,bright?'#ffffff':s.i%4?'#d6f1da':'#ffe6aa',bright?7:4.8);
-      if(u===1 && s.i>0 && s.i<24){
-        const [xx,yy]=pts[pts.length-1];fx.globalAlpha=fade*(.36+.58*Math.exp(-age*2.8));
-        star(fx,xx,yy,17+(bright?13:0),bright?'#ffffff':brass.h,s.angle);
-      }
+      line(fx,seg,bright?'#ffffff':b%3?'#d6f1da':'#ffe6aa',bright?7:2+5.5*lit);
     }
     fx.restore();
   }
@@ -497,10 +509,10 @@
       const length=Math.max(.09,Math.min(.47,.06+duration*.76));
       if(window.RangedHero?.cue?.('sonic',{pan,length,gain:index<=2?.81:.60,rate:1.04+index*.024}))return;
     }
-    // A narrow passing jet for every chord. Its envelope shrinks with travel time,
-    // preserving the rhythm of the last ~45 ms crossings without stacking long tails.
+    // A narrow passing jet for every turn. Its envelope shrinks with travel time,
+    // preserving the rhythm of the last crossings without stacking long tails.
     if(!AC)return;
-    const t=AC.currentTime,life=Math.min(.26,duration*.87),n=noiseSrc(t,life),filter=filt('bandpass',800,1.2),g=AC.createGain();
+    const t=AC.currentTime,life=Math.max(.03,Math.min(.26,duration*.87)),n=noiseSrc(t,life),filter=filt('bandpass',800,1.2),g=AC.createGain();
     filter.frequency.setValueAtTime(580+index*28,t);filter.frequency.exponentialRampToValueAtTime(3400+index*66,t+life*.24);
     filter.frequency.exponentialRampToValueAtTime(680,t+life);
     g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.29,t+Math.min(.012,life*.17));
@@ -517,70 +529,69 @@
     // engine's minimum 92% random damage roll.
     X.dmg(e,Math.ceil((e.hp+1)/.92),{crit:true,kb:.35,sx:q.x,sy:q.y});
   }
-  function sonicTargets(id,score,stage) {
+  // Each enemy falls at the moment the arrow passes closest to it.
+  function sonicKills(id,course,stage) {
+    const {pts,times,N}=course;
     for(const e of V.en){
       if(e.dead||e.d.node) continue;
       const ey=e.y-e.h*.48-(e.z||0);
-      let best=null,dist=Infinity,contact=0;
-      for(let i=1;i<score.length-1;i++){
-        const s=score[i],px=s.a.x,py=s.a.y-s.a.z,dx=s.b.x-px,dy=s.b.y-s.b.z-py;
-        const u=sat(((e.x-px)*dx+(ey-py)*dy)/(dx*dx+dy*dy||1));
-        const q=s.at(u),ds=(q.x-e.x)**2+(q.y-q.z-ey)**2;
-        if(ds<dist){dist=ds;best=s;contact=u;}
+      let best=0,dist=Infinity;
+      for(let j=0;j<=N;j++){
+        const ds=(pts[j][0]-e.x)**2+(pts[j][1]-ey)**2;
+        if(ds<dist){dist=ds;best=j;}
       }
-      later(best.start+best.duration*contact,()=>{
+      later(times[best],()=>{
         if(e.dead || RPG.mode!=='surv' || V.over || !lock || V.ultId!==id)return;
-        executeSonic(e,best.at(contact),stage);
+        executeSonic(e,course.at(best/N),stage);
       });
     }
   }
   function sonic(id) {
     const stage=startUlt(id,wind,X.nearest(Infinity)),{x,y,hw,hh}=stage;
-    C.move({x,y:y-BODY*.52,zoom:1,tilt:.022,roll:0},.48);
-    const score=sonicScore(stage),inkAt=score[24].end,blastAt=inkAt+.105,stop=blastAt+1.62;
-    const draw=K.gather(x,y,BODY*.65,{pal:wind,r:139,R:590,dur:.62,n:.41,shells:1,gain:.67});
-    C.SND.inhale(.54,.24);
-    const bow=fromHero(),back=point(bow.x-score[0].dir.x*100,bow.y-score[0].dir.y*100,bow.z);
-    animate(.62,k=>arrow(bow,back,hw*(.12+.13*k),ease(sat(k*4))));
-    later(.62,()=>{draw.release({s:.49,ring:0});release();});
-    // A single draw callback owns the only arrowhead. Even if the renderer skips
-    // several turns, completed chords remain in the etching at their true length.
-    animate(stop,(k,t)=>{
-      if(t<.62)return;
-      const fade=1-ease(sat((t-blastAt-.32)/1.16));
-      if(fade>0)strokeEtching(score,t,t>=inkAt&&t<blastAt,fade);
+    C.move({x,y:y-BODY*.52,zoom:1,tilt:.022,roll:0},.3);
+    const loose=.28,inkAt=loose+1.92,blastAt=inkAt+.105,stop=3;
+    const course=sonicCourse(stage,loose,inkAt-loose);
+    const draw=K.gather(x,y,BODY*.65,{pal:wind,r:139,R:590,dur:loose,n:.41,shells:1,gain:.67});
+    C.SND.inhale(loose-.06,.24);
+    const bow=fromHero(),first=course.at(.004),aim=Math.atan2(first.y-first.z-bow.y+bow.z,first.x-bow.x);
+    const back=point(bow.x-Math.cos(aim)*100,bow.y-Math.sin(aim)*100,bow.z);
+    animate(loose,k=>arrow(bow,back,hw*(.12+.13*k),ease(sat(k*4))));
+    later(loose,()=>{draw.release({s:.49,ring:0});release();C.shake(.2);});
+    const size=Math.max(BODY*2.4,hw*.26);
+    // The stretch of the course flown in the last `span` seconds, as a 0..1 path.
+    const wake=(t,span)=>{const p1=course.pAt(t),p0=course.pAt(t-span);return q=>course.at(mix(p0,p1,q));};
+    // A single draw callback owns the only arrowhead and every afterimage behind it.
+    animate(stop+1.3,(k,t)=>{
+      if(t<loose)return;
+      const fade=1-ease(sat((t-blastAt-.25)/1.6));
+      if(fade>0)afterimage(course,t,t>=inkAt&&t<blastAt,fade);
       if(t>inkAt)return;
-      const s=score.find(leg=>t<leg.end)||score[24],u=sat((t-s.start)/s.duration);
-      const head=s.at(u),prev=s.at(Math.max(0,u-.006)),size=Math.max(BODY*2.4,hw*(s.i>15?.245:.28));
-      airWake(s.at,u,stage);
-      pressurePlate(ctx,plate('ar_mach_front'),head.x-s.dir.x*size*.2,head.y-head.z-s.dir.y*size*.2,s.angle,size*1.64,.83);
+      const p=course.pAt(t),head=course.at(p),prev=course.at(Math.max(0,p-.0015)),a=Math.atan2(head.y-prev.y,head.x-prev.x);
+      airWake(wake(t,.3),1,stage);
+      pressurePlate(ctx,plate('ar_mach_front'),head.x-Math.cos(a)*size*.2,head.y-head.z-Math.sin(a)*size*.2,a,size*1.64,.83);
       arrow(head,prev,size);
-      fx.save();star(fx,head.x,head.y-head.z,hw*.008,brass.h,s.angle);fx.restore();
-      for(let j=Math.max(0,s.i-5);j<s.i;j++){
-        const leg=score[j],age=t-leg.end;
-        if(age>.42)continue;
-        const f=sat(age/.42),sz=Math.min(hw,hh)*(.40+.65*f);
-        pressurePlate(ctx,plate('ar_mach_front'),leg.b.x,leg.b.y-leg.b.z,leg.angle,sz,(1-f)**1.5*.61);
-      }
+      fx.save();star(fx,head.x,head.y-head.z,hw*.008,brass.h,a);fx.restore();
     },(k,t)=>{
-      if(t<.62 || t>inkAt)return;
-      const s=score.find(leg=>t<leg.end)||score[24],u=sat((t-s.start)/s.duration);
-      ribbon(s.at,Math.max(0,u-.27),Math.max(0,u-.011),wind,hw*.037,.84,true);
+      if(t<loose || t>inkAt)return;
+      ribbon(wake(t,.08),0,.99,wind,hw*.037,.84,true);
     });
-    sonicTargets(id,score,stage);
-    for(const s of score.slice(1,-1)){
-      later(s.start,()=>{
-        acceleratedWhoosh(s.i,s.duration,s.dir.x*.77);
-        const big=s.i<=2 || s.i===6 || s.i===12 || s.i===18;
-        if(big){resonance(s.a,s.dir,s.i<3?1.20:.93);C.shake(.14); }
-        else{GFX.light(s.a.x,s.a.y,300,wind.l,.43,.15,{z:s.a.z});if(s.i<15||s.i%2===0)resonance(s.a,s.dir,.62);}
+    sonicKills(id,course,stage);
+    course.turns.forEach((p,i)=>{
+      const when=course.timeOf(p),next=i+1<course.turns.length?course.timeOf(course.turns[i+1]):inkAt;
+      const big=i<2 || i%6===5;
+      if(!big && low() && i%2)return;
+      later(when,()=>{
+        const q=course.at(p),n=course.at(p+.003),d=Math.hypot(n.x-q.x,n.y-q.y)||1,dir=point((n.x-q.x)/d,(n.y-q.y)/d);
+        acceleratedWhoosh(i+1,next-when,dir.x*.77);
+        resonance(q,dir,big?1.1:.66);C.shake(big?.2:.09);
+        if(!big)GFX.light(q.x,q.y,300,wind.l,.43,.15,{z:q.z});
       });
-    }
+    });
     later(inkAt-.14,()=>C.hush(.24,{a:.54,c:wind.l,snd:false}));
     later(inkAt,()=>{window.RangedHero?.impact?.('ink',.105);C.SND.tick(.58,.19);});
     later(blastAt,()=>{
       if(V.over || !lock || V.ultId!==id)return;
-      // A mission may add enemies after the route was scored. The outgoing
+      // A mission may add enemies after the course was scored. The outgoing
       // final shock catches the exact live population at detonation.
       const present=V.en.filter(e=>!e.dead&&!e.d.node);
       for(const e of present)executeSonic(e,stage,stage);
@@ -610,7 +621,8 @@
         later(i*.012,()=>{K.coolLine(x,y,q.x,q.y,{pal:brass,w:84,life:1.69,light:0});K.dust(q.x,q.y,{n:4,sp:[270,700],a:.36});});
       }
     });
-    endUlt(stop);
+    later(blastAt+.12,()=>{C.back(.55);GFX.ambient(1,1,1,3);});
+    later(stop,X.ultStop);
   }
   // An original sidereal stag chart. Coordinates are in the chart plane;
   // its forelegs, back, jaw, antlers and facets light successively.
@@ -833,7 +845,7 @@
     endUlt(land+2.1);
   }
   const ultimates={
-    ar_ult1:[1,'천궁일선','한 발의 화살이 소리를 추월한다. 전장 전역의 적과 보스를 차례로 꿰뚫어 처치하고, 급선회한 자리에 소닉붐을 남긴다.',sonic],
+    ar_ult1:[1,'천궁일선','한 발의 화살이 곡선을 그리며 끝없이 가속해 소리를 추월한다. 전장 전역의 적과 보스를 차례로 꿰뚫어 처치하고, 꺾이는 자리마다 소닉붐을, 지나간 길에는 오래 남는 잔상을 남긴다.',sonic],
     ar_ult2:[5,'별자리 장송곡','별빛으로 수사슴의 별자리를 잇는다. 사슴이 도약하면 별들이 화살이 되어 전장에 쏟아진다.',requiem],
     ar_ult3:[12,'일식의 대궁','금빛 날개로 엮은 대궁으로 거대한 화살을 하늘 끝까지 쏘아 올린다. 사라졌던 화살이 어두워진 하늘에서 떨어져 꽂히며 빛의 해일이 사방으로 퍼져나간다.',eclipse],
   };

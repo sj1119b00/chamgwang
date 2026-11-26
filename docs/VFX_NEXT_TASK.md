@@ -9,6 +9,9 @@
 - 사운드(`sword-sfx/classfx.js`·`ingame.js`): 두 직업 24개 동작에 Sonniss 녹음 레이어(`R_*` 클립 146개, `KIT` 표, 궁극기 6개 고유 팔레트). 측정 음량은 평타 약 -14.5, 스킬 약 -12.5, 궁극기 약 -11.6 LUFS. 공개 배포용 묶음(`gunner.bin`·`archer.bin`)은 아직 안 만들었으므로 공개 주소에서는 원래 합성음만 난다.
 - 개발 도구 수정: `_gen/v3/skills.js`·`smoke.js`가 스킬 레벨을 `SV.sk`에 써서 진화형이 한 번도 안 나오던 것을 `SV.sl`로 고쳤다(전 직업 해당).
 - 검증: `__smoke` 두 직업 5레벨 통과(정점 드로우 거너 68, 궁수 83, 상태 복구 정상). 시트 `_gen/shots/r1_gn_skills.jpg`, `rv_gn_evo.jpg`, `r2_gn_ult1.jpg`, `rv_ar_a.jpg`, `rv_ar_b.jpg`, `r2_ar_ult3.jpg`, `r3_ar_ult3.jpg`.
+- 같은 밤 추가(사용자 지시, 공개 주소 미반영): 천궁일선을 직선 24번 횡단에서 **하나의 곡선(4:5 리사주, `sonicCourse`)을 가속하며 도는 방식**으로 교체. 지나간 선은 영구 각인이 아니라 2.4초에 걸쳐 흐려지는 잔상(`afterimage`), 전체 시전 3.0초(발사 0.28, 먹선 2.20, 폭발 2.305). 꺾이는 18곳에서 소닉붐. 두 직업 모든 사격에 약한 화면 진동, 거너 `muzzle`에 반동 고리+총구 연기, 궁수 `release`에 시위 공기 고리+뒤로 튀는 빛 조각. 그 전 버전 백업 `_gen/bak_ranged1126/sk_*.v2.js`.
+- 같은 밤 추가(사용자 지시, 공개 주소 미반영): 궁수·거너를 얇은 렌더 스프라이트에서 **기존 직업과 같은 입체 마네킹(`mk.js`)**으로 교체. `STY.archer`(활 `bowDraw`·화살통 `quiverDraw`·깃털 모자 `hat:'feather'`), `STY.gunner`(소총 `rifleDraw`·챙 넓은 모자 `hat:'brim'`), 클립 `bowDraw/bowLoose/gunAim/gunFire/rangedDash`. `RangedHero.pose()`가 `MK.ranged(name)`을 부르고, 조준 각도는 `X.face`를 감싸 잡는다(`watchAim`). 총구·활 기준점 높이를 마네킹에 맞춤(BODY*.86 / .84). 메뉴 초상(hub.js `heroFigure`)은 손대지 않아 두 직업은 아직 기본 구슬 모양. 자세 시트 `_gen/shots/mks_gunner.jpg`·`mks_archer.jpg`, 백업 `_gen/bak_ranged1126/mk.js`.
+- 천궁일선 궤적은 시전마다 무작위(`sonicCourse`: 축마다 정수 주파수 두 개의 사인 합, 가중·좌우상하 뒤집기 무작위, 시작과 끝은 항상 궁수). 소닉붐 지점은 가장자리 근처의 방향 전환을 수치로 찾는다(최대 22곳).
 - 남은 것: 독립 채점 미실시, 궁수 폭발이 불덩이처럼 읽히는 곳(ar_step·ar_pin, 바람·깃털 전용 원화 필요), 천궁일선 선회마다의 녹음 레이어(지금은 5곳만), `FX3.on=false` 경로 미실행.
 
 # 궁수와 거너 전투 연출 · 2026-11-26

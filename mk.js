@@ -40,7 +40,13 @@ const STY={
     base:{gr:0,lw:[0,0,1],hip:[0,0,.415],hy:-.34,cy:.16,lean:.24,hd:.16,hp:-.1,fr:[.17,.11,0],fl:[-.19,-.11,0],
       hr:[-.10,.22,-.15],hl:[.20,-.14,-.15],sw:[-.84,.5,.14],kr:.38,kl:.45}},
   axe:{w:'axe',bl:.62,hilt:.34,acc:'#ff5a14',acc2:'#8a1a06',sash:'#a8240a',tint:[1.1,.9,.82],scarf:[8,2.5],
-    base:{gr:0,sf:0,sh:0,lw:[0,1,0],hip:[0,0,.47],hy:-.2,cy:.15,lean:.12,fr:[.12,.12,0],fl:[-.14,-.11,0],hr:[.12,.17,-.12],hl:[.2,-.05,-.1],sw:[-.45,.1,.88],hd:.08,kr:.3,kl:.32}} };
+    base:{gr:0,sf:0,sh:0,lw:[0,1,0],hip:[0,0,.47],hy:-.2,cy:.15,lean:.12,fr:[.12,.12,0],fl:[-.14,-.11,0],hr:[.12,.17,-.12],hl:[.2,-.05,-.1],sw:[-.45,.1,.88],hd:.08,kr:.3,kl:.32}},
+  // archer: a tall bow carried upright in the leading hand, a quiver across the back, a ranger's cap with one long feather
+  archer:{w:'bow',bl:.3,hilt:.3,acc:'#9ce4ad',acc2:'#4f8a52',sash:'#6d9958',tint:[.9,1.08,.9],scarf:[11,3],hat:'feather',
+    base:{gr:0,sf:0,sh:0,lw:[0,0,1],hip:[0,0,.485],hy:-.3,cy:.12,lean:.05,fr:[.1,.1,0],fl:[-.12,-.09,0],hr:[.2,.13,-.1],hl:[.02,-.16,-.22],sw:[.12,0,.99],hd:.22,kr:.25,kl:.3}},
+  // gunner: a long rifle held across the body in both hands, a wide-brimmed hat, a duster's tail
+  gunner:{w:'rifle',bl:.36,hilt:.15,acc:'#77e5e4',acc2:'#a66c42',sash:'#c98a4a',tint:[.92,1.02,1.06],scarf:[13,6],hat:'brim',
+    base:{gr:0,sf:0,sh:0,lw:[0,1,0],hip:[0,0,.47],hy:-.28,cy:.2,lean:.1,fr:[.12,.11,0],fl:[-.14,-.1,0],hr:[.1,.13,-.15],hl:[.2,-.05,-.1],sw:[.86,-.2,-.47],hd:.1,kr:.3,kl:.34}} };
 let ST=STY.sword, BASE=DEF;
 const BASES={}; for(const k in STY) BASES[k]=Object.assign({},DEF,STY[k].base);
 function setCls(c){ ST=STY[c]||STY.sword; BASE=BASES[c]||DEF; if(c==='assassin')window.AssassinFlow?.prepare(); }
@@ -74,7 +80,7 @@ function solve(P){ const J={}, hy=P.hy, fp=[cos(hy),sin(hy),0], rp=[-sin(hy),cos
   const reach=(s,h,m)=>{ const d=sub(h,s), L=len(d); return L>m?add(s,mul(d,m/L)):h; }; if(ST.w!=='katana') hr=hFree; hr=reach(J.sr,hr,.3);
   let sdir, sbase; if(ST.w!=='katana'){ sdir=dFree; sbase=add(hr,mul(sdir,.02)); } else if(P.gr>=.5){ sdir=nrm(mix3(sd,dFree,P.sf)); sbase=add(hr,mul(sdir,.04)); } else { sdir=sd; sbase=baseC; }
   J.sb=sbase; J.st=add(sbase,mul(sdir,ST.bl)); J.sp=add(sbase,mul(sdir,-ST.hilt)); J.sdir=sdir;
-  const w=P.lw, ws=(w[0]+w[1]+w[2])||1, pF=loc(P.hl), pS=ST.w==='katana'?add(mouth,mul(sd,.035)):pF, pH=add(sbase,mul(sdir,-.125));
+  const w=P.lw, ws=(w[0]+w[1]+w[2])||1, pF=loc(P.hl), pS=ST.w==='katana'?add(mouth,mul(sd,.035)):pF, pH=add(sbase,mul(sdir,ST.w==='rifle'?.2:-.125));
   let hl=[0,1,2].map(i=>(pS[i]*w[0]+pH[i]*w[1]+pF[i]*w[2])/ws); hl=reach(J.sl,hl,.3);
   [J.er,J.hr]=ik(J.sr,hr,.155,.15,add(add(mul(u,-.7),mul(r,.6)),mul(f,-.35))); [J.el,J.hl]=ik(J.sl,hl,.155,.15,add(add(mul(u,-.7),mul(r,-.6)),mul(f,-.35)));
   if(ST.w==='daggers'){
@@ -108,6 +114,8 @@ CLIPS.idle={fn(){ const b=sin(RT*2.1), P=clone(BASE), w=ST.w;
   if(w==='fists'){ const q=sin(RT*5.2), q2=sin(RT*2.6); P.hip=[.012*q2,0,.455+.012*q]; P.hr=[.17+.012*q2,.09,-.04+.01*q]; P.hl=[.27-.012*q2,-.07,-.09+.01*q]; P.fr=[.15,.11,.012*Math.max(0,q)]; P.fl=[-.17,-.1,.012*Math.max(0,-q)]; return P; }
   if(w==='orb'){ P.hip=[0,0,.5+.005*b]; P.lean=.09+.012*b; P.hr=[.14,.14,-.17+.012*sin(RT*3.1)]; return P; }
   if(w==='axe'){ P.hip=[0,0,.47+.004*b]; P.lean=BASE.lean+.012*b; P.hr=[.12,.17,-.12+.006*b]; return P; }
+  if(w==='bow'){ P.hip=[0,0,.485+.004*b]; P.lean=BASE.lean+.01*b; P.hr=[.2,.13,-.1+.006*b]; P.sw=[.12+.03*sin(RT*.9),0,.99]; return P; }
+  if(w==='rifle'){ P.hip=[0,0,.47+.004*b]; P.lean=BASE.lean+.01*b; P.hr=[.1,.13,-.15+.006*b]; return P; }
   P.hip=[0,0,.5+.004*b]; P.lean=BASE.lean+.01*b; if(ST.hat==='cone'){ P.hl=[.17,-.03,-.07+.006*b]; P.sw=[-.08+.02*sin(RT*.9),.1,1]; } else P.hr=[.17,.17,-.12+.005*b]; return P; }};
 CLIPS.run={fn(){ const p=st.phase, k=Math.min(1,st.spd/380), foot=(q,y)=>{ q=((q%1)+1)%1; if(q<.42){ const s=q/.42; return [.25-.57*s,y,0]; } const s=(q-.42)/.58, e=s*s*(3-2*s); return [-.32+.57*e,y,.05+.2*Math.pow(sin(PI*Math.pow(s,.75)),1.2)]; };
   const a=sin(2*PI*p), P=clone(BASE); P.hip=[.02,0,.435+.022*cos(4*PI*p+.5)]; P.fr=[0,0,0]; P.fl=[0,0,0]; P.hy=.14*a; P.cy=-.3*a; P.lean=.2+.22*k; P.hd=.16*a; P.hp=-.18; P.fr=foot(p,.06); P.fl=foot(p+.5,-.06);
@@ -118,10 +126,32 @@ CLIPS.run={fn(){ const p=st.phase, k=Math.min(1,st.spd/380), foot=(q,y)=>{ q=((q
   else if(w==='fists'){ P.lean=.3+.2*k; P.hr=[.1+.2*a,.13,-.12-.06*a]; P.hl=[.1-.2*a,-.13,-.12+.06*a]; P.cy=-.42*a; }
   else if(w==='orb'){ P.hr=[.12+.03*a,.2,-.1]; P.hl=[.02-.16*a,-.15,-.2+.04*a]; P.lean=.24+.16*k; }
   else if(w==='axe'){ P.lean=.22+.14*k; P.lw=[0,1,0]; P.hr=[.08,.2,-.1+.02*a]; P.sw=[-.6,.1,.78]; }
+  else if(w==='bow'){ P.lean=.2+.16*k; P.hr=[.14+.05*a,.18,-.12]; P.sw=[.5,.1,.86]; P.hl=[.02-.16*a,-.16,-.19+.04*a]; }
+  else if(w==='rifle'){ P.lean=.22+.14*k; P.lw=[0,1,0]; P.hr=[.06,.16,-.13+.02*a]; P.sw=[.8,-.3,-.5]; }
   else if(ST.hat==='cone'){ P.lean=.12+.12*k; P.hr=[.1,.2,-.14+.02*a]; P.sw=[.25,.1,.95]; P.hl=[.14,-.05,-.08]; P.hip=[.02,0,.455+.014*cos(4*PI*p+.5)]; P.cy=-.16*a; }
   else { P.hr=[.06,.21,-.16+.02*a]; P.sw=[-.55,.05,.82]; P.hl=[.04-.15*a,-.16,-.2+.04*a]; }
   return P; }};
 
+// ---- ranged heroes. tr on the bow is how far the string is drawn (the left hand carries it); the rifle comes up to the shoulder to fire
+CLIPS.bowDraw={keys:[
+  [.1,{hy:-.75,cy:.5,lean:.02,hip:[0,0,.47],fr:[.17,.09,0],fl:[-.17,-.09,0],hr:[.3,.02,-.02],sw:[.04,.1,.99],hl:[.22,-.04,-.03],hd:.75,tr:.3,kr:.3,kl:.45},'out'],
+  [.3,{hl:[-.02,-.1,-.02],tr:1,cy:.62,lean:-.03},'io'],
+  [9,{hl:[-.04,-.1,-.02],tr:1},'lin'] ]};
+CLIPS.bowLoose={keys:[
+  [.03,{hy:-.75,cy:.6,lean:-.03,hip:[0,0,.47],fr:[.17,.09,0],fl:[-.17,-.09,0],hr:[.31,.02,-.02],sw:[.1,.1,.99],hl:[-.16,-.14,.02],hd:.75,tr:0,kr:.3,kl:.45},'lin'],
+  [.12,{hl:[-.22,-.17,-.02],sw:[.3,.1,.95],cy:.7},'out'],
+  [.34,{hl:[-.1,-.16,-.12],hr:[.26,.06,-.05],sw:[.16,.05,.98],cy:.45},'io'] ]};
+CLIPS.gunAim={keys:[
+  [.1,{hy:-.5,cy:.42,lean:.14,hip:[0,0,.44],fr:[.2,.1,0],fl:[-.2,-.1,0],hr:[.1,.07,.0],sw:[1,0,.02],lw:[0,1,0],hd:.1,hp:-.06,kr:.3,kl:.5},'out'],
+  [9,{hr:[.1,.07,.0]},'lin'] ]};
+CLIPS.gunFire={keys:[
+  [.025,{hy:-.5,cy:.42,lean:.14,hip:[0,0,.44],fr:[.2,.1,0],fl:[-.2,-.1,0],hr:[.1,.07,.0],sw:[1,0,.02],lw:[0,1,0],hd:.1,hp:-.06,kr:.3,kl:.5},'lin'],
+  [.07,{hr:[.04,.08,.03],sw:[.97,0,.24],lean:.05,hip:[-.03,0,.445],cy:.34},'out'],
+  [.3,{hr:[.1,.07,.0],sw:[1,0,.02],lean:.13,hip:[0,0,.44],cy:.42},'io'] ]};
+CLIPS.rangedDash={keys:[
+  [.05,{hip:[.06,0,.3],lean:.55,hy:-.2,cy:.1,fr:[.34,.09,.02],fl:[-.3,-.1,.05],hd:.1,hp:-.3,kr:.2,kl:.5},'out'],
+  [.2,{hip:[.08,0,.31],fr:[.36,.09,0],fl:[-.34,-.1,.02]},'lin'],
+  [.34,{hip:[0,0,.45],lean:.14,fr:[.14,.1,0],fl:[-.14,-.1,0],hp:0},'io'] ]};
 // ---- the iai stance (omen): he sinks, coils away from the target, the hand finds the hilt; the last tenth of a second he draws back before the release
 CLIPS.iaiReady={keys:[
   [.34,{hip:[.02,0,.41],hy:-.38,cy:.08,lean:.3,fr:[.2,.095,0],fl:[-.24,-.09,0],gr:1,sf:0,sh:1,lw:[1,0,0],hd:.3,hp:.08,kr:.3,kl:.5},'io'],
@@ -334,13 +364,13 @@ for(const k in CLIPS) compile(CLIPS[k]);
 
 // ------------------------------------------------------------------ state
 const M={clip:CLIPS.idle,name:'idle',t:0,yaw:0,from:null,fromYaw:0,blend:0,bt:0,P:clone(DEF),J:null,slide:null,px:null,py:null,loco:true,ghosts:[],scarf:null,hair:null,speed:1};
-const on=()=>G.mode==='surv'&&!!STY[pl.cls]&&(pl.cls==='assassin'||pl.cls==='axe'||A.STK());
+const on=()=>G.mode==='surv'&&!!STY[pl.cls]&&(pl.cls==='assassin'||pl.cls==='axe'||pl.cls==='archer'||pl.cls==='gunner'||A.STK());
 function cur(t){ let P=sample(M.clip,t,M.from); if(M.blend>0&&M.bt<M.blend&&M.from) P=blendPose(M.from,P,EASE.io(M.bt/M.blend)); return P; }
 // re-express a pose held under one facing in the frame of another
 function reyaw(P,d){ const o=clone(P); o.hip=rotZ(o.hip,d); o.fr=rotZ(o.fr,d); o.fl=rotZ(o.fl,d); o.hy=wrap(o.hy+d); return o; }
 function play(name,o={}){ const c=CLIPS[name]; if(!c) return; const yaw=o.yaw!=null?o.yaw:M.yaw; M.from=reyaw(M.P,wrap(M.yaw-yaw)); M.clip=c; M.name=name; M.t=0; M.yaw=yaw; M.blend=o.blend??(c.fn?.18:0); M.bt=0; M.speed=o.speed||1; M.loco=!!o.loco;
   M.slide=o.from?{x:o.from[0],y:o.from[1],x1:pl.x,y1:pl.gy,t:0,dur:o.slide||.05}:null; if(M.slide){ pl.x=M.slide.x; pl.gy=M.slide.y; M.px=pl.x; M.py=pl.gy; } M.P=cur(0); M.J=solve(M.P); }
-function tick(dt,rdt){ if(!on()){ M.px=null; return; } if(M.cls!==pl.cls){ M.cls=pl.cls; setCls(pl.cls); M.clip=CLIPS.idle; M.name='idle'; M.from=null; M.P=clone(BASE); M.loco=true; M.scarf=null; }
+function tick(dt,rdt){ watchAim(); if(!on()){ M.px=null; return; } if(M.cls!==pl.cls){ M.cls=pl.cls; setCls(pl.cls); M.clip=CLIPS.idle; M.name='idle'; M.from=null; M.P=clone(BASE); M.loco=true; M.scarf=null; }
   // movement drives the run cycle and the facing while no clip holds him
   let vx=0, vy=0; if(M.px!=null&&rdt>0){ vx=(pl.x-M.px)/rdt; vy=(pl.gy-M.py)/rdt/FSY; if(Math.hypot(vx,vy)>2500){ const dx=pl.x-M.px, dy=pl.gy-M.py; for(const n of [...(M.scarf||[]),...(M.hair||[])]){ n.x+=dx; n.y+=dy; n.px+=dx; n.py+=dy; } vx=vy=0; } }
   M.px=pl.x; M.py=pl.gy; const sp=Math.hypot(vx,vy);
@@ -442,6 +472,43 @@ function axeDraw(g,S,flat){
   g.strokeStyle='#c9a34a'; g.lineWidth=1.6; g.beginPath(); g.moveTo(B[0],B[1]); g.quadraticCurveTo(ci[0],ci[1],D[0],D[1]); g.stroke();
   g.strokeStyle='#ff7a2a'; g.lineWidth=2.6; g.beginPath(); g.moveTo(B[0],B[1]); g.quadraticCurveTo(co[0],co[1],D[0],D[1]); g.stroke(); g.strokeStyle='#fff0c8'; g.lineWidth=1; g.stroke();
   if(g===ctx){ fx.save(); fx.globalCompositeOperation='lighter'; fx.lineCap='round'; fx.strokeStyle='rgba(255,100,30,.32)'; fx.lineWidth=12; fx.beginPath(); fx.moveTo(B[0],B[1]); fx.quadraticCurveTo(co[0],co[1],D[0],D[1]); fx.stroke(); fx.restore(); } }
+// a long rifle: dark steel barrel, brass receiver and bands, a walnut stock, a glass sight that carries the class colour
+function rifleDraw(g,S,flat){
+  const p=S.sp, b=S.sb, t=S.st, at=u=>[mixn(b[0],t[0],u),mixn(b[1],t[1],u)], seg=(a,c,col,w)=>{ g.strokeStyle=col; g.lineWidth=w; g.beginPath(); g.moveTo(a[0],a[1]); g.lineTo(c[0],c[1]); g.stroke(); };
+  g.lineCap='round'; g.lineJoin='round';
+  if(flat){ seg(p,t,flat,6); return; }
+  seg(p,at(.12),'#0d0a10',13); seg(p,at(.1),'#6b3f22',9.5); seg([p[0],p[1]-2],[at(.08)[0],at(.08)[1]-2],'#a56a3a',2.4);
+  seg(at(.05),t,'#0d0a10',8.5); seg(at(.05),t,'#39424d',5.2); seg([at(.1)[0],at(.1)[1]-1.6],[t[0],t[1]-1.6],'#9fb3c2',1.5);
+  seg(at(.02),at(.3),'#0d0a10',11); seg(at(.03),at(.29),'#c98a4a',7.5); seg([at(.05)[0],at(.05)[1]-2.4],[at(.27)[0],at(.27)[1]-2.4],'#ffd9a0',1.6);
+  for(const u of [.5,.78]) seg(at(u),at(u+.03),'#e0a860',7);
+  const s0=at(.12), s1=at(.34), up=7.5; seg([s0[0],s0[1]-up],[s1[0],s1[1]-up],'#0d0a10',7); seg([s0[0],s0[1]-up],[s1[0],s1[1]-up],'#2c5f66',4.2);
+  g.fillStyle=ST.acc; g.beginPath(); g.arc(s1[0],s1[1]-up,2.6,0,7); g.fill();
+  seg(t,at(1.04),'#0d0a10',10); seg(t,at(1.035),'#56616e',6.5);
+  if(g===ctx){ fx.save(); fx.globalCompositeOperation='lighter'; const gl=fx.createRadialGradient(s1[0],s1[1]-up,1,s1[0],s1[1]-up,13); gl.addColorStop(0,'rgba(120,235,230,.55)'); gl.addColorStop(1,'rgba(60,200,210,0)'); fx.fillStyle=gl; fx.beginPath(); fx.arc(s1[0],s1[1]-up,13,0,7); fx.fill(); fx.restore(); } }
+// a recurve bow: the belly bends away from the string, which runs through the drawing hand once it is pulled (tr), with the arrow on it
+function bowDraw(g,S,tr,flat){
+  const p=S.sp, t=S.st, b=S.sb, h=S.hl, dx=t[0]-p[0], dy=t[1]-p[1], l=Math.hypot(dx,dy)||1; let nx=-dy/l, ny=dx/l;
+  if((h[0]-b[0])*nx+(h[1]-b[1])*ny>0){ nx=-nx; ny=-ny; }
+  const bend=l*(.2+.08*tr), cx=b[0]+nx*bend*2-(p[0]+t[0])/2+b[0], cy=b[1]+ny*bend*2-(p[1]+t[1])/2+b[1];
+  const limb=()=>{ g.beginPath(); g.moveTo(p[0],p[1]); g.quadraticCurveTo(cx,cy,t[0],t[1]); };
+  g.lineCap='round'; g.lineJoin='round';
+  if(flat){ g.strokeStyle=flat; g.lineWidth=5; limb(); g.stroke(); return; }
+  const nock=tr>.05?[mixn((p[0]+t[0])/2,h[0],Math.min(1,tr*1.2)),mixn((p[1]+t[1])/2,h[1],Math.min(1,tr*1.2))]:null;
+  g.strokeStyle='rgba(235,250,235,.9)'; g.lineWidth=1.3; g.beginPath(); g.moveTo(p[0],p[1]); if(nock) g.lineTo(nock[0],nock[1]); g.lineTo(t[0],t[1]); g.stroke();
+  g.strokeStyle='#0d0a10'; g.lineWidth=9; limb(); g.stroke(); g.strokeStyle='#3f7a52'; g.lineWidth=5.6; g.stroke(); g.strokeStyle='#b9f0c4'; g.lineWidth=1.5; g.stroke();
+  const gx=b[0]+nx*bend, gy=b[1]+ny*bend; g.strokeStyle='#0d0a10'; g.lineWidth=11; g.beginPath(); g.moveTo(gx-dx/l*9,gy-dy/l*9); g.lineTo(gx+dx/l*9,gy+dy/l*9); g.stroke(); g.strokeStyle='#d9b45a'; g.lineWidth=7; g.stroke();
+  for(const e of [p,t]){ g.fillStyle='#e8c25a'; g.strokeStyle='#0d0a10'; g.lineWidth=1.2; g.beginPath(); g.arc(e[0],e[1],3.4,0,7); g.fill(); g.stroke(); }
+  if(nock){ const ax=gx-nock[0], ay=gy-nock[1], al=Math.hypot(ax,ay)||1, ux=ax/al, uy=ay/al, tipx=gx+ux*26, tipy=gy+uy*26;
+    g.strokeStyle='#0d0a10'; g.lineWidth=4.4; g.beginPath(); g.moveTo(nock[0],nock[1]); g.lineTo(tipx,tipy); g.stroke(); g.strokeStyle='#e9dfb8'; g.lineWidth=2.2; g.stroke();
+    g.fillStyle='#f4fff2'; g.strokeStyle='#0d0a10'; g.lineWidth=1; g.beginPath(); g.moveTo(tipx+ux*11,tipy+uy*11); g.lineTo(tipx-uy*5,tipy+ux*5); g.lineTo(tipx+uy*5,tipy-ux*5); g.closePath(); g.fill(); g.stroke();
+    g.strokeStyle=ST.acc; g.lineWidth=3; g.beginPath(); g.moveTo(nock[0]+ux*3,nock[1]+uy*3); g.lineTo(nock[0]+ux*13,nock[1]+uy*13); g.stroke(); } }
+function quiverDraw(g,a,b,flat){
+  g.lineCap='round'; if(flat){ g.strokeStyle=flat; g.lineWidth=8; g.beginPath(); g.moveTo(a[0],a[1]); g.lineTo(b[0],b[1]); g.stroke(); return; }
+  g.strokeStyle='#0d0a10'; g.lineWidth=15; g.beginPath(); g.moveTo(a[0],a[1]); g.lineTo(b[0],b[1]); g.stroke(); g.strokeStyle='#5a3c22'; g.lineWidth=11.5; g.stroke();
+  g.strokeStyle='#d9b45a'; g.lineWidth=11.5; g.beginPath(); g.moveTo(mixn(a[0],b[0],.82),mixn(a[1],b[1],.82)); g.lineTo(mixn(a[0],b[0],.9),mixn(a[1],b[1],.9)); g.stroke();
+  const dx=b[0]-a[0], dy=b[1]-a[1], l=Math.hypot(dx,dy)||1, ux=dx/l, uy=dy/l;
+  for(const k of [-1,0,1]){ const x=b[0]-uy*k*3.6, y=b[1]+ux*k*3.6; g.strokeStyle='#e9dfb8'; g.lineWidth=1.6; g.beginPath(); g.moveTo(x,y); g.lineTo(x+ux*13,y+uy*13); g.stroke();
+    g.strokeStyle=k?'#9ce4ad':'#f4fff2'; g.lineWidth=3.4; g.beginPath(); g.moveTo(x+ux*8,y+uy*8); g.lineTo(x+ux*15,y+uy*15); g.stroke(); } }
 function figure(g,J,ox,oy,yaw,o={}){ const S={}; for(const k in J) if(Array.isArray(J[k])&&k!=='f'&&k!=='r'&&k!=='u'&&k!=='hf'&&k!=='sdir') S[k]=proj(J[k],ox,oy,yaw);
   const flat=o.flat, L=o.L||lightOf(ox,oy), C=flat?null:pal(L), items=[];
   for(const [a,b,ra,rb,kd] of SEG) items.push({d:(S[a][2]+S[b][2])/2+(kd==='t'?0:0),a:S[a],b:S[b],ra:ra*SC,rb:rb*SC,kd});
@@ -459,12 +526,19 @@ function figure(g,J,ox,oy,yaw,o={}){ const S={}; for(const k in J) if(Array.isAr
   else if(ST.w==='staff') items.push({d:(S.sp[2]+S.st[2])/2+.003,kd:'staff'});
   else if(ST.w==='axe') items.push({d:(S.sp[2]+S.st[2])/2+.003,kd:'axe'});
   else if(ST.w==='orb') items.push({d:S.hr[2]+.01,kd:'orb'});
+  else if(ST.w==='rifle') items.push({d:(S.sp[2]+S.st[2])/2+.003,kd:'rifle'});
+  else if(ST.w==='bow'){ items.push({d:(S.sp[2]+S.st[2])/2+.003,kd:'bow',tr:o.P?o.P.tr:0});
+    const q0=add(add(J.ch,mul(J.f,-.075)),mul(J.r,.05)), qd=nrm(add(add(mul(J.u,.9),mul(J.r,.45)),mul(J.f,-.25)));
+    items.push({d:S.ch[2]-.012,kd:'quiver',a:proj(add(q0,mul(qd,-.16)),ox,oy,yaw),b:proj(add(q0,mul(qd,.13)),ox,oy,yaw)}); }
   items.sort((p,q)=>p.d-q.d);
   for(const it of items){
     if(it.kd==='mantle'){ mantle(g,S.nk,it.shoulder,it.elbow,it.hem,flat); continue; }
     if(it.kd==='dagger'){ dagger(g,it.grip,it.guard,it.tip,flat); continue; }
     if(it.kd==='h'&&ST.hat==='cowl'){ cowl(g,it.a,J.hf,yaw,it.r*1.09,flat); continue; }
     if(it.kd==='axe'){ if(!M.hideW) axeDraw(g,S,flat); continue; }
+    if(it.kd==='rifle'){ rifleDraw(g,S,flat); continue; }
+    if(it.kd==='bow'){ bowDraw(g,S,it.tr,flat); continue; }
+    if(it.kd==='quiver'){ quiverDraw(g,it.a,it.b,flat); continue; }
     if(it.kd==='staff'){ const p=S.sp, t=S.st; g.lineCap='round'; if(flat){ g.strokeStyle=flat; g.lineWidth=4; g.beginPath(); g.moveTo(p[0],p[1]); g.lineTo(t[0],t[1]); g.stroke(); continue; }
       g.strokeStyle='#0d0a10'; g.lineWidth=7; g.beginPath(); g.moveTo(p[0],p[1]); g.lineTo(t[0],t[1]); g.stroke(); g.strokeStyle=ST.bell?'#7a5a36':'#4a3a5e'; g.lineWidth=4; g.stroke();
       g.strokeStyle='#d9b45a'; g.lineWidth=5; g.beginPath(); g.moveTo(mixn(p[0],t[0],.86),mixn(p[1],t[1],.86)); g.lineTo(mixn(p[0],t[0],.9),mixn(p[1],t[1],.9)); g.stroke();
@@ -496,6 +570,17 @@ function figure(g,J,ox,oy,yaw,o={}){ const S={}; for(const k in J) if(Array.isAr
           g.fillStyle='#2a1a52'; g.strokeStyle=C.line; g.lineWidth=1.4; g.beginPath(); g.ellipse(bx,by,r*2,r*.8,Math.atan2(py,px),0,7); g.fill(); g.stroke();
           g.beginPath(); g.moveTo(bx-px*r*1.05,by-py*r*1.05); g.quadraticCurveTo(x+vx*r*2.2-px*r*.3,y+vy*r*2.2-py*r*.3,tipx,tipy); g.quadraticCurveTo(x+vx*r*2+px*r*.6,y+vy*r*2+py*r*.6,bx+px*r*1.05,by+py*r*1.05); g.closePath(); g.fillStyle='#3a2470'; g.fill(); g.stroke();
           g.strokeStyle=ST.acc; g.lineWidth=r*.3; g.beginPath(); g.moveTo(bx-px*r*.95+vx*r*.25,by-py*r*.95+vy*r*.25); g.lineTo(bx+px*r*.95+vx*r*.25,by+py*r*.95+vy*r*.25); g.stroke(); }
+        else if(ST.hat==='brim'){ /* a gunslinger's hat: a broad dark brim seen from above, a creased crown, a copper band */ const bx=x+vx*r*.42, by=y+vy*r*.42, an=Math.atan2(py,px);
+          g.fillStyle='#2a2f38'; g.strokeStyle=C.line; g.lineWidth=1.4; g.beginPath(); g.ellipse(bx,by,r*2.35,r*.92,an,0,7); g.fill(); g.stroke();
+          g.strokeStyle='rgba(150,190,200,.45)'; g.lineWidth=1; g.beginPath(); g.ellipse(bx,by,r*2.1,r*.72,an,PI*1.05,PI*1.95); g.stroke();
+          g.fillStyle='#3b424d'; g.strokeStyle=C.line; g.lineWidth=1.4; g.beginPath(); g.moveTo(bx-px*r*1.02,by-py*r*1.02); g.quadraticCurveTo(x+vx*r*1.75-px*r*.9,y+vy*r*1.75-py*r*.9,x+vx*r*1.55,y+vy*r*1.55); g.quadraticCurveTo(x+vx*r*1.75+px*r*.9,y+vy*r*1.75+py*r*.9,bx+px*r*1.02,by+py*r*1.02); g.closePath(); g.fill(); g.stroke();
+          g.strokeStyle=ST.sash; g.lineWidth=r*.3; g.beginPath(); g.moveTo(bx-px*r*.98+vx*r*.2,by-py*r*.98+vy*r*.2); g.lineTo(bx+px*r*.98+vx*r*.2,by+py*r*.98+vy*r*.2); g.stroke(); }
+        else if(ST.hat==='feather'){ /* a ranger's cap pulled forward, one long feather swept back and swaying */ const bx=x+vx*r*.4, by=y+vy*r*.4, c_=cos(yaw), s_=sin(yaw), hx=J.hf[0]*c_-J.hf[1]*s_, fdx=hx>=0?1:-1;
+          g.fillStyle='#2f5a3c'; g.strokeStyle=C.line; g.lineWidth=1.4; g.beginPath(); g.moveTo(bx-px*r*1.15,by-py*r*1.15); g.quadraticCurveTo(x+vx*r*1.9,y+vy*r*1.9,bx+px*r*1.15,by+py*r*1.15); g.lineTo(bx+fdx*r*2.1,by+r*.25); g.quadraticCurveTo(bx,by+r*.55,bx-fdx*r*1.2,by+r*.1); g.closePath(); g.fill(); g.stroke();
+          g.strokeStyle='#d9b45a'; g.lineWidth=r*.24; g.beginPath(); g.moveTo(bx-px*r*1.05+vx*r*.2,by-py*r*1.05+vy*r*.2); g.lineTo(bx+px*r*1.05+vx*r*.2,by+py*r*1.05+vy*r*.2); g.stroke();
+          const sw_=sin(RT*2.3)*r*.35, f0x=bx-fdx*r*.5, f0y=by-r*.5, f1x=f0x-fdx*r*3.4, f1y=f0y-r*2.3+sw_; g.fillStyle='#f4fff2'; g.strokeStyle=C.line; g.lineWidth=1.1;
+          g.beginPath(); g.moveTo(f0x,f0y); g.quadraticCurveTo(f0x-fdx*r*1.2,f0y-r*2.3,f1x,f1y); g.quadraticCurveTo(f0x-fdx*r*2.3,f0y-r*.5,f0x,f0y); g.closePath(); g.fill(); g.stroke();
+          g.strokeStyle=ST.acc; g.lineWidth=1.6; g.beginPath(); g.moveTo(f0x,f0y); g.quadraticCurveTo(f0x-fdx*r*1.7,f0y-r*1.5,f1x,f1y); g.stroke(); }
         else if(ST.hat==='cone'){ /* a wide straw hat: from above it is nearly a disc, and it hides his face */ const bx=x+vx*r*.5, by=y+vy*r*.5, an=Math.atan2(py,px); g.fillStyle='#b99a5a'; g.strokeStyle=C.line; g.lineWidth=1.4; g.beginPath(); g.ellipse(bx,by,r*2.5,r*1.25,an,0,7); g.fill(); g.stroke();
           const ax=bx+vx*r*1.05, ay=by+vy*r*1.05; g.fillStyle='#d8bd7c'; g.beginPath(); g.moveTo(bx-px*r*2.4,by-py*r*2.4); g.quadraticCurveTo(ax,ay-r*.2,bx+px*r*2.4,by+py*r*2.4); g.quadraticCurveTo(bx+vx*r*.2,by+vy*r*.2-r*.9,bx-px*r*2.4,by-py*r*2.4); g.fill();
           g.strokeStyle='rgba(60,40,10,.5)'; g.lineWidth=1; for(let i=-2;i<=2;i++){ g.beginPath(); g.moveTo(ax,ay-r*.3); g.lineTo(bx+px*r*i*1.05,by+py*r*i*1.05+r*.5*(1-Math.abs(i)/2.4)); g.stroke(); }
@@ -516,7 +601,7 @@ function shadow(g,J,ox,oy,yaw,L){ const sx=-L.dx*.55, sy=.22, q=p=>{ const a=pro
   g.save(); g.globalAlpha=.42; g.strokeStyle='#000'; g.lineCap='round'; g.lineJoin='round'; g.lineWidth=.07*SC; g.beginPath();
   for(const [a,b] of [['pr','kr'],['kr','ar'],['ar','tr'],['pl','kl'],['kl','al'],['al','tl'],['sr','er'],['er','hr'],['sl','el'],['el','hl']]){ const p=q(J[a]), r=q(J[b]); g.moveTo(p[0],p[1]); g.lineTo(r[0],r[1]); } g.stroke();
   g.lineWidth=.15*SC; g.beginPath(); let p=q(J.hip), r=q(J.ch); g.moveTo(p[0],p[1]); g.lineTo(r[0],r[1]); r=q(J.hd); g.lineTo(r[0],r[1]); g.stroke();
-  if(ST.w==='katana'||ST.w==='staff'){ g.lineWidth=3.2; g.beginPath(); p=q(J.sp); r=q(J.st); g.moveTo(p[0],p[1]); g.lineTo(r[0],r[1]); g.stroke(); } g.restore(); }
+  if(ST.w==='katana'||ST.w==='staff'||ST.w==='bow'||ST.w==='rifle'){ g.lineWidth=3.2; g.beginPath(); p=q(J.sp); r=q(J.st); g.moveTo(p[0],p[1]); g.lineTo(r[0],r[1]); g.stroke(); } g.restore(); }
 // the blade's own light: sampled back along the clip, so the arc is the true path of the edge
 function trail(ox,oy){ const N=22, step=.0034, pts=[]; for(let i=0;i<=N;i++){ const t=M.t-i*step; if(t<0) break; const P=sample(M.clip,t,M.from); if(P.tr<=.02){ pts.push(null); continue; } const J=solve(P); pts.push({b:proj(mix3(J.sb,J.st,.5),ox,oy,M.yaw),m:proj(mix3(J.sb,J.st,.8),ox,oy,M.yaw),t:proj(J.st,ox,oy,M.yaw),a:Math.min(1,P.tr)}); }
   fx.save(); fx.globalCompositeOperation='lighter';
@@ -687,5 +772,11 @@ function drawEchoes(){ for(let i=echoes.length-1;i>=0;i--){ const e=echoes[i], t
 } }
 const rend0=render; render=function(){ rend0(); if(echoes.length) drawEchoes(); if(on()&&lock&&pl.visible&&pl.gy!=null) overTop(); };
 const hud0=drawHUD; drawHUD=function(){ if(on()&&pl.visible&&pl.gy!=null){ applyCam(ctx); over(); } hud0(); };
-window.MK={STY,setCls,on,play,ghost,shade,assassinEcho,wpt,M,CLIPS,compile,dir,SC,sample,solve,figure,DEF,free(){ M.loco=true; }};
+// ranged heroes: the skill files call RangedHero.pose(name) right after facing the target; that facing is the clip's yaw
+let aimA=0;
+function ranged(name){ if(!on()||(ST.w!=='bow'&&ST.w!=='rifle')) return;
+  const bow=ST.w==='bow', clip=name==='dash'?'rangedDash':name==='draw'?(bow?'bowDraw':'gunAim'):(bow?'bowLoose':'gunFire');
+  play(clip,{yaw:Math.atan2(sin(aimA)/FSY,cos(aimA)),blend:.05}); }
+function watchAim(){ const X=G.sv; if(!X||!X.face||X.face.mk) return; const f0=X.face; X.face=function(a){ aimA=a; return f0.apply(this,arguments); }; X.face.mk=true; }
+window.MK={ranged,STY,setCls,on,play,ghost,shade,assassinEcho,wpt,M,CLIPS,compile,dir,SC,sample,solve,figure,DEF,free(){ M.loco=true; }};
 })();

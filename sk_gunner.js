@@ -12,7 +12,7 @@ const body=e=>e.y-(e.z||0)-(e.h||BODY)*.52;
 const pose=(n,t)=>window.RangedHero?.pose(n,t);
 const point=(x,y)=>({x,y});
 const at=e=>point(e.x,body(e));
-const origin=a=>point(pl.x+Math.cos(a)*BODY*.56,pl.gy-BODY*.66+Math.sin(a)*BODY*.18);
+const origin=a=>point(pl.x+Math.cos(a)*BODY*.56,pl.gy-BODY*.86+Math.sin(a)*BODY*.18);
 const evolve=id=>A.sLv(id)>=5;
 const power=id=>X.SK[id].dmg*A.mul(id);
 const tone=(n,...args)=>X.cine.SND[n](...args);
@@ -58,7 +58,7 @@ function casing(a){
     line(g,-9,-4,-9,3,'#ffe2a0',2.1);
   });
 }
-const gunZ=BODY*.66;
+const gunZ=BODY*.86;
 // Kit directions are measured on the unforeshortened floor; skill angles are screen angles.
 const fa=a=>Math.atan2(Math.sin(a)/FSY,Math.cos(a)), fl=(a,len)=>Math.hypot(Math.cos(a)*len,Math.sin(a)*len/FSY);
 const muzzleAt=a=>({x:pl.x+Math.cos(a)*BODY*.56,y:pl.gy+Math.sin(a)*BODY*.18,z:gunZ});
@@ -78,6 +78,10 @@ function muzzle(a,p,s=150){
   K.art(m.x+Math.cos(a)*s*.62,m.y+Math.sin(a)*s*.62,{tex:'v3_thrust',asp:3.7,s:s*.4,z:m.z,lift:0,rot:-a,pal:p,dur:.14,hold:.2,s0:.6,gain:.8});
   K.sparks(m.x,m.y,m.z,{pal:p,n:4,dir:fa(a),spread:.32,sp:[600,1500],up:160,life:[.07,.18]});
   GFX.light(pl.x,pl.gy,s*2.6,p.l,.6,.13,{z:gunZ});casing(a);
+  trauma=Math.min(1,trauma+s/2400);
+  // Recoil presses a ring of air out over the floor, and the barrel keeps smoking after a heavy round.
+  if(s>=140)K.shock(pl.x,pl.gy,{r:s*1.5,dur:.22,pal:p,dust:s>=200?2:0,light:0,gain:.45});
+  if(s>=160&&!low())K.vsmoke(m.x+Math.cos(a)*s*.45,m.y+Math.sin(a)*s*.45,{s:s*.3,z:m.z,dur:.75,rise:s*.35,a:.5});
   return m;
 }
 function fireAt(e,p=glass,w=34,s=150){const a=X.angTo(e);X.face(a);pose('release',.19);tracer(muzzle(a,p,s),chest(e),p,w);return a;}
@@ -148,7 +152,7 @@ skill('gn_bank','도탄 왈츠',1,5.3,1260,'은탄이 가까운 적들 사이를
     if(!dest){K.shock(e.x,e.y,{r:240,dur:.3,pal:glass,dust:2,light:0,gain:.7});blow(e,d,glass,a,1.5,{stun:.5,push:260});kick(.2,.03);return;}
     blow(e,d,glass,a,.9,{stun:.15});
     const next=Math.atan2(dest.y-e.y,dest.x-e.x);
-    tracer(c,chest(dest),glass,40,{dur:.3,draw:.07});tone('tick',1.05+i*.17,.10);after(.09,()=>hop(dest,i+1,next));}
+    tracer(c,chest(dest),glass,40,{dur:.3,draw:.07});tone('tick',1.05+i*.17,.10);kick(.08);after(.09,()=>hop(dest,i+1,next));}
   hop(start,0,fireAt(start,glass,40,170));return true;
 });
 skill('gn_fan','산탄 부채',2,5.8,2000,'황동 파편탄 다섯 발을 부채 모양으로 펼쳐 가까운 적을 밀어낸다.','일곱 갈래로 넓게 번지고 사거리가 늘어난다.',id=>{
@@ -168,7 +172,7 @@ skill('gn_fan','산탄 부채',2,5.8,2000,'황동 파편탄 다섯 발을 부채
 });
 skill('gn_mine','자기 유탄',3,7,2100,'적 무리에 자력 유탄을 던져 깨진 철편이 솟는 폭발을 일으킨다.','유탄이 한 차례 더 맥동한다.',id=>{
   const e=X.densest(940);if(!e)return false;const x=e.x,y=e.y,a=X.angTo(e),d=power(id);X.face(a);pose('release',.26);
-  const m=muzzleAt(a);K.flare(m.x,m.y,m.z,{pal:glass,s:150,dur:.1,gain:2.6});X.sfx('whoosh',.8,.3);
+  const m=muzzleAt(a);K.flare(m.x,m.y,m.z,{pal:glass,s:150,dur:.1,gain:2.6});X.sfx('whoosh',.8,.3);kick(.1);
   shell(m,point(x,y),250,glass,56,.45,()=>{pop(x,y,255,glass);
     K.chunks(x,y,{pal:glass,kind:'plate',n:6,r:70,sp:[220,640],up:1500,s:[22,46],rock:'#7d8f94',life:1.2});
     K.cool(x,y,{kind:'crack',r:300,pal:glass,life:1.6,hot:.6,light:0});
@@ -206,7 +210,7 @@ skill('gn_prism','분광 표식',6,8.4,2200,'세 표적의 흉갑 위에 조각 
 });
 skill('gn_slide','탄피 슬라이드',8,7.8,1680,'낮게 미끄러지며 길 위에 탄피를 흩뿌린다. 잠시 뒤 탄피가 차례로 터진다.','탄피 세 개가 더 넓게 폭발한다.',id=>{
   const e=X.nearest(1050);if(!e)return false;const a=X.angTo(e),x=pl.x,y=pl.gy,r=evolve(id)?208:138, dx=Math.cos(a)*440,dy=Math.sin(a)*365,d=power(id);
-  X.face(a);pose('dash',.25);V.dash={x0:x,y0:y,x1:x+dx,y1:y+dy,t:0,dur:.19};X.sfx('whoosh',1.15,.38);
+  X.face(a);pose('dash',.25);V.dash={x0:x,y0:y,x1:x+dx,y1:y+dy,t:0,dur:.19};X.sfx('whoosh',1.15,.38);kick(.1);
   if(F.on)K.trail(Array.from({length:8},(_,i)=>({x:x+dx*i/7,y:y+dy*i/7,z:BODY*.3})),{pal:copper,w:90,draw:.19,dur:.5,gain:.7});
   K.dust(x,y,{n:8,dir:fa(a)+Math.PI,spread:.8,sp:[200,620],a:.38});
   for(let i=0;i<3;i++){const k=i/2,xx=x+dx*k,yy=y+dy*k,at0=.17+i*.12;
@@ -219,7 +223,7 @@ skill('gn_mortar','궤도 박격',10,11,3020,'등 뒤로 발사한 신호탄이 
   const e=X.densest(1200);if(!e)return false;const x=e.x,y=e.y,list=targetList(1370).filter(t=>t!==e),n=evolve(id)?5:3;
   const a=X.angTo(e);X.face(a);pose('release',.27);const d=power(id),m=muzzleAt(a);
   // The signal round leaves upward behind the shoulder before the shells arrive.
-  K.flare(m.x,m.y,m.z,{pal:copper,s:190,dur:.12,gain:3});X.sfx('whoosh',.7,.34);
+  K.flare(m.x,m.y,m.z,{pal:copper,s:190,dur:.12,gain:3});X.sfx('whoosh',.7,.34);kick(.12);
   if(F.on)K.trail(Array.from({length:8},(_,i)=>({x:m.x-Math.cos(a)*i*34,y:m.y,z:m.z+i*150})),{pal:copper,w:34,draw:.16,dur:.5,gain:.9});
   for(let i=0;i<n;i++){const t=i?list[i-1]:e,xx=t?t.x:x+Math.cos(i*2.4)*174,yy=t?t.y:y+Math.sin(i*2.4)*92;
     after(.14+i*.105,()=>shell({x:xx-270,y:yy,z:520},point(xx,yy),150,copper,62,.42,()=>{pop(xx,yy,202,copper);

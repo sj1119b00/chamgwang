@@ -260,6 +260,7 @@ window.RangedHero={
   },
   pose(name,seconds=.22){
     rangedPose={cls:pl.cls,name,start:RT,duration:Math.max(.02,seconds)};
+    window.MK?.ranged?.(name);
   },
   impact(kind,duration){
     if(G.mode==='surv'&&pl.cls==='archer'&&!SV.opt?.calm) impactBeat={kind,start:RT,duration};
