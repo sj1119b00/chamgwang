@@ -14,10 +14,11 @@ const WIDTH={low:.35,impact:.6,blade:.7,hero:.6,verb:.45};
 // at +3 dB the sub took the headroom and the 150 Hz-2 kHz share at the blasts fell (0.65 vs 0.68), and phones do not play it. tools/build.py mirrors it.
 const BUSDB={low:0,swing:-2,amb:-2};
 // layer mode (user 2026-11-26): the game's own synthesized sounds stay as the base and the recordings sit on top.
-// Both share one context and one final ceiling. Measured from live captures of all classes: the original synth peaks up to
-// +1.3 dBTP on its own, and with both feeds hot the final stage squashed 평타 / 스킬 / 궁극기 to the same -8.5 LUFS. Feeds come
-// down (recordings -5, synth -2, its lows -4 dB under 120 Hz where the sub drops sit) so only ultimate peaks reach the ceiling.
-const LAYERDB=-5, SYNTHDB=-2, SYNTH_LOWSHELF=-4;
+// Both share one context and one final ceiling. The original synth peaks up to +1.3 dBTP on its own; with both feeds hot the final
+// stage squashed 평타 / 스킬 / 궁극기 to the same level. User (iPhone): the recordings must lead and the synth sit under them,
+// so the synth comes down 8 dB (its lows -4 dB more under 120 Hz where the sub drops sit) against the recordings' 5: about 9 dB under
+// them. Recordings at -3 pushed every tier into the final stage (평타·스킬·궁극기 within 0.5-0.9 dB of each other).
+const LAYERDB=-5, SYNTHDB=-8, SYNTH_LOWSHELF=-4;
 class Engine{
   constructor(){ this.castT={}; this.ctx=null; this.clips={}; this.designs=null; this.buf=new Map(); this.decoded=new Map(); this.voices=[]; this.hitClock=new Map(); this.rr=new Map(); this.maxVoices=40; this.listeners=[]; this.epoch=0; }
   async init(base=''){
@@ -96,7 +97,12 @@ class Engine{
   async packSlice(id){ const P=this.pack.packs, cls=P[this.packCls]?.[id]?this.packCls:Object.keys(P).find(c=>P[c][id]); if(!cls) return null;
     const [ab,skip]=await Promise.all([this.packData(cls),this.packSkip(cls)]); const [o,n]=P[cls][id];
     const b=await this.ctx.decodeAudioData(ab.slice(o,o+n)); if(!skip||skip>=b.length) return b;
-    const t=this.ctx.createBuffer(b.numberOfChannels,b.length-skip,b.sampleRate); for(let c=0;c<b.numberOfChannels;c++) t.copyToChannel(b.getChannelData(c).subarray(skip),c); return t; }
+    const t=this.ctx.createBuffer(b.numberOfChannels,b.length-skip,b.sampleRate); for(let c=0;c<b.numberOfChannels;c++) t.getChannelData(c).set(b.getChannelData(c).subarray(skip)); return t; }
+  // one class in memory at a time: a class decodes to ~80-90 MB of float audio, and an iPhone tab that kept every class it
+  // visited would run out and fail to decode (leaving only the game's own sounds)
+  release(keep){ if(!this.pack) return; const K=this.pack.packs[keep]||{};
+    for(const id of [...this.buf.keys()]) if(!K[id]){ this.buf.delete(id); this.decoded.delete(id); }
+    for(const c of [...this.packAb.keys()]) if(c!==keep) this.packAb.delete(c); }
   async preload(skill,cand){ this.graph(); const d=this.cand(skill,cand); if(!d) return; const ids=new Set(); for(const q of d.cues) for(const l of q.layers) (l.alt||[l.clip]).concat(l.clip).forEach(i=>ids.add(i)); await Promise.all([...ids].map(i=>this.load(i))); }
   cand(skill,cand){ return this.designs?.skills?.[skill]?.candidates?.[cand]||null; }
   resume(){ this.graph(); return this.ctx.resume(); }

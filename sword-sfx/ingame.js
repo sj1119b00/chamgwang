@@ -44,7 +44,7 @@ const until=f=>new Promise(r=>{ const h=setInterval(()=>{ if(f()){ clearInterval
   let bedCls=null;
   let packCls=null;
   (function watch(){ requestAnimationFrame(watch);
-    if(E.pack&&pl.cls!==packCls){ packCls=E.packCls=pl.cls; E.packData(pl.cls).catch(()=>{}); }
+    if(E.pack&&pl.cls!==packCls){ packCls=E.packCls=pl.cls; E.release(pl.cls); E.packData(pl.cls).catch(()=>{}); }
     // join the game's audio as soon as it exists (the fist waits for its clips, which needs our side running)
     if(!E.ctx&&typeof AC!=='undefined'&&AC) E.graph();
     if(pl.cls==='fist'||RPG.sv.A.SV.cls==='fist') warmFist();

@@ -323,7 +323,8 @@ const SNDN=['inhale','hit','shing','gong','tick','cut','drone'];
 // loudness per class and tier (dB), fitted offline so that across classes: basic about -15, skills -13, ultimates -11.5 LUFS
 // momentary max (the same hierarchy as the swordsman). Re-fit with tools/video_cls.py after changing recipes.
 // 2026-11-26: shifted by (fit after each remix - fit before it: measured targets, punch / blast body, less wind + per-skill variety); layer mode: mage / shaman skills -1 dB so they stay under the ultimates over the synth, so in-game levels follow the new mix
-const TRIM={fist:{basic:2.9,skill:-3.7,ult:1.5},assassin:{basic:12.3,skill:3.5,ult:-.3},axe:{basic:-.5,skill:-.5,ult:.9},mage:{basic:-4.5,skill:-4.7,ult:-.3},pyro:{basic:-1.9,skill:-2.2,ult:2.6},shaman:{basic:-9.3,skill:-5.8,ult:1}};
+// layer mode (recordings over the synth): set from live captures so 스킬 sits ~1.5 dB under 궁극기 and 평타 ~1.5 dB under 스킬
+const TRIM={fist:{basic:1.5,skill:-4.1,ult:1.5},assassin:{basic:11.5,skill:3.3,ult:-.3},axe:{basic:-2.6,skill:-1.6,ult:.9},mage:{basic:-5.9,skill:-5.9,ult:-.3},pyro:{basic:-3.5,skill:-3.5,ult:2.6},shaman:{basic:-9.3,skill:-6.8,ult:1}};
 
 let hushEnd=-9, grpN=0, lastHit=-9, inhaleEnd=-9;
 const SUBLAG=.024;

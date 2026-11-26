@@ -172,7 +172,7 @@
        }
       }
      ],
-     "trim": -2.6
+     "trim": -3.7
     },
     "B": {
      "title": "중량",
@@ -293,7 +293,7 @@
        }
       }
      ],
-     "trim": -0.4
+     "trim": -1.5
     },
     "C": {
      "title": "기운",
@@ -412,7 +412,7 @@
        }
       }
      ],
-     "trim": -3.2
+     "trim": -4.3
     },
     "D": {
      "title": "혼합",
@@ -430,7 +430,7 @@
           "A_swish_2",
           "A_swish_3"
          ],
-         "gain": -5.6,
+         "gain": -6.7,
          "jit": 60,
          "pan": -0.15,
          "bus": "swing",
@@ -438,7 +438,7 @@
         },
         {
          "clip": "X_cloth",
-         "gain": -16.6,
+         "gain": -17.7,
          "jit": 80,
          "bus": "amb",
          "delay": -0.254
@@ -455,7 +455,7 @@
        "layers": [
         {
          "clip": "A_blade_swing",
-         "gain": -4.6,
+         "gain": -5.7,
          "delay": -0.0837,
          "send": 0.08,
          "bus": "swing"
@@ -467,13 +467,13 @@
           "A_swish_2",
           "A_swish_3"
          ],
-         "gain": -10.6,
+         "gain": -11.7,
          "bus": "swing",
          "delay": -0.0738
         },
         {
          "clip": "X_cloth2",
-         "gain": -14.6,
+         "gain": -15.7,
          "bus": "amb",
          "delay": -0.3799
         }
@@ -491,7 +491,7 @@
           "A_stab_2",
           "A_stab_3"
          ],
-         "gain": -4.6,
+         "gain": -5.7,
          "jit": 80,
          "bus": "impact",
          "delay": -0.0074
@@ -503,7 +503,7 @@
           "A_steel_2",
           "A_steel_3"
          ],
-         "gain": -16.6,
+         "gain": -17.7,
          "jit": 60,
          "bus": "blade",
          "delay": -0.0141,
@@ -516,7 +516,7 @@
           "A_thud_2",
           "A_thud_3"
          ],
-         "gain": -8.6,
+         "gain": -9.7,
          "bus": "low",
          "delay": -0.1793
         },
@@ -549,20 +549,20 @@
        "layers": [
         {
          "clip": "A_slash",
-         "gain": -2.6,
+         "gain": -3.7,
          "hero": true,
          "bus": "impact",
          "delay": -0.1229
         },
         {
          "clip": "A_lowthud",
-         "gain": -5.6,
+         "gain": -6.7,
          "bus": "low",
          "delay": -0.0224
         },
         {
          "clip": "A_ring",
-         "gain": -17.6,
+         "gain": -18.7,
          "send": 0.06,
          "bus": "blade",
          "delay": -0.0054
@@ -605,7 +605,7 @@
           "B_whoosh_2",
           "B_whoosh_3"
          ],
-         "gain": -5.58,
+         "gain": -6.68,
          "cents": -200,
          "jit": 70,
          "bus": "swing",
@@ -624,14 +624,14 @@
        "layers": [
         {
          "clip": "B_swing_low",
-         "gain": -3.58,
+         "gain": -4.68,
          "delay": -0.192,
          "bus": "swing",
          "lp": 900
         },
         {
          "clip": "X_cloth2",
-         "gain": -14.58,
+         "gain": -15.68,
          "bus": "amb",
          "delay": -0.3799,
          "lp": 900
@@ -650,7 +650,7 @@
           "B_thud_2",
           "B_thud_3"
          ],
-         "gain": -4.58,
+         "gain": -5.68,
          "jit": 60,
          "bus": "impact",
          "delay": -0.2247,
@@ -663,7 +663,7 @@
           "A_stab_2",
           "A_stab_3"
          ],
-         "gain": -9.58,
+         "gain": -10.68,
          "bus": "blade",
          "delay": -0.0074,
          "lp": 900
@@ -682,21 +682,21 @@
        "layers": [
         {
          "clip": "B_slasher",
-         "gain": -3.58,
+         "gain": -4.68,
          "bus": "impact",
          "delay": -0.0054,
          "lp": 900
         },
         {
          "clip": "B_punch_wet",
-         "gain": -6.58,
+         "gain": -7.68,
          "bus": "impact",
          "delay": -0.0239,
          "lp": 900
         },
         {
          "clip": "B_deep_thud",
-         "gain": -13.58,
+         "gain": -14.68,
          "cut": 0.9,
          "bus": "low",
          "delay": -0.0688,
@@ -715,7 +715,7 @@
        "layers": [
         {
          "clip": "C_tex_whoosh",
-         "gain": -17.24,
+         "gain": -18.34,
          "jit": 90,
          "bus": "swing",
          "delay": -0.2765,
@@ -729,7 +729,7 @@
           "A_swish_2",
           "A_swish_3"
          ],
-         "gain": -22.24,
+         "gain": -23.34,
          "bus": "swing",
          "delay": -0.0738,
          "hp": 1500
@@ -746,7 +746,7 @@
        "layers": [
         {
          "clip": "C_spell_whoosh",
-         "gain": -15.24,
+         "gain": -16.34,
          "delay": -0.3306,
          "send": 0.12,
          "bus": "swing",
@@ -762,7 +762,7 @@
        "layers": [
         {
          "clip": "C_energy_cut",
-         "gain": -13.24,
+         "gain": -14.34,
          "jit": 90,
          "alt": [
           "C_energy_cut"
@@ -778,7 +778,7 @@
           "A_stab_2",
           "A_stab_3"
          ],
-         "gain": -19.24,
+         "gain": -20.34,
          "bus": "blade",
          "delay": -0.0074,
          "hp": 1500
@@ -797,21 +797,21 @@
        "layers": [
         {
          "clip": "C_fmw_hit",
-         "gain": -11.24,
+         "gain": -12.34,
          "bus": "impact",
          "delay": -0.0899,
          "hp": 1500
         },
         {
          "clip": "C_zap",
-         "gain": -18.24,
+         "gain": -19.34,
          "bus": "fx",
          "delay": -0.0424,
          "hp": 1500
         },
         {
          "clip": "C_crystal",
-         "gain": -22.24,
+         "gain": -23.34,
          "send": 0.25,
          "bus": "fx",
          "delay": -0.0058,
@@ -825,7 +825,7 @@
        ]
       }
      ],
-     "trim": -3.7
+     "trim": -4.8
     }
    }
   },
@@ -917,7 +917,7 @@
        "cool": 0.06
       }
      ],
-     "trim": 2.6
+     "trim": 2.4
     },
     "B": {
      "title": "중량",
@@ -986,7 +986,7 @@
        }
       }
      ],
-     "trim": 4.8
+     "trim": 4.6
     },
     "C": {
      "title": "기운",
@@ -1048,7 +1048,7 @@
        "cool": 0.06
       }
      ],
-     "trim": -0.6
+     "trim": -0.8
     },
     "D": {
      "title": "혼합",
@@ -1061,14 +1061,14 @@
        "layers": [
         {
          "clip": "A_hi_swing",
-         "gain": 0.6,
+         "gain": 0.4,
          "delay": -0.0404,
          "pan": 0.2,
          "bus": "swing"
         },
         {
          "clip": "X_cloth",
-         "gain": -7.4,
+         "gain": -7.6,
          "bus": "amb",
          "delay": -0.254
         }
@@ -1086,7 +1086,7 @@
           "A_steel_2",
           "A_steel_3"
          ],
-         "gain": -14.4,
+         "gain": -14.6,
          "bus": "blade",
          "delay": -0.0141,
          "send": 0.0
@@ -1100,7 +1100,7 @@
        "layers": [
         {
          "clip": "A_slash",
-         "gain": 1.6,
+         "gain": 1.4,
          "hero": true,
          "bus": "impact",
          "delay": -0.1229
@@ -1112,13 +1112,13 @@
           "A_thud_2",
           "A_thud_3"
          ],
-         "gain": -3.4,
+         "gain": -3.6,
          "bus": "low",
          "delay": -0.1793
         },
         {
          "clip": "A_ring",
-         "gain": -16.4,
+         "gain": -16.6,
          "send": 0.048,
          "bus": "blade",
          "delay": -0.0054
@@ -1141,7 +1141,7 @@
        "layers": [
         {
          "clip": "B_pass_low",
-         "gain": -3.38,
+         "gain": -3.58,
          "delay": -0.8208,
          "bus": "swing",
          "lp": 900,
@@ -1154,7 +1154,7 @@
           "B_whoosh_2",
           "B_whoosh_3"
          ],
-         "gain": -5.38,
+         "gain": -5.58,
          "delay": -0.1819,
          "bus": "swing",
          "lp": 900
@@ -1168,14 +1168,14 @@
        "layers": [
         {
          "clip": "B_punch_wet",
-         "gain": 1.62,
+         "gain": 1.42,
          "bus": "impact",
          "delay": -0.0239,
          "lp": 900
         },
         {
          "clip": "B_boom_chef",
-         "gain": -9.38,
+         "gain": -9.58,
          "cut": 0.7,
          "bus": "low",
          "delay": -0.2073,
@@ -1188,7 +1188,7 @@
           "B_thud_2",
           "B_thud_3"
          ],
-         "gain": -5.38,
+         "gain": -5.58,
          "hp": 180,
          "bus": "impact",
          "delay": -0.2247
@@ -1203,7 +1203,7 @@
        "layers": [
         {
          "clip": "C_doppler",
-         "gain": -13.64,
+         "gain": -13.84,
          "delay": -0.0526,
          "bus": "swing",
          "hp": 1500,
@@ -1211,7 +1211,7 @@
         },
         {
          "clip": "C_wind_rush",
-         "gain": -22.64,
+         "gain": -22.84,
          "bus": "amb",
          "delay": -0.083,
          "hp": 1500,
@@ -1226,7 +1226,7 @@
        "layers": [
         {
          "clip": "C_zap",
-         "gain": -23.64,
+         "gain": -23.84,
          "bus": "fx",
          "delay": -0.0424,
          "hp": 1500
@@ -1240,14 +1240,14 @@
        "layers": [
         {
          "clip": "C_energy_cut",
-         "gain": -8.64,
+         "gain": -8.84,
          "bus": "impact",
          "delay": -0.0874,
          "hp": 1500
         },
         {
          "clip": "C_surge",
-         "gain": -15.64,
+         "gain": -15.84,
          "send": 0.15,
          "bus": "fx",
          "delay": -0.0449,
@@ -1258,7 +1258,7 @@
        "cool": 0.06
       }
      ],
-     "trim": 2.1
+     "trim": 2.0
     }
    }
   },
@@ -1331,7 +1331,7 @@
        "cool": 0.06
       }
      ],
-     "trim": 2.6
+     "trim": 2.4
     },
     "B": {
      "title": "중량",
@@ -1389,7 +1389,7 @@
        }
       }
      ],
-     "trim": 4.2
+     "trim": 4.0
     },
     "C": {
      "title": "기운",
@@ -1445,7 +1445,7 @@
        "cool": 0.06
       }
      ],
-     "trim": -0.9
+     "trim": -1.1
     },
     "D": {
      "title": "혼합",
@@ -1458,14 +1458,14 @@
        "layers": [
         {
          "clip": "A_scrape_up",
-         "gain": -8.4,
+         "gain": -8.6,
          "delay": -0.4548,
          "bus": "blade",
          "send": 0.0
         },
         {
          "clip": "A_blade_swing",
-         "gain": -1.4,
+         "gain": -1.6,
          "delay": -0.0337,
          "bus": "swing"
         }
@@ -1478,7 +1478,7 @@
        "layers": [
         {
          "clip": "A_slash",
-         "gain": 1.6,
+         "gain": 1.4,
          "hero": true,
          "bus": "impact",
          "delay": -0.1229
@@ -1490,13 +1490,13 @@
           "A_thud_2",
           "A_thud_3"
          ],
-         "gain": -2.4,
+         "gain": -2.6,
          "bus": "low",
          "delay": -0.1793
         },
         {
          "clip": "A_hi_swing",
-         "gain": -9.4,
+         "gain": -9.6,
          "delay": -0.0043,
          "cents": 300,
          "bus": "swing"
@@ -1526,7 +1526,7 @@
        "layers": [
         {
          "clip": "B_swing_design",
-         "gain": 0.02,
+         "gain": -0.18,
          "delay": -0.2659,
          "bus": "swing",
          "lp": 900
@@ -1545,21 +1545,21 @@
           "B_thud_2",
           "B_thud_3"
          ],
-         "gain": 1.02,
+         "gain": 0.82,
          "bus": "impact",
          "delay": -0.2247,
          "lp": 900
         },
         {
          "clip": "B_punch_wet",
-         "gain": -3.98,
+         "gain": -4.18,
          "hp": 160,
          "bus": "impact",
          "delay": -0.0239
         },
         {
          "clip": "B_whoosh_2",
-         "gain": -6.98,
+         "gain": -7.18,
          "delay": -0.0878,
          "cents": 200,
          "bus": "swing",
@@ -1575,7 +1575,7 @@
        "layers": [
         {
          "clip": "C_charge_down",
-         "gain": -21.94,
+         "gain": -22.14,
          "delay": -0.176,
          "bus": "fx",
          "hp": 1500
@@ -1589,7 +1589,7 @@
        "layers": [
         {
          "clip": "C_spell_whoosh",
-         "gain": -13.94,
+         "gain": -14.14,
          "delay": -0.2806,
          "bus": "swing",
          "hp": 1500,
@@ -1604,14 +1604,14 @@
        "layers": [
         {
          "clip": "C_fmw_hit",
-         "gain": -9.94,
+         "gain": -10.14,
          "bus": "impact",
          "delay": -0.0899,
          "hp": 1500
         },
         {
          "clip": "C_air_impact",
-         "gain": -17.94,
+         "gain": -18.14,
          "send": 0.2,
          "bus": "fx",
          "delay": -0.021,
@@ -1622,7 +1622,7 @@
        "cool": 0.06
       }
      ],
-     "trim": 1.3
+     "trim": 1.1
     }
    }
   },
@@ -1714,7 +1714,7 @@
        "cool": 0.06
       }
      ],
-     "trim": 0.6
+     "trim": 0.4
     },
     "B": {
      "title": "중량",
@@ -1775,7 +1775,7 @@
        "cool": 0.06
       }
      ],
-     "trim": -0.3
+     "trim": -0.5
     },
     "C": {
      "title": "기운",
@@ -1837,7 +1837,7 @@
        "cool": 0.06
       }
      ],
-     "trim": -0.3
+     "trim": -0.5
     },
     "D": {
      "title": "혼합",
@@ -1850,13 +1850,13 @@
        "layers": [
         {
          "clip": "A_blade_swing",
-         "gain": -0.4,
+         "gain": -0.6,
          "delay": -0.0937,
          "bus": "swing"
         },
         {
          "clip": "X_cloth",
-         "gain": -11.4,
+         "gain": -11.6,
          "bus": "amb",
          "delay": -0.254
         }
@@ -1869,7 +1869,7 @@
        "layers": [
         {
          "clip": "A_hi_swing",
-         "gain": -8.4,
+         "gain": -8.6,
          "delay": -0.03,
          "rate": 0.85,
          "lp": 5000,
@@ -1885,7 +1885,7 @@
        "layers": [
         {
          "clip": "A_slash",
-         "gain": -1.4,
+         "gain": -1.6,
          "bus": "impact",
          "delay": -0.1229
         },
@@ -1896,7 +1896,7 @@
           "A_steel_2",
           "A_steel_3"
          ],
-         "gain": -12.4,
+         "gain": -12.6,
          "bus": "blade",
          "delay": -0.0141,
          "send": 0.0
@@ -1908,7 +1908,7 @@
           "A_thud_2",
           "A_thud_3"
          ],
-         "gain": -7.4,
+         "gain": -7.6,
          "bus": "low",
          "delay": -0.1793
         },
@@ -1937,7 +1937,7 @@
        "layers": [
         {
          "clip": "B_power_whoosh",
-         "gain": -8.48,
+         "gain": -8.68,
          "delay": -0.4851,
          "send": 0.15,
          "bus": "swing",
@@ -1953,7 +1953,7 @@
        "layers": [
         {
          "clip": "B_pass_low",
-         "gain": -18.48,
+         "gain": -18.68,
          "delay": -0.2633,
          "bus": "low",
          "lp": 900,
@@ -1968,7 +1968,7 @@
        "layers": [
         {
          "clip": "B_punch_wet",
-         "gain": -4.48,
+         "gain": -4.68,
          "bus": "impact",
          "delay": -0.0239,
          "lp": 900
@@ -1980,7 +1980,7 @@
           "B_thud_2",
           "B_thud_3"
          ],
-         "gain": -8.48,
+         "gain": -8.68,
          "hp": 180,
          "bus": "impact",
          "delay": -0.2247
@@ -1995,7 +1995,7 @@
        "layers": [
         {
          "clip": "C_spell_whoosh",
-         "gain": -14.34,
+         "gain": -14.54,
          "delay": -0.3406,
          "bus": "swing",
          "hp": 1500,
@@ -2003,7 +2003,7 @@
         },
         {
          "clip": "C_texture",
-         "gain": -19.34,
+         "gain": -19.54,
          "bus": "fx",
          "delay": -0.0271,
          "hp": 1500
@@ -2017,7 +2017,7 @@
        "layers": [
         {
          "clip": "C_doppler",
-         "gain": -15.34,
+         "gain": -15.54,
          "delay": -0.0595,
          "send": 0.15,
          "bus": "swing",
@@ -2033,14 +2033,14 @@
        "layers": [
         {
          "clip": "C_energy_cut",
-         "gain": -9.34,
+         "gain": -9.54,
          "bus": "impact",
          "delay": -0.0874,
          "hp": 1500
         },
         {
          "clip": "C_glass",
-         "gain": -21.34,
+         "gain": -21.54,
          "send": 0.2,
          "bus": "fx",
          "delay": -0.0014,
@@ -2051,7 +2051,7 @@
        "cool": 0.06
       }
      ],
-     "trim": -0.2
+     "trim": -0.4
     }
    }
   },
@@ -2233,7 +2233,7 @@
        "cool": 0.1
       }
      ],
-     "trim": -0.4
+     "trim": -0.6
     },
     "B": {
      "title": "중량",
@@ -2343,7 +2343,7 @@
        }
       }
      ],
-     "trim": 0.0
+     "trim": -0.2
     },
     "C": {
      "title": "기운",
@@ -2435,7 +2435,7 @@
        "cool": 0.1
       }
      ],
-     "trim": -2.3
+     "trim": -2.5
     },
     "D": {
      "title": "혼합",
@@ -2453,7 +2453,7 @@
           "A_swish_2",
           "A_swish_3"
          ],
-         "gain": -3.4,
+         "gain": -3.6,
          "pan": -0.6,
          "bus": "swing",
          "delay": -0.0738
@@ -2472,7 +2472,7 @@
           "A_swish_2",
           "A_swish_3"
          ],
-         "gain": -3.4,
+         "gain": -3.6,
          "pan": 0.6,
          "cents": 60,
          "bus": "swing",
@@ -2492,7 +2492,7 @@
           "A_swish_2",
           "A_swish_3"
          ],
-         "gain": -2.4,
+         "gain": -2.6,
          "pan": -0.5,
          "cents": 120,
          "bus": "swing",
@@ -2507,14 +2507,14 @@
        "layers": [
         {
          "clip": "A_blade_swing",
-         "gain": -1.4,
+         "gain": -1.6,
          "pan": 0.4,
          "bus": "swing",
          "delay": -0.1137
         },
         {
          "clip": "X_cloth2",
-         "gain": -12.4,
+         "gain": -12.6,
          "bus": "amb",
          "delay": -0.3799
         }
@@ -2532,7 +2532,7 @@
           "A_stab_2",
           "A_stab_3"
          ],
-         "gain": -4.4,
+         "gain": -4.6,
          "jit": 100,
          "bus": "impact",
          "delay": -0.0074
@@ -2544,7 +2544,7 @@
           "A_steel_2",
           "A_steel_3"
          ],
-         "gain": -16.4,
+         "gain": -16.6,
          "bus": "blade",
          "delay": -0.0141,
          "send": 0.0
@@ -2578,20 +2578,20 @@
        "layers": [
         {
          "clip": "A_slash",
-         "gain": -1.4,
+         "gain": -1.6,
          "hero": true,
          "bus": "impact",
          "delay": -0.1229
         },
         {
          "clip": "A_lowthud",
-         "gain": -4.4,
+         "gain": -4.6,
          "bus": "low",
          "delay": -0.0224
         },
         {
          "clip": "A_ring",
-         "gain": -17.4,
+         "gain": -17.6,
          "send": 0.06,
          "bus": "blade",
          "delay": -0.0054
@@ -2618,7 +2618,7 @@
        "layers": [
         {
          "clip": "B_power_whoosh",
-         "gain": -17.18,
+         "gain": -17.38,
          "delay": -0.3139,
          "bus": "low",
          "lp": 900,
@@ -2638,7 +2638,7 @@
           "B_whoosh_2",
           "B_whoosh_3"
          ],
-         "gain": -6.18,
+         "gain": -6.38,
          "panJit": 0.7,
          "cents": -150,
          "bus": "swing",
@@ -2658,7 +2658,7 @@
        "layers": [
         {
          "clip": "B_swing_low",
-         "gain": -3.18,
+         "gain": -3.38,
          "bus": "swing",
          "delay": -0.222,
          "lp": 900
@@ -2677,7 +2677,7 @@
           "B_thud_2",
           "B_thud_3"
          ],
-         "gain": -6.18,
+         "gain": -6.38,
          "bus": "impact",
          "delay": -0.2247,
          "lp": 900
@@ -2696,14 +2696,14 @@
        "layers": [
         {
          "clip": "B_slasher",
-         "gain": -3.18,
+         "gain": -3.38,
          "bus": "impact",
          "delay": -0.0054,
          "lp": 900
         },
         {
          "clip": "B_boom_chef",
-         "gain": -15.18,
+         "gain": -15.38,
          "cut": 0.8,
          "bus": "low",
          "delay": -0.2073,
@@ -2723,7 +2723,7 @@
        "layers": [
         {
          "clip": "C_whoosh_fast",
-         "gain": -16.34,
+         "gain": -16.54,
          "panJit": 0.7,
          "jit": 120,
          "bus": "swing",
@@ -2733,7 +2733,7 @@
         },
         {
          "clip": "C_zap",
-         "gain": -27.34,
+         "gain": -27.54,
          "p": 0.6,
          "bus": "fx",
          "delay": -0.0424,
@@ -2752,7 +2752,7 @@
        "layers": [
         {
          "clip": "C_spell_whoosh",
-         "gain": -14.34,
+         "gain": -14.54,
          "bus": "swing",
          "delay": -0.3606,
          "hp": 1500,
@@ -2767,7 +2767,7 @@
        "layers": [
         {
          "clip": "C_energy_cut",
-         "gain": -14.34,
+         "gain": -14.54,
          "jit": 120,
          "bus": "impact",
          "delay": -0.0874,
@@ -2787,14 +2787,14 @@
        "layers": [
         {
          "clip": "C_air_impact",
-         "gain": -11.34,
+         "gain": -11.54,
          "bus": "impact",
          "delay": -0.021,
          "hp": 1500
         },
         {
          "clip": "C_crystal",
-         "gain": -21.34,
+         "gain": -21.54,
          "send": 0.25,
          "bus": "fx",
          "delay": -0.0058,
@@ -2809,7 +2809,7 @@
        "cool": 0.1
       }
      ],
-     "trim": 0.1
+     "trim": -0.1
     }
    }
   },
@@ -2939,7 +2939,7 @@
        "at": 5.0
       }
      ],
-     "trim": 4.0
+     "trim": 3.8
     },
     "B": {
      "title": "중량",
@@ -3024,7 +3024,7 @@
        "at": 5.0
       }
      ],
-     "trim": 2.7
+     "trim": 2.5
     },
     "C": {
      "title": "기운",
@@ -3126,7 +3126,7 @@
        "at": 4.9
       }
      ],
-     "trim": -2.5
+     "trim": -2.7
     },
     "D": {
      "title": "혼합",
@@ -3139,14 +3139,14 @@
        "layers": [
         {
          "clip": "A_draw_short",
-         "gain": -4.0,
+         "gain": -4.2,
          "bus": "blade",
          "delay": -0.0164,
          "send": 0.0
         },
         {
          "clip": "X_cloth",
-         "gain": -10.0,
+         "gain": -10.2,
          "bus": "amb",
          "delay": -0.254
         }
@@ -3164,7 +3164,7 @@
           "A_swish_2",
           "A_swish_3"
          ],
-         "gain": -9.0,
+         "gain": -9.2,
          "panJit": 0.8,
          "jit": 150,
          "bus": "swing",
@@ -3194,7 +3194,7 @@
           "A_stab_2",
           "A_stab_3"
          ],
-         "gain": -2.0,
+         "gain": -2.2,
          "jit": 120,
          "bus": "impact",
          "delay": -0.0074
@@ -3206,7 +3206,7 @@
           "A_steel_2",
           "A_steel_3"
          ],
-         "gain": -15.0,
+         "gain": -15.2,
          "bus": "blade",
          "delay": -0.0141,
          "send": 0.0
@@ -3236,7 +3236,7 @@
        "layers": [
         {
          "clip": "A_ring",
-         "gain": -15.0,
+         "gain": -15.2,
          "send": 0.08,
          "bus": "blade",
          "delay": -0.0054
@@ -3250,7 +3250,7 @@
        "layers": [
         {
          "clip": "B_swing_design",
-         "gain": -2.48,
+         "gain": -2.68,
          "delay": -0.1959,
          "bus": "swing",
          "lp": 900
@@ -3269,7 +3269,7 @@
           "B_whoosh_2",
           "B_whoosh_3"
          ],
-         "gain": -13.48,
+         "gain": -13.68,
          "panJit": 0.8,
          "cents": -250,
          "jit": 100,
@@ -3301,7 +3301,7 @@
           "B_thud_2",
           "B_thud_3"
          ],
-         "gain": -5.48,
+         "gain": -5.68,
          "bus": "impact",
          "delay": -0.2247,
          "lp": 900
@@ -3316,7 +3316,7 @@
        "layers": [
         {
          "clip": "B_whoosh_3",
-         "gain": -13.48,
+         "gain": -13.68,
          "cents": -400,
          "bus": "swing",
          "delay": -0.4954,
@@ -3331,14 +3331,14 @@
        "layers": [
         {
          "clip": "C_fmw_fx",
-         "gain": -12.54,
+         "gain": -12.74,
          "bus": "fx",
          "delay": -0.0648,
          "hp": 1500
         },
         {
          "clip": "C_charge_down",
-         "gain": -21.54,
+         "gain": -21.74,
          "cents": 600,
          "bus": "fx",
          "delay": -0.0537,
@@ -3353,7 +3353,7 @@
        "layers": [
         {
          "clip": "C_magic_flow",
-         "gain": -25.54,
+         "gain": -25.74,
          "send": 0.2,
          "bus": "amb",
          "delay": -0.2199,
@@ -3368,7 +3368,7 @@
        "layers": [
         {
          "clip": "C_tex_whoosh",
-         "gain": -27.54,
+         "gain": -27.74,
          "panJit": 0.8,
          "jit": 200,
          "bus": "swing",
@@ -3395,7 +3395,7 @@
        "layers": [
         {
          "clip": "C_energy_cut",
-         "gain": -15.54,
+         "gain": -15.74,
          "jit": 150,
          "bus": "impact",
          "delay": -0.0874,
@@ -3403,7 +3403,7 @@
         },
         {
          "clip": "C_zap",
-         "gain": -25.54,
+         "gain": -25.74,
          "bus": "fx",
          "delay": -0.0424,
          "hp": 1500
@@ -3418,7 +3418,7 @@
        "layers": [
         {
          "clip": "C_air_charm",
-         "gain": -25.54,
+         "gain": -25.74,
          "send": 0.3,
          "bus": "fx",
          "delay": -0.5556,
@@ -3428,7 +3428,7 @@
        "at": 4.9
       }
      ],
-     "trim": 0.6
+     "trim": 0.4
     }
    }
   },
@@ -3547,7 +3547,7 @@
        "cool": 0.1
       }
      ],
-     "trim": 2.4
+     "trim": 2.2
     },
     "B": {
      "title": "중량",
@@ -3647,7 +3647,7 @@
        "cool": 0.1
       }
      ],
-     "trim": -0.9
+     "trim": -1.1
     },
     "C": {
      "title": "기운",
@@ -3742,7 +3742,7 @@
        "cool": 0.1
       }
      ],
-     "trim": 0.0
+     "trim": -0.2
     },
     "D": {
      "title": "혼합",
@@ -3755,13 +3755,13 @@
        "layers": [
         {
          "clip": "X_cloth2",
-         "gain": -6.6,
+         "gain": -6.8,
          "bus": "amb",
          "delay": -0.3799
         },
         {
          "clip": "A_hi_swing",
-         "gain": -7.6,
+         "gain": -7.8,
          "cents": -300,
          "bus": "swing",
          "delay": -0.0909
@@ -3775,7 +3775,7 @@
        "layers": [
         {
          "clip": "A_slide",
-         "gain": -14.6,
+         "gain": -14.8,
          "bus": "blade",
          "delay": -0.2373,
          "send": 0.0
@@ -3789,28 +3789,28 @@
        "layers": [
         {
          "clip": "A_ground",
-         "gain": 2.4,
+         "gain": 2.2,
          "hero": true,
          "bus": "impact",
          "delay": -0.017
         },
         {
          "clip": "A_slash",
-         "gain": -0.6,
+         "gain": -0.8,
          "hero": true,
          "bus": "impact",
          "delay": -0.1229
         },
         {
          "clip": "A_explo_low",
-         "gain": -1.6,
+         "gain": -1.8,
          "hero": true,
          "bus": "low",
          "delay": -0.0077
         },
         {
          "clip": "A_debris",
-         "gain": -3.6,
+         "gain": -3.8,
          "delay": -0.3137,
          "send": 0.12,
          "bus": "amb"
@@ -3855,7 +3855,7 @@
           "A_thud_2",
           "A_thud_3"
          ],
-         "gain": -5.6,
+         "gain": -5.8,
          "bus": "low",
          "delay": -0.1793
         },
@@ -3884,7 +3884,7 @@
        "layers": [
         {
          "clip": "B_whoosh_1",
-         "gain": -9.08,
+         "gain": -9.28,
          "cents": -300,
          "bus": "swing",
          "delay": -0.19,
@@ -3899,7 +3899,7 @@
        "layers": [
         {
          "clip": "B_rev_trans",
-         "gain": -9.08,
+         "gain": -9.28,
          "bus": "fx",
          "delay": -1.9,
          "lp": 900
@@ -3913,7 +3913,7 @@
        "layers": [
         {
          "clip": "B_boom_modern",
-         "gain": -7.08,
+         "gain": -7.28,
          "hero": true,
          "bus": "low",
          "delay": 0.0224,
@@ -3921,7 +3921,7 @@
         },
         {
          "clip": "B_punch_wet",
-         "gain": -5.08,
+         "gain": -5.28,
          "hero": true,
          "bus": "impact",
          "delay": -0.0239,
@@ -3929,7 +3929,7 @@
         },
         {
          "clip": "B_downer_fast",
-         "gain": -12.08,
+         "gain": -12.28,
          "hero": true,
          "bus": "low",
          "delay": 0.0136,
@@ -3937,7 +3937,7 @@
         },
         {
          "clip": "B_collapse",
-         "gain": -9.08,
+         "gain": -9.28,
          "delay": 0.0548,
          "send": 0.2,
          "bus": "amb",
@@ -3957,7 +3957,7 @@
           "B_thud_2",
           "B_thud_3"
          ],
-         "gain": -11.08,
+         "gain": -11.28,
          "bus": "impact",
          "delay": -0.2247,
          "lp": 900
@@ -3972,7 +3972,7 @@
        "layers": [
         {
          "clip": "C_whoosh_fast",
-         "gain": -18.04,
+         "gain": -18.24,
          "cents": -200,
          "bus": "swing",
          "delay": -0.1572,
@@ -3988,7 +3988,7 @@
        "layers": [
         {
          "clip": "C_torch",
-         "gain": -13.04,
+         "gain": -13.24,
          "delay": -0.3624,
          "bus": "fx",
          "hp": 1500
@@ -4002,7 +4002,7 @@
        "layers": [
         {
          "clip": "C_fire_impact",
-         "gain": -8.04,
+         "gain": -8.24,
          "hero": true,
          "bus": "low",
          "delay": -0.0173,
@@ -4010,7 +4010,7 @@
         },
         {
          "clip": "C_air_impact",
-         "gain": -10.04,
+         "gain": -10.24,
          "hero": true,
          "bus": "impact",
          "delay": -0.021,
@@ -4018,7 +4018,7 @@
         },
         {
          "clip": "C_glass",
-         "gain": -17.04,
+         "gain": -17.24,
          "send": 0.2,
          "bus": "fx",
          "delay": -0.0014,
@@ -4026,7 +4026,7 @@
         },
         {
          "clip": "C_fire_burst",
-         "gain": -17.04,
+         "gain": -17.24,
          "delay": 0.0806,
          "send": 0.15,
          "bus": "fx",
@@ -4041,7 +4041,7 @@
        "layers": [
         {
          "clip": "C_fmw_hit",
-         "gain": -16.04,
+         "gain": -16.24,
          "bus": "impact",
          "delay": -0.0899,
          "hp": 1500
@@ -4051,7 +4051,7 @@
        "cool": 0.1
       }
      ],
-     "trim": -1.4
+     "trim": -1.6
     }
    }
   },
@@ -4194,7 +4194,7 @@
        "cool": 0.1
       }
      ],
-     "trim": -0.5
+     "trim": -0.7
     },
     "B": {
      "title": "중량",
@@ -4295,7 +4295,7 @@
        }
       }
      ],
-     "trim": -0.3
+     "trim": -0.5
     },
     "C": {
      "title": "기운",
@@ -4390,7 +4390,7 @@
        "cool": 0.1
       }
      ],
-     "trim": -1.1
+     "trim": -1.3
     },
     "D": {
      "title": "혼합",
@@ -4408,7 +4408,7 @@
           "A_swish_2",
           "A_swish_3"
          ],
-         "gain": -8.5,
+         "gain": -8.7,
          "jit": 120,
          "panJit": 0.2,
          "cut": 0.12,
@@ -4430,7 +4430,7 @@
        "layers": [
         {
          "clip": "A_hi_swing",
-         "gain": -3.5,
+         "gain": -3.7,
          "bus": "swing",
          "delay": -0.0804
         }
@@ -4448,7 +4448,7 @@
           "A_stab_2",
           "A_stab_3"
          ],
-         "gain": -3.5,
+         "gain": -3.7,
          "jit": 120,
          "cut": 0.15,
          "bus": "impact",
@@ -4483,21 +4483,21 @@
        "layers": [
         {
          "clip": "A_slash",
-         "gain": -1.5,
+         "gain": -1.7,
          "hero": true,
          "bus": "impact",
          "delay": -0.1229
         },
         {
          "clip": "A_ring",
-         "gain": -17.5,
+         "gain": -17.7,
          "send": 0.06,
          "bus": "blade",
          "delay": -0.0054
         },
         {
          "clip": "A_lowthud",
-         "gain": -6.5,
+         "gain": -6.7,
          "bus": "low",
          "delay": -0.0224
         },
@@ -4528,7 +4528,7 @@
           "B_whoosh_2",
           "B_whoosh_3"
          ],
-         "gain": -12.48,
+         "gain": -12.68,
          "jit": 100,
          "cut": 0.14,
          "cents": -100,
@@ -4551,7 +4551,7 @@
        "layers": [
         {
          "clip": "B_swing_design",
-         "gain": -5.48,
+         "gain": -5.68,
          "bus": "swing",
          "delay": -0.3459,
          "lp": 900
@@ -4570,7 +4570,7 @@
           "B_thud_2",
           "B_thud_3"
          ],
-         "gain": -6.48,
+         "gain": -6.68,
          "cut": 0.18,
          "bus": "impact",
          "delay": -0.2247,
@@ -4590,14 +4590,14 @@
        "layers": [
         {
          "clip": "B_slasher",
-         "gain": -3.48,
+         "gain": -3.68,
          "bus": "impact",
          "delay": -0.0054,
          "lp": 900
         },
         {
          "clip": "B_boom_chef",
-         "gain": -15.48,
+         "gain": -15.68,
          "cut": 0.7,
          "bus": "low",
          "delay": -0.2073,
@@ -4617,7 +4617,7 @@
        "layers": [
         {
          "clip": "C_whoosh_fast",
-         "gain": -20.14,
+         "gain": -20.34,
          "jit": 150,
          "cut": 0.12,
          "panJit": 0.2,
@@ -4641,7 +4641,7 @@
        "layers": [
         {
          "clip": "C_spell_whoosh",
-         "gain": -15.14,
+         "gain": -15.34,
          "bus": "swing",
          "delay": -0.3606,
          "hp": 1500,
@@ -4656,7 +4656,7 @@
        "layers": [
         {
          "clip": "C_energy_cut",
-         "gain": -13.14,
+         "gain": -13.34,
          "jit": 150,
          "cut": 0.15,
          "bus": "impact",
@@ -4665,7 +4665,7 @@
         },
         {
          "clip": "C_zap",
-         "gain": -22.14,
+         "gain": -22.34,
          "cut": 0.1,
          "bus": "fx",
          "delay": -0.0424,
@@ -4685,14 +4685,14 @@
        "layers": [
         {
          "clip": "C_surge",
-         "gain": -10.14,
+         "gain": -10.34,
          "bus": "fx",
          "delay": -0.0449,
          "hp": 1500
         },
         {
          "clip": "C_fmw_hit",
-         "gain": -12.14,
+         "gain": -12.34,
          "bus": "impact",
          "delay": -0.0899,
          "hp": 1500
@@ -4706,7 +4706,7 @@
        "cool": 0.1
       }
      ],
-     "trim": 0.0
+     "trim": -0.2
     }
    }
   },
@@ -4787,7 +4787,7 @@
        "at": 0.2
       }
      ],
-     "trim": -0.1
+     "trim": -0.3
     },
     "B": {
      "title": "중량",
@@ -4850,7 +4850,7 @@
        "at": 0.2
       }
      ],
-     "trim": 1.8
+     "trim": 1.6
     },
     "C": {
      "title": "기운",
@@ -4917,7 +4917,7 @@
        "at": 0.2
       }
      ],
-     "trim": -0.8
+     "trim": -1.0
     },
     "D": {
      "title": "혼합",
@@ -4930,14 +4930,14 @@
        "layers": [
         {
          "clip": "A_metal_hit",
-         "gain": -0.1,
+         "gain": -0.3,
          "hero": true,
          "bus": "impact",
          "delay": -0.0185
         },
         {
          "clip": "A_lowthud",
-         "gain": -6.1,
+         "gain": -6.3,
          "bus": "low",
          "delay": -0.0224
         }
@@ -4955,7 +4955,7 @@
        "layers": [
         {
          "clip": "A_ring",
-         "gain": -13.1,
+         "gain": -13.3,
          "rate": 0.7,
          "send": 0.12,
          "bus": "blade",
@@ -4970,13 +4970,13 @@
        "layers": [
         {
          "clip": "A_slash",
-         "gain": -2.1,
+         "gain": -2.3,
          "bus": "impact",
          "delay": -0.1254
         },
         {
          "clip": "A_blade_swing",
-         "gain": -6.1,
+         "gain": -6.3,
          "bus": "swing",
          "delay": -0.1137
         }
@@ -4990,7 +4990,7 @@
        "layers": [
         {
          "clip": "B_bigmetal",
-         "gain": -5.38,
+         "gain": -5.58,
          "cut": 1.6,
          "bus": "low",
          "delay": 0.0033,
@@ -4998,7 +4998,7 @@
         },
         {
          "clip": "A_metal_hit",
-         "gain": -3.38,
+         "gain": -3.58,
          "bus": "impact",
          "delay": -0.0185,
          "lp": 900
@@ -5012,7 +5012,7 @@
        "layers": [
         {
          "clip": "B_power_whoosh",
-         "gain": -11.38,
+         "gain": -11.58,
          "rate": 0.5,
          "bus": "swing",
          "delay": -0.4758,
@@ -5028,7 +5028,7 @@
        "layers": [
         {
          "clip": "B_slasher",
-         "gain": -2.38,
+         "gain": -2.58,
          "bus": "impact",
          "delay": -0.0107,
          "lp": 900
@@ -5042,14 +5042,14 @@
        "layers": [
         {
          "clip": "C_mixed_impact",
-         "gain": -8.84,
+         "gain": -9.04,
          "bus": "impact",
          "delay": -0.0201,
          "hp": 1500
         },
         {
          "clip": "C_charge_down",
-         "gain": -15.84,
+         "gain": -16.04,
          "bus": "fx",
          "delay": -0.076,
          "hp": 1500
@@ -5063,7 +5063,7 @@
        "layers": [
         {
          "clip": "C_rev_interf",
-         "gain": -17.84,
+         "gain": -18.04,
          "bus": "fx",
          "delay": -2.1333,
          "hp": 1500
@@ -5077,14 +5077,14 @@
        "layers": [
         {
          "clip": "C_energy_cut",
-         "gain": -8.84,
+         "gain": -9.04,
          "bus": "impact",
          "delay": -0.1048,
          "hp": 1500
         },
         {
          "clip": "C_crystal",
-         "gain": -21.84,
+         "gain": -22.04,
          "send": 0.25,
          "bus": "fx",
          "delay": -0.0058,
@@ -5094,7 +5094,7 @@
        "at": 0.2
       }
      ],
-     "trim": 0.7
+     "trim": 0.6
     }
    }
   },
