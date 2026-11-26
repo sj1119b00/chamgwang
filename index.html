@@ -81,6 +81,8 @@
     <div class="card" data-c="shaman" style="--c:#3dffb0"><i>도사</i><em>SPIRIT SAGE</em><small>천암낙하 · 신령강림</small></div>
     <div class="card" data-c="pyro" style="--c:#ff6a1a"><i>화염술사</i><em>PYROMANCER</em><small>겁화폭풍 · 화룡승천</small></div>
     <a class="card" href="?rpg#assassin" style="--c:#a9afff"><i>암살자</i><em>ASSASSIN</em><small>흑무연참 · 생존 RPG</small></a>
+    <a class="card" href="?rpg#archer" style="--c:#9ce4ad"><i>궁수</i><em>ARCHER</em><small>천궁일선 · 생존 RPG</small></a>
+    <a class="card" href="?rpg#gunner" style="--c:#77e5e4"><i>거너</i><em>GUNNER</em><small>영점 붕괴 · 생존 RPG</small></a>
   </div>
   <div class="sub">직업을 골라 시작 · J 기본공격 · K / L 궁극기 · 1~5 직업 변경 · A 자동 시연 · 소리를 켜고 보세요</div>
   <div class="sub touch">직업을 골라 시작 · 화면 탭 = 기본공격 · 아래 버튼 = 궁극기 · 왼쪽 위 = 직업 변경<br>가로 화면 · 소리 켜기 추천 (아이폰은 무음 스위치 해제)</div>
@@ -232,7 +234,7 @@ void main(){vec2 w=toWorld(v);float qa[16];float ws=0.,rs=0.,sm=0.;
 const DOWNFS=`uniform sampler2D a,b,c,d,e;uniform float ck,dk;void main(){vec3 cc=texture2D(c,v).rgb;float cm=max(cc.r,max(cc.g,cc.b));if(cm>1.)cc=cc/cm*min(cm,2.4);vec3 o=texture2D(a,v).rgb+texture2D(b,v).rgb*1.2+cc*ck;if(dk>0.)o+=max(texture2D(d,v).rgb-vec3(.85),0.)*dk*(1.-texture2D(e,v).a);gl_FragColor=vec4(o*.5,1.);}`;
 const BLURFS=`uniform sampler2D a;uniform vec2 dir;void main(){vec3 c=texture2D(a,v).rgb*.227027;c+=(texture2D(a,v+dir*1.384615).rgb+texture2D(a,v-dir*1.384615).rgb)*.316216;c+=(texture2D(a,v+dir*3.230769).rgb+texture2D(a,v-dir*3.230769).rgb)*.07027;gl_FragColor=vec4(c,1.);}`;
 const FINFS=`uniform sampler2D tex,bgT,fireT,b1,b2,b3,vfxT,dstT;uniform vec4 glp[4];uniform vec3 glc[4];uniform vec3 amb;uniform float vfxK,dstK;uniform float gndK;uniform vec4 hero;
-uniform float ca,inv,flash,blur,gray,vig,grain,bloomK,lbox,tilt;uniform vec3 ray;uniform vec2 bc;uniform vec4 sh[4];uniform vec4 cut;uniform vec3 inkA,inkB;uniform vec4 tintC;
+uniform float ca,inv,flash,blur,gray,vig,grain,bloomK,lbox,tilt,arrowImpact;uniform vec3 ray;uniform vec2 bc;uniform vec4 sh[4];uniform vec4 cut;uniform vec3 inkA,inkB;uniform vec4 tintC;
 vec3 hup(vec3 c,float cap){float m=max(c.r,max(c.g,c.b));return m>1.?mix(c/m*min(m,cap),vec3(cap),smoothstep(6.,20.,m)):c;}
 void main(){vec2 p=v;float asp=res.x/res.y;
  if(tilt>.001){float tm=(1.+tilt*(1.-2.*p.y))/(1.-tilt);p=vec2(.5+(p.x-.5)/tm,.5+(p.y-.56)/tm+.06*(1.-tilt));}
@@ -278,6 +280,13 @@ void main(){vec2 p=v;float asp=res.x/res.y;
  col=mix(col,vec3(1.,.93,.96),gap);col+=seam*vec3(1.,.75,.85);
  float vd=length((v-.5)*vec2(asp,1.));col*=1.-vig*smoothstep(.4,1.2,vd);
  float gn=h12(gl_FragCoord.xy+fract(time*7.31)*vec2(131.7,71.3))-.5;col+=gn*grain*(1.15-l);
+ if(arrowImpact>0.){
+   float value=dot(col,vec3(.299,.587,.114));
+   float ink=1.-smoothstep(.105,.21,value);
+   col=mix(col,vec3(.014+.94*ink),arrowImpact);
+ }else if(arrowImpact<0.){
+   col=mix(col,vec3(1.,.981,.90),-arrowImpact);
+ }
  col*=step(lbox,v.y)*step(v.y,1.-lbox);
  gl_FragColor=vec4(col,1.);}`;
 let GLX=null; const RPG_SURV=()=>typeof RPG!=='undefined'&&RPG.mode==='surv';
@@ -347,18 +356,23 @@ function glFrame(){
   if(nf){ P=G.pFire; rtTarget(G.fire); common(P); gl.uniform4fv(U_(P,'fa'),FAA); gl.uniform4fv(U_(P,'fb'),FBA); gl.drawArrays(gl.TRIANGLES,0,3); G.fClr=false; }
   else if(!G.fClr){ rtTarget(G.fire); gl.clearColor(0,0,0,0); gl.clear(gl.COLOR_BUFFER_BIT); G.fClr=true; }
   const gfx0=!!(window.GFX&&GFX.on&&RPG_SURV()&&GFX.render(G)), f3o=!!(f3&&FX3.renderOver(G,gfx0)), gfxOn=gfx0||f3o, gfxLit=gfxOn||gnd||!!(window.GFX&&GFX.on&&RPG_SURV()&&GFX.active());
+  // PF_LITE (phone simplification, frame/heat.js): skip the bloom passes that build b1/b2/b3; bloomK goes to 0 below,
+  // and the three targets are cleared once so the light rays (b2) and exposure (b3) do not keep reading a stale blur
+  if(!window.PF_LITE){ G.bClr=false;
   P=G.pDown; rtTarget(G.b1a); gl.useProgram(P.p); bindTex(0,G.tFx); bindTex(1,G.fire.t); bindTex(2,gfxOn?G.gVfx.t:G.fire.t); bindTex(3,gnd?G.gGround.t:G.fire.t); bindTex(4,G.tScene); gl.uniform1i(U_(P,'a'),0); gl.uniform1i(U_(P,'b'),1); gl.uniform1i(U_(P,'c'),2); gl.uniform1i(U_(P,'d'),3); gl.uniform1i(U_(P,'e'),4); gl.uniform1f(U_(P,'ck'),gfxOn?(window.VBK??.55):0); gl.uniform1f(U_(P,'dk'),gnd?(window.GBK??.9):0); gl.drawArrays(gl.TRIANGLES,0,3);
   blurPass(G.b1a,G.b1b,1,0); blurPass(G.b1b,G.b1a,0,1);
   blurPass(G.b1a,G.b2a,1,0); blurPass(G.b2a,G.b2b,0,1);
   blurPass(G.b2b,G.b3a,1,0); blurPass(G.b3a,G.b3b,0,1);
+  } else if(!G.bClr){ gl.clearColor(0,0,0,0); for(const rt of [G.b1a,G.b2b,G.b3b]){ rtTarget(rt); gl.clear(gl.COLOR_BUFFER_BIT); } G.bClr=true; }
   P=G.pFin; gl.bindFramebuffer(gl.FRAMEBUFFER,null); gl.viewport(0,0,W,H); common(P);
   [G.tScene,gnd?G.gGround.t:G.bg.t,G.fire.t,G.b1a.t,G.b2b.t,G.b3b.t].forEach((t,i)=>bindTex(i,t)); gl.uniform1f(U_(P,'gndK'),gnd?1:0); gl.uniform1f(U_(P,'tilt'),RPG_SURV()?(post.tilt||0):0);
   ['tex','bgT','fireT','b1','b2','b3'].forEach((n,i)=>gl.uniform1i(U_(P,n),i));
   bindTex(6,gfxLit&&G.gVfx?G.gVfx.t:G.fire.t); bindTex(7,gfxLit&&G.gDist?G.gDist.t:G.fire.t); gl.uniform1i(U_(P,'vfxT'),6); gl.uniform1i(U_(P,'dstT'),7);
   if(gfxLit) GFX.finUniforms(P,U_); else { gl.uniform1f(U_(P,'vfxK'),0); gl.uniform1f(U_(P,'dstK'),0); }
   gl.uniform1f(U_(P,'ca'),Math.min(post.caMax||.0018,post.ca)); gl.uniform1f(U_(P,'inv'),post.inv); gl.uniform1f(U_(P,'flash'),Math.min(1,post.flash)); gl.uniform1f(U_(P,'blur'),post.blur*.5);
-  gl.uniform1f(U_(P,'gray'),post.gray); gl.uniform1f(U_(P,'vig'),.5+ov.dim*.3); gl.uniform1f(U_(P,'grain'),.028); gl.uniform1f(U_(P,'bloomK'),window.BLOOMK??1); { const L0=LIGHTS[0]; if(L0){ const [rx,ry]=w2s(L0[0],L0[1]); gl.uniform3f(U_(P,'ray'),rx/W,1-ry/H,clamp(L0[3]-.4,0,1)*.9); } else gl.uniform3f(U_(P,'ray'),.5,.5,0); } gl.uniform1f(U_(P,'lbox'),ov.lb>.01?(window.LBK??.11)*ov.lb:0); gl.uniform2f(U_(P,'bc'),post.bc[0],post.bc[1]); { const tc=post.tint; gl.uniform4f(U_(P,'tintC'),tc?tc[0]:0,tc?tc[1]:0,tc?tc[2]:0,tc?tc[3]:0); }
+  gl.uniform1f(U_(P,'gray'),post.gray); gl.uniform1f(U_(P,'vig'),.5+ov.dim*.3); gl.uniform1f(U_(P,'grain'),.028); gl.uniform1f(U_(P,'bloomK'),window.PF_LITE?0:(window.BLOOMK??1)); { const L0=LIGHTS[0]; if(L0){ const [rx,ry]=w2s(L0[0],L0[1]); gl.uniform3f(U_(P,'ray'),rx/W,1-ry/H,clamp(L0[3]-.4,0,1)*.9); } else gl.uniform3f(U_(P,'ray'),.5,.5,0); } gl.uniform1f(U_(P,'lbox'),ov.lb>.01?(window.LBK??.11)*ov.lb:0); gl.uniform2f(U_(P,'bc'),post.bc[0],post.bc[1]); { const tc=post.tint; gl.uniform4f(U_(P,'tintC'),tc?tc[0]:0,tc?tc[1]:0,tc?tc[2]:0,tc?tc[3]:0); }
   gl.uniform3fv(U_(P,'inkA'),post.inkA); gl.uniform3fv(U_(P,'inkB'),post.inkB);
+  gl.uniform1f(U_(P,'arrowImpact'),window.RangedHero?.impactLevel()||0);
   const shk=new Float32Array(16); shocks.forEach((s,i)=>{ const [x,y]=w2s(s.x,s.y); shk[i*4]=x/W; shk[i*4+1]=1-y/H; shk[i*4+2]=s.r; shk[i*4+3]=s.s*(s.life/s.max); });
   gl.uniform4fv(U_(P,'sh'),shk);
   const c=post.cut; if(c){ const [x,y]=w2s(c.x,c.y), k=c.t<.06?c.t/.06:c.t<c.hold?1:Math.max(0,1-(c.t-c.hold)/.08); gl.uniform4f(U_(P,'cut'),x/W,1-y/H,-c.a,c.amt*k); } else gl.uniform4f(U_(P,'cut'),0,0,0,0);
@@ -626,7 +640,7 @@ function fireBurst(x,y,s=1,pal=0){ const sq=Math.sqrt(s);
 
 // ============================================================ image assets — painted sprites replace the procedural shapes; anything whose file is missing keeps its procedural fallback
 const SPR={}, ASSET_V='g11';   // bump when sprite files are regenerated, so a cached old image is never drawn with new frame numbers
-function loadSpr(name,o){ const im=new Image(), s=SPR[name]=Object.assign({im,ok:false},o); im.onload=()=>{ s.ok=true; s.w=im.naturalWidth; s.h=im.naturalHeight; }; im.src='assets/'+name+'.webp?v='+ASSET_V; return s; }
+function loadSpr(name,o){ const im=new Image(), s=SPR[name]=Object.assign({im,ok:false},o); im.onload=()=>{ s.ok=true; s.w=im.naturalWidth; s.h=im.naturalHeight; }; im.src='assets/'+name+'.webp?v='+(s.version||ASSET_V); return s; }
 const spr=n=>SPR[n]&&SPR[n].ok?SPR[n]:null;
 // grey stone variant of the meteor painting, used for the falling boulders
 function rockSpr(){ const m=spr('meteor'); if(!m) return null; if(!SPR.rock){ const cv=document.createElement('canvas'); cv.width=m.w; cv.height=m.h; const g=cv.getContext('2d'); g.filter='grayscale(1) brightness(.62) contrast(1.15)'; g.drawImage(m.im,0,0); SPR.rock={im:cv,ok:true,w:m.w,h:m.h}; } return SPR.rock; }
@@ -2355,9 +2369,14 @@ const CLASSES={
     ults:[{name:'흑무연참',en:'BLACK MIST'}],cut:{bg:'#090b18',box:'#353354',iris:['#eff8ff','#a9afff','#353354'],subc:'#cddaff'}},
   axe:{name:'액스',en:'AXE',aura:'#ff5a14',eye:'#ffe2b0',idle:'idle',basic:'도끼질',
     ults:[{name:'신부강림',en:'DIVINE AXE'}],cut:{bg:'#1a0602',box:'#8a1a06',iris:['#fff4d8','#ffc24a','#8a1a06'],subc:'#ffd27a'}},
+  archer:{name:'궁수',en:'ARCHER',aura:'#9ce4ad',eye:'#ffe5a6',idle:'idle',basic:'깃시위',
+    ults:[{name:'천궁일선'},{name:'별자리 장송곡'},{name:'일식의 대궁'}]},
+  gunner:{name:'거너',en:'GUNNER',aura:'#77e5e4',eye:'#e6ffff',idle:'idle',basic:'강선탄',
+    ults:[{name:'영점 붕괴'},{name:'황혼 편대'},{name:'사건의 지평선'}]},
 };
 function setClass(c,quiet){
   if(lock&&!quiet) return; const C=CLASSES[c]; pl.cls=c; pl.target=C.idle; pl.auraC=C.aura; pl.eyeC=C.eye; chain=0; chainT=0; resetChains();
+  if(window.RangedHero) RangedHero.prepare(c);
   if(Math.abs(pl.x-pl.home)>30) pl.x=pl.home;
   document.getElementById('lb0').textContent=C.basic; document.getElementById('lb1').textContent=C.ults[0].name; document.getElementById('lb2').textContent=C.ults[1]?.name||'';
   document.querySelectorAll('#cls .c').forEach(e=>e.classList.toggle('on',e.dataset.c===c)); hudEl.style.setProperty('--uc',C.aura);
@@ -2596,7 +2615,7 @@ function ribbon(g,ch,w0,col){
   g.strokeStyle=col; g.lineCap='round';
   for(let i=1;i<ch.length;i++){ g.lineWidth=Math.max(1,w0*(1-i/ch.length)); g.beginPath(); g.moveTo(ch[i-1].x,ch[i-1].y); g.lineTo(ch[i].x,ch[i].y); g.stroke(); }
 }
-const SCARF={sword:'#c40c28',mage:'#5a22c8',fist:'#ff7a1d',shaman:'#1aa878',pyro:'#6a1608',assassin:'#514e83',axe:'#8a1a06'};
+const SCARF={sword:'#c40c28',mage:'#5a22c8',fist:'#ff7a1d',shaman:'#1aa878',pyro:'#6a1608',assassin:'#514e83',axe:'#8a1a06',archer:'#6d9958',gunner:'#a66c42'};
 function limb(g,a,b,w1,w2){ w1*=BK; w2*=BK; const an=Math.atan2(b[1]-a[1],b[0]-a[0]), n=an+Math.PI/2, c=Math.cos(n), s=Math.sin(n);
   g.beginPath(); g.moveTo(a[0]+c*w1,a[1]+s*w1); g.lineTo(b[0]+c*w2,b[1]+s*w2); g.arc(b[0],b[1],w2,n,n-Math.PI,true); g.lineTo(a[0]-c*w1,a[1]-s*w1); g.arc(a[0],a[1],w1,n-Math.PI,n-TAU,true); g.closePath(); g.fill(); }
 function smoothPoly(g,P){ const n=P.length; g.beginPath(); g.moveTo((P[n-1][0]+P[0][0])/2,(P[n-1][1]+P[0][1])/2);
@@ -2687,7 +2706,12 @@ function plMesh(s){ const key=s.im.src+RT; if(key===plCkey) return; plCkey=key; 
   for(let j=0;j<PL_GY;j++) for(let i=0;i<PL_GX;i++){ const p0=at(i,j), p1=at(i+1,j), p2=at(i,j+1), p3=at(i+1,j+1), x=i*cw, y=j*chh;
     triMap(plX,s.im,x,y,x+cw,y,x,y+chh,P[p0],P[p0+1],P[p1],P[p1+1],P[p2],P[p2+1]); triMap(plX,s.im,x+cw,y,x+cw,y+chh,x,y+chh,P[p1],P[p1+1],P[p3],P[p3+1],P[p2],P[p2+1]); } }
 function plSprBox(s){ const J=pl.j, h=s.wh||330, q=anim.seq, so=q&&q.steps[q.i][2], ox=so&&so.ox!=null?so.ox:s.ox||0; return {h,w:h*s.w/s.h,cx:J.hip[0]+ox*pl.f,base:Math.max(J.rf[1],J.lf[1])+(s.oy??6)}; }
-function drawPlSpr(g,mul=1){ const s=plFrame(), b=plSprBox(s); plMesh(s);
+function drawPlSpr(g,mul=1){ const s=plFrame(), b=plSprBox(s);
+  if(s.rigid){ // The animation and cloth motion are already rendered in Blender.
+    g.save(); g.translate(b.cx,b.base); g.scale(pl.f,1); g.globalAlpha=mul;
+    g.drawImage(s.im,-b.w*s.ax,-b.h*s.ay,b.w,b.h); g.restore(); return;
+  }
+  plMesh(s);
   g.save(); g.translate(b.cx,b.base); g.scale(pl.f,1); g.globalAlpha=mul; g.drawImage(plC,-b.w*(s.ax??.5)-b.w*PL_PAD,-b.h*(1+PL_PAD),b.w*(1+PL_PAD*2),b.h*(1+PL_PAD)); g.restore(); g.globalAlpha=1; }
 // an idle-loop frame with its own anchors uses them; otherwise the class's a/b sprite, or the sequence frame
 function plSprAnchors(){ if(!plSprites()) return; const f0=plFrame(), s=(anim.seq||(anim.fr==='a'&&f0.anch)?null:spr(pl.cls+(anim.fr==='b'||anim.fr==='d'?'_b':'_a')))||f0, A=s.anch; if(!A){ delete pl.j.st; return; } const b=plSprBox(s), J=pl.j;   // no anch (no painted blade position): drop the skeleton blade so its glow does not float over the sprite
@@ -3177,7 +3201,14 @@ function render(){
   applyCam(ctx); drawParts(3);
   ctx.setTransform(1,0,0,1,0,0);
   drawFocusLines(); drawCutin(); drawWarn(); drawHUD(); tctx.clearRect(0,0,W,H); drawParts(4);
-  if(gl) glFrame(); else ctxOut.drawImage(sc,0,0);
+  if(gl) glFrame(); else {
+    const strength=window.RangedHero?.impactLevel()||0;
+    ctxOut.save();
+    if(strength>0) ctxOut.filter='grayscale(1) brightness(2.8) contrast(5) invert(1)';
+    ctxOut.drawImage(sc,0,0);
+    if(strength<0){ ctxOut.fillStyle='rgba(255,250,230,'+(-strength)+')'; ctxOut.fillRect(0,0,W,H); }
+    ctxOut.restore();
+  }
 }
 function drawBackground_prep(){ ctx.setTransform(1,0,0,1,0,0); ctx.globalCompositeOperation='source-over'; ctx.globalAlpha=1; ctx.clearRect(0,0,W,H);
   fx.setTransform(1,0,0,1,0,0); fx.globalCompositeOperation='source-over'; fx.clearRect(0,0,W,H); fx.globalCompositeOperation='lighter'; applyCam(fx); }
@@ -3230,7 +3261,7 @@ function begin(cls){
 }
 initGL(); addEventListener('resize',resize); resize(); requestAnimationFrame(frame);
 </script>
-<script src="rpg.js?v=56"></script>
-<script src="sword-sfx/ingame.js?v=3"></script>
+<script src="rpg.js?v=59"></script>
+<script src="sword-sfx/ingame.js?v=4"></script>
 </body>
 </html>

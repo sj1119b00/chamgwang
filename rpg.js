@@ -231,8 +231,76 @@ function counterHit(src){ const d=D('sw_counter'); G.counter=0; G.inv=1.1; slow(
 // ============================================================ locomotion frames (ChatGPT GIF sets; any set not loaded falls back to the idle loop)
 // run sword_gr02-11 loop · jump sword_gj03 rise, 04-08 airborne loop, 09-10 fall, 11 landing · hurt sword_gh02-08
 const fr2=n=>String(n).padStart(2,'0');
+const rangedClass=c=>c==='archer'||c==='gunner';
+const rangedFrames=['a','b','c','d','e',...Array.from({length:10},(_,i)=>'gr'+fr2(i+2))];
+const rangedSprite={wh:312,ax:204/512,ay:374/384,oy:0,rigid:true,version:'stick1'};
+let rangedPose=null;
+let impactBeat=null;
+const cueBuffers=new Map(), cueLoads=new Set();
+function warmCues(c){
+  if(!AC||!rangedClass(c)) return;
+  for(const key of c==='archer'?['sonic']:['lock','breach']){
+    if(cueLoads.has(key)||cueBuffers.has(key)) continue;
+    cueLoads.add(key);
+    fetch('assets/ranged/'+key+'.mp3').then(r=>{
+      if(!r.ok) throw new Error(r.status);
+      return r.arrayBuffer();
+    }).then(data=>AC.decodeAudioData(data)).then(buf=>cueBuffers.set(key,buf))
+      .catch(()=>{}).finally(()=>cueLoads.delete(key));
+  }
+}
+window.RangedHero={
+  prepare(c){
+    rangedPose=null;
+    impactBeat=null;
+    warmCues(c);
+    if(rangedClass(c)) G.sv?.CLS[c]?.preload?.();
+    if(!rangedClass(c)||SPR[c+'_a']) return;
+    for(const frame of rangedFrames) loadSpr(c+'_'+frame,rangedSprite);
+  },
+  pose(name,seconds=.22){
+    rangedPose={cls:pl.cls,name,start:RT,duration:Math.max(.02,seconds)};
+  },
+  impact(kind,duration){
+    if(G.mode==='surv'&&pl.cls==='archer'&&!SV.opt?.calm) impactBeat={kind,start:RT,duration};
+  },
+  impactLevel(){
+    if(!impactBeat||!lock||G.mode!=='surv'||pl.cls!=='archer'||SV.opt?.calm) return 0;
+    const t=(RT-impactBeat.start)/impactBeat.duration;
+    if(t>=1){ impactBeat=null; return 0; }
+    return impactBeat.kind==='ink'?1:-.95*(1-t)*(1-t);
+  },
+  cue(key,{pan=0,gain=1,rate=1,length}={}){
+    const buf=cueBuffers.get(key);
+    if(!buf||!AC||AC.state!=='running') return false;
+    const voice=AC.createBufferSource(), level=AC.createGain();
+    voice.buffer=buf; voice.playbackRate.value=rate; level.gain.value=gain;
+    voice.connect(level);
+    const stereo=AC.createStereoPanner?.();
+    if(stereo){ stereo.pan.value=clamp(pan,-1,1); level.connect(stereo); stereo.connect(master); }
+    else level.connect(master);
+    voice.onended=()=>{ voice.disconnect(); level.disconnect(); stereo?.disconnect(); };
+    const now=AC.currentTime;
+    voice.start(now);
+    if(length>0&&length<buf.duration/rate){
+      level.gain.setValueAtTime(gain,now+Math.max(0,length-.027));
+      level.gain.linearRampToValueAtTime(0,now+length);
+      voice.stop(now+length);
+    }
+    return true;
+  }
+};
 const plFrame0=plFrame;
-plFrame=function(){ if((G.mode==='play'||G.mode==='surv')&&!anim.seq&&G.pose){ const s=spr(pl.cls+'_'+G.pose); if(s) return s; } return plFrame0(); };
+plFrame=function(){
+  if(rangedPose&&rangedPose.cls===pl.cls&&G.mode==='surv'){
+    const p=(RT-rangedPose.start)/rangedPose.duration;
+    if(p>=0&&p<1){
+      const f=rangedPose.name==='draw'?'c':rangedPose.name==='dash'?'gr05':p<.42?'b':p<.76?'d':'e';
+      const s=spr(pl.cls+'_'+f); if(s) return s;
+    }
+  }
+  if((G.mode==='play'||G.mode==='surv')&&!anim.seq&&G.pose){ const s=spr(pl.cls+'_'+G.pose); if(s) return s; } return plFrame0();
+};
 function locoPose(rdt,moving){
   if(G.landT>0){ G.landT-=rdt; return 'gj11'; }
   if(G.jz>0){ if(G.jv>350) return 'gj03'; if(G.jv>-350) return 'gj'+fr2(4+Math.floor(RT/.08)%5); return G.jv>-900?'gj09':'gj10'; }
@@ -241,7 +309,7 @@ function locoPose(rdt,moving){
 }
 // ============================================================ stickman mode (the showcase's original skeleton figure instead of the painted frames)
 // The painted sequences still run (same timing, hits and effects); each step maps its frame to a skeleton pose: wind-up, strike (trail/forward kick steps), recovery.
-const STK=()=>{ if(G.mode!=='surv') return SV.stick!==false; if(!SV.opt) SV.opt={}; if(SV.opt.stick===undefined) SV.opt.stick=true; return !!SV.opt.stick; };   // survival draws the painted class characters unless its own option asks for the skeleton
+const STK=()=>{ if(rangedClass(pl.cls)) return false; if(G.mode!=='surv') return SV.stick!==false; if(!SV.opt) SV.opt={}; if(SV.opt.stick===undefined) SV.opt.stick=true; return !!SV.opt.stick; };
 const STICK={gs:'slash1',gm:'slash2',gw:'slash3',gu:'slash3',gt:'slashU',gp:'slash2',gk:'slash3',gc:'iaiDone'};
 const plSprites0=plSprites; plSprites=function(){ return STK()?null:plSprites0(); };
 const plSeqNext0=plSeqNext; plSeqNext=function(){ plSeqNext0(); if(!STK()) return; const q=anim.seq;
@@ -649,12 +717,13 @@ addEventListener('touchstart',enableTouch,{passive:true});
 // ============================================================ boot
 // survival mode (surv.js) works on the same save, levels and skill table
 G.api={get SV(){ return SV; },SK,ORDER,SLOT_KEYS,save,mul,cdOf,maxHp,needExp,gainExp,unlocked,sLv,stickLoco,STK,toMenu,menuRender,setPause,toast,floatTxt,EFR,ET,menuEl,isTouch,fr2,swapClass,locoPose,hurtAnim};
-if(location.hash==='#assassin'){
-  swapClass('assassin');
+const linkedClass=location.hash.slice(1);
+if(linkedClass==='assassin'||rangedClass(linkedClass)){
+  swapClass(linkedClass);
   history.replaceState(history.state,'',location.pathname+location.search);
 }
 started=true; setClass(SV.cls||'sword',true); E.dead=true; E.respawn=1e9; pl.x=pl.home=VW*.62;
-{ const s=document.createElement('script'); s.src='surv.js?v=37';
+{ const s=document.createElement('script'); s.src='surv.js?v=40';
   s.onload=()=>menuEl.classList.add('on');
   s.onerror=()=>{ menuRender(); menuEl.classList.add('on'); };
   document.body.appendChild(s); }

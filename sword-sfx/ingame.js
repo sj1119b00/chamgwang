@@ -44,7 +44,7 @@ const until=f=>new Promise(r=>{ const h=setInterval(()=>{ if(f()){ clearInterval
   let bedCls=null;
   let packCls=null;
   (function watch(){ requestAnimationFrame(watch);
-    if(E.pack&&pl.cls!==packCls){ packCls=E.packCls=pl.cls; E.release(pl.cls); E.packData(pl.cls).catch(()=>{}); }
+    if(E.pack&&pl.cls!==packCls){ packCls=E.packCls=pl.cls; E.release(pl.cls); if(E.pack.packs[pl.cls]) E.packData(pl.cls).catch(()=>{}); }
     // join the game's audio as soon as it exists (the fist waits for its clips, which needs our side running)
     if(!E.ctx&&typeof AC!=='undefined'&&AC) E.graph();
     if(pl.cls==='fist'||RPG.sv.A.SV.cls==='fist') warmFist();
@@ -55,7 +55,7 @@ const until=f=>new Promise(r=>{ const h=setInterval(()=>{ if(f()){ clearInterval
     if(pl.cls!==bedCls){ if(bedCls==='fist') E.stopAll(); bedCls=pl.cls; E.setBed(ClassFX.BED[pl.cls]||null,-20); }
     E.gate(FX3.stats.draws+.2*GFX.pts.length+GFX.fx.length);
   })();
-  ClassFX.install(E,{active:()=>inSurv()&&pl.cls!=='sword'&&(pl.cls!=='fist'||fistReady)});
+  ClassFX.install(E,{active:()=>inSurv()&&pl.cls!=='sword'&&(!E.pack||E.pack.packs[pl.cls])&&(pl.cls!=='fist'||fistReady)});
 
   // ---- swordsman: cue sheets on the game clock, contacts from K3.knock
   const C=RPG.sv.CLS.sword, D=E.designs.skills; let cur=null, rt0=0, basicAt=-9, basicN=0;

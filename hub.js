@@ -6,13 +6,15 @@
 'use strict';
 (()=>{
 const G=RPG, A=G.api, S=G.sv, SV=()=>A.SV;
-const ORDER=['sword','mage','fist','shaman','pyro','assassin','axe'];
+const ORDER=S.CLS_ORDER;
 const NAMES=S.NAMES, CHAP=S.CHAP||[];
-const EN_N={sword:'BLADE',mage:'ARCANIST',fist:'STRIKER',shaman:'SPIRIT LINK',pyro:'PYROMANCER',assassin:'PHANTOM',axe:'AXE'};
-const ROLE={sword:'근접',mage:'원거리',fist:'근접',shaman:'정령',pyro:'원거리',assassin:'근접',axe:'근접'};
+const EN_N={sword:'BLADE',mage:'ARCANIST',fist:'STRIKER',shaman:'SPIRIT LINK',pyro:'PYROMANCER',assassin:'PHANTOM',axe:'AXE',archer:'ARCHER',gunner:'GUNNER'};
+const ROLE={sword:'근접',mage:'원거리',fist:'근접',shaman:'정령',pyro:'원거리',assassin:'근접',axe:'근접',archer:'원거리 · 관통',gunner:'원거리 · 정밀 사격'};
 const LORE={sword:'검을 익힌 후손. 빛의 칼날 하나로 구역의 질서를 가른다.',mage:'피가 짙게 발현된 후손. 공간을 접어 무리를 한꺼번에 지운다.',fist:'맨몸으로 싸우는 법을 익힌 후손. 연타와 충격파로 밀어붙인다.',
-  shaman:'정령과 동기화하는 후손. 보이지 않는 것들을 불러 싸운다.',pyro:'플라즈마를 다루는 후손. 닿는 모든 것을 태운다.',assassin:'그림자처럼 움직이는 후손. 보이기 전에 끝낸다.',axe:'불타는 거대 도끼를 휘두르는 후손. 내려치는 곳마다 땅이 탄다.'};
-const HER={sword:'#ff5a7a',mage:'#a98bff',fist:'#56d8ff',shaman:'#4fffb8',pyro:'#ff9a4a',assassin:'#b9c0ff',axe:'#ff7a3a'};
+  shaman:'정령과 동기화하는 후손. 보이지 않는 것들을 불러 싸운다.',pyro:'플라즈마를 다루는 후손. 닿는 모든 것을 태운다.',assassin:'그림자처럼 움직이는 후손. 보이기 전에 끝낸다.',axe:'불타는 거대 도끼를 휘두르는 후손. 내려치는 곳마다 땅이 탄다.',
+  archer:'경계 장벽 밖에서 길을 찾던 추적자. 화살 한 발에 자신의 동기화 신호를 실어, 시야 너머의 표적까지 궤적을 꺾는다.',
+  gunner:'보더라인 관측소의 마지막 사수. 오래된 황동 조준경을 들여다보면 지면 위에 푸른 십자선이 맺힌다.'};
+const HER={sword:'#ff5a7a',mage:'#a98bff',fist:'#56d8ff',shaman:'#4fffb8',pyro:'#ff9a4a',assassin:'#b9c0ff',axe:'#ff7a3a',archer:'#9ce4ad',gunner:'#77e5e4'};
 
 // ============================================================ the seven experiment zones (story: each has grown a king; the player subdues them)
 // play order, king titles and colours are provisional: the story has not fixed them yet
@@ -42,7 +44,7 @@ function hsave(){ if(G.noSave) return; try{ localStorage.setItem(HK,JSON.stringi
 const SLOTS=[['w','무기','WEAPON'],['a','수트','SUIT'],['t','모듈','MODULE']];
 const RAR=[['표준','STANDARD','#c9d6e6'],['강화','ENHANCED','#5ad1ff'],['프로토타입','PROTOTYPE','#c77dff'],['특이점','SINGULAR','#ffb547']];
 const RM=[1,1.35,1.75,2.3], MAXP=5, BAG=16;
-const WBASE={sword:'포톤 블레이드',mage:'위상 포커스',fist:'키네틱 너클',shaman:'스피릿 링크',pyro:'플라즈마 이미터',assassin:'모노 대거',axe:'헤비 액스'};
+const WBASE={sword:'포톤 블레이드',mage:'위상 포커스',fist:'키네틱 너클',shaman:'스피릿 링크',pyro:'플라즈마 이미터',assassin:'모노 대거',axe:'헤비 액스',archer:'공명 장궁',gunner:'위상 저격총'};
 const WT=['시제','표준','개량','퀀텀','싱귤러','오리진'];
 const AT=['패브릭 수트','나노 수트','하드라이트 베스트','위상 장갑복','퀀텀 쉘','오리진 수트'];
 const TT=['데이터 칩','신경 링크','동기화 코어','신호 증폭기','퀀텀 코어','시그널 프래그먼트'];
@@ -169,6 +171,8 @@ const css=document.createElement('style'); css.id='hubcss'; css.textContent=`
 .hub .hc b{font:700 13.5px ${KR}} .hub .hc small{font:600 8.5px ${MONO};letter-spacing:.14em;color:${MU}}
 .hub .hc i{position:absolute;top:5px;left:9px;font:600 10px ${MONO};font-style:normal;color:${AM}}
 .hub .hdet{flex:1;min-width:230px}
+.hub .hdet .hero-model{float:right;width:clamp(92px,14vw,188px);height:auto;margin:0 0 4px 4px}
+.hub .hdet .rule{clear:both}
 .hub .hdet .big{font:900 28px ${KR};letter-spacing:.02em}
 .hub .tagl{display:inline-block;margin:4px 0 6px;padding:2px 8px;border:1px solid rgba(235,167,78,.5);font:600 11px ${KR};color:${AM}}
 /* lists */
@@ -368,17 +372,20 @@ function foeFigure(g,H,kind,o){ const heavy=kind==='brute'||kind==='king', R=rig
     const hx=R.head[0], hy=R.head[1]-R.hr*1.7; g.strokeStyle=INK; g.lineWidth=R.hr*.42; g.beginPath(); g.ellipse(hx,hy,R.hr*1.35,R.hr*.42,0,0,TAU); g.stroke(); g.strokeStyle=ac; g.lineWidth=R.hr*.2; g.stroke(); }
   return R; }
 // in battle: replaces the painted enemy frames (drawE in surv.js calls this through G.foeDraw)
-G.foeDraw=e=>{ const D=e.d, kind=KIND[e.type]||'soldier', H=e.h*(e.sv||1), ac=S.CH().acc;
-  const g=ctx; g.save(); g.translate(e.x,e.y-e.z+4);
+function drawResident(g,e){ const D=e.d, kind=KIND[e.type]||'soldier', H=e.h*(e.sv||1), ac=S.CH().acc;
+  g.save(); g.translate(e.x,e.y-e.z+4);
   const hp=Math.max(0,1-(RT-(e.hitT??-9))/.16); if(hp>0){ const q=hp*hp; g.rotate((e.hdx||0)*.3*q); g.scale(1+.18*q,1+.12*q); g.translate((Math.random()-.5)*H*.08*q,0); }
-  if(e.z>0){ e.sp=(e.sp||0)+(e.z>30?.13:0); g.translate(0,-H*.5); g.rotate(-(.3+e.sp)*e.f); g.translate(0,H*.5); } else e.sp=0;
+  if(e.z>0){ g.translate(0,-H*.5); g.rotate(-(.3+(e.sp||0))*e.f); g.translate(0,H*.5); }
   g.scale(e.f,1);
   let atk=-1; if(e.swing>0) atk=1-e.swing/.32; else if(e.castT>0) atk=1-e.castT/(D.boss?.9:.55);
   const hurt=e.hurtT>0?Math.min(1,e.hurtT/.3):e.stun>0?.6:0;
   const col=e.flash>.35?'#ffffff':(e.mkC&&e.mkT>RT)?e.mkC:SUIT;
   foeFigure(g,H,kind,{ph:(e.walkT||0)/(D.heavy?.55:.38)*TAU,atk,hurt,col,eye:ac});
-  g.restore();
-  if(D.heavy) glow(fx,e.x+e.f*H*.04,e.y-e.z-H*.86,H*.1,ac,.6);
+  g.restore(); }
+G.foeDraw=e=>{
+  e.sp=e.z>0?(e.sp||0)+(e.z>30?.13:0):0;
+  drawResident(ctx,e);
+  if(e.d.heavy){ const h=e.h*(e.sv||1); glow(fx,e.x+e.f*h*.04,e.y-e.z-h*.86,h*.1,S.CH().acc,.6); }
   return true; };
 // a downed resident derezzes: thrown by an ultimate, or squashing into a line of light where he stood
 G.foeDying=q=>{ const E=q.e, D=E.d, kind=KIND[Object.keys(S.EN||{}).find(k=>S.EN[k]===D)]||'soldier', H=D.h*D.sc, k=q.t/q.life, t=q.t, g=ctx, ac=S.CH().acc;
@@ -432,7 +439,7 @@ function setShot(scr){ const n=scr==='quest'&&qSel!=null&&qSel!=='seal'?'v_'+ZK[
   const blur=scr==='train'||scr==='guild'; if(n!==shown){ shown=n; front^=1; ph[front].style.backgroundImage=`url(${MENU}${n}.webp)`; ph[front].classList.remove('b'); ph[front^1].classList.add('b'); }
   ph[front].style.filter=blur?'blur(6px) saturate(.8)':'none'; }
 // rain on the title and base (the stills are rainy nights), slow dust elsewhere
-function drawFx(t,scr){ const w=fxc.clientWidth|0, h=fxc.clientHeight|0; if(!w||!h) return; const d=Math.min(2,window.devicePixelRatio||1); if(fxc.width!==Math.round(w*d)){ fxc.width=Math.round(w*d); fxc.height=Math.round(h*d); drops=[]; }
+function drawFx(t,scr){ const w=fxc.clientWidth|0, h=fxc.clientHeight|0; if(!w||!h) return; const d=Math.min(window.PF_FXDPR||2,window.devicePixelRatio||1); if(fxc.width!==Math.round(w*d)){ fxc.width=Math.round(w*d); fxc.height=Math.round(h*d); drops=[]; }
   const W=fxc.width, H=fxc.height, rain=scr==='title'||scr==='town'; fg.clearRect(0,0,W,H);
   const want=rain?120:36; while(drops.length<want) drops.push({x:Math.random()*W,y:Math.random()*H,v:.6+Math.random()*.8,l:Math.random()});
   if(drops.length>want) drops.length=want;
@@ -441,8 +448,15 @@ function drawFx(t,scr){ const w=fxc.clientWidth|0, h=fxc.clientHeight|0; if(!w||
       fg.strokeStyle=`rgba(200,225,220,${.12+.16*p.v})`; fg.lineWidth=d*.8; fg.beginPath(); fg.moveTo(p.x,p.y); fg.lineTo(p.x+H*.008*p.v,p.y-H*.05*p.v); fg.stroke(); }
     else { p.y-=H*.0016*p.v; p.x+=Math.sin(t*.6+p.l*9)*d*.3; if(p.y<-4){ p.y=H+4; p.x=Math.random()*W; }
       fg.fillStyle=`rgba(235,190,120,${.18+.25*Math.sin(t*1.3+p.l*7)**2})`; fg.fillRect(p.x,p.y,d*1.6,d*1.6); } } }
+const modelPortraits={};
+for(const cls of ['archer','gunner']){
+  const im=new Image(); im.src=MENU+cls+'_portrait.webp?v=stick1'; modelPortraits[cls]=im;
+}
 function drawPortrait(c,cls,t){ const w=c.clientWidth|0; if(!w) return; const dpr=Math.min(2,window.devicePixelRatio||1), s=Math.round(w*dpr); if(c.width!==s){ c.width=s; c.height=s; }
   const g=c.getContext('2d'); g.setTransform(1,0,0,1,0,0); g.clearRect(0,0,s,s); const ok=!!S.CLS[cls]&&((cls!=='assassin'&&cls!=='axe')||!!window.MK);
+  if(modelPortraits[cls]){
+    const im=modelPortraits[cls]; if(im.complete&&im.naturalWidth) g.drawImage(im,0,0,s,s); return;
+  }
   glow(g,s*.5,s*.62,s*.42,HER[cls],ok?.3:.1); g.save(); g.translate(s*.5,s*.96); heroFigure(g,s*.9,cls,t+ORDER.indexOf(cls),ok?'#EDEAE4':'#3a4644'); g.restore(); }
 // a generated GIF as a live feed; it disappears if the file is missing
 const feed=(n,label,cls='')=>`<div class="feed ${cls}"><img src="${MENU}${n}.gif" alt="" onerror="this.parentNode.style.display='none'"><span class="tag"><i></i>${label}</span></div>`;
@@ -507,7 +521,7 @@ function viewHero(){ const sv=SV(); if(!hSel) hSel=pl.cls; const c=hSel, ids=A.O
   const nSk=ids.filter(i=>sk(i)&&sk(i).type==='skill').length;
   return `<div class="top"><button class="btn back" data-go="${booted?'town':'title'}">← 뒤로<small>BACK</small></button><div style="display:flex;flex-direction:column"><b style="font:700 17px ${KR}">후손 선택</b><span class="hk">Bloodline of the man</span></div></div>
   <div class="sheet"><div class="roster panel scroll">${ORDER.map(k=>`<div class="hc ${k===c?'on':''}" data-h="${k}"><i>LV ${lvOf(k)}</i><canvas data-hero="${k}"></canvas><b>${NAMES[k]}</b><small>${EN_N[k]}</small></div>`).join('')}</div>
-  <div class="hdet panel col"><div class="scroll" style="flex:1"><span class="hk">${EN_N[c]}</span><div class="big">${NAMES[c]}</div><div><span class="tagl">${ROLE[c]}</span> <span class="tagl">LV ${lvOf(c)}</span></div>
+  <div class="hdet panel col"><div class="scroll" style="flex:1">${modelPortraits[c]?`<img class="hero-model" src="${modelPortraits[c].src}" alt="">`:''}<span class="hk">${EN_N[c]}</span><div class="big">${NAMES[c]}</div><div><span class="tagl">${ROLE[c]}</span> <span class="tagl">LV ${lvOf(c)}</span></div>
     <div class="lore">${LORE[c]}</div><div class="rule"></div>
     ${ready(c)?`<div class="kv"><span>기본 공격</span><b>${sig[0]||'-'}</b></div><div class="kv"><span>스킬</span><b>${nSk}개</b></div><div class="kv"><span>궁극기</span><b>${sig.slice(1).join(' · ')||'-'}</b></div>`:`<div class="mut">전투 데이터 동기화 중…</div>`}</div>
     <div style="padding-top:10px"><button class="btn pri" style="width:100%" data-act="pick" ${ready(c)?'':'disabled'}>${c===pl.cls?'이 후손으로 진입':'이 후손으로 교체'}<small>${c===pl.cls?'DEPLOY':'SWITCH'}</small></button></div></div></div>`; }
@@ -541,9 +555,14 @@ function chromaRow(id){ const C=G.chroma; if(!C) return ''; const L=C.options(id
     return `<button class="sw ${cur===k?'on':''} ${own?'':'lk'}" data-cz="${id}|${k}"><i style="background:${C.swatch(id,k)}"></i><span>${own?o[0]:C.price(id,k)}</span></button>`; }).join('')+'</div>'; }
 function viewTrain(){ const sv=SV(), ids=A.ORDER[pl.cls]||[];
   const rows=ids.map(id=>{ const s=S.SK[id]; if(!s) return ''; const un=A.unlocked(id), lv=A.sLv(id), ev=lv>=5;
-    const tag=s.type==='ult'?'궁극기':s.type==='basic'?'기본 공격':`재사용 ${A.cdOf(id).toFixed(1)}초`;
+    const tag=s.type==='ult'?'궁극기':s.type==='basic'?'기본 공격':S.DASH_ID&&S.DASH_ID[pl.cls]===id?'대쉬 버튼 · 직접 사용':`재사용 ${A.cdOf(id).toFixed(1)}초 · 자동`;
     const act=un&&s.type!=='ult'?`<button class="btn sbtn ${sv.sp>0&&!ev?'pri':''}" data-up="${id}" ${sv.sp<1||ev?'disabled':''}>${ev?'진화 완료':lv===4?'진화':'강화'}</button>`:'';
-    return `<div class="row ${un?'':'lock'}">${iconOf(id)}<div class="tx"><b>${s.name}</b><span class="tg">${tag}</span><p>${un?s.desc+(s.evo&&s.type!=='ult'?` <span class="cr">진화: ${s.evo}</span>`:''):'LV '+s.lv+'에 해제'}</p>${un?chromaRow(id):''}</div><div class="lvl">${s.type==='ult'?'':ev?'★ EVO':'LV '+lv+'/5'}</div>${act}</div>`; }).join('');
+    /* what a level does, in numbers: damage now, and what the next point buys (each level +15% damage, -5% wait; the fifth evolves it) */
+    const k=1+.15*(lv-1), nk=(1+.15*lv)/k, cur=s.dmg?s.dmg*A.mul(id):0;
+    const now=s.type==='ult'?'':s.dmg?`현재 피해 <b>${S.fmtN(Math.round(cur))}</b> · 재사용 ${A.cdOf(id).toFixed(1)}초`:`현재 피해 배율 <b>×${k.toFixed(2)}</b>`;
+    const nxt=s.type==='ult'||ev?'':`강화 → LV ${lv+1}: 피해 ${s.dmg?S.fmtN(Math.round(cur*nk))+' (+15%)':'+15%'}${s.cd?` · 재사용 ${(s.cd*(1-.05*lv)).toFixed(1)}초 (-5%)`:''}${lv===4?' · <b>진화</b>: 효과 모양이 바뀝니다':''}`;
+    const up=un&&s.type!=='ult'?`<div class="sup" style="margin-top:4px;font-size:11.5px;line-height:1.5;color:${TL}">${now}${nxt?`<br><span style="color:${AM}">${nxt}</span>`:'<br><span style="color:'+AM+'">강화 완료 · 진화 효과 적용 중</span>'}</div>`:'';
+    return `<div class="row ${un?'':'lock'}">${iconOf(id)}<div class="tx"><b>${s.name}</b><span class="tg">${tag}</span><p>${un?s.desc+(s.evo&&s.type!=='ult'?` <span class="cr">진화: ${s.evo}</span>`:''):'LV '+s.lv+'에 해제'}</p>${up}${un?chromaRow(id):''}</div><div class="lvl">${s.type==='ult'?'':ev?'★ EVO':'LV '+lv+'/5'}</div>${act}</div>`; }).join('');
   return topBar(true,'시뮬레이터','Skill matrix')+`<div class="sheet"><div class="panel col" style="flex:2;min-width:0"><div class="scroll" style="flex:1">${ready(pl.cls)?rows:'<div class="mut">전투 데이터 동기화 중…</div>'}</div></div>
     <div class="panel col" style="flex:1;min-width:190px"><div class="scroll" style="flex:1"><h3><small>COMBAT SIMULATION</small>모의 전투</h3><div class="lore">홀로그램 표적을 상대로 모든 스킬과 궁극기를 시험합니다. 기록과 보상은 남지 않습니다.</div>
     <div class="rule"></div><div class="kv"><span>스킬 포인트</span><b style="color:${AM}">${sv.sp}</b></div><div class="kv"><span>크레딧</span><b style="color:${AM}">${H.gold}</b></div><div class="lore" style="margin-top:6px">스킬 아래 색을 눌러 크레딧으로 해금하고 바꿀 수 있습니다. 궁극기는 두 가지 색이 있습니다.</div><div class="kv"><span>다음 레벨까지</span><b>${Math.max(0,A.needExp(sv.lv)-sv.exp)} EXP</b></div></div>
@@ -560,6 +579,7 @@ function viewSmith(){ const g=gearOf(pl.cls);
     <div class="rule"></div><div class="kv"><span>피해</span><b>+${stat('w')}%</b></div><div class="kv"><span>최대 HP</span><b>${A.maxHp()}</b></div><div class="kv"><span>경험치·크레딧</span><b>+${stat('t')}%</b></div></div>
     <div style="flex:1"></div>
     <div class="panel col" style="width:min(360px,42vw);min-width:0"><div class="tabs"><button class="${smTab==='bag'?'on':''}" data-tab="bag">보관함 ${H.stash.length}/${BAG}</button><button class="${smTab==='shop'?'on':''}" data-tab="shop">제작</button></div><div class="scroll" style="flex:1">${list}</div></div></div><div class="toast panel"></div>`; }
+const SPDS=[[1,'보통'],[1.2,'빠름'],[1.4,'매우 빠름']];
 function viewGuild(){ const sv=SV(), o=sv.opt||{};
   const T=(k,kr,en)=>`<div class="opt"><div><b style="font:700 14px ${KR}">${kr}</b><div class="hk" style="font-size:9px">${en}</div></div><button class="tog ${o[k]?'on':''}" data-opt="${k}" aria-label="${kr}"></button></div>`;
   const rec=CHAP.map((c,i)=>{ const b=(sv.best||{})[pl.cls+i], z=ZONES[i]; return `<div class="kv"><span>${z.no}구역 · ${z.name}</span><b>${i<(sv.chClear||0)?'<span style="color:'+AM+'">제압</span> · ':''}${b?mmss(b):'-'}</b></div>`; }).join('');
@@ -567,6 +587,7 @@ function viewGuild(){ const sv=SV(), o=sv.opt||{};
   <div class="sheet">${booted?`<div class="panel col scroll" style="flex:1;min-width:0"><div style="display:flex;align-items:center;gap:12px"><canvas data-hero="${pl.cls}" style="width:76px;height:76px"></canvas><div><b style="font:900 20px ${KR}">${NAMES[pl.cls]}</b><div class="mut">LV ${sv.lv} · ${ROLE[pl.cls]} · 레온의 기록 ${Math.min(7,sv.chClear||0)}/7</div></div></div>
     <button class="btn" style="margin-top:10px" data-go="hero">후손 교체<small>SWITCH DESCENDANT</small></button><div class="rule"></div><span class="hk" style="margin-bottom:4px">ZONE RECORDS</span>${rec}</div>`:''}
     <div class="panel col" style="flex:1;min-width:0"><h3><small>SYSTEM</small>시스템</h3><div class="rule"></div>${T('calm','섬광·흔들림 줄이기','Reduce flash & shake')}${T('lowfx','이펙트 품질 낮춤','Low effect quality')}
+    <div class="opt"><div><b style="font:700 14px ${KR}">이동 속도</b><div class="hk" style="font-size:9px">Move speed</div></div><button class="btn sbtn" data-spd="1">${SPDS.find(x=>x[0]===(o.spd||1))[1]}</button></div>
     ${booted?`<button class="btn" style="margin-top:auto" data-go="title">타이틀 화면<small>TITLE</small></button>`:''}</div></div><div class="toast panel"></div>`; }
 
 // ============================================================ the menu itself
@@ -594,6 +615,7 @@ G.menuOverride=el=>{ const sv=SV(); sv.opt=sv.opt||{}; sv.opt.stick=true;
   on('[data-up]',b=>{ const id=b.dataset.up; if(sv.sp<1||A.sLv(id)>=5) return; sv.sp--; sv.sl[id]=A.sLv(id)+1; A.save(); R(); });
   on('[data-opt]',b=>{ const k=b.dataset.opt; sv.opt[k]=!sv.opt[k]; A.save(); R(); });
   on('[data-tab]',b=>{ smTab=b.dataset.tab; R(); });
+  on('[data-spd]',()=>{ const i=SPDS.findIndex(x=>x[0]===(sv.opt.spd||1)); sv.opt.spd=SPDS[(i+1)%SPDS.length][0]; A.save(); R(); toast('이동 속도 · '+SPDS.find(x=>x[0]===sv.opt.spd)[1]); });
   on('[data-eq]',b=>{ const it=byId(+b.dataset.eq); if(!it) return; const who=equippedBy(it.id); if(who) delete gearOf(who)[it.slot]; gearOf(pl.cls)[it.slot]=it.id; hsave(); R(); toast(itName(it)+' 장착'); });
   on('[data-sell]',b=>{ const it=byId(+b.dataset.sell); if(!it||equippedBy(it.id)) return; H.gold+=sellOf(it); H.stash=H.stash.filter(x=>x!==it); hsave(); R(); toast('분해 · '+sellOf(it)+' 크레딧'); });
   on('[data-buy]',b=>{ const k=+b.dataset.buy, it=H.stock[k]; if(!it||H.gold<buyOf(it)||H.stash.length>=BAG) return; H.gold-=buyOf(it); H.stock.splice(k,1); it.id=H.uid++; H.stash.push(it); hsave(); R(); toast(itName(it)+' 제작 완료'); });
@@ -647,7 +669,7 @@ G.hubResult=o=>{ const tb=1+stat('t')/100, D=G.dun&&G.dun.result(); let gold, it
   if(o.win){ gold=Math.round((60*(o.ch+1)+o.kills*.6)*tb); item=newItem(tierOf(o.ch),rollRar(o.ch,o.first)); }
   else { gold=Math.round(30*(o.ch+1)*Math.min(1,(D?D.nodes/3:o.t/300))*tb+o.kills*.2); if((D?D.nodes>0:o.t>90)&&Math.random()<.35) item=newItem(tierOf(o.ch),0); }
   /* the zone map's caches: their credits, and gear found on the way */
-  if(D){ gold+=Math.round(D.gold*tb); for(let i=0;i<D.loot&&H.stash.length<BAG;i++){ H.stash.push(newItem(tierOf(o.ch),rollRar(o.ch,false))); H.fresh=(H.fresh||0)+1; } }
+  if(D){ gold+=Math.round(D.gold*tb); for(let i=0;i<D.loot&&H.stash.length<BAG;i++){ H.stash.push(newItem(tierOf(o.ch),D.lootR?D.lootR[i]:rollRar(o.ch,false))); H.fresh=(H.fresh||0)+1; } }
   H.gold+=gold; if(item){ if(H.stash.length<BAG){ H.stash.push(item); H.fresh=(H.fresh||0)+1; } else { sold=sellOf(item); H.gold+=sold; } }
   restock(); hsave();
   const Z=ZONES[o.ch], el=o.el, rec=Math.min(7,SV().chClear||0); el.classList.add('hubr');
@@ -668,8 +690,8 @@ G.hubResult=o=>{ const tb=1+stat('t')/100, D=G.dun&&G.dun.result(); let gold, it
 
 // after a run the menu opens on the base
 { const tm=A.toMenu; A.toMenu=G.api.toMenu=function(){ if(booted) scr='town'; return tm.apply(this,arguments); }; }
-G.hub={get H(){ return H; },go,newItem,stat,ZONES,save:hsave,reset(){ H=freshH(); restock(); hsave(); }};
+G.hub={get H(){ return H; },get scr(){ return scr; },get qSel(){ return qSel; },go,newItem,rollRar,RAR,stat,ZONES,drawOpticTarget:drawResident,save:hsave,reset(){ H=freshH(); restock(); hsave(); }};
 // zone maps (dun.js) and skill colours (chroma.js) build on surv.js, which this file loads before
-for(const f of ['dun','chroma']){ const sc=document.createElement('script'); sc.src=f+'.js?v=1'; document.head.appendChild(sc); }
+for(const f of ['dun','chroma']){ const sc=document.createElement('script'); sc.src=f+'.js?v=2'; document.head.appendChild(sc); }
 if(G.mode==='menu') A.menuRender();
 })();

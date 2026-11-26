@@ -108,12 +108,13 @@ function offscreen(){ const {hw,hh}=S.view(); for(let i=0;i<12;i++){ const a=ran
 function say(t,sub,c){ M.msg={t,sub,c:c||M.Z.acc,t0:RT}; }
 function tick(rdt){ const ch=M.ch, Z=M.Z; M.el+=rdt;
   // difficulty grows with time spent and with progress, slower than the five-minute run did
-  V.t=M.won?300:Math.min(250,M.el*.42+M.done*38); V.spawn=-50; V.horde=99; V.bossDone=true;
+  if(M.won&&RT-M.wonT>2.4&&V.gems.length){ for(const g of V.gems) V.acc+=g.v; V.gems.length=0; }   /* whatever is still on its way is banked */
+  V.t=M.won&&RT-M.wonT>2.4?300:Math.min(250,M.el*.42+M.done*38);   /* after the king falls the run waits while his experience flies in */ V.spawn=-50; V.horde=99; V.bossDone=true;
   if(V.over||lock) return;
   // nodes: pinned in place; the closer the hero, the more they call
   for(const n of M.nodes){ if(n.done) continue; const e=n.e; if(e){ e.x=n.x; e.y=n.y; e.kx=e.ky=0; e.stun=1e9; e.z=0; }
     if(e&&e.dead){ n.done=true; M.done++; M.gold+=Math.round(70*(ch+1)); for(let i=0;i<10;i++) V.gems.push({x:n.x+rand(-120,120),y:n.y+rand(-80,80),v:6+ch*2,s:0,mag:false,ph:rand(0,TAU)});
-      stamp('노드 파괴',{x:.5,y:.3,size:.1,life:1.3,c:Z.acc,keep:1}); S.sfx('shatter',1); S.sfx('boom',1,.6); if(window.GFX) GFX.light(n.x,n.y,900,Z.acc,1.4,1.2,{z:200});
+      stamp('노드 파괴',{x:.5,y:.3,size:.1,life:1.3,c:Z.acc,keep:1}); V.items.push({k:'heal',x:n.x,y:n.y+200,t:0}); S.sfx('shatter',1); S.sfx('boom',1,.6); if(window.GFX) GFX.light(n.x,n.y,900,Z.acc,1.4,1.2,{z:200});
       explode(n.x,n.y-380,1.5,Z.acc,'#ffffff'); S.burst(n.x,n.y,26,{s0:300,s1:1300,vz:1600,size:22,c:Z.acc}); for(let i=0;i<3;i++) after(i*.12,()=>S.fring(n.x,n.y,1600+i*700,Z.acc,.7,8)); trauma=Math.min(1,trauma+.45); n.boomT=RT;
       if(M.done===M.nodes.length){ M.gate=true; say('왕의 문이 열렸다',Z.king+'이(가) 기다린다',Z.acc); }
       else say(`신호 노드 ${M.done} / ${M.nodes.length}`,'남은 노드를 찾아 파괴하라'); continue; }
@@ -125,17 +126,21 @@ function tick(rdt){ const ch=M.ch, Z=M.Z; M.el+=rdt;
     if(!c.guard&&d<1500){ c.guard=true; for(let i=0;i<2;i++){ const p=spot(c.x,c.y,300,600); if(p) pack(p[0],p[1],3+ch,i===0); } }
     if(d<130){ c.open=true; c.t=RT; const g=Math.round((35+Math.random()*30)*(ch+1)); M.gold+=g; V.nums.push({x:c.x,y:c.y-260,t:-.2,txt:'+'+g+' 크레딧',heal:true});
       for(let i=0;i<6;i++) V.gems.push({x:c.x+rand(-80,80),y:c.y+rand(-50,50),v:3+ch,s:0,mag:false,ph:rand(0,TAU)});
-      if(Math.random()<.45&&G.hub.newItem){ M.loot.push(1); V.nums.push({x:c.x,y:c.y-360,t:-.4,txt:'장비 회수',big:false,heal:true}); }
+      if(Math.random()<.45&&G.hub.newItem){ const rar=G.hub.rollRar?G.hub.rollRar(ch,false):0, R=G.hub.RAR&&G.hub.RAR[rar]; M.loot.push(rar); M.lootT=RT;
+        V.nums.push({x:c.x,y:c.y-360,t:-.4,txt:'장비 획득!',big:true}); stamp('장비 획득',{x:.5,y:.36,size:.11,life:1.4,c:R?R[2]:'#EBA74E',keep:1}); say('장비 획득 · '+(R?R[0]+' 등급':''),'구역을 나가면 패브리케이터 보관함에 들어갑니다 (지금까지 '+M.loot.length+'개)',R?R[2]:'#EBA74E'); S.sfx('rise',1.1,.8); }
+      if(Math.random()<.5) V.items.push({k:'heal',x:c.x+rand(-90,90),y:c.y+110,t:0});
       S.sfx('rise',.7,.5); if(window.GFX) GFX.light(c.x,c.y,700,'#ffc04a',1.2,.9,{z:120}); S.fring(c.x,c.y,1100,'#EBA74E',.55,6); S.burst(c.x,c.y,12,{s0:200,s1:700,vz:1200,size:14,c:'#ffc04a'}); for(let i=0;i<14;i++) spark(c.x,c.y-80,rand(0,TAU),rand(300,900),{c:i%2?'#ffe6a0':'#EBA74E',life:rand(.3,.7),w:3,g:600}); } }
   // record terminals: a line of the story, and a little experience
   for(const l of M.logs){ if(l.read) continue; if(fd(pl.x,pl.gy,l.x,l.y)<170){ l.read=true; say('레온의 기록',l.txt,'#EBA74E'); V.acc+=20*(ch+1); S.sfx('rise',.5,.3); } }
   // the arena: once inside with the gate open, it seals and the king comes
   const a=M.arena, da=fd(pl.x,pl.gy,a.x,a.y);
-  if(M.gate&&!M.king&&da<a.r-260){ const k=S.spawn('boss',a.x,a.y-a.r*FSY*.35); M.king=k; V.boss=k; M.ht=8; stamp(Z.king,{x:.5,y:.3,size:.12,life:1.6,c:Z.acc,keep:1}); if(window.SFX&&SFX.siren) SFX.siren(1.6); say(Z.king,Z.kingEn,Z.acc); }
-  if(M.king){ if(M.king.dead){ if(!M.won){ M.won=true; V.t=300; } } else { M.ht-=rdt; if(M.ht<=0){ M.ht=Math.max(8,13-ch); for(let i=0;i<3;i++){ const p=spot(a.x,a.y,a.r*.5,a.r*.85); if(p) pack(p[0],p[1],3+ch,i===0&&Math.random()<.5); } } } }
+  if(M.gate&&!M.king&&da<a.r-260){ const k=S.spawn('boss',a.x,a.y-a.r*FSY*.35); M.king=k; V.boss=k; M.ht=8; clearOutside(true); stamp(Z.king,{x:.5,y:.3,size:.12,life:1.6,c:Z.acc,keep:1}); if(window.SFX&&SFX.siren) SFX.siren(1.6); say(Z.king,Z.kingEn,Z.acc); }
+  if(M.king&&!M.king.dead) clearOutside(false);
+  if(M.king){ if(M.king.dead){ if(!M.won){ M.won=true; M.wonT=RT; V.mag=3; for(const e of V.en) if(!e.dead&&!e.d.node) S.dmg(e,e.hp*1.3+10,{kb:2}); say(Z.king+' 제압','경험치를 회수하는 중…',Z.acc); } } else { M.ht-=rdt; if(M.ht<=0){ M.ht=Math.max(8,13-ch); for(let i=0;i<3;i++){ const p=spot(a.x,a.y,a.r*.5,a.r*.85); if(p) pack(p[0],p[1],3+ch,i===0&&Math.random()<.5); } } } }
   // the thin ambient horde: small packs from off screen, more as the run goes on
   M.packT-=rdt; if(M.packT<=0&&!M.king){ M.packT=Math.max(1.6,3.4-ch*.15-M.done*.3); if(alive()<26+ch*4+M.done*8){ const p=offscreen(); if(p) pack(p[0],p[1],3+(Math.random()*3|0)+M.done,M.el>60&&Math.random()<.12); } }
 }
+function clearOutside(puff){ const a=M.arena; for(const e of V.en){ if(e.dead||e.d.node||e.d.boss||fd(e.x,e.y,a.x,a.y)<a.r+60) continue; e.dead=true; if(puff) smoke(e.x,e.y-60,rand(30,50),{a:.35,life:.6,grow:60}); } }
 // after the engine moved everything: keep it out of the props and inside the map
 function collide(){ pushOut(pl,'x','gy',34);
   for(const n of M.nodes){ if(n.done||!n.e) continue; n.e.x=n.x; n.e.y=n.y; const dx=pl.x-n.x, dy=(pl.gy-n.y)/FSY, d=Math.hypot(dx,dy); if(d<170){ const k=170/(d||1); pl.x=n.x+(d?dx:1)*k; pl.gy=n.y+(d?dy:0)*k*FSY; } }
@@ -256,7 +261,7 @@ const msg=document.createElement('div'); msg.className='dmsg'; hud.appendChild(m
 let lastMini=0;
 function hudTick(){ const $=s=>hud.querySelector(s), Z=M.Z, tm=$('.tm'), kc=$('.kc');
   const obj=M.king?(M.won?'왕 제압':'왕을 쓰러뜨려라'):M.gate?'왕의 문으로':`신호 노드 ${M.done} / ${M.nodes.length}`;
-  if(tm) tm.textContent=obj; if(kc) kc.innerHTML=`<span>${Z.no}구역 · ${Z.name}</span><b>처치 ${V.kills} · 보급 ${M.chests.filter(c=>c.open).length}/${M.chests.length}</b>`;
+  if(tm) tm.textContent=obj; if(kc) kc.innerHTML=`<span>${Z.no}구역 · ${Z.name}</span><b>처치 ${V.kills} · 보급 ${M.chests.filter(c=>c.open).length}/${M.chests.length}${M.loot.length?` · <span style="color:#EBA74E${RT-(M.lootT||-9)<3?';text-shadow:0 0 8px #EBA74E':''}">장비 ${M.loot.length}</span>`:''}</b>`;
   if(M.msg){ const age=RT-M.msg.t0; msg.innerHTML=`<b style="color:${M.msg.c}">${M.msg.t}</b>${M.msg.sub||''}`; msg.classList.toggle('on',age<(M.msg.sub&&M.msg.sub.length>30?5.5:2.8)); }
   if(RT-lastMini<.1) return; lastMini=RT;
   const g=mini.getContext('2d'), B=M.B, W_=mini.width, H_=mini.height, sx=W_/(B.r-B.l), sy=H_/(B.b-B.t), X=x=>(x-B.l)*sx, Y=y=>(y-B.t)*sy;
@@ -293,5 +298,5 @@ const dp0=drawPlayer; drawPlayer=function(){ dp0(); if(M&&G.mode==='surv'){ draw
 const fd0=G.foeDraw; G.foeDraw=function(e){ if(M&&G.mode==='surv'){ drawUpTo(e.y); if(e.d.node) return drawNode(e); } return fd0?fd0(e):false; };
 const fy0=G.foeDying; G.foeDying=function(q){ if(q.e.d.node){ const k=q.t/q.life; glow(fx,q.e.x,q.e.y-400,300*(1+k),M?M.Z.acc:'#7FF3FF',(1-k)*.8); return true; } return fy0?fy0(q):false; };
 // the result screen reads the run from here
-G.dun={get on(){ return !!M; },result(){ if(!M) return null; return {gold:M.gold,loot:M.loot.length,nodes:M.done,total:M.nodes.length,chests:M.chests.filter(c=>c.open).length,chestsN:M.chests.length,el:M.el,won:M.won}; },get M(){ return M; }};
+G.dun={get on(){ return !!M; },result(){ if(!M) return null; return {gold:M.gold,loot:M.loot.length,lootR:M.loot.slice(),nodes:M.done,total:M.nodes.length,chests:M.chests.filter(c=>c.open).length,chestsN:M.chests.length,el:M.el,won:M.won}; },get M(){ return M; }};
 })();
