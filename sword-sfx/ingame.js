@@ -6,7 +6,10 @@
 'use strict';
 (()=>{
 const BASE='sword-sfx/', SWC='D';
-const load=src=>new Promise((ok,no)=>{ const s=document.createElement('script'); s.src=BASE+src; s.onload=ok; s.onerror=no; document.head.append(s); });
+// the version on this script's own URL (index.html: ingame.js?v=...) goes on everything it loads, so a phone never mixes a cached
+// old engine with new files (GitHub Pages caches each file for 10 minutes)
+const VER=(document.currentScript&&new URL(document.currentScript.src).search)||'';
+const load=src=>new Promise((ok,no)=>{ const s=document.createElement('script'); s.src=BASE+src+VER; s.onload=ok; s.onerror=no; document.head.append(s); });
 const until=f=>new Promise(r=>{ const h=setInterval(()=>{ if(f()){ clearInterval(h); r(); } },100); });
 (async()=>{
   // not inside the comparison lab's frame (it mixes candidates itself) and not in automated capture runs
@@ -18,7 +21,7 @@ const until=f=>new Promise(r=>{ const h=setInterval(()=>{ if(f()){ clearInterval
   for(let i=0;!lib&&!pack&&i<4;i++){ try{ const r=await fetch(BASE+'pack/index.json',{cache:'no-store'}); if(r.ok) pack=await r.json(); else if(r.status===404) break; }catch(_){} if(!pack) await new Promise(r=>setTimeout(r,800*(i+1))); }
   if(!lib&&!pack) return;
   await load('swsfx.js'); await load('classfx.js');
-  const E=SwordSFX; await E.init(BASE); if(pack) E.usePack(pack);
+  const E=SwordSFX; await E.init(BASE); if(pack) E.usePack(pack,VER);
   await until(()=>window.RPG?.sv?.CLS?.fist&&RPG.sv.CLS.sword&&window.K3&&RPG.sv.cine&&typeof SFX!=='undefined');
   window.SwordPreview=window.SwordPreview||{};
   // our side joins the game's audio context, so start it only once the game has made one

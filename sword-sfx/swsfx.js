@@ -87,8 +87,8 @@ class Engine{
     return this.buf.get(id);
   }
   // public build: no loose sound files, one MP3 pack per class (tools/pack.py). packCls = the class in play, looked up first.
-  usePack(index){ this.pack=index; this.packAb=new Map(); }
-  packData(cls){ if(!this.packAb.has(cls)) this.packAb.set(cls,fetch(this.base+'pack/'+cls+'.bin').then(r=>{ if(!r.ok) throw new Error(r.status); return r.arrayBuffer(); })); return this.packAb.get(cls); }
+  usePack(index,ver=''){ this.pack=index; this.packVer=ver; this.packAb=new Map(); }
+  packData(cls){ if(!this.packAb.has(cls)) this.packAb.set(cls,fetch(this.base+'pack/'+cls+'.bin'+(this.packVer||'')).then(r=>{ if(!r.ok) throw new Error(r.status); return r.arrayBuffer(); })); return this.packAb.get(cls); }
   // MP3 starts with encoder delay: decode the pack's click (written at calib_at s) once and trim every clip by the same lead
   packSkip(cls){ if(!this.skipP) this.skipP=this.packData(cls).then(ab=>{ const [o,n]=this.pack.packs[cls]._calib; return this.ctx.decodeAudioData(ab.slice(o,o+n)); })
       .then(b=>{ const d=b.getChannelData(0); let k=0, pk=0; for(let i=0;i<d.length;i++) if(Math.abs(d[i])>pk){ pk=Math.abs(d[i]); k=i; } return Math.max(0,Math.round(k-this.pack.calib_at*b.sampleRate)); });
