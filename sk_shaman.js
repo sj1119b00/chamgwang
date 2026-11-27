@@ -1427,7 +1427,7 @@ function ultRockstorm(id){ ultStart(id); const Cn=X.cine, {hw,hh}=view(), Dm=600
   // kit update 14: with the baked sequences loaded the ground round him is torn up for real (Blender, _gen/blend/sh_rock.py): a Voronoi-cut
   // slab of floor, its ring of cells ripped out inner-first and whirled round him, the pit left behind; then each slab hurled down, its
   // pre-cut parts breaking apart on the slam (rigid bodies). The photo stones below (RK) are then not drawn; the slams follow the bake's marks.
-  const BKR=!!(F.on&&K.bakeMeta&&K.bakeMeta.sh_tear&&K.bakeMeta.sh_throw&&K.bakeMeta.sh_sink); if(BKR) K.bakePre(['sh_tear','sh_throw','sh_sink']);
+  const BKR=!!(F.on&&K.bakeMeta&&K.bakeMeta.sh_tear&&K.bakeMeta.sh_throw&&K.bakeMeta.sh_sink)&&K.bakePre(['sh_tear','sh_throw','sh_sink']);   // the baked pictures are used only if every page has arrived; if not (a slow phone, a first cast) the drawn version plays, and they keep loading for the next cast
   // with the bake: one framing all through (the rock ring about half the screen high); the slabs hit the floor HUR after TC
   const ZB=.55, HUR=BKR?.2:0;
   // ---- the stones: where each is torn out of the floor, its orbit in the whirl, and where it is thrown

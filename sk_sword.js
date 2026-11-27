@@ -545,8 +545,7 @@ function ultRain(id){ ultStart(id);
   // axis and is drawn back up; sw_gs_fall: it drops and rights itself point-down; sw_gs_hit: it plunges, tears up the floor in slabs that heave and
   // fall back, shudders, cracks and bursts into hot steel, the hilt drops and topples) and the sixteen are baked plunges (sw_rain_v0..2, mirrored
   // and scaled per sword). The FX3 stand-ins below are then not drawn.
-  const BM=K.bakeMeta||{}, BKR=!!(F.on&&BM.sw_gs_hang&&BM.sw_gs_fall&&BM.sw_gs_hit), BKS=!!(F.on&&BM.sw_rain_v0&&BM.sw_rain_v1&&BM.sw_rain_v2), TF=T1-10/30;
-  if(BKR) K.bakePre(['sw_gs_hang','sw_gs_fall','sw_gs_hit']); if(BKS) K.bakePre(['sw_rain_v0','sw_rain_v1','sw_rain_v2']);
+  const BM=K.bakeMeta||{}, BKR=!!(F.on&&BM.sw_gs_hang&&BM.sw_gs_fall&&BM.sw_gs_hit)&&K.bakePre(['sw_gs_hang','sw_gs_fall','sw_gs_hit']), BKS=!!(F.on&&BM.sw_rain_v0&&BM.sw_rain_v1&&BM.sw_rain_v2)&&K.bakePre(['sw_rain_v0','sw_rain_v1','sw_rain_v2']), TF=T1-10/30;   // the baked pictures are used only if every page has arrived; if not (a slow phone, a first cast) the drawn version plays, and they keep loading for the next cast
   // [sequence, frame, height it is drawn at, point dx, point dy, point height] at ult time t (hang, 30 fps from t 1.3, is drawn about its centre
   // of mass, which the marks carry with the point)
   const gsAt=t=>{ if(t<TF){ const mk=BM.sw_gs_hang.marks, N=mk.length-1, f=Math.max(0,Math.min(N,(t-1.3)*30)), i=Math.floor(f), j=Math.min(N,i+1), w=f-i, a=mk[i], b=mk[j];

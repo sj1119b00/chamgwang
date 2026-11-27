@@ -98,7 +98,7 @@ function drawAxe(P,d,n,o){ if(!F.on||!(F.solids&&F.solids())) return null; const
   return add(C(0),scl(n,WB*.52)); }
 
 function cast(id){ X.ultStart(id); if(F&&F.prepDeep) F.prepDeep(); const Cn=X.cine, {hw,hh}=view(), Dm=65000*A.mul(id), x0=pl.x, y0=pl.gy, Y0=y0/FSY, TE=6.6;
-  const BM=K.bakeMeta||{}, BK=!!(F.on&&BM.ax1_axe&&BM.ax1_rock&&BM.ax1_axe.marks), AX1_T0=.05, AX1_R=33; if(BK) K.bakePre(['ax1_axe','ax1_rock']);
+  const BM=K.bakeMeta||{}, BK=!!(F.on&&BM.ax1_axe&&BM.ax1_rock&&BM.ax1_axe.marks)&&K.bakePre(['ax1_axe','ax1_rock']), AX1_T0=.05, AX1_R=33;   // the baked pictures are used only if every page has arrived; if not (a slow phone, a first cast) the drawn version plays, and they keep loading for the next cast
   const T_SW=BK?.92:.85, T_IMP=1.08, T_RUNE=1.25, T_WALL=2.5, T_DRA=3.2, T_DRE=4.25, T_PEAK=BK?2.2:4.5, TEB=BK?3.4:6.6;
   const st={dead:false,edge:null};
   // ---- the giant stands right behind him, a little to his right; the blade lands on his left

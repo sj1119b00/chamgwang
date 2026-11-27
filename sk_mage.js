@@ -982,7 +982,7 @@ function ultStar(id){ ultStart(id); if(F&&F.prepDeep) F.prepDeep(); const Cn=X.c
   // kit update 14: with the baked sequences loaded the star (its burning body: a tumbling crust with molten seams and a plasma face) and the crater (the floor blasted up in
   // slabs, the dust wall, the melt) are Blender renders (_gen/blend/mt_star.py); the fireball mesh, the ejecta cone, the rim slabs and the core pieces
   // are then not drawn (the fire/soot jets and the shed puffs stay)
-  const BKS=!!(F.on&&K.bakeMeta&&K.bakeMeta.mt_fall&&K.bakeMeta.mt_crater); if(BKS) K.bakePre(['mt_fall','mt_crater']);
+  const BKS=!!(F.on&&K.bakeMeta&&K.bakeMeta.mt_fall&&K.bakeMeta.mt_crater)&&K.bakePre(['mt_fall','mt_crater']);   // the baked pictures are used only if every page has arrived; if not (a slow phone, a first cast) the drawn version plays, and they keep loading for the next cast
   const dP=e=>Math.hypot(e.x-px,(e.y-py)/FSY), soft=(e,d,o)=>dmg(e,e.d.boss?d:Math.min(d,Math.max(1,(e.hp-1)/2.2)),o);
   // where the star is at flight fraction k: [x, height of its middle, radius]. It leaves the tear small and far, comes on steadily, and in the
   // last fifth of a second covers a third of the way and swells to its full size: a dive, not a drift
@@ -1272,9 +1272,9 @@ function ultIce(id){ ultStart(id); if(F&&F.prepDeep) F.prepDeep(); const Cn=X.ci
   const B=[{dx:0,dy:0,h:2400,ry:.04,t:1.12,d:.7,v:0},{dx:-400,dy:36,h:1250,ry:-.2,t:1.24,d:.62,v:1},{dx:380,dy:52,h:1020,ry:.25,t:1.36,d:.6,v:2},{dx:-760,dy:86,h:760,ry:-.38,t:1.5,d:.55,v:3},{dx:720,dy:98,h:640,ry:.44,t:1.62,d:.55,v:1}].map((c,i)=>({...c,x:bx+c.dx,y:by+c.dy,rz:rand(0,TAU),ck:crk(i?2:3),mem:mkMem(c.v,i?2:3)}));
   // kit update 14: with the baked sequences loaded the berg freezes out of the air (Blender: needles nucleating at three hearts, branching,
   // thickening) and its break is a rigid-body simulation; the pieces below (B, RBL and their blocks) are then not drawn
-  const BKI=!!(F.on&&K.bakeMeta&&K.bakeMeta.ice_form&&K.bakeMeta.ice_break); if(BKI) K.bakePre(['ice_form','ice_break']);
+  const BKI=!!(F.on&&K.bakeMeta&&K.bakeMeta.ice_form&&K.bakeMeta.ice_break)&&K.bakePre(['ice_form','ice_break']);   // the baked pictures are used only if every page has arrived; if not (a slow phone, a first cast) the drawn version plays, and they keep loading for the next cast
   // the field: small clusters (two baked variants, mirrored, scaled to each piece's height; the scene's cluster is about 585 tall)
-  const BKS=BKI&&!!(K.bakeMeta.ice_spire0_form&&K.bakeMeta.ice_spire1_break); if(BKS) K.bakePre('ice_spire*');
+  const BKS=!!(F.on&&K.bakeMeta&&K.bakeMeta.ice_spire0_form&&K.bakeMeta.ice_spire1_break)&&K.bakePre('ice_spire*')&&BKI;
   const spO=c=>({s:c.h/585,flip:c.v%4>1,amb:.45});
   // broken ice heaped against the foot of each piece (comes up with it): cleaved lumps, a splinter, a slab
   const RBL=[]; B.forEach((c,i)=>[i%2?-1:1].forEach(sd=>RBL.push({x:c.x+sd*c.h*rand(.16,.24),y:c.y+rand(34,70),h:c.h*rand(.13,.2),ry:sd*rand(.3,.6),rz:rand(0,TAU),v:i+(sd>0?1:0),t:c.t+rand(.1,.3),k:['stone','shard','flag'][i%3],w:rand(.7,1)})));

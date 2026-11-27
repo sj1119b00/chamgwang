@@ -618,7 +618,7 @@ function shatter(p,solid,left=0){ const ca=Math.cos(p.a), sa=Math.sin(p.a), g=30
 function ultMeteor(id){ ultStart(id); const Cn=X.cine, {hw,hh}=view(), Dm=70000*A.mul(id), b=V.boss&&!V.boss.dead?V.boss:null, tg=b||densest(1600), [cx,cy]=X.inView(tg?tg.x:pl.x,tg?tg.y:pl.gy,.3), x0=pl.x, y0=pl.gy, P=PG, m=K.mats(), q2=st2(), hz=BODY*.6;
   const tL=.55, tG=.72, tS=.96, tM=1.2, tI=2.2, tK=2.8, tA=3.35, tEnd=5.5, rot=rand(0,TAU), up=k=>1-(1-k)*(1-k), SPD=3600, solid=!!(F.on&&F.solids&&F.solids());
   // kit update 14: with the baked sequence loaded the ground blast is a Blender render (mt_gold); the crown of rocks, the stones and the cone are then not drawn
-  const BKG=!!(F.on&&K.bakeMeta&&K.bakeMeta.mt_gold); if(BKG) K.bakePre('mt_gold');
+  const BKG=!!(F.on&&K.bakeMeta&&K.bakeMeta.mt_gold)&&K.bakePre('mt_gold');   // the baked pictures are used only if every page has arrived; if not (a slow phone, a first cast) the drawn version plays, and they keep loading for the next cast
   // the meteor's road: a straight slant out of the sky from the side he left on; its tail has one length
   const sd=x0>cx+40?1:-1, xs=cx+sd*1500, zs=2250, ze=260, RS=380, pit=Math.atan2(zs-ze,Math.abs(xs-cx));
   S([['gy09',tL],['gy11',tG-tL,{air:[0,2400],ease:up}],['gy12',9,{air:[2400,2400]}]]);

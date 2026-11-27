@@ -291,7 +291,7 @@ const shaft=(x,y,w,dur,delay,o={})=>{ if(!F.on) return; const m=K.mats(), S=smt(
 // ================================================================ the ultimate
 function cast(id){ const ultStart=X.ultStart, ultStop=X.ultStop; ultStart(id); if(F&&F.prepDeep) F.prepDeep();
   const Cn=X.cine, {hw,hh}=view(), Dm=70000*A.mul(id), x0=pl.x, y0=pl.gy, Y0=y0/FSY, t0=RT, clk=()=>RT-t0;
-  const BM=K.bakeMeta||{}, BK=!!(F.on&&BM.ax3_a&&BM.ax3_b&&BM.ax3_a.marks); if(BK) K.bakePre(['ax3_a','ax3_b']);
+  const BM=K.bakeMeta||{}, BK=!!(F.on&&BM.ax3_a&&BM.ax3_b&&BM.ax3_a.marks)&&K.bakePre(['ax3_a','ax3_b']);   // the baked pictures are used only if every page has arrived; if not (a slow phone, a first cast) the drawn version plays, and they keep loading for the next cast
   const KIT=window.AxeKit, yawTo=KIT?KIT.yawTo:(a=>Math.atan2(Math.sin(a)/FSY,Math.cos(a))), MKon=()=>!!(window.MK&&MK.on()), mk=(n,o)=>{ if(MKon()) MK.play(n,o); };
   // beats: the gate opens (T0) and the axe is pushed out of it (to TOUT); he coils (to TW), a breath (to TS); one savage full turn (TS..TE1)
   // leaving a sheet of gold fire; the rune circle bursts out over the floor (TRUNE) while he lifts the axe to the sky; walls of fire and
