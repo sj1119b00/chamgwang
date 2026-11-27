@@ -4,10 +4,10 @@
 'use strict';
 window.PF=window.PF||{};
 // 붙일 파일과 차례(뒤 파일은 앞 파일이 만든 PF.*와 앞 파일이 감싼 전역 위에 다시 감싼다):
-// save → place → win → art → spots → room → data/town → town → field → data/kings → king → data/episodes → story → data/secrets → secret
-// → data/dps → data/classes → data/clscal → balance → ads → challenge → road → data/lore → data/quests → quest → data/world → map → minimap → admin.
+// save → ultimate → place → win → art → spots → room → data/town → town → field → data/kings → king → data/episodes → story → data/secrets → secret
+// → data/dps → data/classes → data/clscal → balance → ads → challenge → road → data/lore → data/quests → quest → data/world → map → minimap → combat-hud → admin.
 // 스타일은 save보다 먼저 넣고, heat.js는 index.html이 이 파일 다음 줄에서 붙인다.
-const FILES=['save','place','win','art','spots','room','data/town','town','field','data/kings','king','data/continent-7','data/continent-1','data/episodes','story','data/secrets','secret','data/dps','data/classes','data/clscal','balance','ads','challenge','village','continent','road','data/lore','data/quests','quest','side','data/world','map','minimap','admin'];
+const FILES=['save','ultimate','place','win','art','spots','room','data/town','town','field','data/kings','king','data/continent-7','data/continent-1','data/episodes','story','data/secrets','secret','data/dps','data/classes','data/clscal','balance','ads','challenge','village','continent','road','data/lore','data/quests','quest','side','data/world','map','minimap','combat-hud','admin'];
 // frame 파일들이 쓰는 게임 쪽 값: rpg.js(RPG.api)·surv.js(RPG.sv)·hub.js(RPG.hub)·dun.js(RPG.dun)의 내보내기 줄과 RPG의 갈고리.
 // 이 줄들은 다른 작업이 고치므로 하나라도 빠지면 frame을 켜지 않는다(켜 두면 사냥터를 떠날 때·파일을 붙일 때 오류가 난다).
 // dun.result는 frame이 직접 부르지 않지만 hub.js settle이 정산 몫을 따로 받지 않을 때 부른다.

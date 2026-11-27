@@ -1,11 +1,10 @@
 /* 게임 좌표를 그리는 면은 테두리·여백 없이 둔다. 지형과 표식의 원점이 같다. */
 #shud.dun .dmini{display:none!important}
 #pfminimap,#pfmap,#pf-subarea{font-family:"Malgun Gothic","Noto Sans KR",sans-serif}
-#pfminimap{--diameter:clamp(112px,36vh,150px);position:absolute;left:max(10px,env(safe-area-inset-left));top:117px;
+#pfminimap{--diameter:clamp(112px,36vh,150px);position:absolute;left:max(12px,env(safe-area-inset-left));top:calc(max(10px,env(safe-area-inset-top)) + 16px);
   width:max-content;max-width:min(235px,40vw);display:flex;flex-flow:column;align-items:flex-start;gap:3px;padding:0;border:0;border-radius:0;
   color:#ddf4f2;background:none;box-shadow:none;cursor:pointer;pointer-events:auto;line-height:1;touch-action:manipulation}
 #pfminimap[hidden],#pfminimap [hidden]{display:none}
-body:is(.pf-town,.pf-village,.pf-rest) #pfminimap{top:97px}
 #pfminimap [data-mini=title]{display:block;max-width:100%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;
   background:rgba(5,17,21,.92);border-left:2px solid var(--region);padding:4px 7px;font-weight:700;font-size:11px;letter-spacing:.015em}
 .pf-mini-disc{position:relative;display:block;width:var(--diameter);height:var(--diameter);overflow:hidden;border-radius:50%;
@@ -123,5 +122,4 @@ body:is(.pf-town,.pf-village,.pf-rest) #pfminimap{top:97px}
   #pf-subarea{display:block}
   #pf-subarea:empty{display:none}
   #pf-subarea:not(:empty)::before{content:none}
-  body.pf-field:not(.pf-rest) #pfminimap{top:140px}
 }

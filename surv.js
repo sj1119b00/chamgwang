@@ -46,7 +46,9 @@ const view=()=>G.frame?.worldView?G.frame.worldView(cam.z):{hw:W/(2*S*cam.z),hh:
 const ACT=()=>(A.ORDER[pl.cls]||[]).filter(id=>SK[id]&&SK[id].type==='skill'&&(V.practice||A.unlocked(id)));
 const ULTS=()=>(A.ORDER[pl.cls]||[]).filter(id=>SK[id]&&SK[id].type==='ult'&&(V.practice||A.unlocked(id))&&CLS[pl.cls]&&CLS[pl.cls].ults[id]);
 // the player picks: any unlocked ultimate, when the gauge is full
-function fireUlt(id){ if(G.mode!=='surv'||V.over||lock||G.paused) return false; if(V.ug<100&&!V.practice) return false; const C=CLS[pl.cls]; if(!C||!C.ults[id]||!ULTS().includes(id)) return false; SV().ult=id; C.ults[id](id); return true; }   // every unlocked skill fires by itself: there are no slots to equip
+function fireUlt(id){ if(G.mode!=='surv'||V.over||lock||G.paused) return false;
+  if(G.frame?.ultimate?!G.frame.ultimate.ready(id):V.ug<100&&!V.practice) return false;
+  const C=CLS[pl.cls]; if(!C||!C.ults[id]||!ULTS().includes(id)) return false; SV().ult=id; C.ults[id](id); return true; }
 let aimAt=null;   // the manual dash: a point its skill aims at instead of the nearest enemy
 // ============================================================ manual dash (2026-11-26): the player's own button (Space / Shift on PC), aimed by the stick.
 // A class with a dash skill fires that skill (it no longer fires by itself); mage and shaman blink in their own colour
@@ -115,7 +117,7 @@ function die(e){
   const n=e.d.boss?24:e.d.gem>=5?3:1;
   if(e.d.gem>1||Math.random()<.35) for(let i=0;i<n;i++) gem(e.x+rand(-30,30)*(n>1),e.y+rand(-30,30)*(n>1),Math.ceil(e.d.gem/n)*(e.d.gem>1?1:2));
   if(e.d.heavy&&!e.d.boss){ const r=Math.random(); if(r<.25) V.items.push({k:'heal',x:e.x,y:e.y,t:0}); else if(r<.5) V.items.push({k:'mag',x:e.x,y:e.y,t:0}); }
-  if(!lock) V.ug=Math.min(100,V.ug+(e.d.heavy?3:.3));   // what an ultimate kills does not pay for the next one
+  if(!lock){ const gain=e.d.heavy?3:.3; if(G.frame?.ultimate) G.frame.ultimate.kill(gain); else V.ug=Math.min(100,V.ug+gain); }
 }
 function gem(x,y,v){ if(V.gems.length>420){ V.gems[(Math.random()*V.gems.length)|0].v+=v; return; } V.gems.push({x,y,v,s:0,mag:false,ph:rand(0,TAU)}); }
 const fmtN=d=>d>=1e6?(d/1e6).toFixed(d>=1e7?0:1)+'M':d>=1e4?(d/1000).toFixed(d>=1e5?0:1)+'K':String(d);
@@ -135,7 +137,9 @@ function onScreen(m=0){ const {hw,hh}=view(); return V.en.filter(e=>!e.dead&&Mat
 // an ultimate is also the way out of a boss attack: the boss's floor markers, enemy shots and wound-up swings are wiped when it starts and
 // again when it ends (they used to wait, frozen, and land the moment it was over)
 function clearThreats(){ V.mk.length=0; V.pj=V.pj.filter(p=>!p.orb); for(const e of V.en){ e.swing=0; e.hitCd=Math.max(e.hitCd,.8); if(e.d.boss) e.atk=Math.max(e.atk,2); } }
-function ultStart(id){ if(window.K3&&K3.tune) K3.tune(); lock=true; V.ug=0; clearThreats(); anim.seq=null; V.dash=null; pl.air=pl.airT=0; for(const o of V.orbs.splice(0)) if(o.fx) o.fx.life=0; if(window.GFX){ /* the stage is cleared: what the last skills left burning would muddy the opening */ GFX.fx.length=0; GFX.pts.length=0; GFX.lights.length=0; }   /* the stick stays held through the ultimate: he moves again the moment it ends */ ov.lbT=0; V.ultId=id; V.nums.length=0; if(G.sv.cine) G.sv.cine.begin(); }
+function ultStart(id){ if(window.K3&&K3.tune) K3.tune(); lock=true;
+  if(G.frame?.ultimate) G.frame.ultimate.spend(id); else V.ug=0;
+  clearThreats(); anim.seq=null; V.dash=null; pl.air=pl.airT=0; for(const o of V.orbs.splice(0)) if(o.fx) o.fx.life=0; if(window.GFX){ /* the stage is cleared: what the last skills left burning would muddy the opening */ GFX.fx.length=0; GFX.pts.length=0; GFX.lights.length=0; }   /* the stick stays held through the ultimate: he moves again the moment it ends */ ov.lbT=0; V.ultId=id; V.nums.length=0; if(G.sv.cine) G.sv.cine.begin(); }
 const stamp1=stamp; stamp=function(t,o={}){ if(G.mode==='surv'&&lock&&!o.keep) return null; return stamp1(t,o); };
 function ultStop(){ if(G.sv.cine) G.sv.cine.end(); if(V.ultSum){ V.nums.push({x:pl.x,y:pl.gy-BODY*3.1,t:-.4,txt:fmtN(V.ultSum),big:true}); V.ultSum=0; } lock=false; ov.lbT=0; ov.dimT=0; post.grayT=0; if(!(G.sv.cine&&G.sv.cine.easeBack)) V.zk=1; V.ultTick=null; V.cuts=[]; V.shadow=null; V.ultDraw=null; clearThreats(); G.inv=1.2; pl.visible=true; pl.target=IDLE(); pl.ps=12; pl.air=pl.airT=0; anim.seq=null; }
 function ultHit(e,D,sx,sy){ dmg(e,e.d.boss?D*2:Math.max(D,e.hp*1.05),{crit:true,kb:1.8,big:true,launch:700,sx,sy}); }
@@ -176,6 +180,7 @@ function input(){ let x=(V.keys.r?1:0)-(V.keys.l?1:0), y=(V.keys.d?1:0)-(V.keys.
   if(V.joy){ const l=Math.hypot(V.joy.dx,V.joy.dy); if(l>6){ const m=Math.min(1,(l-6)/28); x=V.joy.dx/l*m; y=V.joy.dy/l*m; } } /* full speed a third of the way out: no long throw */
   const l=Math.hypot(x,y); return l>1?[x/l,y/l]:[x,y]; }
 function pre(rdt){
+  if(G.frame?.ultimate&&!V.over) G.frame.ultimate.tick(rdt);
   const dt=hitstop>0?0:rdt*timeScale;
   if(lock||V.over){ if(lock&&V.ultTick) V.ultTick(rdt); G.pose=null; return; }
   GROUND=FAR;
@@ -203,7 +208,8 @@ function pre(rdt){
   E.dead=false; E.hp=E.max; E.respawn=1e9; E.x=pl.x+FAR;
   if(V.practice) V.ug=100;
   /* dev capture (headless, _gen/cap): the ultimate chosen in the save fires by itself when the gauge fills, as the capture helpers expect */
-  if(V.ug>=100&&!V.practice&&(V.autoUlt||navigator.webdriver)&&ULTS().includes(SV().ult)) fireUlt(SV().ult);
+  const autoUlt=V.autoUlt||(navigator.webdriver&&(!G.frame||V.autoUlt!==false));
+  if(V.ug>=100&&!V.practice&&autoUlt&&ULTS().includes(SV().ult)) fireUlt(SV().ult);
 }
 function post(rdt){
   const dt=hitstop>0?0:rdt*timeScale;
@@ -596,7 +602,8 @@ function buildBar(){ const L=[[A.ORDER[pl.cls][0],'basic'],...ACT().filter(id=>i
   $('.sk').style.zoom=Math.min(1,(Math.min(innerWidth-200,560)-16)/(L.length*61));   /* left of the dash and ultimate buttons */ cells=[...$('.sk').children].map((el,i)=>({el,cd:el.querySelector('.cd'),cs:el.querySelector('.cs'),id:L[i][0],k:L[i][1]})); V.lv=SV().lv; }
 function stopEv(e){ e.preventDefault(); e.stopPropagation(); }
 function buildUlts(){ const el=$('.ul'); el.style.setProperty('--cc',CCOL[pl.cls]); el.innerHTML=ULTS().map(id=>`<button data-u="${id}">${icon(id)}<span>${short(SK[id].name)}</span></button>`).join('');
-  el.querySelectorAll('button').forEach(b=>b.addEventListener('pointerdown',e=>{ stopEv(e); fireUlt(b.dataset.u); })); }
+  el.querySelectorAll('button').forEach(b=>{ b.addEventListener('pointerdown',e=>{ stopEv(e); fireUlt(b.dataset.u); });
+    if(G.frame?.ultimate) b.addEventListener('click',e=>{ if(!e.detail){stopEv(e);fireUlt(b.dataset.u);} }); }); }
 // the practice room's own panel: who, which skill, and how the room behaves
 function buildPractice(){ const el=$('.pp'); hudEl.classList.toggle('prac',!!V.practice); if(!V.practice){ el.innerHTML=''; return; } el.style.setProperty('--cc',CCOL[pl.cls]);
   const ids=A.ORDER[pl.cls]||[], sk=ids.filter(id=>SK[id]&&SK[id].type==='skill'&&CLS[pl.cls]&&CLS[pl.cls].skills[id]&&CLS[pl.cls].skills[id].fn), ul=ULTS(), lv5=V.plv===5;
@@ -650,7 +657,8 @@ addEventListener('blur',()=>{ V.keys={}; joyHide(); });
 function start(ch,o={}){ if(window.K3&&K3.tune) K3.tune(); const prac=!!o.practice, keep=prac&&o.keep?{pauto:V.pauto,pmany:V.pmany,plv:V.plv}:{pauto:false,pmany:false,plv:5};
   if(!AC) initAudio(); if(AC&&AC.state!=='running') AC.resume();
   RangedHero.prepare(pl.cls);
-  Object.assign(V,{t:0,ch:ch??V.ch,en:[],pj:[],gems:[],items:[],nums:[],shards:[],mk:[],orbs:[],zones:[],kills:0,run:0,acc:0,accT:0,ug:0,cd:{},gcd:0,bcd:.5,chain:0,dash:null,boss:null,bossDone:false,cuts:[],shadow:null,shads:[],ultDraw:null,dying:[],draws:[],zk:1,ultTick:null,spawn:0,horde:0,over:false,keys:{},mag:0,armor:0,id:0,dcd:0,hurtT:-9,practice:prac,god:prac,...keep,lv:-1});
+  if(!G.frame?.ultimate) V.ug=0;
+  Object.assign(V,{t:0,ch:ch??V.ch,en:[],pj:[],gems:[],items:[],nums:[],shards:[],mk:[],orbs:[],zones:[],kills:0,run:0,acc:0,accT:0,cd:{},gcd:0,bcd:.5,chain:0,dash:null,boss:null,bossDone:false,cuts:[],shadow:null,shads:[],ultDraw:null,dying:[],draws:[],zk:1,ultTick:null,spawn:0,horde:0,over:false,keys:{},mag:0,armor:0,id:0,dcd:0,hurtT:-9,practice:prac,god:prac,...keep,lv:-1});
   if(prac) practiceEnter();
   joyHide(); G.mode='surv'; G.paused=false; G.hp=A.maxHp(); G.inv=0; G.jz=G.jv=0; G.runT=0; G.landT=0; G.stats={kills:0,dmg:0,exp:0,t:RT}; combo=0;
   lock=false; anim.seq=null; parts.length=0; timers.length=0; fires.length=0; cutin=null; warn=null; timeScale=1; slowHold=0; hitstop=0; trauma=0; if(G.sv.cine){ G.sv.cine.reset(); G.sv.cine.preload(pl.cls); } window.LBK=.05;

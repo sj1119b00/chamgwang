@@ -47,8 +47,8 @@ body:not(.surv) #pfui,#rmenu.on~#pfui{display:none}
   document.head.appendChild(css);
   const ui=document.createElement('div'); ui.id='pfui'; ui.className='hub'; document.body.appendChild(ui);
   const tip=document.createElement('button'); tip.className='btn pri pf-tip'; ui.appendChild(tip);
-  // 표시가 지금 담고 있는 지점(id와 이름. 같은 id로 이름만 바꿔 다시 꽂아도 새로 쓴다)과 너비
-  let tipKey='', tipW=0;
+  // 같은 지점의 이름이 바뀌어도 새 상호작용 문구와 너비를 반영한다.
+  let tipKey='';
 
   const busy=()=>!!(PF.win&&PF.win.cur)||G.paused||(PF.story?PF.story.busy():lock);
   function use(s){ if(!s||busy()) return; act=null; tip.classList.remove('on'); if(onUse) onUse(s); }
@@ -59,10 +59,12 @@ body:not(.surv) #pfui,#rmenu.on~#pfui{display:none}
   function tick(){
     act=G.mode==='surv'&&list.length&&!busy()?near(list.filter(s=>s.label&&s.kind!=='road'),pl.x,pl.gy):null;
     if(!act){ tip.classList.remove('on'); return; }
+    const key=act.id+'\n'+act.label, moved=!tip.classList.contains('on')||key!==tipKey;
     tip.classList.add('on');
-    if(tipKey!==act.id+'\n'+act.label){ tipKey=act.id+'\n'+act.label; const k=document.createElement('kbd'); k.textContent='E'; tip.replaceChildren(k,act.label); tipW=tip.offsetWidth; }
-    const r=innerWidth/W, [sx,sy]=w2s(act.x,act.y-top(act)), m=tipW/2+8;
-    tip.style.left=Math.max(m,Math.min(innerWidth-m,sx*r))+'px'; tip.style.top=Math.max(52,sy*r)+'px'; }
+    if(key!==tipKey){ tipKey=key; const k=document.createElement('kbd'); k.textContent='E'; tip.replaceChildren(k,act.label); }
+    // 갱신 직후에도 새 버튼을 누를 수 있어야 한다. 같은 버튼은 다음에 실제로 그릴 때까지 안전한 자리에 둔다.
+    if(moved){ occupied=null; uiBoxes(); }
+  }
   const u0=update; update=function(rdt){ u0(rdt); tick(); };
   // 이름표는 실제 그리는 프레임에만 배치한다. 먼저 화면 UI와 누를 수 있는 표시의 자리를 확보한다.
   let occupied=null;
@@ -94,7 +96,9 @@ body:not(.surv) #pfui,#rmenu.on~#pfui{display:none}
     if(act&&tip.classList.contains('on')){
       const box=tip.getBoundingClientRect();
       if(box.width&&box.height){
-        const b=labelBox(box.left,box.top,box.width,box.height);
+        const [sx,sy]=w2s(act.x,act.y-top(act));
+        const left=Math.max(8,Math.min(innerWidth-box.width-8,sx*innerWidth/W-box.width/2));
+        const b=labelBox(left,Math.max(52,sy*innerHeight/H)-box.height,box.width,box.height);
         if(b){ tip.style.left=(b[0]+b[2])/2+'px'; tip.style.top=b[3]+'px'; }
       }
     }
