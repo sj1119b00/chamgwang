@@ -85,7 +85,7 @@ function notice(){ const n=document.createElement('div'); n.id='pfnotice'; n.set
   for(const sheet of ['frame','map']){
     const css=document.createElement('link'); css.rel='stylesheet'; css.href='frame/'+sheet+'.css'; document.head.appendChild(css);
   }
-  const add=(f,done)=>{ const s=document.createElement('script'); s.src='frame/'+f+'.js'; s.async=false;
+  const add=(f,done)=>{ const s=document.createElement('script'); s.src='frame/'+f+'.js'+(f==='phoenix'?'?v=2':''); s.async=false;
     if(done) s.onload=s.onerror=done;
     document.head.appendChild(s); };
   // FILES[0]은 save. 나머지는 PF.save.data(story 등)를 쓰므로 저장을 불러오지 못했으면 붙이지 않는다

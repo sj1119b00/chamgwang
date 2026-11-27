@@ -77,6 +77,18 @@ function makeMesh(image){
   }
   return {vertex,faces};
 }
+let portraitHUD=null;
+function hudBottom(){
+  if(portraitHUD&&portraitHUD.width===innerWidth&&portraitHUD.height===innerHeight)return portraitHUD.bottom*H;
+  const screen=out.getBoundingClientRect();
+  let bottom=screen.top;
+  for(const e of document.querySelectorAll('#pfminimap:not([hidden]),#pfquest.on,#shud .kc,#shud .bb.on,#shud .pz')){
+    const r=e.getBoundingClientRect();
+    if(r.width&&r.height)bottom=Math.max(bottom,r.bottom);
+  }
+  portraitHUD={width:innerWidth,height:innerHeight,bottom:(bottom-screen.top+8)/(screen.height||innerHeight)};
+  return portraitHUD.bottom*H;
+}
 function projection(x,y,t){
   const s=pose(t),zoom=S*cam.z,cr=Math.cos(cam.rot),sr=Math.sin(cam.rot);
   const dx=(x-cam.x+cam.sx)*zoom,dy=(y-cam.y+cam.sy)*zoom;
@@ -88,7 +100,13 @@ function projection(x,y,t){
   const floor=H*.5+dx*sr+dy*cr;
   const beak=skin(.545,.13,s),beakY=radius*(-beak.z+beak.y*.24)/(1-beak.y*.28);
   const approach=mix(H*.09,beakY,smooth(2.21,impact,t));
-  const cy=clamp(floor-H*s.lift-approach,H*.115+radius*.37,H*.88-radius*.58);
+  let cy=clamp(floor-H*s.lift-approach,H*.115+radius*.37,H*.88-radius*.58);
+  if(H>W){
+    // 세로에서는 양쪽 위 HUD가 낮게 내려온다. 그 아래에 활강 날개가 들어갈 만큼 남기고, 이륙점부터 높이차를 확보한다.
+    const top=hudBottom(),apex=top+Math.min(W*.285,H*.42)*.73*.73;
+    const launch=Math.max(floor-H*.025,apex+H*.22);
+    cy=mix(mix(launch,apex,smooth(1.34,1.95,t)),floor-beakY,smooth(2.09,impact,t));
+  }
   const projected=(u,v)=>{
     const p=skin(u,v,s),perspective=1/(1-p.y*.28);
     return {x:cx+radius*p.x*perspective,y:cy+radius*(-p.z+p.y*.24)*perspective,depth:p.y};
@@ -165,6 +183,7 @@ function attach(){
   const source=window.FX3?.img('v3_phoenix_rise');
   ults.py_ult2=function(){
     const start=RT,x0=pl.x,y0=pl.gy,dir=pl.f,result=original.apply(this,arguments);
+    portraitHUD=null;
     const timed=window.GFX?.fx.find(q=>Math.abs(q.t0-start-birth)<.00001&&Math.abs(q.life-(impact-birth+.02))<.00001);
     if(timed&&GFX.on&&FX3.on){
       const flight=timed.fn;
