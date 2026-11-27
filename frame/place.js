@@ -6,8 +6,8 @@
 // 전투가 있는 장소. 여기서 연 창은 안전지대 밖이면 보기 전용이다(win.js)
 const FIGHT=['field','secret','hard','rematch','endless'];
 // 갈 수 있는 곳. 여기 없는 이동은 전부 막는다
-const MOVES={title:['hero','town'],hero:['town'],town:['field','hard','rematch','endless','title','hero'],
-  field:['town','field','secret'],secret:['field','town'],hard:['town'],rematch:['town'],endless:['town']};
+const MOVES={title:['hero','town'],hero:['town'],town:['village','field','hard','rematch','endless','title','hero'],
+  village:['town','village','field','hero','title'],field:['town','village','field','secret'],secret:['field','town'],hard:['town'],rematch:['town'],endless:['town']};
 const can=(from,to)=>!!MOVES[from]&&MOVES[from].includes(to);
 const P={FIGHT,can,cur:'title',safe:false};
 
@@ -17,7 +17,7 @@ if(typeof window!=='undefined'&&window.RPG){
   P.go=function(to,params){
     const from=P.cur;
     if(!can(from,to)){ console.warn('PF.place: 갈 수 없는 이동 '+from+' → '+to); return false; }
-    P.cur=to; P.safe=to==='town';
+    P.cur=to; P.safe=to==='town'||to==='village';
     for(const f of subs) f(to,from,params);
     if(to==='title'||to==='hero') RPG.hub.go(to);
     return true;

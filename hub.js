@@ -508,7 +508,7 @@ function topBar(back,title,en){ const sv=SV(), need=A.needExp(sv.lv);
     ${title?`<div style="display:flex;flex-direction:column;margin-right:4px"><b style="font:700 17px ${KR}">${title}</b><span class="hk">${en}</span></div>`:''}
     <div class="crest panel"><canvas data-hero="${pl.cls}"></canvas><div><b>${NAMES[pl.cls]} <span class="mut" style="font:600 11px ${MONO}">LV ${sv.lv}</span></b><small>${EN_N[pl.cls]}</small><div class="xp"><i style="width:${Math.min(100,sv.exp/need*100)}%"></i></div></div></div>
     <div class="purse"><span class="panel">크레딧<b class="cr">${H.gold.toLocaleString()}</b></span><span class="panel">SP<b style="color:${TL}">${sv.sp}</b></span></div></div>`; }
-function viewTitle(){ const sv=SV(), has=sv.lv>1||sv.exp>0||(sv.chClear||0)>0||H.gold>0||!!sv.chars;
+function viewTitle(){ const sv=SV(), has=sv.lv>1||sv.exp>0||(sv.chClear||0)>0||H.gold>0||!!sv.chars||(G.frame&&window.PF?.save?.data?.story?.visited?.town);
   return `<div class="title"><div class="pre">2248 · AUSTRALIA CONTROL ZONE</div><h1>프로메테우스</h1><div class="en">PROMETHEUS</div>
     <div class="tag">프로젝트로부터 200년. 봉인된 일곱 구역의 왕을 제압하고, 레온이 남긴 기록을 모아라.</div><div class="menu">
     ${has?`<button class="btn pri" data-act="cont">작전 재개<small>RESUME · ${NAMES[pl.cls]} LV ${sv.lv}</small></button>`:`<button class="btn pri" data-act="new">새 작전 시작<small>BEGIN</small></button>`}
@@ -660,9 +660,12 @@ function zmapPick(cv,e){ if(!ZM) return -1; const r=cv.getBoundingClientRect(), 
   const [sx,sy]=mpt(SEAL); if((x-sx)**2+(y-sy)**2<18*18) return 'seal'; return ZM.lab[y*MW+x]??-1; }
 
 let lastBg=0;
-(function loop(t){ requestAnimationFrame(loop); floorSwap(); if((G.mode!=='menu'&&!(window.PF&&PF.win&&PF.win.cur))||!A.menuEl.classList.contains('on')||!bgBox.isConnected) return; if(t-lastBg<33) return; lastBg=t; drawFx(t/1000,scr);
+function menuVisible(){ return (G.mode==='menu'||(window.PF&&PF.win&&PF.win.cur))&&A.menuEl.classList.contains('on')&&bgBox.isConnected; }
+function paintMenu(t){ drawFx(t/1000,scr);
   for(const c of A.menuEl.querySelectorAll('canvas[data-hero]')) drawPortrait(c,c.dataset.hero,t/1000);
-  for(const c of A.menuEl.querySelectorAll('canvas[data-zmap]')) drawZmap(c,t/1000); })(0);
+  for(const c of A.menuEl.querySelectorAll('canvas[data-zmap]')) drawZmap(c,t/1000); }
+(function loop(t){ if(G.frame&&G.frame.runMenuAnimation) return G.frame.runMenuAnimation(menuVisible,paintMenu,floorSwap);
+  requestAnimationFrame(loop); floorSwap(); if(!menuVisible()||t-lastBg<33) return; lastBg=t; paintMenu(t); })(0);
 
 // ============================================================ zone result: credits, gear, Leon's record (surv.js finish() hands over through G.hubResult)
 // the payment alone, no screen (frame/field.js settles a hunting field with it). D: what the zone map's caches hold, G.dun.result() unless given

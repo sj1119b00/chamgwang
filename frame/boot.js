@@ -5,8 +5,9 @@
 window.PF=window.PF||{};
 // 붙일 파일과 차례(뒤 파일은 앞 파일이 만든 PF.*와 앞 파일이 감싼 전역 위에 다시 감싼다):
 // save → place → win → art → spots → room → data/town → town → field → data/kings → king → data/episodes → story → data/secrets → secret
-// → data/dps → data/classes → data/clscal → balance → ads → challenge → admin. frame.css는 아래에서 save보다 먼저 넣고, heat.js는 index.html이 이 파일 다음 줄에서 따로 붙인다
-const FILES=['save','place','win','art','spots','room','data/town','town','field','data/kings','king','data/episodes','story','data/secrets','secret','data/dps','data/classes','data/clscal','balance','ads','challenge','admin'];
+// → data/dps → data/classes → data/clscal → balance → ads → challenge → road → data/lore → data/quests → quest → data/world → map → minimap → admin.
+// 스타일은 save보다 먼저 넣고, heat.js는 index.html이 이 파일 다음 줄에서 붙인다.
+const FILES=['save','place','win','art','spots','room','data/town','town','field','data/kings','king','data/continent-7','data/continent-1','data/episodes','story','data/secrets','secret','data/dps','data/classes','data/clscal','balance','ads','challenge','village','continent','road','data/lore','data/quests','quest','side','data/world','map','minimap','admin'];
 // frame 파일들이 쓰는 게임 쪽 값: rpg.js(RPG.api)·surv.js(RPG.sv)·hub.js(RPG.hub)·dun.js(RPG.dun)의 내보내기 줄과 RPG의 갈고리.
 // 이 줄들은 다른 작업이 고치므로 하나라도 빠지면 frame을 켜지 않는다(켜 두면 사냥터를 떠날 때·파일을 붙일 때 오류가 난다).
 // dun.result는 frame이 직접 부르지 않지만 hub.js settle이 정산 몫을 따로 받지 않을 때 부른다.
@@ -55,8 +56,35 @@ function notice(){ const n=document.createElement('div'); n.id='pfnotice'; n.set
   const miss=missing();
   if(miss.length) return ready('게임 쪽 값이 없다('+miss.join(', ')+')');
   RPG.noSave=true;
-  RPG.frame={run:null};
-  { const css=document.createElement('link'); css.rel='stylesheet'; css.href='frame/frame.css'; document.head.appendChild(css); }
+  // 월드 시작점과 전투 시야는 화면의 논리 크기를 쓴다. 해상도 배율의 반 픽셀 반올림은 그림에만 적용한다.
+  let viewWidth=VW, viewHeight=VH, viewScale=1;
+  function measureView(){
+    if(!innerWidth||!innerHeight) return;
+    viewWidth=innerWidth; viewHeight=innerHeight;
+    viewScale=Math.min(viewHeight/VH,viewWidth/950);
+  }
+  measureView(); addEventListener('resize',measureView);
+  RPG.frame={run:null,worldView(zoom){return {hw:viewWidth/(2*viewScale*zoom),hh:viewHeight/(2*viewScale*zoom)};}};
+  // 크기가 바뀌어 새로 할당한 굴절 버퍼는 검은색이다. 다음 합성 전에 GFX의 기존 중성색 초기화를 한 번 수행한다.
+  if(gl){
+    function attachEffects(){
+      const effects=window.GFX;
+      if(typeof effects?.resize!=='function') return;
+      const resizeEffects=effects.resize;
+      effects.resize=function(){
+        const result=resizeEffects.apply(this,arguments);
+        effects.wasClear=false;
+        return result;
+      };
+      effects.wasClear=false;
+      document.removeEventListener('load',attachEffects,true);
+    }
+    document.addEventListener('load',attachEffects,true);
+    attachEffects();
+  }
+  for(const sheet of ['frame','map']){
+    const css=document.createElement('link'); css.rel='stylesheet'; css.href='frame/'+sheet+'.css'; document.head.appendChild(css);
+  }
   const add=(f,done)=>{ const s=document.createElement('script'); s.src='frame/'+f+'.js'; s.async=false;
     if(done) s.onload=s.onerror=done;
     document.head.appendChild(s); };

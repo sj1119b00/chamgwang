@@ -61,11 +61,98 @@ body:not(.surv) #pfbark,#rmenu.on~#pfbark{visibility:hidden}
 #pfbark i.none{background:#0a1416 center/26px no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 26 26'%3E%3Ccircle cx='13' cy='9' r='5' fill='%237FF3FF' fill-opacity='.35'/%3E%3Cpath d='M3 26c0-6 4.5-9.5 10-9.5S23 20 23 26z' fill='%237FF3FF' fill-opacity='.35'/%3E%3C/svg%3E")}
 #pfbark p{margin:0;min-width:0;font-size:13px;line-height:17px;color:#F2F6F5;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;word-break:keep-all;text-shadow:0 1px 2px #000}
 #pfbark b{margin-right:8px;font-size:11px;font-weight:700;letter-spacing:.06em;color:#EBA74E}
+/* NPC와 나누는 말·세계관 배경 문구(story.js .talk): 더 넓게(story.js가 최대 600px까지), 높이는 글만큼, 이름은 위 줄에 따로 두고 글은 네 줄까지 */
+#pfbark.talk{height:auto;min-height:44px;align-items:flex-start;padding:6px 16px 7px 5px}
+#pfbark.talk i{width:38px;height:38px}
+#pfbark.talk p{font-size:13.5px;line-height:19px;-webkit-line-clamp:5}
+#pfbark.talk b{display:block;margin:0 0 1px;line-height:15px}
+#pfbark.talk b:empty{display:none}
+/* 넓은 판이 떠 있는 동안은 화면 가운데의 조이스틱 안내 고리(surv.js #sjoy::after)를 숨긴다: 좁은 화면에서 판 위쪽이 그 고리에 걸친다. 조이스틱은 그대로 쓴다 */
+body.pf-talk #sjoy::after{display:none}
+body:is(.pf-conversation,.pf-talk,.pf-scene) :is(#pfplace,#rtoast){visibility:hidden}
 
-/* 도전(challenge.js): 지도 창의 구역 정보 아래 세 도전 버튼(이름 + 기록). 출발 버튼 아래 한 줄 */
-#rmenu .zinfo .pf-chal{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-top:6px}
-#rmenu .zinfo .pf-chal .btn{min-height:38px;padding:4px 6px;text-align:center;font:600 12.5px "Noto Sans KR","Malgun Gothic",sans-serif;white-space:nowrap}
-#rmenu .zinfo .pf-chal .btn small{margin-top:1px;font:600 9.5px "Noto Sans KR","Malgun Gothic",sans-serif;letter-spacing:.04em;text-transform:none}
+/* 메인 퀘스트 판(quest.js): 오른쪽 위 구석 아이콘 줄 바로 아래. 호박색 "메인" 꼬리표와 장소 이름, 오른쪽에 몇 번째·거리(청록), 그 아래 목표 문구(흰색),
+   덧줄(배경 문구·안내, 흐린 색). 누르기를 막지 않는다. 체력판(왼쪽 위)·구역 목표 글(가운데 위)·미니맵 자리(체력판 아래)·궁극기 버튼(오른쪽 아래)을 비킨다.
+   단계가 넘어가면 머리말이 잠깐 알림으로 바뀌고 판이 호박색으로 빛난다(.up) */
+#pfquest{position:absolute;top:calc(max(8px,env(safe-area-inset-top)) + 54px);right:max(12px,env(safe-area-inset-right));display:none;box-sizing:border-box;width:206px;
+  padding:5px 10px 6px;pointer-events:none;border:1px solid rgba(127,243,255,.3);border-left:2px solid #EBA74E;border-radius:2px;
+  background:linear-gradient(90deg,rgba(4,12,14,.88),rgba(4,12,14,.72));font-family:"Noto Sans KR","Malgun Gothic",sans-serif}
+#pfquest.on{display:block}
+#pfquest .pf-q-hd{display:flex;align-items:baseline;gap:6px;white-space:nowrap;font-size:11px;line-height:15px}
+#pfquest .pf-q-hd b{flex:none;font-weight:800;letter-spacing:.08em;color:#EBA74E}
+#pfquest .pf-q-hd span{min-width:0;overflow:hidden;text-overflow:ellipsis;font-weight:700;color:#DDFBFF}
+#pfquest .pf-q-hd em{margin-left:auto;flex:none;font-style:normal;font-weight:700;color:#7FF3FF}
+#pfquest p{margin:2px 0 0;font-size:12.5px;font-weight:600;line-height:17px;color:#F4F7F6;word-break:keep-all;text-shadow:0 1px 2px #000}
+#pfquest small{display:block;margin-top:3px;padding-top:3px;border-top:1px solid rgba(127,243,255,.16);font-size:11px;line-height:15px;color:#B5BEBA;word-break:keep-all}
+#pfquest small[hidden]{display:none}
+#pfquest.up{animation:pfqup 2.2s ease-out}
+#pfquest.up .pf-q-hd span{color:#EBA74E}
+@keyframes pfqup{0%,35%{border-color:rgba(235,167,78,.8);box-shadow:0 0 14px rgba(235,167,78,.5),inset 0 0 10px rgba(235,167,78,.18)}100%{box-shadow:none}}
+/* 기록 창의 기록 조각(quest.js): 제목을 누르면 펼쳐지는 배경 문구 */
+#rmenu .pf-lore{display:flex;flex-direction:column;gap:4px}
+#rmenu .pf-lore details{border:1px solid rgba(127,243,255,.2);border-radius:2px;background:rgba(4,16,20,.4)}
+#rmenu .pf-lore summary{padding:6px 10px;cursor:pointer;font:600 12.5px "Noto Sans KR","Malgun Gothic",sans-serif;color:#DDFBFF}
+#rmenu .pf-lore details p{margin:0;padding:0 10px 8px;font:400 12.5px/1.6 "Noto Sans KR","Malgun Gothic",sans-serif;color:#E8EDEC;word-break:keep-all}
+
+/* 길로 넘어갈 때(road.js): 화면 전체가 어두웠다가 0.4초에 걸쳐 밝아지고, 도착한 곳의 이름이 1.5초 떠 있다. 게임 HUD 위, 이야기 장면 아래. 누르기를 막지 않는다 */
+#pfroad{position:fixed;inset:0;z-index:26;pointer-events:none;background:#020405;opacity:0}
+#pfroad.on{animation:pfroad .4s ease-in forwards}
+@keyframes pfroad{from{opacity:1}to{opacity:0}}
+#pfplace{position:fixed;left:50%;top:38%;z-index:26;pointer-events:none;opacity:0;transform:translateX(-50%);text-align:center;white-space:nowrap;font-family:"Noto Sans KR","Malgun Gothic",sans-serif}
+#pfplace.on{animation:pfplace 1.5s ease-out forwards}
+#pfplace b{display:block;font-size:24px;font-weight:800;letter-spacing:.06em;color:#F4F7F6;text-shadow:0 0 14px rgba(127,243,255,.45),0 2px 4px rgba(0,0,0,.95)}
+#pfplace i{display:block;width:140px;height:1px;margin:7px auto 0;background:linear-gradient(90deg,transparent,#7FF3FF,transparent)}
+@keyframes pfplace{0%{opacity:0}12%{opacity:1}75%{opacity:1}100%{opacity:0}}
+body:not(.surv) #pfroad,body:not(.surv) #pfplace{display:none}
+body.pf-field #shud .tm,body.pf-field #shud .kc>span,body.pf-field.pf-entry-msg #shud .dmsg{display:none!important}
+body.pf-field #shud .kc>b{color:#d8e6e3;font-size:12px;font-weight:600}
+body:is(.pf-village,.pf-rest) #shud :is(.sk,.ul,.mid,.bb,.me .rw:nth-child(4)){display:none!important}
+body:is(.pf-town,.pf-village) #shud .dsh{right:max(14px,env(safe-area-inset-right))}
+body.pf-field.pf-rest #shud .dsh{display:none!important}
+body.pf-village #shud :is(.pz,.dmini,.dmsg){display:none!important}
+body.pf-field.pf-rest #shud .pz{margin-left:auto}
+body:has(#rmenu.on) #pfplace{visibility:hidden}
+@media(orientation:portrait) and (max-width:640px){
+  body.touch #rrot{display:none!important}
+  body:is(.pf-town,.pf-village,.pf-field) #shud .me{box-sizing:border-box;width:min(45vw,205px);flex:none}
+  body:is(.pf-town,.pf-village) #pfui .pf-ico{display:grid;grid-template-columns:repeat(3,44px);gap:4px}
+  body:is(.pf-town,.pf-village,.pf-field) #pfui .pf-ico .btn{width:44px;height:44px}
+  body:is(.pf-town,.pf-village) #pfquest{top:calc(max(8px,env(safe-area-inset-top)) + 98px)}
+  #pfquest{width:49vw;max-width:235px;right:max(8px,env(safe-area-inset-right))}
+  body.pf-field #pfui .pf-ico{right:58px;gap:4px}
+  body.surv.pf-field #shud .mid{flex:0;margin:0}
+  body.pf-field #shud .kc{position:absolute;top:115px;left:12px;width:calc(48vw - 16px);text-align:left;white-space:nowrap}
+  body.pf-field #shud .kc>b{font-size:11.5px}
+  body.pf-field #shud .pz{margin-left:auto}
+  body.pf-field #shud .dmsg{box-sizing:border-box;left:auto;right:max(8px,env(safe-area-inset-right));top:calc(max(8px,env(safe-area-inset-top)) + 202px);
+    width:49vw;max-width:235px;transform:none;text-align:left}
+}
+@media(orientation:portrait) and (max-width:380px){
+  body.pf-field #pfui .pf-ico{display:grid;grid-template-columns:repeat(2,44px)}
+  body.pf-field #pfquest{top:calc(max(8px,env(safe-area-inset-top)) + 98px)}
+}
+/* 빠른 이동 목록(road.js): 관문을 누르면 가운데에 작은 홀로그램 창(청록 테). 들른 곳은 호박색 버튼 두 줄, 지금 있는 곳은 점선 테의 표시만. 바깥을 누르거나 Esc로 닫는다.
+   열린 동안 전투 장소의 일시정지 화면은 숨긴다(창과 같다). 844×390에서 아홉 곳이 스크롤 없이 든다 */
+#pfwarp{position:fixed;inset:0;z-index:28;display:none;align-items:center;justify-content:center;background:rgba(2,6,8,.45);font-family:"Noto Sans KR","Malgun Gothic",sans-serif}
+#pfwarp.on{display:flex}
+body.pf-warp #rpause{display:none!important}
+#pfwarp .pf-wp{box-sizing:border-box;width:min(540px,calc(100vw - 32px));max-height:calc(100vh - 24px);overflow-y:auto;padding:10px 14px 14px;border:1px solid rgba(127,243,255,.55);border-radius:2px;
+  background:linear-gradient(170deg,rgba(10,30,36,.9),rgba(4,12,16,.94)),repeating-linear-gradient(0deg,rgba(127,243,255,.04) 0 1px,transparent 1px 4px);
+  box-shadow:0 0 18px rgba(127,243,255,.25),inset 0 0 24px rgba(127,243,255,.08);scrollbar-width:thin;scrollbar-color:rgba(127,243,255,.45) transparent}
+#pfwarp .pf-wp-hd{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+#pfwarp .pf-wp-hd span{font-size:14px;font-weight:700;letter-spacing:.08em;color:#DDFBFF;text-shadow:0 0 8px rgba(127,243,255,.55)}
+#pfwarp .pf-wp-hd small{font-size:11px;font-weight:600;color:#9AA6A2}
+#pfwarp .pf-wp-x{margin-left:auto;min-width:64px;height:34px;padding:0 12px;border:1px solid rgba(127,243,255,.5);border-radius:2px;background:rgba(4,16,20,.6);color:#DDFBFF;
+  font:600 12px "Noto Sans KR","Malgun Gothic",sans-serif;letter-spacing:.06em;cursor:pointer}
+#pfwarp .pf-wp-l{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+#pfwarp .pf-wp-it{box-sizing:border-box;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:2px;min-width:0;min-height:46px;margin:0;padding:6px 12px;border-radius:2px;text-align:left;font-family:inherit}
+#pfwarp .pf-wp-it b{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;font-weight:700;letter-spacing:.02em}
+#pfwarp .pf-wp-it small{font-size:10.5px;font-weight:600;letter-spacing:.04em}
+#pfwarp button.pf-wp-it{border:1px solid #FFD99A;cursor:pointer;color:#1A1006;background:linear-gradient(180deg,#F4BA63,#EBA74E 45%,#B97528);box-shadow:0 0 14px rgba(235,167,78,.28),inset 0 1px 0 rgba(255,240,210,.6)}
+#pfwarp button.pf-wp-it small{color:#4A2C08}
+#pfwarp .pf-wp-it.here{border:1px dashed rgba(127,243,255,.55);background:rgba(127,243,255,.06);color:#DDFBFF}
+#pfwarp .pf-wp-it.here small{color:#7FF3FF}
+
 /* hub.js의 나타나는 애니메이션(.ui>*, 끝 opacity 1·transform none)이 빈 알림 판(.toast)을 화면 아래 가운데에 늘 보이게 해 도전 버튼의 기록 글을 가린다.
    창 안에서는 알림 판에 그 애니메이션을 쓰지 않는다(평소처럼 숨어 있다가 .on일 때만 보인다) */
 #rmenu.pf-win .ui>.toast{animation:none}

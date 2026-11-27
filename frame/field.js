@@ -1,4 +1,4 @@
-// 사냥터 (설계 6.1, 17.1): dun.js의 구역 지도를 끝나지 않는 사냥터로 쓴다. 입구에 안전지대와 마을 포탈, 왕을 쓰러뜨리면 왕의 방에 다음 구역 포탈.
+// 사냥터 (설계 6.1, 17.1, 17.9): dun.js의 구역 지도를 끝나지 않는 사냥터로 쓴다. 입구에 안전지대와 빠른 이동 관문. 앞 장소·다음 구역으로는 지도 가장자리의 길(road.js)로 넘어간다.
 // 결과 창 없이 이어 가고, 쓰러지면 가장 가까운 안전지대에서 일어난다. 깬 구역은 다시 들어가면 자유롭게 둘러보는 곳(dun.js M.free)이다.
 // 순수 부분(COUNT, chOf, state, inSafe, respawn)은 node 시험(frame/test/field.test.js)에서도 불러 쓴다. 브라우저에서는 boot.js가 town 다음에 붙인다
 (function(){
@@ -68,14 +68,13 @@ body.pf-field #shud .mid{margin-right:162px}`;
     if(!M.free){ for(const g of V.gems) V.acc+=g.v; V.gems.length=0; }
     if(c.first){ const s=story(); s.cleared=Math.max(s.cleared,c.zone+1); A.SV.chClear=Math.min(7,s.cleared); const b=150*(c.ch+1); A.gainExp(b); V.run+=b; }
     c.run.first=false;
+    if(c.first) emit('kingCleared',c);
     c.winPay=pay(c,'win'); }
 
-  // ---- 포탈과 구석 아이콘. 일시정지 창의 나가기는 사냥터에서 마을로 간다(보상을 정산하므로 글도 바꾼다)
-  function onSpot(s){ if(s.act==='portal:town') F.leave(); else if(s.act==='portal:next'&&cur) F.enter(cur.zone+1); }
-  function nextPortal(){ const c=cur, M=c.M, z=c.zone+1;
-    if(!M||z>=COUNT||state(story().cleared,z)==='locked') return;
-    PF.spots.add({id:'portal_next',kind:'portal',x:M.arena.x,y:M.arena.y,r:200,label:'다음 구역',act:'portal:next'}); }
+  // ---- 관문과 구석 아이콘. 관문은 들른 곳 목록(road.js). 일시정지 창의 나가기는 사냥터에서 마을로 간다(보상을 정산하므로 글도 바꾼다)
+  function onSpot(s){ if(s.act==='portal:warp') PF.road.list(); }
   const quit=document.querySelector('#rpause [data-p=quit]'), quit0=quit&&quit.onclick, quitH=quit&&quit.innerHTML;
+  const ultimate=()=>lock||!!V.ultTick;
   if(quit) quit.onclick=function(e){ if(cur){ A.setPause(false); F.leave(); return; } return quit0?quit0.call(this,e):undefined; };
 
   // 판을 닫는다(정산 뒤 포탈·아이콘·안전지대를 치운다). 왕이 쓰러졌는데 아직 win 처리 전이면(경험치 회수 2.4초 안, 궁극기로 미뤄짐) 그 기록부터.
@@ -94,27 +93,31 @@ body.pf-field #shud .mid{margin-right:162px}`;
 
   F.enter=function(zone,opts){ opts=opts||{};
     const st=Number.isInteger(zone)&&zone>=0&&zone<COUNT?state(story().cleared,zone):'locked';
-    if(st==='locked'||lock||!PF.place.can(PF.place.cur,'field')) return false;
+    if(st==='locked'||ultimate()||!PF.place.can(PF.place.cur,'field')) return false;
     if(cur) end(false);
     if(PF.place.FIGHT.includes(PF.place.cur)) G.survEnd();
     const ch=chOf(zone), run={kind:'field',zone,ch,first:st==='open'};
     G.frame.run=run; PF.place.go('field');
     entering=true; try{ G.survStart(ch); } finally{ entering=false; }
     cloth();
-    // 안전지대(와 마을 포탈)는 시작점: dun.js가 지도를 만드는 영웅 자리(구역 입구). opts.at은 영웅만, 그 지도가 생긴 뒤(첫 화면) 옮긴다
+    // 안전지대(와 관문)는 시작점: dun.js가 지도를 만드는 영웅 자리(구역 입구). opts.at·opts.arrive(in·out: 그 길 끝 바로 안쪽, road.js)는 영웅만,
+    // 그 지도가 생긴 뒤(첫 화면) 옮긴다. arrive가 camp거나 없으면 시작점 그대로
     const p={x:pl.x,y:pl.gy};
-    cur={zone,ch,first:run.first,run,stale:G.dun.M,M:null,at:opts.at?{x:opts.at.x,y:opts.at.y}:null,paid:{gold:0,loot:0,kills:0},done:0,kingSeen:false,half:false,won:false,shown:false,winPay:null,king:null};
+    cur={zone,ch,first:run.first,run,stale:G.dun.M,M:null,at:opts.at?{x:opts.at.x,y:opts.at.y}:null,arrive:opts.arrive,paid:{gold:0,loot:0,kills:0},done:0,kingSeen:false,half:false,won:false,shown:false,winPay:null,king:null};
     F.safeZones=[{x:p.x,y:p.y,r:SAFE_R}];
-    // 마을 포탈: 안전지대 안, 영웅의 오른쪽 아래(이름표가 화면 위쪽의 목표 글·안내 판에 가리지 않게). 고리까지 원 안에 든다.
+    // 빠른 이동 관문(id는 예전 마을 포탈 그대로): 안전지대 안, 영웅의 오른쪽 아래(이름표가 화면 위쪽의 목표 글·안내 판에 가리지 않게). 고리까지 원 안에 든다.
     // 그림이 있으면 마을의 고리 문(b_portal_base)을 작게(h) 그린다(spots.js). 없으면 예전 빛기둥
-    PF.spots.set([{id:'portal_town',kind:'portal',art:'b_portal_base',h:CAMP.gate,x:p.x+280,y:p.y+150,r:200,label:'마을로',act:'portal:town'}],onSpot);
+    PF.spots.set([{id:'portal_town',kind:'portal',art:'b_portal_base',h:CAMP.gate,x:p.x+280,y:p.y+150,r:200,label:'관문 · 빠른 이동',act:'portal:warp'}],onSpot);
     PF.town.icons(['skills','gear','settings']);
     document.body.classList.add('pf-field');
     if(quit) quit.innerHTML='마을로<small>RETURN · 보상 정산</small>';
     PF.place.safe=true;
     emit('enter',cur,opts.resume?{resume:true}:null);
     return true; };
-  F.leave=function(){ if(!cur) return false; end(true); G.survEnd(); PF.place.go('town'); return true; };
+  F.leave=function(){ if(!cur) return false;
+    if(ultimate()){ cur.leaveAfterUlt=true; return true; }
+    end(true); G.survEnd(); PF.place.go('town'); return true; };
+  F.closeForTravel=function(){ if(cur){ end(true); G.survEnd(); } };
   // 다른 곳이 전투를 끝내거나(toMenu) 새로 열면(창 안의 모의 전투) 그 전에 정산하고 판을 닫는다
   const se=G.survEnd; G.survEnd=function(){ if(cur) end(true); return se.apply(this,arguments); };
   const ss=G.survStart; G.survStart=function(){ if(cur&&!entering) end(true); return ss.apply(this,arguments); };
@@ -149,28 +152,41 @@ body.pf-field #shud .mid{margin-right:162px}`;
   addEventListener('resize',()=>{ if(keepX!=null&&fightNow()){ pl.x=pl.home=keepX; snap(); } });
   // 이 판의 지도가 처음 보인 화면
   function begin(M){ const c=cur; c.M=M; c.done=M.done;
-    if(c.at){ pl.x=pl.home=c.at.x; pl.gy=c.at.y; cloth(); snap(); c.at=null; }
-    if(c.zone===COUNT-1&&M.msg) M.msg={...M.msg,t:'마지막 화 — 자리만 있음 (임시)',sub:M.msg.sub||M.msg.t,t0:RT};
-    if(M.free) nextPortal(); }
+    if(PF.continent) F.safeZones.push(...PF.continent.shelters(M));
+    const q=c.at||(c.arrive==='in'||c.arrive==='out')&&PF.road.arrival(M,c.arrive);
+    if(q){
+      const dx=q.x-pl.x, dy=q.y-pl.gy;
+      pl.x=pl.home=q.x; pl.gy=q.y;
+      for(const part of [...pl.scarf,...pl.coat]){
+        part.x+=dx; part.px+=dx; part.y+=dy; part.py+=dy;
+        part.init=false;
+      }
+      snap(); c.at=null;
+    }
+    if(c.zone===COUNT-1&&M.msg) M.msg={...M.msg,t:'마지막 화 — 자리만 있음 (임시)',sub:M.msg.sub||M.msg.t,t0:RT}; }
   // 지도를 보고 사건을 낸다. 받는 쪽이 판을 옮기면(cur가 바뀜) 거기서 멈춘다
   function watch(M){ const c=cur;
     while(c.done<M.done){ c.done++; emit('node'+c.done,c); if(cur!==c) return; }
     if(M.king){ c.king=M.king; if(!c.kingSeen){ c.kingSeen=true; emit('king',c); if(cur!==c) return; } }
     const k=c.king; if(k&&!c.half&&!lock&&k.hp<k.max*.5){ c.half=true; emit('kingHp50',c); if(cur!==c) return; }
     if(M.won&&M.free&&!c.shown&&!lock) win(c,M); }
-  // 왕이 쓰러지고 경험치 회수가 끝남(dun.js가 M.free로 넘어감): 기록(앱을 숨길 때 이미 했으면 그대로), 다음 구역 포탈, 알림. 결과 창은 없다
+  // 왕이 쓰러지고 경험치 회수가 끝남(dun.js가 M.free로 넘어감): 기록(앱을 숨길 때 이미 했으면 그대로. 진행이 올라 나가는 길이 열린다), 알림. 결과 창은 없다
   function win(c,M){ c.shown=true; winBook(c);
     const r=c.winPay||{gold:0,gear:0};
-    nextPortal();
     M.msg={t:`구역 제압 · 크레딧 +${r.gold} · 장비 ${r.gear}`,sub:'',c:AM,t0:RT};
     emit('win',c); }
   function step(rdt){ const M=G.dun.M;
+    if(cur.leaveAfterUlt&&!ultimate()){ F.leave(); return; }
     if(M&&!cur.M&&M!==cur.stale) begin(M);
     if(cur.M&&cur.M===M){ watch(M); if(!live()) return; }
     const Z=F.safeZones;
+    const shelter=Z.find(z=>z.kind&&Math.hypot(pl.x-z.x,pl.gy-z.y)<z.r);
     // 안전지대 안의 적은 경계 밖으로, 적 탄은 경계에서 사라진다
     for(const e of V.en){ if(e.dead||e.d.node) continue;
-      for(const z of Z){ const dx=e.x-z.x, dy=e.y-z.y, d=Math.hypot(dx,dy); if(d<z.r){ const k=(z.r+1)/(d||1); e.x=z.x+(d?dx:1)*k; e.y=z.y+(d?dy:0)*k; } } }
+      for(const z of Z){ const dx=e.x-z.x, dy=e.y-z.y, d=Math.hypot(dx,dy);
+        const calm=shelter===z&&e!==M?.king?680:0;
+        if(d<z.r+calm){ const far=Math.max(z.r+1,Math.min(z.r+calm+1,d+rdt*1250)), k=far/(d||1);
+          e.x=z.x+(d?dx:1)*k; e.y=z.y+(d?dy:0)*k; } } }
     for(let i=V.pj.length-1;i>=0;i--){ const p=V.pj[i]; if(p.orb&&inSafe(Z,p.x,p.y)) V.pj.splice(i,1); }
     // 체력이 0이 된 길이 hurt가 아니어도(직접 넣은 값 등) 쓰러짐으로 받는다
     if(G.hp<=0&&!lock) down();
@@ -185,6 +201,7 @@ body.pf-field #shud .mid{margin-right:162px}`;
     ctx.save(); ctx.font=`700 ${fs}px ${KR}`; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.lineJoin='round';
     ctx.lineWidth=4*px; ctx.strokeStyle='rgba(2,10,12,.85)'; ctx.strokeText('안전지대',x,ty); ctx.fillStyle='#E4ECEC'; ctx.fillText('안전지대',x,ty); ctx.restore(); }
   function drawSafe(z){ const {x,y,r}=z, mk=PF.art.img('safe_mark');
+    if(z.kind) return;
     if(mk){ const k=S*cam.z*1.25, R=r/MARK_R, im=PF.art.fit('safe_mark',2*R*k,2*R*k)||mk;
       ctx.globalAlpha=.92; ctx.drawImage(im,x-R,y-R,2*R,2*R); ctx.globalAlpha=1;
       if(PF.art.img('camp_beacon')){ const b=CAMP.props.find(p=>p.art==='camp_beacon'), f=.94+.06*Math.sin(RT*.9);
@@ -198,7 +215,7 @@ body.pf-field #shud .mid{margin-right:162px}`;
   const prep0=drawBackground_prep; drawBackground_prep=function(){ prep0(); if(!live()) return; applyCam(ctx); applyCam(fx); for(const z of F.safeZones) drawSafe(z); ctx.setTransform(1,0,0,1,0,0); };
 
   // ---- 입구 야영지(그림만, 걸어서 지나갈 수 있다): 안전지대 중심에서 {dx,dy}(그림 바닥), 월드 높이 h. 천막은 왼쪽 뒤, 투광등 탑은 가운데 뒤(차가운 흰빛),
-  // 보급품은 왼쪽 앞. 오른쪽 아래의 마을 포탈(작은 고리 문, 높이 gate)과 시작점(중심)·포탈로 가는 길은 비워 둔다.
+  // 보급품은 왼쪽 앞. 오른쪽 아래의 관문(작은 고리 문, 높이 gate)과 시작점(중심)·관문으로 가는 길은 비워 둔다.
   // 영웅·적과 y 순서로 섞어 그리고, 영웅이 키 큰 그림 뒤에 가면 비쳐 보인다(room.js와 같다). 그림이 없으면 그리지 않는다
   const CAMP={gate:440,props:[{art:'camp_tent',dx:-270,dy:-110,h:380},{art:'camp_beacon',dx:40,dy:-240,h:470},{art:'camp_supplies',dx:-290,dy:250,h:260}]};
   let cold=null;
@@ -219,19 +236,8 @@ body.pf-field #shud .mid{margin-right:162px}`;
   const dp0=drawPlayer; drawPlayer=function(){ dp0(); if(live()) campUpTo(1e9); };
   const fd0=G.foeDraw; G.foeDraw=function(e){ if(live()) campUpTo(e.y); return fd0?fd0(e):false; };
 
-  // ---- 구역 고르기 창(map): hub.js의 출발 버튼을 사냥터 들어가기로 바꾼다. 봉인 줄은 구역 6을 깼으면 구역 7(임시)로 간다.
-  // 잠긴 구역과 보기 전용 창(사냥터 한가운데)에서는 눌리지 않는다
-  function goFull(){ if(!A.isTouch()) return; const d=document.documentElement; if(!document.fullscreenElement&&d.requestFullscreen) d.requestFullscreen().then(()=>screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(()=>{})).catch(()=>{}); }
-  function route(el){ const q=G.hub.qSel, zone=q==='seal'?COUNT-1:q, ok=Number.isInteger(zone)&&state(story().cleared,zone)!=='locked';
-    let b=el.querySelector('[data-act=embark]');
-    if(!b&&q==='seal'&&ok){ const box=el.querySelector('.zinfo'); if(box){ b=document.createElement('button'); b.className='btn pri'; b.dataset.act='embark';
-      b.style.cssText='margin-top:8px;display:flex;align-items:center;justify-content:space-between'; b.innerHTML='<span>구역 진입 · 마지막 화 (임시)</span>'; box.appendChild(b); } }
-    if(!b) return;
-    if(!ok||PF.win.readOnly) b.disabled=true;
-    b.onclick=e=>{ e.stopPropagation(); if(b.disabled||!X.CLS[pl.cls]) return; PF.win.close(); goFull(); F.enter(zone); }; }
-  const mo=G.menuOverride;
-  G.menuOverride=function(el){ const r=mo.apply(this,arguments); if(G.hub.scr==='quest') route(el); return r; };
-
+  // 이 판의 dun.js 지도(들어온 뒤 첫 화면부터. 그 전과 사냥터 밖에서는 null)
+  Object.defineProperty(F,'M',{get:()=>cur&&cur.M});
   PF.field=F;
 }
 

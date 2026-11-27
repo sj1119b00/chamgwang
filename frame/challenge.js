@@ -46,7 +46,7 @@ if(typeof window!=='undefined'&&window.RPG&&window.PF){
   // ---- 시작: 깬 구역만, 마을에서만. 표를 먼저 건다(전투가 처음 뿌리는 적도 표 값). 깬 구역이라 경험치 25%, 끝없이 버티기는 시간에 따른 증가를 켠 채로
   C.start=function(kind,zone){
     if(!KINDS.includes(kind)||!Number.isInteger(zone)||zone<0||zone>=F.COUNT||F.state(story().cleared,zone)!=='cleared') return false;
-    if(cur||lock||PF.place.cur!=='town'||!PF.place.can('town',kind)||PF.story.cur||!X.CLS[pl.cls]) return false;
+    if(cur||PF.story.busy()||PF.place.cur!=='town'||!PF.place.can('town',kind)||PF.story.cur||!X.CLS[pl.cls]) return false;
     const ch=F.chOf(zone), run={kind,zone,ch};
     PF.win.close();
     B.apply(zone,{repeat:true,flat:kind!=='endless'});
@@ -58,7 +58,11 @@ if(typeof window!=='undefined'&&window.RPG&&window.PF){
     if(quit) quit.innerHTML='마을로<small>RETURN · 보상 없음</small>';
     return true; };
   // 마을로(결과 창의 버튼, 일시정지 창의 나가기): 판을 닫고(아래 survEnd 감싸기가 정리한다) 마을
-  C.leave=function(){ if(!cur) return false; G.survEnd(); PF.place.go('town'); return true; };
+  C.leave=function(){
+    if(!cur) return false;
+    if(PF.story.busy()){ cur.leaveAfterUlt=true; return false; }
+    G.survEnd(); PF.place.go('town'); return true;
+  };
   // 정리: 표를 되돌리고(balance.js restore) 판을 지운다. 전투를 끝내거나 새로 여는 모든 길(마을로, toMenu, 창 안의 모의 전투)이 여기를 지난다
   function clean(){ const c=cur; if(!c) return; cur=null;
     B.restore(); V.endless=false; resEl.classList.remove('hubr');
@@ -143,20 +147,19 @@ if(typeof window!=='undefined'&&window.RPG&&window.PF){
     M.msg={t:NAME[c.kind]+' · '+M.Z.king,sub:c.kind==='rematch'?'왕의 방으로 들어가면 왕이 나온다':`몹 체력 ×${HARD.hp} · 공격력 ×${HARD.dmg} (임시값) · 신호 노드 3개를 파괴하고 왕을 쓰러뜨려라`,c:AM,t0:RT};
     banner('ZONE '+String(M.Z.no).padStart(2,'0')+' · '+NAME[c.kind]); }
   function tick(){ const c=cur;
+    if(c.leaveAfterUlt&&!PF.story.busy()){ C.leave(); return; }
     if(c.kind!=='endless'){ const M=G.dun.M; if(!c.M&&M&&M!==c.stale) begin(c,M); return; }
     if(c.state==='run'){ if(V.bossDone&&!V.boss&&c.bossT==null) c.bossT=V.t; if(c.bossT!=null&&V.t-c.bossT>=BOSS_GAP){ V.bossDone=false; c.bossT=null; } }
     if(tm) tm.textContent=mmss(V.t); }
   const u0=update; update=function(rdt){ u0(rdt); if(cur&&G.mode==='surv'&&!G.paused) tick(); };
 
   // ---- 지도 창(구역 고르기): 깬 구역이면 세 도전 버튼과 각 기록(지금 후손). 마을에서 연 창에서만 누를 수 있다
-  const mo=G.menuOverride;
-  G.menuOverride=function(el){ const r=mo.apply(this,arguments); if(G.hub.scr==='quest') mapRow(el); return r; };
-  function mapRow(el){ const q=G.hub.qSel, zone=q==='seal'?F.COUNT-1:q, box=el.querySelector('.zinfo');
+  C.mapRow=function(box,zone){
     if(!box||!Number.isInteger(zone)||F.state(story().cleared,zone)!=='cleared') return;
     const ok=PF.place.cur==='town'&&!PF.win.readOnly, d=document.createElement('div'); d.className='pf-chal';
     d.innerHTML=KINDS.map(k=>`<button class="btn" type="button" data-chal="${k}"${ok?'':' disabled'}>${NAME[k]}<small>${recText(k,best2()[key(k,zone)])}</small></button>`).join('');
     d.querySelectorAll('[data-chal]').forEach(b=>{ b.onclick=e=>{ e.stopPropagation(); if(b.disabled) return; if(C.start(b.dataset.chal,zone)) goFull(); else A.toast('지금은 도전을 시작할 수 없습니다'); }; });
-    box.appendChild(d); }
+    box.appendChild(d); };
 
   Object.defineProperty(C,'cur',{get:()=>cur&&{kind:cur.kind,zone:cur.zone,ch:cur.ch,state:cur.state,revived:cur.revived}});
   PF.challenge=C;

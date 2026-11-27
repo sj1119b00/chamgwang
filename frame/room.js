@@ -78,6 +78,23 @@ if(typeof window!=='undefined'&&window.RPG){
     return true; }
   // (x,y)에서 m 안에 걸치는 발자리 다각형
   function nearFeet(x,y,m){ const L=[]; for(const b of solProps.concat(solSpots)) if(x>b.x0-m&&x<b.x1+m&&y>b.y0-m&&y<b.y1+m) L.push(b.P); return L; }
+  // 대시의 끝을 먼저 정한다. 중간의 NPC나 벽도 걷기와 같은 발 반지름으로 막는다.
+  function townDash(angle,cooldown){
+    if(PF.town.entry||PF.win.cur||PF.story.cur||PF.story.busy()||PF.road.frozen) return false;
+    const x0=pl.x, y0=pl.gy, dx=Math.cos(angle)*440, dy=Math.sin(angle)*440*.8;
+    const steps=Math.ceil(Math.hypot(dx,dy/FSY)/(HERO_R/2));
+    solids();
+    let x1=x0, y1=y0;
+    for(let i=1;i<=steps;i++){
+      const x=x0+dx*i/steps, y=y0+dy*i/steps;
+      const edge=clamp(R.cur,x,y), feet=nearFeet(x,y,HERO_R);
+      if(edge.x!==x||edge.y!==y||feet.some(p=>out1(p,x,y/FSY,HERO_R,FSY))) break;
+      x1=x; y1=y;
+    }
+    if(x1===x0&&y1===y0) return false;
+    X.face(angle); V.dash={x0,y0,x1,y1,t:0,dur:.12}; V.dcd=cooldown;
+    X.sfx('whoosh',1.4,.6); return true;
+  }
   // 지금 막고 있는 발자리 전부(시험·확인용)
   R.feet=()=>solids()?solProps.concat(solSpots).map(b=>b.P):[];
   // 그리는 차례: 발자리가 있으면 영웅 x에서의 앞쪽 가장자리(영웅이 그보다 앞이면 소품 앞에 선다), 없으면 놓인 자리 y
@@ -90,9 +107,10 @@ if(typeof window!=='undefined'&&window.RPG){
   // 방을 끈다. run은 건드리지 않는다(다시 들어올 때 새 run이 이미 걸려 있다).
   // 수정은 들어오기 전 값으로 돌리되, 들어올 때 그림이 아직 받아지는 중이었으면(그 뒤 onload가 켠 값을 방이 매 화면 껐다) 그림이 다 받아졌는지로 돌린다
   const crysLoaded=()=>{ const im=SPR.crystal.im; return !!(im&&im.complete&&im.naturalWidth); };
-  function off(){ if(!R.cur) return; const oo=o; document.body.classList.remove('pf-'+R.cur.id); R.cur=null; o=null; boss=null; PF.spots.clear(); if(SPR.crystal) SPR.crystal.ok=crys0||crysLoaded(); if(oo&&oo.onLeave) oo.onLeave(); }
+  function off(){ if(!R.cur) return; const oo=o; document.body.classList.remove('pf-'+R.cur.id); G.frame.townDash=null; R.cur=null; o=null; boss=null; PF.spots.clear(); if(SPR.crystal) SPR.crystal.ok=crys0||crysLoaded(); if(oo&&oo.onLeave) oo.onLeave(); }
   R.enter=function(def,opts){
     off();
+    G.frame.townDash=def.id==='town'||def.id==='village'?townDash:null;
     entering=true; try{ G.survStart(opts.ch); } finally{ entering=false; }
     // 서바이벌이 처음에 뿌린 적과 챕터 띠(이름·5:00), 전투 바닥의 수정 무더기를 지운다(수정은 dun.js 구역 지도와 같은 방법).
     // 수정은 나갈 때 들어오기 전 값으로 돌린다. dun.js 구역 지도가 아직 남아 있으면(전투 뒤 toMenu로 바로 들어옴) 그 지도가 끝날 때 돌려줄 값(true)이다

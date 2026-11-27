@@ -1,5 +1,6 @@
-// 이야기 장치 (설계 8장, 17.1): 화마다 전체 화면 장면 셋(도입·대면·마무리)과 싸움 중의 짧은 대사, 마을 NPC의 말. 문구는 frame/data/episodes.js(모두 임시).
-// 장면은 궁극기 중에는 시작하지 않고(끝날 때까지 기다린다), 도는 동안 게임을 멈춘다(PF.heat.hold, 전투 장소면 일시정지). 대사는 멈추지 않고 화면 아래에 3.5초.
+// 이야기 장치. 구역별 도입·대면·마무리 장면, 싸움 중의 짧은 대사, 마을 NPC의 말을 표시한다.
+// 장면은 궁극기 중에는 시작하지 않고(끝날 때까지 기다린다), 도는 동안 게임을 멈춘다(PF.heat.hold, 전투 장소면 일시정지). 대사는 멈추지 않고 화면 아래에 3.5초(NPC와의 말·배경 문구는 더 길게).
+// 도입은 구역 마을 주민과의 첫 대화, 대면은 성채 앞 대화 뒤 왕의 방, 마무리는 왕 제압 직후다.
 // 순수 부분(sceneId, barksFor, replayList)은 node 시험(frame/test/story.test.js)에서도 불러 쓴다. 브라우저에서는 boot.js가 data/episodes 다음에 붙인다
 (function(){
 'use strict';
@@ -23,7 +24,12 @@ if(typeof window!=='undefined'&&window.RPG&&window.PF){
   // 궁극기 중: surv.js ultStart가 lock을 세우고 ultStop이 내린다. 직업에 따라 V.ultTick도 그동안 있다
   S.busy=()=>lock||!!V.ultTick;
   function find(id){ const m=/^ep(\d+)\.(intro|confront|ending)$/.exec(id), e=m&&PF.EP.find(x=>x.ep===+m[1]);
-    return e&&e.scenes[m[2]]&&e.scenes[m[2]].length?{e,slot:m[2],cuts:e.scenes[m[2]]}:null; }
+    if(!e||!e.scenes[m[2]]?.length) return null;
+    const z=G.hub.ZONES[e.ep-1], region=PF.QUESTS?.content(z?.no), slot=m[2];
+    if(!region) return {e,slot,cuts:e.scenes[slot]};
+    const img='assets/menu/v_z'+z.no+'.webp';
+    const cuts=region[slot].map(line=>({...line,img,who:line.who||(slot==='confront'?'왕':'')}));
+    return {e:{...e,title:region.title},slot,cuts}; }
 
   // ---- 장면 층: 그림(또는 영상)이 화면 가득 천천히 다가오고, 아래 어둠 위에 말하는 사람과 자막. 오른쪽 위 건너뛰기(frame.css)
   const el=document.createElement('div'); el.id='pfscene';
@@ -46,7 +52,7 @@ if(typeof window!=='undefined'&&window.RPG&&window.PF){
   function open(id,f,res){
     try{
       if(PF.win.cur) PF.win.close();
-      const fight=PF.place.FIGHT.includes(PF.place.cur);
+      const fight=PF.place.FIGHT.includes(PF.place.cur)||PF.place.cur==='village';
       sc={id,cuts:f.cuts,i:-1,res,hold:PF.heat.hold,pause:fight&&!G.paused,x0:pl.x,cam:{x:cam.x,fx:cam.fx,y:cam.y,fy:cam.fy},t0:0};
       PF.heat.hold=true;
       if(sc.pause) A.setPause(true);
@@ -90,7 +96,7 @@ if(typeof window!=='undefined'&&window.RPG&&window.PF){
   const want={};
   const run=(id,r0)=>new Promise(res=>{ const f=find(id); if(!f) return res('skipped');
     const go=()=>{ if(f.slot!=='ending'&&G.frame.run!==r0) return res('skipped');
-      if(S.busy()) return setTimeout(go,120);
+      if(S.busy()||PF.town&&PF.town.entry) return setTimeout(go,120);
       open(id,f,res); };
     setTimeout(go,0); });
   S.play=function(id){ if(want[id]) return want[id];
@@ -103,42 +109,81 @@ if(typeof window!=='undefined'&&window.RPG&&window.PF){
   const face=bk.querySelector('i'), bWho=bk.querySelector('b'), bTxt=bk.querySelector('span');
   const bq=[];
   let bOn=null, bT0=0, bOff=0, bTimer=0;
+  // NPC와 나누는 말(talk: 한 NPC의 대사 묶음 {L: 줄들, done: 다 끝나면 부를 것})과 세계관 배경 문구 줄(lore)은 넓은 판(frame.css #pfbark.talk, 최대 TALK_W px)에
+  // 글 길이만큼 더 오래(TALK_MS + 글자마다 TALK_CH 밀리초, BARK_MS보다 짧지 않게) 뜬다
+  const TALK_MS=2500, TALK_CH=75, TALK_W=600;
+  let ts=null;
+  const wide=b=>!!b.lore||!!ts&&ts.L.includes(b);
+  const dur=b=>wide(b)?Math.max(BARK_MS,TALK_MS+b.text.length*TALK_CH):BARK_MS;
   const blocked=()=>S.busy()||!!sc||!!PF.win.cur;
-  // keep: 궁극기·장면·창 때문에 내리는 대사는 대기 줄 맨 앞으로 되돌려 그 뒤에 다시 보인다
-  function bHide(keep){ if(bOn){ if(keep) bq.unshift(bOn); bOn=null; bOff=performance.now(); } bk.classList.remove('on'); }
+  // keep: 궁극기·장면·창 때문에 내리는 대사는 대기 줄 맨 앞으로 되돌려 그 뒤에 다시 보인다. 다 보인 줄(keep 아님)이 대화 묶음의 마지막 줄이면 그 대화가 끝났다
+  function bHide(keep){ if(bOn){ const b=bOn; if(keep) bq.unshift(b); bOn=null; bOff=performance.now(); if(!keep) said(b); } bk.classList.remove('on'); document.body.classList.remove('pf-talk'); }
+  function said(b){ if(!ts||b!==ts.L[ts.L.length-1]) return; const t=ts; ts=null;
+    document.body.classList.remove('pf-conversation');
+    if(t.done) try{ t.done(); }catch(err){ console.error('frame/story.js: 대화를 마친 뒤 부른 쪽에서 오류',err); } }
   const vis=e=>!!e&&getComputedStyle(e).display!=='none'&&e.getClientRects().length>0;
   // 자리: 스킬 막대 바로 위(막대가 없으면 화면 아래), 가로는 화면 가운데. 그 높이에 걸치는 버튼(대쉬·궁극기)과 화면 가장자리 사이에 들게 폭을 줄이고 옆으로 민다
-  function place(){ const sk=document.querySelector('#shud .sk'), r=vis(sk)?sk.getBoundingClientRect():null;
-    bk.style.bottom=r&&r.height?Math.round(innerHeight-r.top+4)+'px':''; bk.style.left=''; bk.style.maxWidth='';
+  const portraitField=()=>PF.place.cur==='field'&&!document.body.classList.contains('pf-rest')&&matchMedia('(orientation:portrait) and (max-width:640px)').matches;
+  let barkWidth=0, barkHeight=0, barkInCombat=false;
+  function place(){ barkWidth=innerWidth; barkHeight=innerHeight;
+    const sk=document.querySelector('#shud .sk'), r=vis(sk)?sk.getBoundingClientRect():null;
+    const actions=[...document.querySelectorAll('#shud .dsh,#shud .ul button')].filter(vis).map(e=>e.getBoundingClientRect());
+    barkInCombat=portraitField();
+    let top=r?.height?r.top:innerHeight;
+    if(barkInCombat) for(const q of actions) top=Math.min(top,q.top);
+    bk.style.bottom=top<innerHeight?Math.ceil(innerHeight-top+(barkInCombat?8:4))+'px':''; bk.style.left=''; bk.style.maxWidth='';
     const b=bk.getBoundingClientRect(), mid=innerWidth/2; let L=16, R=innerWidth-16;
-    for(const e of document.querySelectorAll('#shud .dsh,#shud .ul button')){ if(!vis(e)) continue; const q=e.getBoundingClientRect();
+    for(const q of actions){
       if(q.top<b.bottom&&q.bottom>b.top){ if(q.left+q.width/2>mid) R=Math.min(R,q.left-8); else L=Math.max(L,q.right+8); } }
-    bk.style.maxWidth=Math.max(0,Math.min(440,R-L))+'px';
+    bk.style.maxWidth=Math.max(0,Math.min(bk.classList.contains('talk')?TALK_W:440,R-L))+'px';
     const w=bk.offsetWidth; bk.style.left=Math.round(Math.min(Math.max(mid,L+w/2),R-w/2))+'px'; }
   function bShow(b){
     face.style.backgroundImage=b.face?`url("${b.face}")`:''; face.classList.toggle('none',!b.face);
     bWho.textContent=b.who||''; bTxt.textContent=b.text;
+    const t=wide(b); bk.classList.toggle('talk',t); document.body.classList.toggle('pf-talk',t);
     place();
-    bOn=b; bT0=performance.now(); bk.classList.add('on'); }
+    bOn=b; bT0=performance.now(); bk.classList.add('on');
+    // 배경 문구는 한 번 보인 때 들은 것으로 적는다(기록 창의 "기록 조각", quest.js)
+    if(b.lore){ const s=story(), L=s.lore||(s.lore={}); if(!L[b.lore]){ L[b.lore]=1; PF.save.commit(); } }
+    if(ts?.read){ const index=ts.L.indexOf(b); if(index>=0) ts.read(index+1); }
+    if(b.shown) b.shown(); }
   function pump(){ clearTimeout(bTimer); const now=performance.now();
-    if(bOn&&blocked()) bHide(true); else if(bOn&&now-bT0>=BARK_MS) bHide();
+    if(bOn&&blocked()) bHide(true); else if(bOn&&now-bT0>=dur(bOn)) bHide();
+    if(bOn&&(barkWidth!==innerWidth||barkHeight!==innerHeight)) place();
     if(!bOn&&bq.length&&!blocked()&&now-bOff>=BARK_GAP) bShow(bq.shift());
     if(bOn||bq.length) bTimer=setTimeout(pump,100); }
-  S.bark=b=>{ if(!b) return; bq.push(b); pump(); };
-  // 마을 NPC의 말: 그 대사들을 차례로. 아직 말하는 중에 또 눌러도 겹쳐 쌓지 않는다
-  S.talk=function(id){ const L=PF.TALK[id]; if(!L||L.some(b=>b===bOn||bq.includes(b))) return; for(const b of L) S.bark(b); };
+  S.bark=(b,first=false)=>{ if(!b) return;
+    if(first){ if(bOn) bHide(true); bq.unshift(b); } else bq.push(b);
+    pump(); };
+  // 대사가 떠 있는 동안 화면 크기·방향이 바뀌면 자리를 다시 잡는다(넓은 판이 화면 밖으로 나가지 않게)
+  addEventListener('resize',()=>{ if(bOn) place(); });
+  new MutationObserver(()=>{ if(bOn&&barkInCombat!==portraitField()) place(); }).observe(document.body,{attributes:true,attributeFilter:['class']});
+  // NPC의 말: 그 대사들(PF.TALK의 id, 또는 줄 배열)을 차례로. 플레이어가 건 말이라 기다리는 싸움 중 대사보다 앞에 선다(떠 있는 줄은 제 시간을 다 채운다).
+  // 말하는 중에 같은 NPC를 또 누르면 쌓지 않고 떠 있는 줄을 내려 다음 줄로 넘긴다(그 대화 앞의 다른 대사가 떠 있으면 그것을 내린다).
+  // 다른 NPC와 말을 시작하면 앞 대화의 남은 줄은 버린다. o.done: 마지막 줄까지 다 보이고 나면(장소가 바뀌어 버려지면 부르지 않는다).
+  // 새로 말을 시작했으면 true, 이미 말하는 중이었으면 false
+  S.talk=function(id,o){ const L=Array.isArray(id)?id:PF.TALK[id]; if(!L||!L.length) return false;
+    if(L.some(b=>b===bOn||bq.includes(b))){ if(bOn&&!blocked()){ bHide(); pump(); } return false; }
+    const old=ts&&ts.L; ts=null;
+    if(old){ for(let i=bq.length-1;i>=0;i--) if(old.includes(bq[i])) bq.splice(i,1); if(old.includes(bOn)) bHide(); }
+    ts={L,done:o?.done,read:o?.read}; document.body.classList.add('pf-conversation');
+    bq.unshift(...L.slice(o?.start||0));
+    pump(); return true; };
+  // 그 대사 묶음으로 말하는 중인가(아직 남은 줄이 있다)
+  S.talking=L=>!!ts&&ts.L===L;
+  S.inConversation=()=>!!ts;
   Object.defineProperty(S,'cur',{get:()=>sc&&sc.id});
 
-  // 장소가 바뀌면(마을로, 다음 구역으로) 남은 대사를 버리고, 떠 있는 장면은 건너뛴 것으로 닫는다
-  PF.place.on(()=>{ bq.length=0; bHide(); close('skipped'); });
+  // 장소가 바뀌면(마을로, 다음 구역으로) 남은 대사와 하던 대화를 버리고(끝난 것으로 치지 않는다), 떠 있는 장면은 건너뛴 것으로 닫는다
+  PF.place.on(()=>{ ts=null; document.body.classList.remove('pf-conversation'); bq.length=0; bHide(); close('skipped'); });
 
-  // ---- 사냥터 사건: 처음 깨는 구역에서 들어올 때 도입, 왕이 나오면 대면, 왕을 쓰러뜨리면 마무리(이미 본 장면은 다시 틀지 않는다). 그 밖의 사건은 그 화의 대사
-  const SLOT_OF={enter:'intro',king:'confront',win:'ending'};
-  PF.field.onEvent((n,c)=>{ const ep=c.zone+1, e=PF.EP.find(x=>x.ep===ep); if(!e) return;
-    const slot=SLOT_OF[n];
-    if(!slot){ for(const b of barksFor(e.barks,n)) S.bark(b); return; }
-    const id=sceneId(ep,slot);
-    if(c.first&&!story().seen[id]) S.play(id); });
+  // ---- 사냥터 사건: 그 화의 대사(노드, 왕 체력 절반). 장면(도입·대면·마무리)은 메인 퀘스트의 단계(frame/quest.js)가 연다
+  PF.field.onEvent((n,c)=>{
+    const region=PF.QUESTS?.content(G.hub.ZONES[c.zone]?.no);
+    if(region){ if(/^node[1-3]$/.test(n)||n==='kingHp50') for(const b of region[n]) S.bark({...b,who:b.who||'정찰 담당'}); return; }
+    const e=PF.EP.find(x=>x.ep===c.zone+1);
+    if(e) for(const b of barksFor(e.barks,n)) S.bark(b);
+  });
 
   // ---- 다시 보기: 기록 창(records, hub.js의 guild 화면)의 후손 기록 판 아래에 본 장면 목록. 누르면 창을 닫고 그 장면
   const mo=G.menuOverride;

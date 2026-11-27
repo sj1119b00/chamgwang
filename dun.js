@@ -118,8 +118,14 @@ function tick(rdt){ const ch=M.ch, Z=M.Z; M.el+=rdt;
     if(e&&e.dead){ n.done=true; M.done++; M.gold+=Math.round(70*(ch+1)); for(let i=0;i<10;i++) V.gems.push({x:n.x+rand(-120,120),y:n.y+rand(-80,80),v:6+ch*2,s:0,mag:false,ph:rand(0,TAU)});
       stamp('노드 파괴',{x:.5,y:.3,size:.1,life:1.3,c:Z.acc,keep:1}); V.items.push({k:'heal',x:n.x,y:n.y+200,t:0}); S.sfx('shatter',1); S.sfx('boom',1,.6); if(window.GFX) GFX.light(n.x,n.y,900,Z.acc,1.4,1.2,{z:200});
       explode(n.x,n.y-380,1.5,Z.acc,'#ffffff'); S.burst(n.x,n.y,26,{s0:300,s1:1300,vz:1600,size:22,c:Z.acc}); for(let i=0;i<3;i++) after(i*.12,()=>S.fring(n.x,n.y,1600+i*700,Z.acc,.7,8)); trauma=Math.min(1,trauma+.45); n.boomT=RT;
-      if(M.done===M.nodes.length){ M.gate=true; say('왕의 문이 열렸다',Z.king+'이(가) 기다린다',Z.acc); }
-      else say(`신호 노드 ${M.done} / ${M.nodes.length}`,'남은 노드를 찾아 파괴하라'); continue; }
+      const questField=G.frame?.run?.kind==='field';
+      if(M.done===M.nodes.length){
+        M.gate=true; say('왕의 문이 열렸다',Z.king+'이(가) 기다린다',Z.acc);
+        // 연달아 파괴한 노드의 글만 걷는다. 효과의 수명과 그릴 때 쓰는 난수는 유지한다.
+        if(questField) for(const p of parts) if(p.k==='stamp'&&p.txt==='노드 파괴') p.txt='';
+      }else if(!questField) say(`신호 노드 ${M.done} / ${M.nodes.length}`,'남은 노드를 찾아 파괴하라');
+      else if(M.msg?.t==='신호 노드 감지') M.msg.t0=-Infinity;
+      continue; }
     const d=fd(pl.x,pl.gy,n.x,n.y);
     if(!n.awake&&d<1700){ n.awake=true; n.wt=0; say('신호 노드 감지','노드가 방어 병력을 부른다'); }
     if(n.awake&&d<2200){ n.wt-=rdt; if(n.wt<=0){ n.wt=Math.max(3.2,5-ch*.2); n.wave++; const k=4+ch+Math.min(6,n.wave); for(let i=0;i<3;i++){ const p=spot(n.x,n.y,500,900); if(p) pack(p[0],p[1],Math.ceil(k/3),n.wave%3===0&&i===0); } } } }
@@ -243,7 +249,8 @@ function holo(){ const {hw,hh}=S.view(), c=M.Z.acc;
     else if(b.kind===1){ fx.strokeStyle=hexA(c,.55*on); fx.lineWidth=4; fx.beginPath(); fx.arc(b.x,y+b.h/2,b.h*.3,RT*1.4+b.ph,RT*1.4+b.ph+4.2); fx.stroke(); fx.beginPath(); fx.arc(b.x,y+b.h/2,b.h*.16,0,TAU); fx.stroke(); }
     else { fx.fillStyle=hexA(c,.4*on); for(let k=0;k<4;k++) fx.fillRect(x+18,y+20+k*(b.h-30)/4,(b.w-36)*(.4+.6*Math.abs(Math.sin(k*1.7+b.ph+RT*.4))),(b.h-30)/4-12); }
     glow(fx,b.x,y+b.h/2,b.w*.55,c,.12*on); } }
-function pointer(){ let tg=null; if(M.king) return; if(M.gate) tg=M.arena; else { let b=1e9; for(const n of M.nodes){ if(n.done) continue; const d=fd(pl.x,pl.gy,n.x,n.y); if(d<b){ b=d; tg=n; } } }
+// frame/quest.js: in a frame hunting field the main quest's arrow at the hero's feet points the way instead
+function pointer(){ let tg=null; if(M.king||G.frame&&G.frame.run&&G.frame.run.kind==='field') return; if(M.gate) tg=M.arena; else { let b=1e9; for(const n of M.nodes){ if(n.done) continue; const d=fd(pl.x,pl.gy,n.x,n.y); if(d<b){ b=d; tg=n; } } }
   if(!tg) return; const {hw,hh}=S.view(); if(Math.abs(tg.x-cam.x)<hw*.8&&Math.abs(tg.y-cam.y)<hh*.8) return;
   const ang=Math.atan2((tg.y-pl.gy)/FSY,tg.x-pl.x), r=250, x=pl.x+Math.cos(ang)*r, y=pl.gy+Math.sin(ang)*r*FSY, c=M.Z.acc, p=.6+.4*Math.sin(RT*5);
   fx.save(); fx.translate(x,y); fx.scale(1,FSY); fx.rotate(ang); fx.fillStyle=hexA(c,.75*p); fx.beginPath(); fx.moveTo(60,0); fx.lineTo(-20,-42); fx.lineTo(0,0); fx.lineTo(-20,42); fx.closePath(); fx.fill(); fx.restore(); }
@@ -262,7 +269,8 @@ const mini=document.createElement('canvas'); mini.className='dmini'; mini.width=
 const msg=document.createElement('div'); msg.className='dmsg'; hud.appendChild(msg);
 let lastMini=0;
 function hudTick(){ const $=s=>hud.querySelector(s), Z=M.Z, tm=$('.tm'), kc=$('.kc');
-  const obj=M.king?(M.won?'왕 제압':'왕을 쓰러뜨려라'):M.free?'제압한 구역':M.gate?'왕의 문으로':`신호 노드 ${M.done} / ${M.nodes.length}`;
+  // frame/quest.js: in a frame hunting field the main quest panel gives the objective; this line keeps only the node count until the zone is subdued
+  const obj=G.frame&&G.frame.run&&G.frame.run.kind==='field'&&!M.free?`신호 노드 ${M.done} / ${M.nodes.length}`:M.king?(M.won?'왕 제압':'왕을 쓰러뜨려라'):M.free?'제압한 구역':M.gate?'왕의 문으로':`신호 노드 ${M.done} / ${M.nodes.length}`;
   if(tm) tm.textContent=obj; if(kc) kc.innerHTML=`<span>${Z.no}구역 · ${Z.name}</span><b>처치 ${V.kills} · 보급 ${M.chests.filter(c=>c.open).length}/${M.chests.length}${M.loot.length?` · <span style="color:#EBA74E${RT-(M.lootT||-9)<3?';text-shadow:0 0 8px #EBA74E':''}">장비 ${M.loot.length}</span>`:''}</b>`;
   if(M.msg){ const age=RT-M.msg.t0; msg.innerHTML=`<b style="color:${M.msg.c}">${M.msg.t}</b>${M.msg.sub||''}`; msg.classList.toggle('on',age<(M.msg.sub&&M.msg.sub.length>30?5.5:2.8)); }
   if(RT-lastMini<.1) return; lastMini=RT;
@@ -281,7 +289,7 @@ function hudTick(){ const $=s=>hud.querySelector(s), Z=M.Z, tm=$('.tm'), kc=$('.
 // ============================================================ engine hooks (globals the engine calls; surv.js wrapped them first)
 let runStats=null;
 const upd0=update; update=function(rdt){
-  if(G.mode==='surv'&&G.stats!==runStats){ runStats=G.stats; if(!V.practice&&!V.over&&!(G.frame&&G.frame.run&&/^(town|secret|endless)$/.test(G.frame.run.kind))) start(); else stop(); }
+  if(G.mode==='surv'&&G.stats!==runStats){ runStats=G.stats; if(!V.practice&&!V.over&&!(G.frame&&G.frame.run&&/^(town|village|secret|endless)$/.test(G.frame.run.kind))) start(); else stop(); }
   if(G.mode!=='surv'&&M) stop();
   if(M&&!G.paused) tick(rdt);
   upd0(rdt);
@@ -296,7 +304,8 @@ function start(){ const ch=V.ch; M=build(ch);
   /* the run opened with a scatter of crystals around the hero: thin it to a handful */
   V.en=V.en.filter(e=>e.d.node); pack(pl.x,pl.gy-900,4,false);
   for(const p of parts) if(p.k==='banner'){ p.en=`ZONE ${String(M.Z.no).padStart(2,'0')} · ${M.free?'제압한 구역':'신호 노드 3개를 파괴하고 왕을 쓰러뜨려라'}`; }
-  hud.classList.add('dun'); if(M.free) say('제압한 구역 · 자유롭게 둘러보세요',''); else say(`${M.Z.no}구역 · ${M.Z.name}`,'신호 노드 3개를 찾아 파괴하라. 노드의 빛기둥을 따라가면 된다.'); }
+  // frame/quest.js: in a frame hunting field the main quest says what to do first, so the zone banner keeps only the zone's name
+  hud.classList.add('dun'); if(M.free) say('제압한 구역 · 자유롭게 둘러보세요',''); else say(`${M.Z.no}구역 · ${M.Z.name}`,G.frame&&G.frame.run&&G.frame.run.kind==='field'?'':'신호 노드 3개를 찾아 파괴하라. 노드의 빛기둥을 따라가면 된다.'); }
 function stop(){ if(!M) return; M=null; if(SPR.crystal) SPR.crystal.ok=true; hud.classList.remove('dun'); msg.classList.remove('on'); }
 const prep0=drawBackground_prep; drawBackground_prep=function(){ prep0(); if(!M||G.mode!=='surv') return; applyCam(ctx); applyCam(fx); drawFloor(); ctx.setTransform(1,0,0,1,0,0); };
 const de0=drawEnemy; drawEnemy=function(){ if(M&&G.mode==='surv') visible(); de0(); if(M&&G.mode==='surv') drawUpTo(pl.gy??0); };

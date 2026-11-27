@@ -42,7 +42,7 @@ const DIF={sword:{hp:2.4,dmg:1.7,sp:1.25}}, dif=k=>G.frame?1:(DIF[pl.cls]||{})[k
 const hm=()=>(G.frame&&G.frame.flat?1:1+V.t/75)*CH().hp*dif('hp');                // enemy health grows with time survived (and chapter)
 const dm=()=>(G.frame&&G.frame.flat?1:1+V.t/150)*CH().dmg*dif('dmg');              // and so does what they hit for
 const alive=()=>V.en.filter(e=>!e.dead);
-const view=()=>({hw:W/(2*S*cam.z),hh:H/(2*S*cam.z)});
+const view=()=>G.frame?.worldView?G.frame.worldView(cam.z):{hw:W/(2*S*cam.z),hh:H/(2*S*cam.z)};
 const ACT=()=>(A.ORDER[pl.cls]||[]).filter(id=>SK[id]&&SK[id].type==='skill'&&(V.practice||A.unlocked(id)));
 const ULTS=()=>(A.ORDER[pl.cls]||[]).filter(id=>SK[id]&&SK[id].type==='ult'&&(V.practice||A.unlocked(id))&&CLS[pl.cls]&&CLS[pl.cls].ults[id]);
 // the player picks: any unlocked ultimate, when the gauge is full
@@ -55,7 +55,9 @@ const DASH_NAME={mage:'블링크',shaman:'영혼 걸음'};
 const dashSkill=()=>{ const id=DASH_ID[pl.cls], C=CLS[pl.cls]; return id&&SK[id]&&A.unlocked(id)&&C&&C.skills[id]&&C.skills[id].fn?id:null; };
 const dashCd=()=>{ const id=dashSkill(); return id?Math.min(3,A.cdOf(id)):DASH_CD; };
 function doDash(){ if(G.mode!=='surv'||V.over||lock||G.paused||V.dash||V.dcd>0||!CLS[pl.cls]) return false;
-  const [mx,my]=input(), a=mx||my?Math.atan2(my*.86,mx):(pl.f>0?0:Math.PI), id=dashSkill(); anim.seq=null;
+  const [mx,my]=input(), a=mx||my?Math.atan2(my*.86,mx):(pl.f>0?0:Math.PI);
+  if(G.frame&&G.frame.townDash) return G.frame.townDash(a,dashCd());
+  const id=dashSkill(); anim.seq=null;
   if(id){ aimAt={x:pl.x+Math.cos(a)*420,y:pl.gy+Math.sin(a)*420,z:0,h:0,hp:1e12,max:1e12,dead:false,d:{r:0,heavy:true}}; const st=V.steer, c0=V.cd[id]||0; V.steer=false; V.cd[id]=1;   /* cd>0 reads as "the player asked for it" */
     let ok=false; try{ ok=CLS[pl.cls].skills[id].fn(id)!==false; } finally{ aimAt=null; V.steer=st; V.cd[id]=c0; }
     if(ok){ if(V.dash) V.dash.soft=false; G.inv=Math.max(G.inv,.4); V.dcd=dashCd(); return true; } }
@@ -588,7 +590,8 @@ const SHORT={"그림자 난무": "난무", "체인 라이트닝": "체인", "플
 const short=n=>SHORT[n]||n;
 let cells=[];
 function buildBar(){ const L=[[A.ORDER[pl.cls][0],'basic'],...ACT().filter(id=>id!==DASH_ID[pl.cls]).map(id=>[id,'s'])]; buildUlts(); buildPractice();
-  { const d=$('.dsh'), id=dashSkill(); d.style.setProperty('--cc',CCOL[pl.cls]); d.querySelector('b').textContent=id?short(SK[id].name):DASH_NAME[pl.cls]||'대쉬'; }
+  { const d=$('.dsh'), id=dashSkill(); d.style.setProperty('--cc',CCOL[pl.cls]);
+    d.querySelector('b').textContent=G.frame&&G.frame.townDash?'대시':id?short(SK[id].name):DASH_NAME[pl.cls]||'대쉬'; }
   $('.sk').innerHTML=L.map(([id,k])=>`<div class="c ${k==='u'?'u':''} ${id&&SK[id]&&A.unlocked(id)?'':'off'}" style="--cc:${CCOL[pl.cls]}"><div class="cd"></div>${id&&SK[id]&&A.unlocked(id)?icon(id)+'<span>'+short(SK[id].name)+'</span>':'<span>—</span>'}${k==='u'?'<i class="um"></i>':''}<b class="cs"></b></div>`).join('');
   $('.sk').style.zoom=Math.min(1,(Math.min(innerWidth-200,560)-16)/(L.length*61));   /* left of the dash and ultimate buttons */ cells=[...$('.sk').children].map((el,i)=>({el,cd:el.querySelector('.cd'),cs:el.querySelector('.cs'),id:L[i][0],k:L[i][1]})); V.lv=SV().lv; }
 function stopEv(e){ e.preventDefault(); e.stopPropagation(); }
@@ -651,7 +654,7 @@ function start(ch,o={}){ if(window.K3&&K3.tune) K3.tune(); const prac=!!o.practi
   if(prac) practiceEnter();
   joyHide(); G.mode='surv'; G.paused=false; G.hp=A.maxHp(); G.inv=0; G.jz=G.jv=0; G.runT=0; G.landT=0; G.stats={kills:0,dmg:0,exp:0,t:RT}; combo=0;
   lock=false; anim.seq=null; parts.length=0; timers.length=0; fires.length=0; cutin=null; warn=null; timeScale=1; slowHold=0; hitstop=0; trauma=0; if(G.sv.cine){ G.sv.cine.reset(); G.sv.cine.preload(pl.cls); } window.LBK=.05;
-  pl.target=IDLE(); pl.ps=12; pl.visible=true; pl.air=pl.airT=0; pl.f=1; pl.x=pl.home=VW/2; pl.gy=770; GROUND=FAR;
+  pl.target=IDLE(); pl.ps=12; pl.visible=true; pl.air=pl.airT=0; pl.f=1; pl.x=pl.home=G.frame?.worldView?G.frame.worldView(1).hw:VW/2; pl.gy=770; GROUND=FAR;
   E.dead=false; E.respawn=1e9; cam.x=cam.fx=pl.x; cam.y=cam.fy=pl.gy-BODY*.6; cam.z=cam.fz=PORTRAIT?ZP:ZL; cam.ft=99;
   A.menuEl.classList.remove('on'); resEl.classList.remove('on'); document.body.classList.add('surv'); hudEl.classList.add('on'); joyEl.classList.add('on'); buildBar(); hud();
   if(prac){ V.ug=100; for(let i=0;i<12;i++){ const a=i/12*TAU, r=rand(480,760); spawn(i%6===5?'brute':'shard',pl.x+Math.cos(a)*r,pl.gy+Math.sin(a)*r*.7); } if(!o.keep) add({k:'banner',name:'연습장',en:'PRACTICE · 모든 스킬을 자유롭게',c:'#ffcf4a',life:2}); return; }

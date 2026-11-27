@@ -19,7 +19,7 @@ async function sha(t){ const b=new TextEncoder().encode(String(t));
 // 비밀번호의 해시: 다듬은 쿠폰, 줄바꿈, 비밀번호를 이어서
 const passHash=(code,pass)=>sha(norm(code)+'\n'+String(pass).trim());
 // 전부 연다. 넘겨받은 SV(rpg.js: 지금 직업의 값은 최상위, 나머지 직업은 SV.chars), H(hub.js), story(frame 저장)만 고치고, 이미 더 높은 값은 낮추지 않는다.
-// ctx {classes, skills:{직업:[강화할 스킬]}, maxSkillLv, maxLv, zones, secrets:[id], scenes:[id], colors:{스킬:[색 번호]}}.
+// ctx {classes, skills:{직업:[강화할 스킬]}, maxSkillLv, maxLv, zones, secrets:[id], scenes:[id], colors:{스킬:[색 번호]}, lore?:[배경 문구 id]}.
 // 궁극기는 레벨로 잠금이 풀리므로(rpg.js unlocked: SV.lv>=SK.lv) 레벨만 올린다(장착은 그대로)
 function unlock(SV,H,story,ctx){
   for(const c of ctx.classes){ let o=SV;
@@ -29,9 +29,14 @@ function unlock(SV,H,story,ctx){
     for(const id of ctx.skills[c]||[]) o.sl[id]=Math.max(o.sl[id]||1,ctx.maxSkillLv); }
   // 마지막 구역은 앞 장을 빌리므로 장 진행(SV.chClear)은 구역 수 − 1까지(field.js winBook과 같다)
   story.cleared=Math.max(story.cleared||0,ctx.zones); SV.chClear=Math.max(SV.chClear||0,ctx.zones-1);
+  if(story.continent) for(let z=0;z<ctx.zones;z++) if(story.continent['z'+z]==='return') story.continent['z'+z]='done';
+  // 빠른 이동(road.js): 마을과 모든 구역을 들른 것으로
+  const visited=story.visited||(story.visited={}); visited.town=1; for(let z=0;z<ctx.zones;z++) visited['z'+z]=1;
   const found=story.found||(story.found={}), seen=story.seen||(story.seen={});
   for(const id of ctx.secrets) found[id]=1;
   for(const id of ctx.scenes) seen[id]=1;
+  // 세계관 배경 문구(메인 퀘스트의 기록 조각, quest.js): 모두 들은 것으로
+  if(ctx.lore){ const lore=story.lore||(story.lore={}); for(const id of ctx.lore) lore[id]=1; }
   // 스킬 색의 보유는 chroma.js가 own['<스킬>:<색 번호>']=1로 적는다. 고른 색(sel)은 그대로
   const cz=H.chroma||(H.chroma={own:{},sel:{}}), own=cz.own||(cz.own={});
   for(const id in ctx.colors) for(const k of ctx.colors[id]) own[id+':'+k]=1;
@@ -65,7 +70,7 @@ if(typeof window!=='undefined'&&window.RPG&&window.PF){
     // 장면: 화 자료(숨은 곳의 장면 화 포함)의 장면 가운데 컷이 있는 것
     const scenes=[];
     for(const e of PF.EP) for(const k of PF.story.SLOTS) if(e.scenes&&e.scenes[k]&&e.scenes[k].length) scenes.push(PF.story.sceneId(e.ep,k));
-    return {classes,skills,maxSkillLv:MAX_SL,maxLv,zones:PF.field.COUNT,secrets,scenes,colors}; }
+    return {classes,skills,maxSkillLv:MAX_SL,maxLv,zones:PF.field.COUNT,secrets,scenes,colors,lore:PF.quest?PF.quest.allLore():[]}; }
 
   // 장비: 제작 목록의 종류마다 모든 등급 하나씩, 높은 등급부터 보관함에. 사냥터(field.js)가 주운 장비를 넣는 hub.js settle 길로 넣는다:
   // 보관함 한도(hub.js BAG)·장비 단계(마지막 장의 tierOf)·번호(uid)·새 장비 표시가 그쪽 규칙을 따른다. 넣지 못한 수를 돌려준다.
@@ -138,7 +143,7 @@ if(typeof window!=='undefined'&&window.RPG&&window.PF){
       if(PF.win.cur==='settings') A.menuRender(); };
     if(focus){ focus=false; setTimeout(()=>inp.focus(),0); }
     return d; }
-  // 키보드: rpg.js는 surv 모드의 키를 모두 G.survKey로 넘기고, 마을(town.js: Space·1~3)과 지점(spots.js: E·Enter)이 그 키를 막는다.
+  // rpg.js는 마을의 이동·대시와 지점 상호작용을 포함한 전투 모드 키를 모두 G.survKey로 넘긴다.
   // 쿠폰 칸에 치는 글자는 게임에 넘기지 않는다(글자가 들어가고 Enter는 칸을 보낸다). Esc는 그대로 창을 닫는다
   const sk=G.survKey;
   G.survKey=function(e){ const t=e.target; if(t&&t.closest&&t.closest('#rmenu .pf-coupon')&&e.code!=='Escape') return; return sk.apply(this,arguments); };

@@ -1,6 +1,8 @@
 // 지점 (설계 5.1, 17.1): 장소에 꽂는 NPC, 포탈, 흔적, 표식. 영웅이 반경 안에 들어오면 이름이 달린 누를 수 있는 표시가 뜨고,
 // 그것을 누르거나 E·Enter를 누르면 onUse(spot). 창이 열려 있거나 장면 재생 중에는 반응하지 않는다.
-// 지점 {id,x,y,r,label,kind:'npc'|'portal'|'trace'|'mark',act,look?,art?}. label이 빈 지점은 그리기만 하고 누를 수 없다(아직 연결 전인 숨은 흔적).
+// 지점 {id,x,y,r,label,kind:'npc'|'portal'|'trace'|'mark'|'road',act,look?,art?}. label이 빈 지점은 그리기만 하고 누를 수 없다(아직 연결 전인 숨은 흔적).
+// road(길 끝, road.js가 꽂는다)는 누르는 것이 아니라 밟으면 넘어간다: 누를 수 있는 표시가 뜨지 않는다. 여기서는 서 있는 것(관문 기둥·장벽·이름표)만 그린다
+// (road {open, dir:[x,y] 밖으로 나가는 쪽, posts:[[x,y],[x,y]] 관문 기둥 자리 | null}. 바닥 화살표는 road.js가 바닥 층에)
 // art(frame/art.js 그림 이름)가 있고 그 그림이 떠 있으면 NPC는 그 사람 그림, 포탈은 고리 문 받침과 움직이는 빛 원판으로 그린다. 없으면 예전 임시 모습
 // 순수 부분(near)은 node 시험(frame/test/room.test.js)에서도 불러 쓴다. 브라우저에서는 boot.js가 붙이고 index.html의 전역(update, drawPlayer, w2s, ctx, fx, cam)을 쓴다
 (function(){
@@ -13,7 +15,7 @@ const P={near};
 
 if(typeof window!=='undefined'&&window.RPG){
   const G=RPG, FSY=G.sv.FSY, PF=window.PF;
-  const HC='#7FF3FF', AM='#EBA74E', KR='"Noto Sans KR","Malgun Gothic",sans-serif';
+  const HC='#7FF3FF', AM='#EBA74E', RD='#E2513F', KR='"Noto Sans KR","Malgun Gothic",sans-serif';
   // 서 있는 NPC의 키(월드 단위)와, 종류마다 누를 수 있는 표시가 뜨는 높이. 그림(frame/art.js) NPC는 ART_H(영웅 약 260), 포탈 받침 그림은 GATE_H(지점의 h가 있으면 그 높이)
   const NPC_H=360, ART_H=310, GATE_H=1000, TOP={npc:NPC_H+34,portal:430,trace:120,mark:170};
   const art=s=>s.art&&PF.art.img(s.art);
@@ -29,7 +31,7 @@ if(typeof window!=='undefined'&&window.RPG){
   const poolOf=k=>spr('pool'+k,()=>radial(LIT[k].pool,[[0,.85],[.3,.42],[.65,.12],[1,0]]));
   const shadowIm=()=>spr('shadow',()=>radial('0,0,0',[[0,.55],[.55,.34],[.85,.1],[1,0]]));
   // 포탈(큰 그림, 매 화면 도는 원판·빛 알갱이)은 화면 밖(여유 있게)이면 그리지 않는다
-  function off(s){ if(s.kind!=='portal') return false; const {hw,hh}=G.sv.view(), w=gateH(s)*.6+200;
+  function off(s){ if(s.kind!=='portal'&&s.kind!=='road') return false; const {hw,hh}=G.sv.view(), w=gateH(s)*.6+200;
     return s.x+w<cam.x-hw||s.x-w>cam.x+hw||s.y+300<cam.y-hh||s.y-Math.max(gateH(s),900)>cam.y+hh; }
   let list=[], onUse=null, act=null;
 
@@ -55,13 +57,77 @@ body:not(.surv) #pfui,#rmenu.on~#pfui{display:none}
 
   // 매 화면: 가장 가까운 누를 수 있는 지점 위에 표시를 둔다
   function tick(){
-    act=G.mode==='surv'&&list.length&&!busy()?near(list.filter(s=>s.label),pl.x,pl.gy):null;
+    act=G.mode==='surv'&&list.length&&!busy()?near(list.filter(s=>s.label&&s.kind!=='road'),pl.x,pl.gy):null;
     if(!act){ tip.classList.remove('on'); return; }
     tip.classList.add('on');
     if(tipKey!==act.id+'\n'+act.label){ tipKey=act.id+'\n'+act.label; const k=document.createElement('kbd'); k.textContent='E'; tip.replaceChildren(k,act.label); tipW=tip.offsetWidth; }
     const r=innerWidth/W, [sx,sy]=w2s(act.x,act.y-top(act)), m=tipW/2+8;
     tip.style.left=Math.max(m,Math.min(innerWidth-m,sx*r))+'px'; tip.style.top=Math.max(52,sy*r)+'px'; }
   const u0=update; update=function(rdt){ u0(rdt); tick(); };
+  // 이름표는 실제 그리는 프레임에만 배치한다. 먼저 화면 UI와 누를 수 있는 표시의 자리를 확보한다.
+  let occupied=null;
+  const signs=[];
+  const renderBase=render;
+  render=function(){
+    occupied=null; signs.length=0;
+    for(const s of list) if(s.tagBox) s.tagBox=null;
+    if(act&&tip.classList.contains('on')) uiBoxes();
+    const result=renderBase.apply(this,arguments);
+    // 배경의 왜곡·기울이기 효과를 모두 그리고 나서 이름표를 얹는다. 화면 정보와 같은 CSS 픽셀 좌표를 쓴다.
+    if(signs.length&&!lock){
+      tctx.save(); tctx.setTransform(W/innerWidth,0,0,H/innerHeight,0,0);
+      for(const [s,x,y,left] of signs) if(s.kind==='road') paintRoadTag(s,x,y,left); else paintTag(s,x,y);
+      tctx.restore();
+    }
+    return result;
+  };
+  function uiBoxes(){
+    if(occupied) return;
+    occupied=[];
+    const controls='#shud .me,#shud .kc,#shud .pz,#shud .sk,#shud .dsh,#shud .ul button,#shud .bb.on,#pfui .pf-ico,#pfminimap,#pfquest.on,#pfbark.on,#pfplace.on';
+    for(const e of document.querySelectorAll(controls)){
+      const b=e.getBoundingClientRect();
+      if(!b.width||!b.height) continue;
+      const style=getComputedStyle(e);
+      if(style.visibility==='visible'&&(e.id==='pfbark'||+style.opacity>.05)) occupied.push([b.left,b.top,b.right,b.bottom]);
+    }
+    if(act&&tip.classList.contains('on')){
+      const box=tip.getBoundingClientRect();
+      if(box.width&&box.height){
+        const b=labelBox(box.left,box.top,box.width,box.height);
+        if(b){ tip.style.left=(b[0]+b[2])/2+'px'; tip.style.top=b[3]+'px'; }
+      }
+    }
+  }
+  function labelBox(left,top,w,h){
+    const clip=(v,m)=>Math.max(4,Math.min(m-4,v));
+    const x=clip(left,innerWidth-w), y=clip(top,innerHeight-h);
+    function take(left,top){
+      const b=[left,top,left+w,top+h];
+      if(occupied.some(r=>b[0]<r[2]+2&&b[2]>r[0]-2&&b[1]<r[3]+2&&b[3]>r[1]-2)) return null;
+      occupied.push(b); return b;
+    }
+    const direct=take(x,y); if(direct) return direct;
+    // 각 사각형 바로 위·아래·옆으로 필요한 만큼만 움직인다.
+    const xs=[x],ys=[y];
+    for(const r of occupied){
+      xs.push(clip(r[0]-w-4,innerWidth-w),clip(r[2]+4,innerWidth-w));
+      ys.push(clip(r[1]-h-4,innerHeight-h),clip(r[3]+4,innerHeight-h));
+    }
+    const choices=[];
+    for(const l of new Set(xs)) for(const t of new Set(ys)) choices.push([l,t,(l-x)**2+(t-y)**2]);
+    choices.sort((a,b)=>a[2]-b[2]);
+    for(const [l,t] of choices){ const b=take(l,t); if(b) return b; }
+    return null;
+  }
+  function layoutTag(s,x,y,w,h,alignLeft=false){
+    const [sx,sy]=w2s(x,y),dx=sx-W/2,dy=sy-H/2,cr=Math.cos(cam.rot),sr=Math.sin(cam.rot);
+    const left=(W/2+cr*dx-sr*dy)*innerWidth/W-(alignLeft?0:w/2);
+    const top=(H/2+sr*dx+cr*dy)*innerHeight/H-h;
+    if(left+w< -20||left>innerWidth+20||top< -120||top>innerHeight+60) return null;
+    uiBoxes();
+    return s.tagBox=labelBox(left,top,w,h);
+  }
   // 키보드(rpg.js가 surv 모드에서 G.survKey로 넘긴다)
   const k0=G.survKey; G.survKey=function(e,down){
     if(act&&/^(KeyE|Enter|NumpadEnter)$/.test(e.code)){ e.preventDefault(); if(down&&!e.repeat) use(act); return; }
@@ -69,9 +135,13 @@ body:not(.surv) #pfui,#rmenu.on~#pfui{display:none}
 
   // ---- 그리기(월드 좌표, 카메라가 걸린 ctx·fx). 방(room.js)이 켜져 있으면 방이 소품과 섞어 y 순서로 부르고, 아니면 영웅 앞뒤로 나눠 그린다
   // 이름표: 화면에서 늘 같은 크기로 보이게 월드 단위를 화면 픽셀로 맞춘다
-  function tag(s,x,y){ const px=(W/innerWidth)/(S*cam.z), fs=12*px, pad=8*px, h=fs*1.8;
+  function tag(s,x,y){ signs.push([s,x,y]); }
+  function paintTag(s,x,y){ const ctx=tctx,fs=12,pad=8,h=fs*1.8;
     ctx.save(); ctx.font=`600 ${fs}px ${KR}`; const w=ctx.measureText(s.label).width+pad*2;
-    ctx.fillStyle='rgba(4,16,20,.78)'; ctx.fillRect(x-w/2,y-h,w,h); ctx.strokeStyle='rgba(127,243,255,.55)'; ctx.lineWidth=px; ctx.strokeRect(x-w/2,y-h,w,h);
+    const xy=layoutTag(s,x,y,w,h);
+    if(!xy){ ctx.restore(); return; }
+    x=xy[0]+w/2; y=xy[3];
+    ctx.fillStyle='rgba(4,16,20,.78)'; ctx.fillRect(x-w/2,y-h,w,h); ctx.strokeStyle='rgba(127,243,255,.55)'; ctx.lineWidth=1; ctx.strokeRect(x-w/2,y-h,w,h);
     ctx.fillStyle='#DDFBFF'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(s.label,x,y-h/2); ctx.restore(); }
   // 그림 NPC: 발밑에 문간·등불이 비춘 빛 웅덩이(미리 그린 그림을 더한다), 그 위 부드러운 접지 그림자, 테두리 빛을 입힌 그림(PF.art.lit, 없으면 그냥 그림).
   // 발을 디딘 채 숨쉬듯 키가 1~2px 늘었다 줄었다 한다
@@ -141,9 +211,55 @@ body:not(.surv) #pfui,#rmenu.on~#pfui{display:none}
     ctx.fillStyle=hexA(c,.25+.2*p); ctx.beginPath(); ctx.moveTo(x,y-14); ctx.lineTo(x+22,y); ctx.lineTo(x,y+14); ctx.lineTo(x-22,y); ctx.closePath(); ctx.fill();
     glow(fx,x,y-6,40,c,.12+.12*p);
     if(s!==act&&s.label) tag(s,x,y-TOP.mark+40); }
-  function draw(s){ if(off(s)) return; if(s.kind==='npc') npc(s); else if(s.kind==='portal') portal(s); else small(s); }
-  // 그림 포탈은 앞의 둥근 받침에 올라선 영웅이 받침 앞에 보이게, 고리 문 밑동(그림 높이의 .81)을 기준으로 앞뒤를 가른다
-  const ky=s=>s.kind==='portal'&&art(s)?s.y-gateH(s)*.19:s.y;
+  // 길 끝(road): 구역 경계·왕의 방 벽에 선 관문(posts: 기둥 둘의 자리, 높이 PH). 기둥의 빛 줄과 꼭대기 등은 열렸으면 청록, 닫혔으면 붉은색.
+  // 열린 관문: 두 기둥 꼭대기를 잇는 빛 가로대, 옅은 빛막, 떠오르는 빛 알갱이. 닫힌 관문: 두 짝의 닫힌 문(가로 골, 호박색 테), 그 앞의 붉은 장벽과 가로 빔, 가운데 자물쇠.
+  // 이름표는 관문 위(카메라 쪽을 향한 관문은 그 앞으로 걸어오는 영웅을 가리지 않게 오른쪽 기둥 옆). 관문이 없는 길(마을 큰길 끝)은 길가의 투사기와 그 위에 떠 있는 이름표
+  const PH=420;
+  const lockMark=(ctx,x,y,k,c)=>{ ctx.save(); ctx.strokeStyle=c; ctx.fillStyle=c; ctx.lineWidth=k*.2; ctx.beginPath(); ctx.arc(x,y-k*.3,k*.38,Math.PI,0); ctx.stroke();
+    ctx.fillRect(x-k*.58,y-k*.32,k*1.16,k*.86); ctx.fillStyle='#0d1619'; ctx.fillRect(x-k*.09,y-k*.08,k*.18,k*.34); ctx.restore(); };
+  // 이름표(늘 같은 화면 크기, 아래 끝이 y, 가로는 x가 가운데·left면 왼쪽 끝): 앞에 나가는 쪽 호박색 화살표, 닫혔으면 붉은 자물쇠와 붉은 테.
+  // 화면 위·아래 HUD 띠와 화면 밖으로 나가지 않게 화면 안으로 민다. 그린 자리(CSS px [왼, 위, 오른, 아래])를 s.tagBox에 남긴다(시험이 본다)
+  function roadTag(s,x,y,left){ signs.push([s,x,y,left]); }
+  function paintRoadTag(s,x,y,left){ const ctx=tctx,fs=13,pad=9,h=fs*2.1,ic=fs*1.1;
+    ctx.save(); ctx.font=`700 ${fs}px ${KR}`; const w=ctx.measureText(s.label).width+pad*3+ic;
+    const pos=layoutTag(s,x,y,w,h,left);
+    if(!pos){ ctx.restore(); return; }
+    const x0=pos[0], cx=x0+pad+ic/2; y=pos[3]; const cy=y-h/2;
+    ctx.fillStyle='rgba(4,16,20,.86)'; ctx.fillRect(x0,y-h,w,h); ctx.strokeStyle=s.open?'rgba(127,243,255,.7)':hexA(RD,.85); ctx.lineWidth=1.4; ctx.strokeRect(x0,y-h,w,h);
+    if(s.open){ ctx.save(); ctx.translate(cx,cy); ctx.rotate(Math.atan2(s.dir[1],s.dir[0])); ctx.fillStyle=AM; ctx.beginPath();
+      ctx.moveTo(ic*.55,0); ctx.lineTo(-ic*.4,-ic*.46); ctx.lineTo(-ic*.14,0); ctx.lineTo(-ic*.4,ic*.46); ctx.closePath(); ctx.fill(); ctx.restore(); }
+    else lockMark(ctx,cx,cy+ic*.1,ic*.8,RD);
+    ctx.fillStyle=s.open?'#F2FEFF':'#EBCFC8'; ctx.textAlign='left'; ctx.textBaseline='middle'; ctx.fillText(s.label,cx+ic/2+pad,cy); ctx.restore(); }
+  function pylon(x,y,c,p){ ctx.fillStyle='rgba(0,0,0,.45)'; ctx.beginPath(); ctx.ellipse(x,y,64,64*FSY,0,0,TAU); ctx.fill();
+    ctx.fillStyle='#0d1619'; ctx.beginPath(); ctx.moveTo(x-36,y); ctx.lineTo(x-25,y-PH); ctx.lineTo(x+25,y-PH); ctx.lineTo(x+36,y); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle=hexA(c,.5); ctx.lineWidth=3; ctx.stroke();
+    ctx.fillStyle=hexA(c,.5+.35*p); ctx.fillRect(x-4,y-PH+34,8,PH-70);
+    ctx.fillStyle='#1b2529'; ctx.fillRect(x-32,y-PH-20,64,24); ctx.fillStyle=hexA(c,.85); ctx.fillRect(x-24,y-PH-12,48,6);
+    glow(fx,x,y-PH-8,80,c,.42+.25*p); glow(fx,x,y-PH*.5,100,c,.1+.08*p); }
+  // 네 점 다각형을 채운다(g: ctx 또는 fx)
+  const quad=(g,P)=>{ g.beginPath(); g.moveTo(P[0][0],P[0][1]); for(let i=1;i<P.length;i++) g.lineTo(P[i][0],P[i][1]); g.closePath(); g.fill(); };
+  function road(s){ const c=s.open?HC:RD, p=.5+.5*Math.sin(RT*2.4+s.x*.01);
+    if(!s.posts){ const x=s.x-s.dir[0]*40, y=s.y-170, h=300;
+      ctx.fillStyle='rgba(0,0,0,.45)'; ctx.beginPath(); ctx.ellipse(x,y,46,46*FSY,0,0,TAU); ctx.fill();
+      ctx.fillStyle='#0b1418'; ctx.beginPath(); ctx.ellipse(x,y,30,30*FSY,0,0,TAU); ctx.fill(); ctx.strokeStyle=hexA(c,.7); ctx.lineWidth=3; ctx.stroke();
+      const g=fx.createLinearGradient(0,y-h,0,y); g.addColorStop(0,hexA(c,.06)); g.addColorStop(1,hexA(c,.34+.1*p)); fx.fillStyle=g; fx.fillRect(x-5,y-h,10,h);
+      glow(fx,x,y-8,70,c,.32); roadTag(s,x,y-h); return; }
+    // 기둥 사이 바닥 줄 위의 점(t 0~1)과 그 위로 k만큼 올린 점
+    const [[x0,y0],[x1,y1]]=s.posts[0][0]<s.posts[1][0]?s.posts:[s.posts[1],s.posts[0]], L=(t,k=0)=>[x0+(x1-x0)*t,y0+(y1-y0)*t-k], Hd=PH*.8;
+    if(s.open){ const g=fx.createLinearGradient(0,Math.min(y0,y1)-PH,0,Math.max(y0,y1)); g.addColorStop(0,hexA(c,0)); g.addColorStop(1,hexA(c,.13+.05*p)); fx.fillStyle=g; quad(fx,[L(0),L(1),L(1,PH),L(0,PH)]);
+      const a=L(0,PH-8), b=L(1,PH-8); fx.strokeStyle=hexA(c,.7); fx.lineWidth=6; fx.beginPath(); fx.moveTo(a[0],a[1]); fx.lineTo(b[0],b[1]); fx.stroke();
+      for(let i=0;i<7;i++){ const q=(RT*.22+i/7)%1, m=L(.1+(i*.618%1)*.8,q*PH*.9); glow(fx,m[0],m[1],10,'#DFFBFF',.6*Math.sin(q*Math.PI)); } }
+    else { for(const [a,b] of [[.07,.49],[.51,.93]]){ ctx.fillStyle='rgba(16,24,28,.95)'; quad(ctx,[L(a),L(b),L(b,Hd),L(a,Hd)]); ctx.strokeStyle='rgba(235,167,78,.6)'; ctx.lineWidth=3; ctx.stroke();
+        ctx.strokeStyle='rgba(130,150,156,.24)'; ctx.lineWidth=4; for(let k=28;k<Hd-12;k+=34){ const u=L(a+.03,k), v=L(b-.03,k); ctx.beginPath(); ctx.moveTo(u[0],u[1]); ctx.lineTo(v[0],v[1]); ctx.stroke(); } }
+      const g=fx.createLinearGradient(0,Math.min(y0,y1)-Hd-40,0,Math.max(y0,y1)); g.addColorStop(0,hexA(RD,0)); g.addColorStop(1,hexA(RD,.22+.08*p)); fx.fillStyle=g; quad(fx,[L(0),L(1),L(1,Hd+40),L(0,Hd+40)]);
+      fx.strokeStyle=hexA(RD,.5+.25*p); fx.lineWidth=5; for(const k of [.22,.5,.78]){ const a=L(0,Hd*k), b=L(1,Hd*k); fx.beginPath(); fx.moveTo(a[0],a[1]); fx.lineTo(b[0],b[1]); fx.stroke(); }
+      const m=L(.5,Hd*.58); lockMark(ctx,m[0],m[1],34,'#F0A090'); glow(fx,m[0],m[1],90,RD,.25+.1*p); }
+    pylon(x0,y0,c,p); pylon(x1,y1,c,p);
+    if(s.dir[1]>.5) roadTag(s,x1+50,Math.max(y0,y1)-PH*.45,true);
+    else roadTag(s,L(.5)[0],Math.min(y0,y1)-PH-44); }
+  function draw(s){ if(off(s)) return; if(s.kind==='npc') npc(s); else if(s.kind==='portal') portal(s); else if(s.kind==='road') road(s); else small(s); }
+  // 그림 포탈은 앞의 둥근 받침에 올라선 영웅이 받침 앞에 보이게, 고리 문 밑동(그림 높이의 .81)을 기준으로 앞뒤를 가른다. 관문이 선 길 끝은 기둥이 선 경계 줄로
+  const ky=s=>s.kind==='portal'&&art(s)?s.y-gateH(s)*.19:s.kind==='road'&&s.posts?Math.max(s.posts[0][1],s.posts[1][1]):s.y;
   const dp0=drawPlayer; drawPlayer=function(){
     if(!list.length||G.mode!=='surv'||(PF.room&&PF.room.cur)) return dp0();
     const gy=pl.gy??0, L=list.slice().sort((a,b)=>ky(a)-ky(b));

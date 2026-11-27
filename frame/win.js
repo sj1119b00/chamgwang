@@ -1,11 +1,31 @@
-// 창 (설계 5.2, 17.1): hub.js의 화면(구역 지도, 시뮬레이터, 패브리케이터, 후손 기록)을 지금 장소 위에 띄운다.
+// 창 (설계 5.2, 17.9): 현재 장소 위에 지도와 스킬·장비·기록·설정 화면을 띄운다.
 // 창은 한 번에 하나. 열려 있는 동안 뒤 장소는 갱신도 그리기도 멈춘다(PF.heat.hold). 전투 장소의 안전지대 밖에서는 보기만 된다.
 // boot.js가 place.js 다음에 붙인다. 전역 lock(index.html)을 쓴다
 (function(){
 'use strict';
 const G=window.RPG, A=G.api, el=A.menuEl, PF=window.PF;
-// 창 → hub.js 화면. 기록과 설정은 같은 guild 화면을 frame.css가 나눠 보인다
-const WINDOWS={map:'quest',skills:'train',gear:'smith',records:'guild',settings:'guild'};
+// 메뉴 애니메이션은 보이는 동안에만 예약한다. 구역 바닥은 전투를 실제로 그리는 시점에 맞춘다.
+G.frame.runMenuAnimation=function(visible,paint,swapFloor){
+  let timer=null;
+  const showing=()=>!document.hidden&&visible();
+  function menuTick(){
+    timer=null;
+    if(!showing()) return;
+    paint(performance.now());
+    timer=setTimeout(menuTick,1000/30);
+  }
+  function changed(){
+    if(showing()){if(timer===null) menuTick();}
+    else if(timer!==null){clearTimeout(timer);timer=null;}
+  }
+  new MutationObserver(changed).observe(el,{childList:true,attributes:true,attributeFilter:['class']});
+  document.addEventListener('visibilitychange',changed);
+  const draw=render;
+  render=function(){swapFloor();return draw.apply(this,arguments);};
+  changed();
+};
+// map은 frame/map.js가 그린다. 나머지는 hub 화면이고, 기록과 설정은 같은 guild 화면을 나눠 보인다.
+const WINDOWS={map:'map',skills:'train',gear:'smith',records:'guild',settings:'guild'};
 // 보기 전용에서 누를 수 없는 버튼: hub.js menuOverride의 on('[data-…]') 가운데 상태를 바꾸는 것
 // (스킬 강화, 장비 장착·분해·제작·강화, 스킬 색 선택·구매, 후손 교체, 구역 진입, 모의 전투 시작).
 // 화면 이동(data-go), 탭(data-tab), 구역 고르기(data-q, 지도), 후손 보기(data-h), 설정(data-opt, data-spd)은 그대로 된다
@@ -15,9 +35,10 @@ const W={WINDOWS,cur:null,readOnly:false};
 let fight=false, x0=null, c0=null;
 const cls=()=>['pf-win','pf-w-'+W.cur].concat(W.readOnly?['pf-ro']:[]);
 
-W.open=function(id){
+W.open=function(id,tab){
   const P=PF.place;
   if(!WINDOWS[id]||P.cur==='title'||P.cur==='hero') return false;
+  if(id==='map'&&(!PF.map||!PF.map.area())) return false;
   if(W.cur) W.close();
   if(PF.story?PF.story.busy()||PF.story.cur:lock) return false;
   fight=P.FIGHT.includes(P.cur);
@@ -29,7 +50,8 @@ W.open=function(id){
     if(fight) A.setPause(true);
     PF.heat.hold=true;
     el.classList.add('on',...cls());
-    G.hub.go(WINDOWS[id]);
+    if(id==='map') PF.map.mount(el,tab||'zone');
+    else G.hub.go(WINDOWS[id]);
   }catch(err){
     console.error('frame/win.js: 창('+id+')을 열지 못해 닫았다',err);
     W.close();
@@ -39,6 +61,7 @@ W.open=function(id){
 };
 W.close=function(){
   if(!W.cur) return;
+  if(W.cur==='map') PF.map.unmount();
   el.classList.remove('on','pf-win','pf-w-'+W.cur,'pf-ro');
   W.cur=null; W.readOnly=false; x0=c0=null;
   PF.heat.hold=false;
@@ -53,6 +76,7 @@ W.close=function(){
 // 기존 화면의 "← 기지"(data-go=town)와 "타이틀 화면"(data-go=title)은 창을 닫는다. 보기 전용이면 그린 뒤 RO 버튼을 끈다
 const mo=G.menuOverride;
 G.menuOverride=function(e){
+  if(W.cur==='map') return;
   if(W.cur&&(G.hub.scr==='town'||G.hub.scr==='title')){ W.close(); return; }
   const r=mo.apply(this,arguments);
   if(W.cur&&W.readOnly) e.querySelectorAll(RO).forEach(b=>{ b.disabled=true; });
@@ -67,6 +91,14 @@ G.survStart=function(){ W.close(); return ss.apply(this,arguments); };
 const sk=G.survKey;
 let escHeld=false;
 G.survKey=function(e,down){
+  if(e.code==='KeyM'){
+    if(down&&!e.repeat){
+      if(W.cur==='map') W.close();
+      else if(!W.cur&&!G.paused&&!G.sv.V.over&&G.frame.run) W.open('map');
+    }
+    e.preventDefault();
+    return;
+  }
   if(e.code==='Escape'&&escHeld){ if(down&&e.repeat) return; escHeld=false; }
   if(!W.cur) return sk.apply(this,arguments);
   if(down&&e.code==='Escape'&&!e.repeat){ escHeld=true; W.close(); }

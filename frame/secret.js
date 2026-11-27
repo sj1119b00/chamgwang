@@ -34,11 +34,9 @@ if(typeof window!=='undefined'&&window.RPG){
   // 화 번호 100 이상만 붙인다: 1~8은 사냥터의 화(story.js가 구역+1로 찾아 도입·대면·마무리를 사냥터 사건에 쓴다)라 숨은 곳의 장면이 섞이면 안 된다
   for(const e of PF.SECRET_EP||[]) if(e.ep>=100&&!PF.EP.some(x=>x.ep===e.ep)) PF.EP.push(e);
 
-  // 방 안의 시간 자리에 방 이름을 쓴다(글자가 길어 작게). 지도 창의 "숨은 곳"은 고른 구역 이름 옆
+  // 방 안의 시간 자리에 방 이름을 쓴다(글자가 길어 작게).
   const css=document.createElement('style'); css.id='pfsecret'; css.textContent=`
-body.pf-secret #shud .tm{font:700 19px ${KR}!important;letter-spacing:.03em}
-.hub .zinfo .big .pf-found{margin-left:auto;font:600 12px ${KR};color:#9AA6A2;white-space:nowrap}
-.hub .zinfo .big .pf-found b{font:700 13px ${KR};color:${AM};text-shadow:none}`;
+body.pf-secret #shud .tm{font:700 19px ${KR}!important;letter-spacing:.03em}`;
   document.head.appendChild(css);
   const tm=document.querySelector('#shud .tm'), bbName=document.querySelector('#shud .bb small');
 
@@ -157,13 +155,12 @@ body.pf-secret #shud .tm{font:700 19px ${KR}!important;letter-spacing:.03em}
     const L=PF.spots.list.filter(p=>p.locked); if(!L.length) return;
     applyCam(ctx); for(const p of L) drawLocked(p); ctx.setTransform(1,0,0,1,0,0); };
 
-  // ---- 지도 창(구역 고르기): 고른 구역 이름 옆에 "숨은 곳 찾은 수 / 전체 수". 무엇이 어디에 남았는지는 보이지 않는다. 봉인 줄은 구역 7이 열렸을 때만
-  const mo=G.menuOverride;
-  G.menuOverride=function(el){ const r=mo.apply(this,arguments); if(G.hub.scr==='quest') mapLine(el); return r; };
-  function mapLine(el){ const q=G.hub.qSel, zone=q==='seal'?PF.field.COUNT-1:q, big=el.querySelector('.zinfo .big');
-    if(!big||!Number.isInteger(zone)||PF.field.state(story().cleared,zone)==='locked') return;
-    const c=count(PF.SECRETS,zone,found(),PF.SECRET_BUILTIN), d=document.createElement('span'); d.className='pf-found';
-    d.innerHTML=`숨은 곳 <b>${c.found} / ${c.total}</b>`; big.appendChild(d); }
+  // 지도 탭에서 선택된 마을·구역의 발견 수. 기본 상자·기록 단말은 사냥터에만 있다.
+  S.mapLine=function(box,zone){
+    const c=count(PF.SECRETS,zone,found(),zone==='town'?0:PF.SECRET_BUILTIN);
+    const d=document.createElement('span'); d.className='pf-found';
+    d.innerHTML=`숨은 곳 <b>${c.found} / ${c.total}</b>`; box.appendChild(d);
+  };
 
   Object.defineProperty(S,'cur',{get:()=>cur&&cur.s.id});
   PF.secret=S;
