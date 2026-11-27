@@ -5,7 +5,7 @@
 // World: x/y is the floor plane (y = depth), z is height. The hero's floor position is pl.x / pl.gy (the engine draws him at pl.gy).
 'use strict';
 (()=>{
-const G=RPG, A=G.api, SV=()=>A.SV, SK=A.SK, VER=44;
+const G=RPG, A=G.api, SV=()=>A.SV, SK=A.SK, VER=45;
 const ZL=.42, ZP=.5, DUR=300, BOSS_T=240, CAP=340, SPD=430, BODY=170, FAR=1e5;
 const CLS_ORDER=['sword','mage','fist','shaman','pyro','assassin','axe','archer','gunner'];
 const NAMES={sword:'소드맨',mage:'메이지',fist:'파이터',shaman:'샤먼',pyro:'파이로',assassin:'암살자',axe:'액스',archer:'궁수',gunner:'거너'};
@@ -36,9 +36,11 @@ const FSY=.58;   // vertical squash of anything lying on the floor (tiles, rings
 
 // ============================================================ small helpers
 const snd={}; function sfx(n,...a){ if(RT-(snd[n]||0)<.055) return; snd[n]=RT; SFX[n](...a); }
-const DIF={sword:{hp:2.4,dmg:1.7,sp:1.25}}, dif=k=>(DIF[pl.cls]||{})[k]||1;
-const hm=()=>(1+V.t/75)*CH().hp*dif('hp');                // enemy health grows with time survived (and chapter)
-const dm=()=>(1+V.t/150)*CH().dmg*dif('dmg');              // and so does what they hit for
+// frame (?rpg&frame): class difficulty is the zone table's job there (frame/balance.js, design 17.8), so the old per-class factors are 1
+const DIF={sword:{hp:2.4,dmg:1.7,sp:1.25}}, dif=k=>G.frame?1:(DIF[pl.cls]||{})[k]||1;
+// frame/balance.js sets RPG.frame.flat in a hunting field: there the zone table (CHAP) alone sets the numbers, they do not also grow with time
+const hm=()=>(G.frame&&G.frame.flat?1:1+V.t/75)*CH().hp*dif('hp');                // enemy health grows with time survived (and chapter)
+const dm=()=>(G.frame&&G.frame.flat?1:1+V.t/150)*CH().dmg*dif('dmg');              // and so does what they hit for
 const alive=()=>V.en.filter(e=>!e.dead);
 const view=()=>({hw:W/(2*S*cam.z),hh:H/(2*S*cam.z)});
 const ACT=()=>(A.ORDER[pl.cls]||[]).filter(id=>SK[id]&&SK[id].type==='skill'&&(V.practice||A.unlocked(id)));
@@ -67,7 +69,8 @@ function doDash(){ if(G.mode!=='surv'||V.over||lock||G.paused||V.dash||V.dcd>0||
 // later skills hit harder: by the level they open at and by how long they wait (before this every skill did about the same damage a second,
 // so the long ones were only slower). basic and ultimates are unchanged
 const mul0=A.mul; A.mul=id=>{ const s=SK[id], k=s&&s.type==='skill'?(1+.1*((s.lv||1)-1))*Math.sqrt(Math.max(1,(s.cd||4)/4)):1; return mul0(id)*k; };
-function nearest(R){ if(aimAt) return aimAt; let b=null,bd=R*R; for(const e of V.en){ if(e.dead) continue; const d=(e.x-pl.x)**2+((e.y-pl.gy)/HY)**2; if(d<bd){ bd=d; b=e; } } return b; }
+// frame (?rpg&frame): frame/balance.js may put a woken signal node ahead of the nearest enemy (G.frame.nearest)
+function nearest(R){ if(aimAt) return aimAt; let b=null,bd=R*R; for(const e of V.en){ if(e.dead) continue; const d=(e.x-pl.x)**2+((e.y-pl.gy)/HY)**2; if(d<bd){ bd=d; b=e; } } return G.frame&&G.frame.nearest?G.frame.nearest(b,bd,R,HY):b; }
 function countIn(R){ let n=0; for(const e of V.en) if(!e.dead&&(e.x-pl.x)**2+((e.y-pl.gy)/HY)**2<R*R) n++; return n; }
 // the point (an enemy's position) with the most enemies around it, among those within R of the hero
 function densest(R,r=260){ let b=null,bn=0; const L=V.en.filter(e=>!e.dead&&(e.x-pl.x)**2+((e.y-pl.gy)/HY)**2<R*R);
@@ -225,7 +228,7 @@ function stepEnemies(dt){
     if(e.pull){ const dx=e.pull.x-e.x, dy=e.pull.y-e.y, l=Math.hypot(dx,dy)||1, s=Math.min(l,e.pull.s*dt)*(D.heavy?.3:1); e.x+=dx/l*s; e.y+=dy/l*s; e.pull=null; }
     if(e.z>0||e.vz>0){ e.vz-=3000*dt; e.z+=e.vz*dt; if(e.z<=0){ e.z=0; e.vz=0; } }
     // touching hurts: the hero's attacks keep the crowd round him stunned, so a wind-up swing alone almost never landed (2026-11-26)
-    if(!V.over&&D.dmg>0&&e.z<60&&e.hitCd<=0){ const cx=pl.x-e.x, cy=pl.gy-e.y; if(D.boss?Math.hypot(cx,cy)<D.r+95:Math.hypot(cx,cy/FSY)<Math.max(D.r+34,125)+30){ e.hitCd=1; hurt(D.dmg*dm()*(D.boss?1:.7),e); } }
+    if(!V.over&&D.dmg>0&&e.z<60&&e.hitCd<=0&&!(D.boss&&G.frame&&G.frame.kingOn)){ const cx=pl.x-e.x, cy=pl.gy-e.y; if(D.boss?Math.hypot(cx,cy)<D.r+95:Math.hypot(cx,cy/FSY)<Math.max(D.r+34,125)+30){ e.hitCd=1; hurt(D.dmg*dm()*(D.boss?1:.7),e); } }
     if(e.stun>0){ e.stun-=dt; e.swing=0; continue; }
     const dx=pl.x-e.x, dy=pl.gy-e.y, l=Math.hypot(dx,dy)||1; if(Math.abs(dx)>4) e.f=dx>0?1:-1;
     if(!D.boss&&l>far){ const [x,y]=spawnPos(); e.x=x; e.y=y; continue; }
@@ -233,13 +236,13 @@ function stepEnemies(dt){
     let go=1;
     if(D.ranged){ go=l>560?1:l<380?-1:0; e.atk-=dt; if(e.atk<=0&&l<760){ e.atk=rand(2.4,3.4); e.castT=.55;
         after(.3,()=>{ if(e.dead||G.mode!=='surv') return; const a=Math.atan2(pl.gy-e.y,pl.x-e.x); V.pj.push({orb:true,x:e.x+Math.cos(a)*40,y:e.y+Math.sin(a)*40,vx:Math.cos(a)*520,vy:Math.sin(a)*520,life:3.2,dmg:D.dmg}); sfx('whoosh',1.6,.2); }); } }
-    if(D.boss){ e.atk-=dt; if(e.atk<=0){ e.atk=3; e.castT=.9; const n=V.t>270?5:3;
+    if(D.boss&&!(G.frame&&G.frame.kingOn)){ e.atk-=dt; if(e.atk<=0){ e.atk=3; e.castT=.9; const n=V.t>270?5:3;
         for(let i=0;i<n;i++){ const a=rand(0,TAU), r=i?rand(140,320):0; V.mk.push({x:pl.x+Math.cos(a)*r,y:pl.gy+Math.sin(a)*r,t:-i*.1,dur:1,r:170,dmg:D.dmg*1.2}); } sfx('click'); } }
     if(e.castT>0&&!D.ranged) go=.2;
     const sp=D.spd*mul*go*(e.z>0?0:1)*(e.slowT>0?.4:1); e.x+=dx/l*sp*dt; e.y+=dy/l*sp*dt; e.walkT+=Math.abs(go)*dt*(e.slowT>0?.4:1);
     const lf=Math.hypot(dx,dy/FSY), reach=Math.max(50+D.r,140); if(e.hurtT>0) e.swing=0;
     if(e.swing>0){ e.swing-=dt; if(e.swing<=0&&e.z<60&&Math.hypot(pl.x-e.x,(pl.gy-e.y)/FSY)<reach+40) hurt(D.dmg*dm(),e); }
-    else if(lf<reach&&e.z<60&&e.hitCd<=0){ if(D.ranged||D.boss){ e.hitCd=.9; hurt(D.dmg*dm(),e); } else { e.hitCd=1.2; e.swing=.32; e.castT=.55; } }
+    else if(lf<reach&&e.z<60&&e.hitCd<=0&&!(D.boss&&G.frame&&G.frame.kingOn)){ if(D.ranged||D.boss){ e.hitCd=.9; hurt(D.dmg*dm(),e); } else { e.hitCd=1.2; e.swing=.32; e.castT=.55; } }
   }
   // spread the crowd (spatial hash) and keep it off the hero
   const C=120, g=new Map(), key=(x,y)=>x*65536+y;
@@ -662,7 +665,7 @@ function end(){ // leaving the mode: hand the engine back its ground line and ca
   parts.length=0; timers.length=0; fires.length=0; cutin=null; warn=null; lock=false; anim.seq=null; timeScale=1; slowHold=0; if(G.sv.cine) G.sv.cine.reset(); window.LBK=undefined; ov.lbT=0; ov.dimT=0; post.grayT=0; post.tilt=post.tiltT=0; if(window.GFX) GFX.gain=1.25; V.zk=1; V.ultTick=null; pl.visible=true; G.pose=null;
   window.BLOOMK=1; GROUND=770; pl.gy=undefined; pl.air=pl.airT=0; cam.x=cam.fx=VW/2; cam.y=cam.fy=CY; cam.z=cam.fz=1; cam.ft=0; }
 G.survEnd=end;
-function finish(win){ if(V.over) return; V.over=true; joyHide(); G.keys={};
+function finish(win){ if(G.frame&&G.frame.onFinish&&G.frame.onFinish(win)) return; if(V.over) return; V.over=true; joyHide(); G.keys={};
   if(V.acc>0){ A.gainExp(V.acc); V.run+=V.acc; V.acc=0; }
   const t=Math.min(DUR,V.t), sv=SV(); sv.best=sv.best||{}; const key=pl.cls+V.ch, prev=sv.best[key]||0; sv.best[key]=Math.max(prev,Math.round(t));
   let first=false;
@@ -718,7 +721,7 @@ G.firstSkills=c=>{ const L=(A.ORDER[c]||[]).filter(id=>SK[id]&&SK[id].type==='sk
 const inView=(x,y,k=.5)=>{ const {hw,hh}=view(); return [clamp(x,cam.x-hw*k,cam.x+hw*k),clamp(y,cam.y-hh*k+BODY*.5,cam.y+hh*k+BODY*.5)]; };
 G.sv={V,A,SK,BODY,CH,DASH_ID,doDash,CHAP,EN,CLS,CLS_ORDER,CCOL,NAMES,spawn,shock1,inView,FSY,draw:(life,fn,delay=0)=>V.draws.push({t0:RT+delay,life,fn}),nearest,countIn,densest,angTo,face,seq,dmg,hitFx,inCircle,inCircleS,inSector,inLine,sfx,view,onScreen,tdV,dropFx,ultStart,ultStop,ultHit,addVfx,burst,fring,heal,hurt,
   fmtN,reg(c,def){ CLS[c]=def; if(def.sk) Object.assign(SK,def.sk); if(def.order) A.ORDER[c]=def.order; if(G.mode==='menu') A.menuRender(); if(G.mode==='surv'&&c===pl.cls) buildBar(); }};
-for(const f of ['hub','fx3','vol3','gfx','vfx3','vkit3','bake3_meta','bake3','cine','assassin_flow','assassin_mist','assassin_blades','assassin_cuts','assassin_ground','assassin_skills','assassin_eclipse','assassin_loom','axe_skills','axe_ult1','axe_ult2','axe_ult3',...CLS_ORDER.map(c=>'sk_'+c),'mk','mk_sword']){
+for(const f of ['hub','engine/quality','fx3','vol3','gfx','vfx3','vkit3','bake3_meta','bake3','cine','assassin_flow','assassin_mist','assassin_blades','assassin_cuts','assassin_ground','assassin_skills','assassin_eclipse','assassin_loom','axe_skills','axe_ult1','axe_ult2','axe_ult3',...CLS_ORDER.map(c=>'sk_'+c),'mk','mk_sword']){
   const s=document.createElement('script'); s.src=`${f}.js?v=${VER}`; s.async=false;
   if(f==='mk') s.onload=()=>{ if(G.mode==='menu'&&(pl.cls==='assassin'||pl.cls==='axe')) A.menuRender(); else if(G.mode==='surv'&&V.practice) buildPractice(); };
   document.body.appendChild(s);

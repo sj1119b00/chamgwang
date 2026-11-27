@@ -399,6 +399,6 @@ K.flare=(x,y,z,o={})=>{ if(!F.on) return; const m=mats(), P=pal(o.pal), dur=o.du
   GFX.add(dur,(k)=>{ const a=(1-k)*(1-k); F.bill(m.glowO,x,y,z,s*(1+k*.6)*(o.sx||1),s*(1+k*.6)*(o.sy||1),0,{...C,a,gain:(o.gain||3)}); },o.delay||0); };
 // options: "reduce flashes and shake" stops refraction and softens the kit; "effect quality: low" thins particles and floor lights
 const OPT=()=>(RPG.api&&RPG.api.SV&&RPG.api.SV.opt)||{};
-if(window.GFX){ GFX.calm=()=>!!OPT().calm; K.tune=()=>{ const low=!!OPT().lowfx||!!(F&&F.auto); GFX.QK=low?.4:(typeof COARSE!=='undefined'&&COARSE?.7:1); if(F) F.low=low; }; K.tune(); }
+if(window.GFX){ GFX.calm=()=>!!OPT().calm; K.tune=()=>ENG.q.apply(); K.tune(); }
 if(F&&F.on) K.pre();
 })();

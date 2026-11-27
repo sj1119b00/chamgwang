@@ -24,19 +24,24 @@ MK.CLIPS.coil=MK.compile({keys:[ [.06,{gr:1,sf:1,sh:0,lw:[0,1,0],hip:[-.06,0,.31
 const DS=[]; let DRDY=null;
 MK.dshade=o=>{ DS.push(Object.assign({t0:RT,wait:0,dur:.1,clip:'cutA',sc:2.9,hold:.26},o)); };
 const o3=k=>1-(1-k)*(1-k)*(1-k);
-function dsFig(x,y,J,yaw,sc,a,rim,blade){ if(a<=.01&&rim<=.01) return;
+// lite: a copy left on the path. Its body and one plain red figure over it, no blur and no cut: canvas shadowBlur on the effect layer
+// cost several ms a figure, and the sixty copies of the twelve shadows made zero slash hitch (p95 169ms on PC, 2026-11-26)
+function dsFig(x,y,J,yaw,sc,a,rim,blade,lite){ if(a<=.01&&rim<=.01) return;
   if(a>.01){ ctx.save(); ctx.globalAlpha=Math.min(1,a); ctx.translate(x,y); ctx.scale(sc,sc); MK.figure(ctx,J,0,0,yaw,{flat:'#070206'}); ctx.restore(); }
   if(rim<=.01) return;
-  fx.save(); fx.translate(x,y); fx.scale(sc,sc); fx.globalCompositeOperation='lighter'; fx.globalAlpha=Math.min(1,rim); fx.shadowColor='#ff1430'; fx.shadowBlur=8;
-  const S=MK.figure(fx,J,0,0,yaw,{flat:'#ff3448'}); fx.shadowBlur=0; fx.globalAlpha=Math.min(1,rim)*.9; fx.save(); fx.translate(-1.6,-1.8); MK.figure(fx,J,0,0,yaw,{flat:'#ffb0a8'}); fx.restore(); fx.globalAlpha=1; fx.globalCompositeOperation='destination-out'; MK.figure(fx,J,0,0,yaw,{flat:'#000'});
+  fx.save(); fx.translate(x,y); fx.scale(sc,sc); fx.globalCompositeOperation='lighter';
+  if(lite){ fx.globalAlpha=Math.min(1,rim)*.5; MK.figure(fx,J,0,0,yaw,{flat:'#ff2a40'}); fx.restore(); return; }
+  /* the crimson rim: the red figure nudged out four ways (its inside is cut away below), in place of a canvas blur */
+  let S=null; fx.globalAlpha=Math.min(1,rim)*.75; for(const [ox,oy] of [[2.4,1.6],[-2.4,-1.6]]){ fx.save(); fx.translate(ox,oy); S=MK.figure(fx,J,0,0,yaw,{flat:'#ff3448'}); fx.restore(); } fx.globalAlpha=Math.min(1,rim)*.9; fx.save(); fx.translate(-1.6,-1.8); MK.figure(fx,J,0,0,yaw,{flat:'#ffb0a8'}); fx.restore(); fx.globalAlpha=1; fx.globalCompositeOperation='destination-out'; MK.figure(fx,J,0,0,yaw,{flat:'#000'});
   if(blade>.01&&S&&S.sb&&S.st){ fx.globalCompositeOperation='lighter'; fx.lineCap='round'; fx.globalAlpha=Math.min(1,blade); fx.strokeStyle='#ff4a5a'; fx.lineWidth=5; fx.beginPath(); fx.moveTo(S.sb[0],S.sb[1]); fx.lineTo(S.st[0],S.st[1]); fx.stroke(); fx.strokeStyle='#fff4f0'; fx.lineWidth=1.8; fx.stroke(); }
   fx.restore(); }
 function drawDS(){ if(!MK.on()){ DS.length=0; return; } if(!DRDY) DRDY=MK.solve(MK.sample(MK.CLIPS.iaiReady,.86,null));
   for(let i=DS.length-1;i>=0;i--){ const s=DS[i], t=RT-s.t0, end=s.wait+s.dur+(s.merge?0:s.hold+.34); if(t>end+.32){ DS.splice(i,1); continue; } const sc=s.sc;
     if(t<s.wait){ const a=Math.min(1,t/.14); dsFig(s.x0,s.y0,DRDY,s.yaw,sc*(.9+.1*a),a*.92,a*.9,a*.7); continue; }
     const u=t-s.wait, k=Math.min(1,u/s.dur), e=o3(k), cl=MK.CLIPS[s.clip], dx=s.x1-s.x0, dy=s.y1-s.y0;
-    // the chain left on the path: five copies at fixed places, each in the pose he had there, fading .3s after he passed it
-    for(let j=1;j<=5;j++){ const f=j/6; if(e<f) break; const tp=s.dur*f, ag=Math.max(0,1-(u-tp)/.3); if(ag<=0) continue; dsFig(s.x0+dx*o3(f),s.y0+dy*o3(f),MK.solve(MK.sample(cl,tp,null)),s.yaw,sc,ag*.38*(.5+.5*f),ag*.55*(.5+.5*f),0); }
+    // the chain left on the path: three copies at fixed places, each in the pose he had there, fading .3s after he passed it
+    if(!s.cj) s.cj=[];
+    for(let j=1;j<=3;j++){ const f=j/4; if(e<f) break; const tp=s.dur*f, ag=Math.max(0,1-(u-tp)/.3); if(ag<=0) continue; const Jc=s.cj[j]||(s.cj[j]=MK.solve(MK.sample(cl,tp,null))); dsFig(s.x0+dx*o3(f),s.y0+dy*o3(f),Jc,s.yaw,sc,ag*.38*(.5+.5*f),ag*.55*(.5+.5*f),0,true); }
     if(s.merge&&k>=1) continue;
     const J=MK.solve(MK.sample(cl,u,null)), lv=k<1?0:Math.min(1,(u-s.dur-s.hold)/.34), a=(1-lv)*(1-lv), rim=1-lv*lv*.6-Math.max(0,(u-s.dur-s.hold-.34)/.32)*.4;
     dsFig(s.x0+dx*e,s.y0+dy*e-lv*60,J,s.yaw,sc*(1+.06*lv),a*.95,Math.max(0,rim)*(lv>=1?Math.max(0,1-(u-s.dur-s.hold-.34)/.32):1),k<1?1:Math.max(0,1-(u-s.dur)/.3)); } }

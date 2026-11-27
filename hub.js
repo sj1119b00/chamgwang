@@ -660,18 +660,20 @@ function zmapPick(cv,e){ if(!ZM) return -1; const r=cv.getBoundingClientRect(), 
   const [sx,sy]=mpt(SEAL); if((x-sx)**2+(y-sy)**2<18*18) return 'seal'; return ZM.lab[y*MW+x]??-1; }
 
 let lastBg=0;
-(function loop(t){ requestAnimationFrame(loop); floorSwap(); if(G.mode!=='menu'||!A.menuEl.classList.contains('on')||!bgBox.isConnected) return; if(t-lastBg<33) return; lastBg=t; drawFx(t/1000,scr);
+(function loop(t){ requestAnimationFrame(loop); floorSwap(); if((G.mode!=='menu'&&!(window.PF&&PF.win&&PF.win.cur))||!A.menuEl.classList.contains('on')||!bgBox.isConnected) return; if(t-lastBg<33) return; lastBg=t; drawFx(t/1000,scr);
   for(const c of A.menuEl.querySelectorAll('canvas[data-hero]')) drawPortrait(c,c.dataset.hero,t/1000);
   for(const c of A.menuEl.querySelectorAll('canvas[data-zmap]')) drawZmap(c,t/1000); })(0);
 
 // ============================================================ zone result: credits, gear, Leon's record (surv.js finish() hands over through G.hubResult)
-G.hubResult=o=>{ const tb=1+stat('t')/100, D=G.dun&&G.dun.result(); let gold, item=null, sold=0;
+// the payment alone, no screen (frame/field.js settles a hunting field with it). D: what the zone map's caches hold, G.dun.result() unless given
+function settle(o,D=G.dun&&G.dun.result()){ const tb=1+stat('t')/100; let gold, item=null, sold=0;
   if(o.win){ gold=Math.round((60*(o.ch+1)+o.kills*.6)*tb); item=newItem(tierOf(o.ch),rollRar(o.ch,o.first)); }
   else { gold=Math.round(30*(o.ch+1)*Math.min(1,(D?D.nodes/3:o.t/300))*tb+o.kills*.2); if((D?D.nodes>0:o.t>90)&&Math.random()<.35) item=newItem(tierOf(o.ch),0); }
   /* the zone map's caches: their credits, and gear found on the way */
   if(D){ gold+=Math.round(D.gold*tb); for(let i=0;i<D.loot&&H.stash.length<BAG;i++){ H.stash.push(newItem(tierOf(o.ch),D.lootR?D.lootR[i]:rollRar(o.ch,false))); H.fresh=(H.fresh||0)+1; } }
   H.gold+=gold; if(item){ if(H.stash.length<BAG){ H.stash.push(item); H.fresh=(H.fresh||0)+1; } else { sold=sellOf(item); H.gold+=sold; } }
-  restock(); hsave();
+  restock(); hsave(); return {gold,item,sold,D}; }
+G.hubResult=o=>{ const {gold,item,sold,D}=settle(o);
   const Z=ZONES[o.ch], el=o.el, rec=Math.min(7,SV().chClear||0); el.classList.add('hubr');
   el.innerHTML=`<div class="hub"><div class="hres panel"><div class="c1"><span class="hk" style="color:${o.win?AM:RD}">${o.win?'ZONE '+zno(o.ch)+' · SUBDUED':'SIGNAL LOST'}</span><h2 class="${o.win?'w':'l'}">${o.win?'구역 제압':'신호 소실'}</h2>
     <div class="sub">${Z.no}구역 · ${Z.name} · ${D?`${mmss(D.el)} · 노드 ${D.nodes}/${D.total} · 보급 ${D.chests}/${D.chestsN}`:mmss(o.t)+' 생존'}${o.win?' · '+Z.king+' 제압':''}${!D&&!o.win&&Math.round(o.t)>o.prev?' · 최고 기록':''}</div>
@@ -690,7 +692,7 @@ G.hubResult=o=>{ const tb=1+stat('t')/100, D=G.dun&&G.dun.result(); let gold, it
 
 // after a run the menu opens on the base
 { const tm=A.toMenu; A.toMenu=G.api.toMenu=function(){ if(booted) scr='town'; return tm.apply(this,arguments); }; }
-G.hub={get H(){ return H; },get scr(){ return scr; },get qSel(){ return qSel; },go,newItem,rollRar,RAR,stat,ZONES,drawOpticTarget:drawResident,save:hsave,reset(){ H=freshH(); restock(); hsave(); }};
+G.hub={get H(){ return H; },get scr(){ return scr; },get qSel(){ return qSel; },go,newItem,rollRar,RAR,stat,settle,ZONES,drawOpticTarget:drawResident,save:hsave,reset(){ H=freshH(); restock(); hsave(); }};
 // zone maps (dun.js) and skill colours (chroma.js) build on surv.js, which this file loads before
 for(const f of ['dun','chroma']){ const sc=document.createElement('script'); sc.src=f+'.js?v=2'; document.head.appendChild(sc); }
 if(G.mode==='menu') A.menuRender();

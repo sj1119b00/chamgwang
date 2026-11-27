@@ -724,7 +724,7 @@ if(linkedClass==='assassin'||rangedClass(linkedClass)){
   history.replaceState(history.state,'',location.pathname+location.search);
 }
 started=true; setClass(SV.cls||'sword',true); E.dead=true; E.respawn=1e9; pl.x=pl.home=VW*.62;
-{ const s=document.createElement('script'); s.src='surv.js?v=40';
+{ const s=document.createElement('script'); s.src='surv.js?v=41';
   s.onload=()=>menuEl.classList.add('on');
   s.onerror=()=>{ menuRender(); menuEl.classList.add('on'); };
   document.body.appendChild(s); }

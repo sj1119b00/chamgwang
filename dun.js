@@ -95,7 +95,7 @@ function mkProp(zk,k,x,y,s,R){ const im=IMG[zk][k.i], h=k.h*s; const o={k,zk,im,
 function pushOut(o,xk,yk,rad=0){ if(!M) return; const x=o[xk], y=o[yk];
   const L=M.grid.get(M.key(Math.floor(x/M.C),Math.floor(y/M.C))); if(L) for(const p of L){ const rx=p.rx+rad, ry=p.ry+rad*FSY, u=(o[xk]-p.x)/rx, v=(o[yk]-p.y)/ry, d=Math.hypot(u,v); if(d<1){ const k=d<1e-3?1:1/d; o[xk]=p.x+(d<1e-3?1:u)*k*rx; o[yk]=p.y+(d<1e-3?0:v)*k*ry; } }
   const B=M.B; o[xk]=Math.max(B.l+80,Math.min(B.r-80,o[xk])); o[yk]=Math.max(B.t+80,Math.min(B.b-60,o[yk]));
-  const a=M.arena, dx=o[xk]-a.x, dy=(o[yk]-a.y)/FSY, d=Math.hypot(dx,dy), ang=Math.atan2(dy,dx), inGap=M.gate&&!M.king&&Math.abs(ang-Math.PI/2)<.32;
+  const a=M.arena, dx=o[xk]-a.x, dy=(o[yk]-a.y)/FSY, d=Math.hypot(dx,dy), ang=Math.atan2(dy,dx), inGap=(M.gate||M.free)&&!M.king&&Math.abs(ang-Math.PI/2)<.32;
   if(!inGap&&Math.abs(d-a.r)<70){ const k=(d<a.r?a.r-70:a.r+70)/(d||1); o[xk]=a.x+dx*k; o[yk]=a.y+dy*k*FSY; } }
 function solidAt(x,y,m=0){ const o={x,y}; pushOut(o,'x','y',m); return Math.abs(o.x-x)>1||Math.abs(o.y-y)>1; }
 function spot(cx,cy,r0,r1,tries=10){ for(let i=0;i<tries;i++){ const a=rand(0,TAU), r=rand(r0,r1), x=cx+Math.cos(a)*r, y=cy+Math.sin(a)*r*FSY; if(!solidAt(x,y,60)) return [x,y]; } return null; }
@@ -103,13 +103,15 @@ function spot(cx,cy,r0,r1,tries=10){ for(let i=0;i<tries;i++){ const a=rand(0,TA
 // ============================================================ the run: objectives, waves, rewards
 const CAPA=150;
 function alive(){ let n=0; for(const e of V.en) if(!e.dead&&!e.d.node) n++; return n; }
-function pack(x,y,n,heavy){ for(let i=0;i<n&&alive()<CAPA;i++){ const p=spot(x,y,0,260); if(!p) continue; const r=Math.random(); S.spawn(heavy&&i===0?'brute':V.t>30&&r<.22?'archer':'shard',p[0],p[1]); } }
+function pack(x,y,n,heavy){ for(let i=0;i<n&&alive()<CAPA;i++){ const p=spot(x,y,0,260); if(!p) continue; const r=Math.random(); S.spawn(heavy&&i===0?'brute':(V.t>30||M.free)&&r<.22?'archer':'shard',p[0],p[1]); } }
 function offscreen(){ const {hw,hh}=S.view(); for(let i=0;i<12;i++){ const a=rand(0,TAU), x=cam.x+Math.cos(a)*(hw+220), y=cam.y+Math.sin(a)*(hh+260); if(!solidAt(x,y,80)) return [x,y]; } return null; }
 function say(t,sub,c){ M.msg={t,sub,c:c||M.Z.acc,t0:RT}; }
 function tick(rdt){ const ch=M.ch, Z=M.Z; M.el+=rdt;
   // difficulty grows with time spent and with progress, slower than the five-minute run did
-  if(M.won&&RT-M.wonT>2.4&&V.gems.length){ for(const g of V.gems) V.acc+=g.v; V.gems.length=0; }   /* whatever is still on its way is banked */
-  V.t=M.won&&RT-M.wonT>2.4?300:Math.min(250,M.el*.42+M.done*38);   /* after the king falls the run waits while his experience flies in */ V.spawn=-50; V.horde=99; V.bossDone=true;
+  if(M.won&&RT-M.wonT>2.4&&V.gems.length&&!M.free){ for(const g of V.gems) V.acc+=g.v; V.gems.length=0; }   /* whatever is still on its way is banked */
+  /* frame/field.js: a hunting field does not end when the king falls; once his experience is in it turns into open ground (M.free) with the arena door open */
+  if(M.won&&RT-M.wonT>2.4&&!M.free&&G.frame&&G.frame.run&&G.frame.run.kind==='field'){ M.free=true; M.king=null; G.frame.run.first=false; }
+  V.t=M.free?0:M.won&&RT-M.wonT>2.4?300:Math.min(250,M.el*.42+M.done*38);   /* after the king falls the run waits while his experience flies in */ V.spawn=-50; V.horde=99; V.bossDone=true;
   if(V.over||lock) return;
   // nodes: pinned in place; the closer the hero, the more they call
   for(const n of M.nodes){ if(n.done) continue; const e=n.e; if(e){ e.x=n.x; e.y=n.y; e.kx=e.ky=0; e.stun=1e9; e.z=0; }
@@ -134,11 +136,11 @@ function tick(rdt){ const ch=M.ch, Z=M.Z; M.el+=rdt;
   for(const l of M.logs){ if(l.read) continue; if(fd(pl.x,pl.gy,l.x,l.y)<170){ l.read=true; say('레온의 기록',l.txt,'#EBA74E'); V.acc+=20*(ch+1); S.sfx('rise',.5,.3); } }
   // the arena: once inside with the gate open, it seals and the king comes
   const a=M.arena, da=fd(pl.x,pl.gy,a.x,a.y);
-  if(M.gate&&!M.king&&da<a.r-260){ const k=S.spawn('boss',a.x,a.y-a.r*FSY*.35); M.king=k; V.boss=k; M.ht=8; clearOutside(true); stamp(Z.king,{x:.5,y:.3,size:.12,life:1.6,c:Z.acc,keep:1}); if(window.SFX&&SFX.siren) SFX.siren(1.6); say(Z.king,Z.kingEn,Z.acc); }
+  if(M.gate&&!M.king&&!M.free&&da<a.r-260){ const k=S.spawn('boss',a.x,a.y-a.r*FSY*.35); M.king=k; V.boss=k; M.ht=8; clearOutside(true); stamp(Z.king,{x:.5,y:.3,size:.12,life:1.6,c:Z.acc,keep:1}); if(window.SFX&&SFX.siren) SFX.siren(1.6); say(Z.king,Z.kingEn,Z.acc); }
   if(M.king&&!M.king.dead) clearOutside(false);
   if(M.king){ if(M.king.dead){ if(!M.won){ M.won=true; M.wonT=RT; V.mag=3; for(const e of V.en) if(!e.dead&&!e.d.node) S.dmg(e,e.hp*1.3+10,{kb:2}); say(Z.king+' 제압','경험치를 회수하는 중…',Z.acc); } } else { M.ht-=rdt; if(M.ht<=0){ M.ht=Math.max(8,13-ch); for(let i=0;i<3;i++){ const p=spot(a.x,a.y,a.r*.5,a.r*.85); if(p) pack(p[0],p[1],3+ch,i===0&&Math.random()<.5); } } } }
   // the thin ambient horde: small packs from off screen, more as the run goes on
-  M.packT-=rdt; if(M.packT<=0&&!M.king){ M.packT=Math.max(1.6,3.4-ch*.15-M.done*.3); if(alive()<26+ch*4+M.done*8){ const p=offscreen(); if(p) pack(p[0],p[1],3+(Math.random()*3|0)+M.done,M.el>60&&Math.random()<.12); } }
+  M.packT-=rdt; if(M.packT<=0&&!M.king){ const dn=M.free?0:M.done; M.packT=Math.max(1.6,3.4-ch*.15-dn*.3); if(alive()<26+ch*4+dn*8){ const p=offscreen(); if(p) pack(p[0],p[1],3+(Math.random()*3|0)+dn,(M.free||M.el>60)&&Math.random()<.12); } }
 }
 function clearOutside(puff){ const a=M.arena; for(const e of V.en){ if(e.dead||e.d.node||e.d.boss||fd(e.x,e.y,a.x,a.y)<a.r+60) continue; e.dead=true; if(puff) smoke(e.x,e.y-60,rand(30,50),{a:.35,life:.6,grow:60}); } }
 // after the engine moved everything: keep it out of the props and inside the map
@@ -200,7 +202,7 @@ function drawFloor(){ const Z=M.Z, c=Z.acc;
     ctx.fillStyle='rgba(0,0,0,.28)'; ctx.beginPath(); ctx.ellipse(p.x,p.y,r,r*FSY,0,0,TAU); ctx.fill();
     ctx.strokeStyle=hexA(p.k==='chest'?'#EBA74E':c,.28); ctx.lineWidth=5; ctx.beginPath(); ctx.ellipse(p.x,p.y,r*.92,r*.92*FSY,0,0,TAU); ctx.stroke();
     if(p.k!=='chest'){ ctx.setLineDash([30,40]); ctx.lineDashOffset=RT*(p.k==='start'?30:-50); ctx.beginPath(); ctx.ellipse(p.x,p.y,r*.7,r*.7*FSY,0,0,TAU); ctx.stroke(); ctx.setLineDash([]); } }
-  const a=M.arena, open=M.gate&&!M.king;
+  const a=M.arena, open=(M.gate||M.free)&&!M.king;
   ctx.fillStyle='rgba(0,0,0,.4)'; ctx.beginPath(); ctx.ellipse(a.x,a.y,a.r,a.r*FSY,0,0,TAU); ctx.fill();
   ctx.strokeStyle=hexA(c,.35); for(let i=1;i<=4;i++){ ctx.lineWidth=i===4?8:3; ctx.beginPath(); ctx.ellipse(a.x,a.y,a.r*i/4.2,a.r*i/4.2*FSY,0,0,TAU); ctx.stroke(); }
   ctx.lineWidth=3; for(let i=0;i<12;i++){ const ang=i/12*TAU+RT*.05; ctx.beginPath(); ctx.moveTo(a.x+Math.cos(ang)*a.r*.25,a.y+Math.sin(ang)*a.r*.25*FSY); ctx.lineTo(a.x+Math.cos(ang)*a.r*.95,a.y+Math.sin(ang)*a.r*.95*FSY); ctx.stroke(); }
@@ -260,7 +262,7 @@ const mini=document.createElement('canvas'); mini.className='dmini'; mini.width=
 const msg=document.createElement('div'); msg.className='dmsg'; hud.appendChild(msg);
 let lastMini=0;
 function hudTick(){ const $=s=>hud.querySelector(s), Z=M.Z, tm=$('.tm'), kc=$('.kc');
-  const obj=M.king?(M.won?'왕 제압':'왕을 쓰러뜨려라'):M.gate?'왕의 문으로':`신호 노드 ${M.done} / ${M.nodes.length}`;
+  const obj=M.king?(M.won?'왕 제압':'왕을 쓰러뜨려라'):M.free?'제압한 구역':M.gate?'왕의 문으로':`신호 노드 ${M.done} / ${M.nodes.length}`;
   if(tm) tm.textContent=obj; if(kc) kc.innerHTML=`<span>${Z.no}구역 · ${Z.name}</span><b>처치 ${V.kills} · 보급 ${M.chests.filter(c=>c.open).length}/${M.chests.length}${M.loot.length?` · <span style="color:#EBA74E${RT-(M.lootT||-9)<3?';text-shadow:0 0 8px #EBA74E':''}">장비 ${M.loot.length}</span>`:''}</b>`;
   if(M.msg){ const age=RT-M.msg.t0; msg.innerHTML=`<b style="color:${M.msg.c}">${M.msg.t}</b>${M.msg.sub||''}`; msg.classList.toggle('on',age<(M.msg.sub&&M.msg.sub.length>30?5.5:2.8)); }
   if(RT-lastMini<.1) return; lastMini=RT;
@@ -268,7 +270,7 @@ function hudTick(){ const $=s=>hud.querySelector(s), Z=M.Z, tm=$('.tm'), kc=$('.
   g.clearRect(0,0,W_,H_); g.fillStyle='rgba(127,243,255,.05)'; g.fillRect(0,0,W_,H_);
   g.strokeStyle='rgba(127,243,255,.28)'; g.lineCap='round'; for(const r of M.roads){ g.lineWidth=Math.max(3,r[4]*sx*.8); g.beginPath(); g.moveTo(X(r[0]),Y(r[1])); g.lineTo(X(r[2]),Y(r[3])); g.stroke(); }
   g.fillStyle='rgba(160,190,195,.35)'; for(const p of M.props) if(p.k.big) g.fillRect(X(p.x)-3,Y(p.y)-3,6,6);
-  const a=M.arena; g.strokeStyle=M.gate?Z.acc:'#ff4a5a'; g.lineWidth=2.5; g.beginPath(); g.ellipse(X(a.x),Y(a.y),a.r*sx,a.r*FSY*sy,0,0,TAU); g.stroke();
+  const a=M.arena; g.strokeStyle=M.gate||M.free?Z.acc:'#ff4a5a'; g.lineWidth=2.5; g.beginPath(); g.ellipse(X(a.x),Y(a.y),a.r*sx,a.r*FSY*sy,0,0,TAU); g.stroke();
   for(const c of M.chests){ g.fillStyle=c.open?'rgba(235,167,78,.25)':'#EBA74E'; g.fillRect(X(c.x)-4,Y(c.y)-4,8,8); }
   for(const l of M.logs){ if(l.read) continue; g.strokeStyle='#EBA74E'; g.lineWidth=2; g.strokeRect(X(l.x)-4,Y(l.y)-4,8,8); }
   for(const n of M.nodes){ const x=X(n.x), y=Y(n.y); g.fillStyle=n.done?'rgba(127,243,255,.25)':Z.acc; g.beginPath(); g.moveTo(x,y-9); g.lineTo(x+7,y); g.lineTo(x,y+9); g.lineTo(x-7,y); g.closePath(); g.fill(); }
@@ -279,18 +281,22 @@ function hudTick(){ const $=s=>hud.querySelector(s), Z=M.Z, tm=$('.tm'), kc=$('.
 // ============================================================ engine hooks (globals the engine calls; surv.js wrapped them first)
 let runStats=null;
 const upd0=update; update=function(rdt){
-  if(G.mode==='surv'&&G.stats!==runStats){ runStats=G.stats; if(!V.practice&&!V.over) start(); else stop(); }
+  if(G.mode==='surv'&&G.stats!==runStats){ runStats=G.stats; if(!V.practice&&!V.over&&!(G.frame&&G.frame.run&&/^(town|secret|endless)$/.test(G.frame.run.kind))) start(); else stop(); }
   if(G.mode!=='surv'&&M) stop();
   if(M&&!G.paused) tick(rdt);
   upd0(rdt);
   if(M&&G.mode==='surv'&&!G.paused){ collide(); hudTick(); } };
 function start(){ const ch=V.ch; M=build(ch);
   if(SPR.crystal) SPR.crystal.ok=false;
-  for(const n of M.nodes){ const e=S.spawn('node',n.x,n.y); e.stun=1e9; n.e=e; }
+  /* frame/field.js: a zone already subdued is open ground — its nodes are down from the start, no king, the arena door open */
+  if(G.frame&&G.frame.run&&G.frame.run.kind==='field'&&!G.frame.run.first){ M.free=true; for(const n of M.nodes) n.done=true; }
+  /* frame/challenge.js: a king rematch skips to the arena — the nodes are down, the door open, the hero (cloth and camera with him) just outside its mouth */
+  if(G.frame&&G.frame.run&&G.frame.run.kind==='rematch'){ for(const n of M.nodes) n.done=true; M.done=M.nodes.length; M.gate=true; const a=M.arena; pl.x=pl.home=a.x; pl.gy=a.y+(a.r+260)*FSY; for(const q of [...pl.scarf,...pl.coat]) q.init=false; cam.x=cam.fx=pl.x; cam.y=cam.fy=pl.gy-BODY*.6; }
+  for(const n of M.nodes){ if(n.done) continue; const e=S.spawn('node',n.x,n.y); e.stun=1e9; n.e=e; }
   /* the run opened with a scatter of crystals around the hero: thin it to a handful */
   V.en=V.en.filter(e=>e.d.node); pack(pl.x,pl.gy-900,4,false);
-  for(const p of parts) if(p.k==='banner'){ p.en=`ZONE ${String(M.Z.no).padStart(2,'0')} · 신호 노드 3개를 파괴하고 왕을 쓰러뜨려라`; }
-  hud.classList.add('dun'); say(`${M.Z.no}구역 · ${M.Z.name}`,'신호 노드 3개를 찾아 파괴하라. 노드의 빛기둥을 따라가면 된다.'); }
+  for(const p of parts) if(p.k==='banner'){ p.en=`ZONE ${String(M.Z.no).padStart(2,'0')} · ${M.free?'제압한 구역':'신호 노드 3개를 파괴하고 왕을 쓰러뜨려라'}`; }
+  hud.classList.add('dun'); if(M.free) say('제압한 구역 · 자유롭게 둘러보세요',''); else say(`${M.Z.no}구역 · ${M.Z.name}`,'신호 노드 3개를 찾아 파괴하라. 노드의 빛기둥을 따라가면 된다.'); }
 function stop(){ if(!M) return; M=null; if(SPR.crystal) SPR.crystal.ok=true; hud.classList.remove('dun'); msg.classList.remove('on'); }
 const prep0=drawBackground_prep; drawBackground_prep=function(){ prep0(); if(!M||G.mode!=='surv') return; applyCam(ctx); applyCam(fx); drawFloor(); ctx.setTransform(1,0,0,1,0,0); };
 const de0=drawEnemy; drawEnemy=function(){ if(M&&G.mode==='surv') visible(); de0(); if(M&&G.mode==='surv') drawUpTo(pl.gy??0); };

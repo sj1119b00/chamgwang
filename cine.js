@@ -7,7 +7,7 @@
 const G=RPG, X=G.sv, {V,A,BODY,FSY,view,onScreen,ultHit,fring}=X;
 const U=()=>W/390;                       // one CSS pixel of a 390-wide phone, in canvas pixels
 const LOW=()=>!!(A.SV.opt&&A.SV.opt.calm);   // "reduce flashes and shake" option
-const QK=()=>COARSE?.65:1;               // particle budget on phones
+const QK=()=>ENG.q.qk;                   // particle budget: one grade for every layer (engine/quality.js)
 
 // ---------------------------------------------------------------- images
 const IMG={}, TINT={};
