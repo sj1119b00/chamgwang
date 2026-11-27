@@ -594,7 +594,8 @@
   function sonic(id) {
     const stage=startUlt(id,wind,X.nearest(Infinity)),{x,y,hw,hh}=stage;
     // He gathers his ki into the one arrow for over a second before he looses it; the view closes on him while he does.
-    const loose=1.15,inkAt=loose+4.42,blastAt=inkAt+.105,stop=blastAt+.7;
+    // (2026-11-27) The flight is flown in half the time it was: the arrow is twice as fast on every leg.
+    const loose=1.15,inkAt=loose+2.21,blastAt=inkAt+.105,stop=blastAt+.7;
     C.move({x,y:y-BODY*.58,zoom:1.3,tilt:.047,roll:0},loose*.85);
     const course=sonicCourse(stage,loose,inkAt-loose);
     const draw=K.gather(x,y,BODY*.65,{pal:wind,r:139,R:760,dur:loose,n:.6,shells:1,gain:.8});
