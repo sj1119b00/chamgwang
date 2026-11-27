@@ -446,41 +446,43 @@
     K.dust(q.x,q.y,{n:low()?3:7,dir:a+Math.PI,spread:1.1,sp:[310,820],c:'#55857a',a:.36});
     GFX.light(q.x,q.y,rr*2.3,wind.l,.47,.26,{z:q.z});
   }
-  // One unbroken curve: a 4:5 Lissajous over the whole view that leaves the
-  // archer's chest and returns to it. The arrow runs it ever faster.
+  // (2026-11-27) The arrow does not stay inside the view. It leaves the
+  // archer's chest, flies off the screen, turns round out of sight and comes
+  // back across the whole view; every return is faster than the one before.
+  // The last return ends on the archer.
   function sonicCourse(stage,t0,T) {
-    const {x,y,hw,hh}=stage,z=BODY*.7,N=2200;
-    // A different curve every cast: two sine harmonics per axis with random
-    // whole-number frequencies, weights and mirroring. Whole numbers keep both
-    // ends of the course on the archer.
-    const pick=(lo,hi)=>lo+Math.floor(Math.random()*(hi-lo+1)),flip=()=>Math.random()<.5?-1:1;
-    const fx1=pick(13,17),fy1=fx1+(Math.random()<.5?1:-1),fx2=pick(1,19),fy2=pick(1,19);
-    const wx=.18+.24*Math.random(),wy=.18+.24*Math.random(),sx=flip(),sy=flip(),tx=flip(),ty=flip();
-    const rawX=th=>sx*(Math.sin(fx1*th)+tx*wx*Math.sin(fx2*th)),rawY=th=>sy*(Math.sin(fy1*th)+ty*wy*Math.sin(fy2*th));
-    let mx=0,my=0;
-    for(let j=0;j<=N;j++){const th=TAU*j/N;mx=Math.max(mx,Math.abs(rawX(th)));my=Math.max(my,Math.abs(rawY(th)));}
-    const at=p=>{const th=TAU*p;return point(x+hw*.93*rawX(th)/mx,y-BODY*.52+z+hh*.88*rawY(th)/my,z);};
-    // Speed climbs through the opening of the flight, holds, then never stops rising over the last two seconds.
-    const speed=u=>{const k=sat(u/.186),late=sat((u-.548)/.452);return (.16+.84*k*k*(3-2*k))*(1+1.6*Math.pow(late,1.6));},steps=440,dist=[0];
-    for(let i=1;i<=steps;i++)dist.push(dist[i-1]+speed((i-.5)/steps));
-    const progress=u=>{const f=sat(u)*steps,i=Math.min(steps-1,Math.floor(f));return mix(dist[i],dist[i+1],f-i)/dist[steps];};
-    const pAt=t=>progress(sat((t-t0)/T));
-    const timeOf=p=>{
-      let lo=0,hi=1;
-      for(let i=0;i<22;i++){const m=(lo+hi)/2;if(progress(m)<p)lo=m;else hi=m;}
-      return t0+T*hi;
+    const {x,y,hw,hh}=stage,z=BODY*.7,N=2200,cy=y-BODY*.52,legs=10,quicken=.8;
+    // Turning points on an ellipse wholly outside the view. Each lies nearly
+    // opposite the last, so every leg crosses the middle of the screen.
+    const way=[[x,cy]],spin=Math.random()<.5?-1:1;
+    let th=(pl.f>0?0:Math.PI)+(Math.random()-.5)*.8;
+    for(let i=1;i<legs;i++){way.push([x+Math.cos(th)*hw*1.7,cy+Math.sin(th)*hh*1.7]);th+=Math.PI+spin*(.25+.45*Math.random());}
+    way.push([x,cy]);
+    const wp=i=>way[Math.max(0,Math.min(legs,i))];
+    // A Catmull-Rom curve through them: straight across the view, rounded where it turns outside it.
+    const at=p=>{
+      const f=sat(p)*legs,i=Math.min(legs-1,Math.floor(f)),u=f-i,a=wp(i-1),b=wp(i),c=wp(i+1),d=wp(i+2);
+      const cr=k=>.5*(2*b[k]+(c[k]-a[k])*u+(2*a[k]-5*b[k]+4*c[k]-d[k])*u*u+(3*b[k]-a[k]-3*c[k]+d[k])*u*u*u);
+      return point(cr(0),cr(1)+z,z);
     };
+    // Each leg is flown a quarter faster than the one before it.
+    const len=[];
+    for(let i=0;i<legs;i++){
+      let l=0,q0=at(i/legs);
+      for(let j=1;j<=24;j++){const q=at((i+j/24)/legs);l+=Math.hypot(q.x-q0.x,q.y-q0.y);q0=q;}
+      len.push(l*quicken**i);
+    }
+    const total=len.reduce((sum,v)=>sum+v,0),tb=[0];
+    for(const l of len)tb.push(tb[tb.length-1]+l/total);
+    const progress=u=>{u=sat(u);let i=0;while(i<legs-1&&tb[i+1]<=u)i++;return (i+(u-tb[i])/(tb[i+1]-tb[i]))/legs;};
+    const pAt=t=>progress((t-t0)/T);
+    const timeOf=p=>{const f=sat(p)*legs,i=Math.min(legs-1,Math.floor(f));return t0+T*mix(tb[i],tb[i+1],f-i);};
     const pts=[],times=[];
     for(let j=0;j<=N;j++){const q=at(j/N);pts.push([q.x,q.y-q.z]);times.push(timeOf(j/N));}
-    // Every reversal near an edge of the view throws a sonic boom.
-    const turns=[],edge=(v,c,half)=>Math.abs(v-c)>half*.7;
-    const cy=y-BODY*.52;
-    for(let j=2;j<N-1;j++){
-      const [ax,ay]=pts[j-1],[bx,by]=pts[j],[nx,ny]=pts[j+1];
-      const turnX=(bx-ax)*(nx-bx)<=0&&edge(bx,x,hw*.93),turnY=(by-ay)*(ny-by)<=0&&edge(by,cy,hh*.88);
-      if((turnX||turnY)&&(!turns.length||j/N-turns[turns.length-1]>.012))turns.push(j/N);
-    }
-    return {at,pAt,timeOf,pts,times,N,z,turns:turns.slice(0,72)};
+    // Every return into the view throws a sonic boom, a little inside the edge.
+    const turns=[],inside=([px,py])=>Math.abs(px-x)<hw&&Math.abs(py-cy)<hh;
+    for(let j=1;j<N-12;j++)if(!inside(pts[j-1])&&inside(pts[j]))turns.push((j+12)/N);
+    return {at,pAt,timeOf,pts,times,N,z,turns};
   }
   // The lines behind the arrow are afterimages: bright where it has just been,
   // thinning and dimming with age. Each age band is a single stroke.
@@ -591,15 +593,38 @@
   }
   function sonic(id) {
     const stage=startUlt(id,wind,X.nearest(Infinity)),{x,y,hw,hh}=stage;
-    C.move({x,y:y-BODY*.52,zoom:1,tilt:.022,roll:0},.3);
-    const loose=.28,inkAt=loose+4.42,blastAt=inkAt+.105,stop=5.5;
+    // He gathers his ki into the one arrow for over a second before he looses it; the view closes on him while he does.
+    const loose=1.15,inkAt=loose+4.42,blastAt=inkAt+.105,stop=blastAt+.7;
+    C.move({x,y:y-BODY*.58,zoom:1.3,tilt:.047,roll:0},loose*.85);
     const course=sonicCourse(stage,loose,inkAt-loose);
-    const draw=K.gather(x,y,BODY*.65,{pal:wind,r:139,R:590,dur:loose,n:.41,shells:1,gain:.67});
-    C.SND.inhale(loose-.06,.24);
+    const draw=K.gather(x,y,BODY*.65,{pal:wind,r:139,R:760,dur:loose,n:.6,shells:1,gain:.8});
+    C.SND.inhale(loose-.06,.3);
     const bow=fromHero(),first=course.at(.004),aim=Math.atan2(first.y-first.z-bow.y+bow.z,first.x-bow.x);
     const back=point(bow.x-Math.cos(aim)*100,bow.y-Math.sin(aim)*100,bow.z);
-    animate(loose,k=>arrow(bow,back,hw*(.12+.13*k),ease(sat(k*4))));
-    later(loose,()=>{draw.release({s:.49,ring:0});release();C.shake(.2);});
+    animate(loose,k=>{
+      arrow(bow,back,hw*(.12+.13*k),ease(sat(k*4)));
+      // Threads of ki run in to the arrowhead, more and faster as the draw fills, and the head burns brighter.
+      const hx=bow.x,hy=bow.y-bow.z,n=low()?10:22;
+      fx.save();fx.lineCap='round';
+      for(let i=0;i<n;i++){
+        const h=(i*.618)%1,ph=(k*(1.5+2.5*h)+h)%1,ang=i*2.399,r0=hw*(.3+.22*h)*(1-ph)**1.5+10,r1=r0*(.78-.1*k);
+        fx.globalAlpha=sat(k*4-i/n)*Math.sin(Math.PI*ph)*.8;
+        fx.strokeStyle=i%3?'#bff3dc':'#ffe6aa';fx.lineWidth=1.5+3*k;
+        fx.beginPath();fx.moveTo(hx+Math.cos(ang)*r0,hy+Math.sin(ang)*r0*.62);fx.lineTo(hx+Math.cos(ang)*r1,hy+Math.sin(ang)*r1*.62);fx.stroke();
+      }
+      fx.globalAlpha=.25*k;star(fx,hx,hy,hw*(.02+.07*k*k),wind.m,-k*2);
+      fx.globalAlpha=.95*sat(k*2);star(fx,hx,hy,hw*(.008+.034*k*k)*(1+.1*Math.sin(k*70)),brass.h,k*3);
+      fx.restore();
+    });
+    // Three beats of the gathering, each brighter than the last.
+    for(const f of [.3,.56,.82])later(loose*f,()=>{
+      GFX.light(x,y,500+600*f,wind.l,.35+.5*f,.3,{z:BODY*.7});K.dust(x,y,{n:low()?3:6,sp:[160,420],c:'#55857a',a:.3});C.SND.tick(.8+f,.14);
+    });
+    later(loose,()=>{
+      draw.release({s:.8,ring:0});release();C.shake(.5);
+      C.move({x,y:y-BODY*.52,zoom:1,tilt:.022,roll:0},.22);
+      GFX.light(x,y,1000,brass.l,.9,.3,{z:BODY*.7});GFX.ripple(x,y,hw*1.2,{s:.3,w:.1,life:.4});
+    });
     const size=Math.max(BODY*2.4,hw*.26);
     // The stretch of the course flown in the last `span` seconds, as a 0..1 path.
     const wake=(t,span)=>{const p1=course.pAt(t),p0=course.pAt(t-span);return q=>course.at(mix(p0,p1,q));};
@@ -611,7 +636,7 @@
       if(t>inkAt)return;
       const p=course.pAt(t),head=course.at(p),prev=course.at(Math.max(0,p-.0015)),a=Math.atan2(head.y-prev.y,head.x-prev.x);
       airWake(wake(t,.3),1,stage);
-      gusts(wake(t,.16),sat((course.pAt(t)-course.pAt(t-.05))*9),hw*.045);
+      gusts(wake(t,.16),sat((course.pAt(t)-course.pAt(t-.05))*30),hw*.045);
       pressurePlate(ctx,plate('ar_mach_front'),head.x-Math.cos(a)*size*.2,head.y-head.z-Math.sin(a)*size*.2,a,size*1.64,.83);
       arrow(head,prev,size);
       fx.save();star(fx,head.x,head.y-head.z,hw*.008,brass.h,a);fx.restore();
@@ -954,7 +979,7 @@
     endUlt(land+2.1);
   }
   const ultimates={
-    ar_ult1:[1,'천궁일선','한 발의 화살이 곡선을 그리며 끝없이 가속해 소리를 추월한다. 전장 전역의 적과 보스를 차례로 꿰뚫어 처치하고, 꺾이는 자리마다 소닉붐을, 지나간 길에는 오래 남는 잔상을 남긴다.',sonic],
+    ar_ult1:[1,'천궁일선','기를 모아 쏜 한 발의 화살이 화면 밖으로 날아갔다가 돌아올 때마다 더 빨라져 소리를 추월한다. 전장 전역의 적과 보스를 차례로 꿰뚫어 처치하고, 돌아오는 자리마다 소닉붐을, 지나간 길에는 오래 남는 잔상을 남긴다.',sonic],
     ar_ult2:[5,'별자리 장송곡','별빛으로 수사슴의 별자리를 잇는다. 사슴이 도약하면 별들이 화살이 되어 전장에 쏟아진다.',requiem],
     ar_ult3:[12,'일식의 대궁','금빛 날개로 엮은 대궁으로 거대한 화살을 하늘 끝까지 쏘아 올린다. 사라졌던 화살이 어두워진 하늘에서 떨어져 꽂히며 빛의 해일이 사방으로 퍼져나간다.',eclipse],
   };
