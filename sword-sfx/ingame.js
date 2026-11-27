@@ -31,6 +31,7 @@ const until=f=>new Promise(r=>{ const h=setInterval(()=>{ if(f()){ clearInterval
   const unlock=()=>{ if(E.ctx||(typeof AC!=='undefined'&&AC)) E.resume(); }; addEventListener('pointerdown',unlock,{passive:true}); addEventListener('keydown',unlock);
   if(navigator.userActivation?.hasBeenActive) unlock();
   const inSurv=()=>RPG.mode==='surv';
+  const frameMix=()=>RPG.frame?window.PF?.combatSound:null;
   let fistLoading=false, fistReady=false, retryFistAt=0;
   async function warmFist(){
     if(fistReady||fistLoading||!E.ctx||performance.now()<retryFistAt) return;
@@ -54,6 +55,7 @@ const until=f=>new Promise(r=>{ const h=setInterval(()=>{ if(f()){ clearInterval
     if(E.pack&&pl.cls!==packCls){ packCls=E.packCls=pl.cls; E.release(pl.cls); if(E.pack.packs[pl.cls]) E.packData(pl.cls).catch(()=>{}); }
     // join the game's audio as soon as it exists (the fist waits for its clips, which needs our side running)
     if(!E.ctx&&typeof AC!=='undefined'&&AC) E.graph();
+    if(inSurv()||pl.cls!=='sword') frameMix()?.select(E,pl.cls,SWC);
     if(pl.cls==='fist'||RPG.sv.A.SV.cls==='fist') warmFist();
     if(ClassFX.RANGED[pl.cls]&&(!E.pack||E.pack.packs[pl.cls])) warmRanged(pl.cls); else warmCls=null;
     if(!inSurv()||!E.ctx){
@@ -63,6 +65,13 @@ const until=f=>new Promise(r=>{ const h=setInterval(()=>{ if(f()){ clearInterval
     if(pl.cls!==bedCls){ if(bedCls==='fist') E.stopAll(); bedCls=pl.cls; E.setBed(ClassFX.BED[pl.cls]||null,-20); }
     E.gate(FX3.stats.draws+.2*GFX.pts.length+GFX.fx.length);
   })();
+  // Below the ClassFX wrapper: the recorded beam still receives the original level and stop time.
+  const gameBeam=SFX.beam;
+  SFX.beam=function(){
+    const mix=frameMix();
+    if(mix&&inSurv()&&pl.cls==='fist'&&lock&&RPG.sv.V.ultId==='fs_ult1') return mix.beam(E,window,()=>gameBeam.apply(this,arguments));
+    return gameBeam.apply(this,arguments);
+  };
   ClassFX.install(E,{active:()=>inSurv()&&pl.cls!=='sword'&&(!E.pack||E.pack.packs[pl.cls])&&(pl.cls!=='fist'||fistReady)});
 
   // ---- swordsman: cue sheets on the game clock, contacts from K3.knock
@@ -75,7 +84,9 @@ const until=f=>new Promise(r=>{ const h=setInterval(()=>{ if(f()){ clearInterval
     if(inSurv()){ const S=sheet('basic'); if(S){ for(const q of role(S,n===2?'sw3':'sw12')) E.cue({...q,times:undefined,at:0},E.now(),1,S.trim); basicAt=RT; basicN=n; } }
     return r; };
   for(const [id,s] of Object.entries(C.skills)){ const f=s.fn; s.fn=function(){ const r=f.apply(this,arguments); if(inSurv()&&r!==false) start(id); return r; }; }
-  for(const id of Object.keys(C.ults)){ const f=C.ults[id]; C.ults[id]=function(){ const r=f.apply(this,arguments); if(inSurv()) start(id); return r; }; }
+  for(const id of Object.keys(C.ults)){ const f=C.ults[id]; C.ults[id]=function(){
+    if(inSurv()) frameMix()?.begin(E,id);
+    const r=f.apply(this,arguments); if(inSurv()) start(id); return r; }; }
   const oh=C.onHurt; C.onHurt=function(){ const r=oh.apply(this,arguments); if(inSurv()) start(r?'sw_counter':'hurt'); return r; };
   let pend=0; const flush=()=>{ const n=pend; pend=0; if(!inSurv()||pl.cls!=='sword') return;
     if(RT-basicAt<.35){ const S=sheet('basic'); if(S) for(const q of role(S,basicN===2?'hit3':'hit')) E.cue(q,E.now(),Math.min(1.6,1+.18*Math.log2(n)),S.trim); }
@@ -87,7 +98,11 @@ const until=f=>new Promise(r=>{ const h=setInterval(()=>{ if(f()){ clearInterval
     if(!(inSurv()&&pl.cls==='sword')) return f.apply(this,a);
     if(n==='shatter') for(const [q,t] of ClassFX.map('sword','shatter',a,E.now())) E.cue(q,t,1,0);
     // layer mode: the swordsman's own sounds play under the cue sheets
-    if(ClassFX.LAYER) return f.apply(this,a);
+    if(ClassFX.LAYER){
+      const mix=frameMix();
+      if(mix&&lock) return mix.sword(RPG.sv.V.ultId,n,f,this,a,window);
+      return f.apply(this,a);
+    }
     return n==='beam'||n==='drone'?NOPH:undefined; }; } };
   mute(SFX,Object.keys(SFX)); mute(RPG.sv.cine.SND,Object.keys(RPG.sv.cine.SND));
 })();
