@@ -5,7 +5,7 @@
 // World: x/y is the floor plane (y = depth), z is height. The hero's floor position is pl.x / pl.gy (the engine draws him at pl.gy).
 'use strict';
 (()=>{
-const G=RPG, A=G.api, SV=()=>A.SV, SK=A.SK, VER=48;
+const G=RPG, A=G.api, SV=()=>A.SV, SK=A.SK, VER=53;
 const ZL=.42, ZP=.5, DUR=300, BOSS_T=240, CAP=340, SPD=430, BODY=170, FAR=1e5;
 const CLS_ORDER=['sword','mage','fist','shaman','pyro','assassin','axe','archer','gunner'];
 const NAMES={sword:'소드맨',mage:'메이지',fist:'파이터',shaman:'샤먼',pyro:'파이로',assassin:'암살자',axe:'액스',archer:'궁수',gunner:'거너'};
@@ -732,7 +732,7 @@ G.firstSkills=c=>{ const L=(A.ORDER[c]||[]).filter(id=>SK[id]&&SK[id].type==='sk
 const inView=(x,y,k=.5)=>{ const {hw,hh}=view(); return [clamp(x,cam.x-hw*k,cam.x+hw*k),clamp(y,cam.y-hh*k+BODY*.5,cam.y+hh*k+BODY*.5)]; };
 G.sv={V,A,SK,BODY,CH,DASH_ID,doDash,CHAP,EN,CLS,CLS_ORDER,CCOL,NAMES,spawn,shock1,inView,FSY,draw:(life,fn,delay=0)=>V.draws.push({t0:RT+delay,life,fn}),nearest,countIn,densest,angTo,face,seq,dmg,hitFx,inCircle,inCircleS,inSector,inLine,sfx,view,onScreen,tdV,dropFx,ultStart,ultStop,ultHit,addVfx,burst,fring,heal,hurt,
   fmtN,reg(c,def){ CLS[c]=def; if(def.sk) Object.assign(SK,def.sk); if(def.order) A.ORDER[c]=def.order; if(G.mode==='menu') A.menuRender(); if(G.mode==='surv'&&c===pl.cls) buildBar(); }};
-for(const f of ['hub','engine/quality','fx3','vol3','gfx','vfx3','vkit3','bake3_meta','bake3','cine','assassin_flow','assassin_mist','assassin_blades','assassin_cuts','assassin_ground','assassin_skills','assassin_eclipse','assassin_loom','axe_skills','axe_ult1','axe_ult2','axe_ult3',...CLS_ORDER.map(c=>'sk_'+c),'mk','mk_sword']){
+for(const f of ['hub','engine/quality','fx3','vol3','gfx','vfx3','vkit3','bake3_meta','bake3','cine','assassin_flow','assassin_mist','assassin_blades','assassin_cuts','assassin_ground','assassin_skills','assassin_eclipse','assassin_loom','axe_skills','axe_ult1','axe_ult2','axe_ult3','engine/phoenix_frames','engine/phoenix_mesh','engine/phoenix_renderer','engine/phoenix_flight','engine/phoenix_wind',...CLS_ORDER.map(c=>'sk_'+c),'mk','mk_sword']){
   const s=document.createElement('script'); s.src=`${f}.js?v=${VER}`; s.async=false;
   if(f==='mk') s.onload=()=>{ if(G.mode==='menu'&&(pl.cls==='assassin'||pl.cls==='axe')) A.menuRender(); else if(G.mode==='surv'&&V.practice) buildPractice(); };
   document.body.appendChild(s);

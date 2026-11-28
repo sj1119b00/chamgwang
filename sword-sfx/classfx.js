@@ -474,7 +474,15 @@ const ULT={
   mg_ult2:U({air:'C_air_charm',boom:'V_b1',body:'G_impact',explo:'V_e6',down:'W_s2',tail:'B_debris',tail2:'V_t1',sting:'V_s1',drone:'K_choir',riser:'V_r3',lead:'B_rev_flutter',extra:[['C_doppler',-8]],open:[['C_air_charm',-8]]}),
   mg_ult3:U({boom:'V_b8',body:'K_ice_hit',explo:'K_ice_magic',down:'V_d1',tail:'K_ice_crack',tail2:'C_crystal',drone:'K_heaven',riser:'K_matter_grow',lead:'K_matter_grow',extra:[['K_ice_freeze',-5],['C_glass',-8]],open:[['K_ice_magic',-8]]}),
   py_ult1:U({air:'C_torch',boom:'G_boom_b',body:'C_fire_impact',explo:'V_e1',down:'B_deep_thud',tail:'K_fire_loop',tail2:'C_torch',drone:'E_pyro',riser:'G_riser_long',lead:'B_rev_flutter',extra:[['K_flamer',-6,{until:1.5}]],open:[['C_fire_growl',-5]]}),
-  py_ult2:U({air:'K_flamer',boom:'B_boom_modern',body:'B_explosion',explo:'V_e2',down:'V_d3',tail:'C_fire_burst',sting:'G_stinger',drone:'K_moan',riser:'V_r1',lead:'C_rev_demon',extra:[['K_roar',-4]],open:[['K_roar',-7]]}),
+  py_ult2:{
+    ...U({air:'K_flamer',boom:'B_boom_modern',body:'B_explosion',explo:'V_e2',down:'V_d3',tail:'C_fire_burst',sting:'G_stinger',drone:'K_moan',riser:'V_r1',lead:'C_rev_demon',extra:[['K_roar',-4]],open:[['K_roar',-7]]}),
+    whoosh:([p=1,v=.7])=>{
+      const level=dB(v,.7);
+      if(p>1.4)return [L('C_wind_rush',level-2,{...SW,hp:210,rate:1.18,until:.32}),L('C_torch',level-8,{...FX,lp:2700,until:.30})];
+      // The soft-shell flutter leads the broader rush by about 60 ms; both die before the recovery stroke.
+      return [L('F_swish_0',level-2,{...SW,rate:p,send:.06}),L('C_wind_rush',level-3,{...SW,rate:p,hp:100,lp:1850,delay:.055,until:.27})];
+    }
+  },
   py_ult3:U({air:'C_fire_burst',boom:'V_b6',body:'G_mine',explo:'V_e9',down:'G_downer_b',tail:'V_t3',tail2:'K_quake',drone:'V_dr3',riser:'V_r4',lead:'B_rev_trans',extra:[['K_rock_1',-5]],open:[['K_quake',-7,{until:3}]]}),
   sh_ult1:U({air:'K_bell',boom:'G_metal_boom',body:'K_rock_1',explo:'V_e4',down:'W_s3',tail:'K_portal',tail2:'C_wind_rush',drone:'K_moan',riser:'K_gong_swell',lead:'K_gong_swell',extra:[['K_gong',-5]],open:[['C_wind_rush',-6]]}),
   sh_ult2:U({air:'K_chime',boom:'K_gong',body:'G_impact',explo:'V_choir',down:'W_s4',tail:'K_heaven',tail2:'K_chime',sting:'V_b11',drone:'V_dr6',riser:'V_r2',lead:'K_ether_0',extra:[['K_bell_low',-6]],open:[['K_bell',-9]]}),

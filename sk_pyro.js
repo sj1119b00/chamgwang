@@ -1345,86 +1345,171 @@ function ultErupt(id){ ultStart(id); if(F&&F.prepDeep) F.prepDeep(); const Cn=X.
   after(TE-1,()=>{ Cn.back(.95); GFX.ambient(1,1,1,2); });
   after(TE,()=>{ M.dead=true; ultStop(); }); }
 
-// PHOENIX (py_ult2, 2026-11-25): a phoenix is born out of his fire, climbs, and comes down on the field.
-//  gather  0 - .8   every ember on the field is drawn to him; the fire at his feet thickens
-//  born   .8 - 1.5  it stands up out of that fire behind him with its wings still folded about it (it burns in from the foot)
-//  climb 1.5 - 2.7  the wings open and beat; it climbs out of the top of the picture's middle, a tail of fire streaming down from it, the
-//                   camera drawing back to keep it; what its heat passes over is set burning
-//  hang  2.7 - 3.0  it hangs at the top with its wings raised and cries; the field holds its breath, a hot spot swelling where it will land
-//  stoop 3.0 - 3.3  it folds and falls head first, faster and faster, dragging its whole tail down after it
-//  blow   3.3       it goes into the floor: a ball of fire, a front running out to the edges, the floor split and molten, every body thrown
-//  after  3.3 - 6.1 the fire it left burns as one body, breaks up, and goes out from the far edge inward; burning feathers come down
-// The bird is three paintings of real fire (folded, rising, stooping: assets/v3_phoenix_*.webp, their own colours, laid on as light) carried
-// by live fire: its wash runs through the picture so the feathers lick, a volume of fire rides in its chest and streams behind it.
-let PHX=null;
-function phxMats(){ if(PHX) return PHX; const mk=tex=>F.mat({kind:2,tex,nz:'billow',n1:[2.4,2.4,.02,-.55],n2:[1.7,1.7,.05,-1.1],dist:.03,mdist:1,ero:-1,soft:.12,cB:'#ffffff',cC:'#ffe9b0',gain:1.5,op:0});
-  PHX={fold:mk('v3_phoenix_fold'),rise:mk('v3_phoenix_rise'),dive:mk('v3_phoenix_dive'),ASP:{fold:.568,rise:1.478,dive:.557}}; return PHX; }
-if(F&&F.on) for(const n of ['v3_phoenix_fold','v3_phoenix_rise','v3_phoenix_dive']) F.img(n);
+// Draw the same ground sources on devices without the ray-marched fire pass.
+let phoenixFlameMask;
+function phoenixPlanarFire(x,y,height,lean,life,delay=0){
+  if(F.on){ K.flame(x,y,{s:height*.50,pal:PF,gain:.82,dur:life,delay,light:0}); return; }
+  const source=GFX.img('v3_real_fire'), phase=h01(x*.07+y*.09)*TAU;
+  X.draw(life,k=>{
+    if(!source.ok)return;
+    if(!phoenixFlameMask){
+      const c=document.createElement('canvas'); c.width=128; c.height=192;
+      const g=c.getContext('2d'), ramp=g.createLinearGradient(0,0,0,c.height);
+      ramp.addColorStop(0,'#fc531d'); ramp.addColorStop(.55,'#ff9d2a'); ramp.addColorStop(1,'#fff0a5');
+      g.drawImage(source.im,0,0,c.width,c.height); g.globalCompositeOperation='multiply';
+      g.fillStyle=ramp; g.fillRect(0,0,c.width,c.height); phoenixFlameMask=c;
+    }
+    const time=k*life, growth=eo3(sat(time/.23)), fade=sat((1-k)*3);
+    const h=height*growth*(.84+.11*Math.sin(11*time+phase)+.05*Math.sin(23*time+phase)), w=h*.62;
+    ctx.save(); ctx.translate(x,y); ctx.transform(1,0,-lean-.07*Math.sin(time*8+phase),1,0,0);
+    ctx.globalCompositeOperation='lighter'; ctx.globalAlpha=.85*fade;
+    ctx.drawImage(phoenixFlameMask,-w*.5,-h,w,h); ctx.restore();
+  },delay);
+}
+
+// A low sheet of fire spreads from the impact before its arms lift and leave separate beds of burning fuel.
+function phoenixGroundFire(x,y,dir,heroX,heroY){
+  const points=[], heading=dir>0?0:PI;
+  const arms=F.low?[-1.30,.32,2.52]:[-1.52,-.52,.40,1.60,2.76];
+  for(const [i,angle] of arms.entries()){
+    const a=heading+dir*angle, dx=Math.cos(a), dy=Math.sin(a)*FSY;
+    const reach=BODY*(3.2+1.65*h01(i*3.7+.9));
+    const delay=.028+.018*i, life=.52+.09*h01(i+7), width=BODY*(.38+.13*h01(i+5));
+    for(const fraction of [.49,.94]){
+      const px=x+dx*reach*fraction, py=y+dy*reach*fraction;
+      if(Math.abs(px-heroX)<BODY*.7 && py>heroY-20 && py-heroY<BODY)continue;
+      const h=BODY*(fraction<.6?2.75:1.65)*(1+.18*h01(i+.2));
+      points.push([px,py,h]);
+      if(!K.vok())phoenixPlanarFire(px,py,h,dx*.32,1.6,delay+reach*fraction/1750);
+    }
+    if(!K.vok())continue;
+    const jet=K.vjet(x+dx*BODY*.24,y+dy*BODY*.24,18,a,{
+      len:reach*.12,r:width*.65,r0:width*.32,pitch:.10,dur:life,delay,
+      in:.06,out:.25,heat:1.08,turb:1.17,speed:5.2,flow:1.3,gain:.82,pal:PF,band:.8,lit:.68
+    });
+    GFX.add(life,(k,t)=>{
+      const spread=eo3(sat(t/.28)), curl=sat((t-.16)/(life-.16));
+      jet.len=reach*(.12+.88*spread)*(1-.22*curl);
+      jet.pitch=.10+.66*curl*curl;
+      jet.r=width*(.65+.45*spread-.34*curl);
+    },delay);
+    if(!F.low&&i%2===0)K.vsmoke(x+dx*reach*.78,y+dy*reach*.78,{
+      s:width*1.7,z:width*.85,dur:1.08,rise:width*2.7,vx:dx*width,delay:delay+.40,
+      a:.36,c:'#291b19',c2:'#946d54',lit:.64
+    });
+  }
+  K.firefield(x,y,{pts:points,from:[x,y],speed:1750,per:2,gather:.18,girth:.88,linkH:.32,
+    dur:2.5,out:1.25,pal:PF,keep:[heroX,heroY,BODY*1.35],wind:dir*75,delay:.12});
+}
+
+// 봉황강림. Blender flight starts at .80, clears the top at 1.90 and stoops beak-first from 2.10 to 2.42.
 function ultPhoenix(id){ timers.length=0; ultStart(id); const Cn=X.cine, {hw,hh}=view(), Dm=70000*A.mul(id), x0=pl.x, y0=pl.gy;
-  const TB=.8, TU=1.5, TH=2.0, TD=2.22, TC=2.42, TE=5.22, bx=x0, by=y0-150, ZT=2800, st={}, P=phxMats(), vol=K.vok&&K.vok();
-  // where it comes down: on the thickest of them if they are near, else just ahead of him (never on him)
-  const tg=densest(1300), ix=tg?mix(x0,tg.x,.8):x0+pl.f*160, iy=tg?mix(y0,tg.y,.8)-40:y0-340;
+  const {birth:TB,dive:TD,impact:TC}=PhoenixFlight, TU=1.5, TH=2.0, TE=5.22, st={};
+  PhoenixFlight.preload();
+  const tg=densest(1300);
+  let ix=tg?tg.x:x0+pl.f*160, iy=tg?tg.y:y0-340;
+  if(tg)face(angTo(tg));
+  const bx=x0+pl.f*BODY*.24, by=y0-BODY*.08, handZ=BODY*.88;
+  function frameStrike(focus,lift,zoom,tilt,duration,ease,roll=0){
+    const x=mix(x0,ix,focus), y=mix(y0,iy,focus)-BODY*lift;
+    const width=Math.max(Math.abs(x0-x),Math.abs(ix-x))+BODY*.55;
+    const height=Math.max(Math.abs(y0-y),Math.abs(iy-y),Math.abs(y0-BODY-y),Math.abs(iy-BODY-y))+BODY*.25;
+    Cn.move({x,y,zoom:Math.min(zoom,hw*.86/width,hh*.84/height),tilt,roll},duration,ease);
+  }
   S([['gx01',.1],['gx03',.6,{kick:[-.8,.6]}],['gx06',.14,{kick:[2,-1.6]}],['gx07',TD-.9],['gx09',.1],['gx12',.2,{kick:[2,-1.6]}],['gx14',9]]);
   // ---- gather
-  GFX.ambient(.5,.4,.4,2.5); Cn.move({x:x0,y:y0-BODY*.7,zoom:1.3,tilt:.06},.5,'io'); SFX.fire&&SFX.fire(2.4,.5); Cn.drone(40,.3);
-  st.g=K.gather(x0,y0-10,BODY*.5,{dur:TB,pal:PF,r:460,R:1700,n:1.2,shells:2,gain:.9});
-  K.cool(x0,y0,{kind:'scorch',r:360,pal:PF,life:TC+1,hot:.7,grow:.6,light:0});
-  const Lh=GFX.light(bx,by,700,PF.l,.2,.3,{hold:TC,z:200,flick:.1});
-  // ---- the bird: one clock for its place, its pose, its wing beat and the fire it carries
-  // height of its middle, its size (half height), and how far it has crossed from where it was born to where it lands
-  const zOf=t=>t<TU?mix(250,430,eo3(sat((t-TB)/(TU-TB)))):t<TH?mix(430,ZT,Math.pow(sat((t-TU)/(TH-TU)),2.4)):t<TD?ZT+40*Math.sin((t-TH)/(TD-TH)*PI):ZT*(1-Math.pow(sat((t-TD)/(TC-TD)),2.6))+140;
-  const cross=t=>t<TH?0:eo3(sat((t-TH)/(TC-TH))), posX=t=>mix(bx,ix,cross(t)), posY=t=>mix(by,iy,cross(t));
-  let jet=null, chest=null, E=0, tp=0;
-  if(F.on) GFX.add(TC-TB+.02,(k,t0)=>{ const t=t0+TB; if(st.hit) return; const dt=Math.max(0,t0-tp); tp=t0;
-    const x=posX(t), y=posY(t), z=zOf(t), born=eo3(sat((t-TB)/.5)), open=sat((t-TU+.12)/.3), stoop=sat((t-TD+.06)/.12), beat=Math.sin((t-TU)*8.4), fl=1+.03*Math.sin(t*31)+.02*Math.sin(t*47);
-    Lh.x=x; Lh.y=y; Lh.z=z; Lh.a=.4+.6*born; Lh.r=900+700*sat((t-TU)/(TH-TU));
-    // folded -> rising (the two cross over as the wings open) -> stooping
-    if(open<1){ const s=mix(420,620,born); F.bill(P.fold,x,y,z,s*P.ASP.fold*fl,s*fl,0,{a:(1-open)*born,ero:mix(.85,-1,born),gain:1.5+.8*(1-born)}); }
-    if(open>0&&stoop<1){ const s=mix(620,880,sat((t-TU)/.5))*(1+.04*beat), wx=1+.11*beat*open; F.bill(P.rise,x,y,z+s*.12*beat,s*P.ASP.rise*wx*fl,s*(1-.06*beat)*fl,.04*Math.sin(t*2.2),{a:open*(1-stoop),gain:1.55+.25*sat((t-TH)/.3)}); }
-    if(stoop>0){ const fall=sat((t-TD)/(TC-TD)), s=mix(760,1080,fall)*fl, lean=Math.atan2(ix-bx,(ZT)/1)*-.5*fall; F.bill(P.dive,x,y,z+s*.25,s*P.ASP.dive*(1-.12*fall),s*(1+.25*fall),lean,{a:stoop,gain:1.7+.6*fall}); }
-    // the fire it carries: a heart in its chest, and what streams off it (down as it climbs, up behind it as it falls)
-    if(vol){ if(!chest) chest=K.vorb(x,y,z,{r:120,dur:TC-TB,pal:PF,heat:1.2,core:.4,in:.3,out:.04,spin:2.4,band:.6,flow:.9,gain:.7});
-      chest.x=x; chest.y=y; chest.z=z-40; chest.r=mix(90,170,born)*(stoop?1.25:1);
-      if(!jet&&t>TB+.3) jet=K.vjet(x,y,z,0,{len:300,r:120,r0:60,dur:TC-t+.04,pal:PF,pitch:-1.5,heat:1.25,turb:1,speed:6,in:.25,out:.05,band:.9,btop:.6,lit:.5,flow:1.2,gain:.9});
-      if(jet){ const up=stoop>0; jet.x=x; jet.y=y; jet.z=up?z+260:z-180; jet.pitch=up?1.5:-1.5; jet.len=up?mix(500,2300,sat((t-TD)/(TC-TD))):mix(260,900,sat((t-TU)/(TH-TU))); jet.r=up?190:mix(110,170,open); } }
-    // sparks and burning feathers shed along its path
-    E+=dt*(40+90*open)*(GFX.QK||1); while(E>=1){ E-=1; const w=(Math.random()-.5)*2, s=520*open+160;
-      if(Math.random()<.75) streak(x+w*s,y,z+rand(-.4,.5)*s*.6,rand(-120,120)+w*260,rand(-40,40),stoop?rand(600,1500):rand(-420,-120),rand(.35,.8),{g:stoop?-200:500,s:rand(3,6)});
-      else GFX.pt({x:x+w*s,y,z:z+rand(-.3,.4)*s*.6,vx:w*180+rand(-60,60),vy:rand(-30,30),vz:rand(-260,-60),g:260,drag:.9,life:rand(.8,1.5),s:rand(7,13),rot:rand(0,TAU),vr:rand(-7,7),m:8,c:GFX.rgb(Math.random()<.5?PG.m:PF.b),fade:'in',L:3}); } },TB);
+  GFX.ambient(.85,.79,.76,2.5); Cn.move({x:x0,y:y0-BODY*.7,zoom:1.10,tilt:.025},.5,'io'); SFX.fire&&SFX.fire(2.4,.5); Cn.drone(40,.3);
+  st.g=K.gather(bx,by,handZ,{dur:TB,pal:PF,r:105,R:370,n:.13,shells:1,sparks:0,gain:.38});
+  // Feed the raised hand from below. The outer flame leans into the faster central updraft.
+  for(const side of [-1,1]){
+    const distance=BODY*(side<0?.52:.34), width=BODY*(side<0?.25:.20);
+    const a=side<0?0:PI;
+    if(!K.vok()){ phoenixPlanarFire(bx+side*distance,by,handZ*.94,-side*.42,TB+.07); continue; }
+    const flame=K.vjet(bx+side*distance,by+BODY*.04,8,a,{
+      len:distance*.4,r:width*.55,r0:width*.24,pitch:.62,dur:TB+.08,in:.20,out:.21,
+      heat:.94,pal:PF,gain:.72,flow:1.3,turb:1.12,band:.8,lit:.62
+    });
+    GFX.add(TB+.08,(k,t)=>{
+      const rise=eo3(sat(t/TB));
+      flame.len=mix(distance*.4,Math.hypot(distance,handZ-8),rise);
+      flame.pitch=mix(.62,Math.atan2(handZ-8,distance),rise);
+      flame.r=width*(.55+.45*rise);
+    });
+  }
+  K.cool(bx,by,{kind:'scorch',r:155,pal:PF,life:TC+1,hot:.42,grow:.6,light:0});
+  const Lh=GFX.light(bx,by,BODY,PF.l,0,.3,{hold:TC,z:12,flick:.06});
+  const dir=Math.sign(ix-bx)||pl.f||1, gap=PhoenixFlight.portraitGap();
+  const wind=PhoenixWind.create(bx,by,dir,(strength,index)=>{
+    const level=(index===0?.81:.64)*(.72+.28*sat(strength));
+    st.strokeAt=RT; st.strokeHeat=sat(strength);
+    SFX.whoosh(index===0?.84:1.06,level);
+  });
+  let lastT=TB,embersDue=0;
+  const wake=[];
+  function flight(t){
+    if(!lock||V.ultId!==id||st.hit)return;
+    const bird=PhoenixFlight.draw(t,bx,by,ix,iy,dir,gap),dt=Math.max(0,Math.min(.08,t-lastT));
+    lastT=t;
+    wind.update(t,bird);
+    if(!bird){ Lh.a=0; wake.length=0; return; }
+    const {chest,tail,span,alpha}=bird;
+    const height=Math.max(0,chest.z);
+    const strokeAge=st.strokeAt===undefined?1:RT-st.strokeAt;
+    const flare=(st.strokeHeat||0)*sat(strokeAge/.055)*(1-sat(strokeAge/.24))**2;
+    const spill=alpha*(1+.75*flare)/(1+(height/(BODY*2.4))**2);
+    const radius=Math.min(BODY*5,BODY*.85+span*.24+height*.18);
+    Object.assign(Lh,{x:chest.x,y:chest.y,r:radius,a:.72*spill});
+    if(F.on&&spill>.015)F.quad(K.mats().glowG,chest.x,chest.y,radius*.65,radius*.53,0,{...col(PF),a:.21*spill,gain:.9});
+    if(!GFX.on)return;
+    const stoop=t>=TD, wakeLife=stoop?.18:.10;
+    while(wake.length && t-wake[0].t>wakeLife)wake.shift();
+    if(!wake.length||t-wake[wake.length-1].t>=1/75)wake.push({...tail,t});
+    if(F.on&&wake.length>1){
+      const trail=wake.map(p=>{
+        const age=(t-p.t)/wakeLife;
+        return {x:p.x+span*.023*age*Math.sin(26*p.t+4*age),y:p.y,z:p.z+55*age,w:span*(stoop?.037:.018)*(1-age)};
+      });
+      F.ribbon(K.mats().trB,trail,{...col(PF),gain:stoop?1.34:1.05,a:(stoop?.61:.36)*alpha,t0:t});
+    }
+    if(!F.low)GFX.haze(tail.x,tail.y,tail.z,span*(stoop?.12:.07),(stoop?.34:.14)*alpha,t*3);
+    embersDue+=dt*(stoop?42:18)*(GFX.QK||1);
+    while(embersDue>=1){
+      embersDue--;
+      const spread=span*.018;
+      streak(tail.x+rand(-spread,spread),tail.y,tail.z,rand(-95,95),0,
+        t<TD?rand(-220,-70):rand(140,480),rand(.14,.34),{g:110,s:rand(2,4),len:.035});
+    }
+  }
+  if(GFX.on)GFX.add(TC-TB,(k,elapsed)=>flight(TB+elapsed),TB);
+  else X.draw(TC-TB,k=>flight(TB+k*(TC-TB)),TB);
   // ---- born
-  after(TB,()=>{ if(st.g) st.g.release({s:1.2,ring:0}); K.flare(bx,by,BODY,{pal:PG,s:520,dur:.2,gain:2.4}); K.vblast(bx,by,{s:340,z:60,rise:300,dur:1,heat:1.3,fire:.6,smoke:.2,pal:PF,band:.7,lit:.5,c:'#1c120e',c2:'#6a4632'});
-    K.sparks(bx,by,BODY,{pal:PG,n:26,sp:[400,1600],up:1700,life:[.4,.9]}); Cn.shake(.5); sfx('boom',1,.5); SFX.roar&&SFX.roar(1.1,.6); GFX.ambient(.62,.44,.38,3);
-    Cn.move({x:x0,y:y0-360,zoom:1,tilt:.1},.6,'io'); });
+  after(TB,()=>{ if(st.g) st.g.end(); K.flare(bx,by,handZ,{pal:PG,s:115,dur:.10,gain:1.1}); K.vblast(bx,by,{s:85,z:handZ*.7,rise:85,dur:.30,heat:.9,fire:.38,smoke:.08,pal:PF,band:.7,lit:.5,c:'#1c120e',c2:'#6a4632'});
+    K.sparks(bx,by,handZ,{pal:PG,n:12,sp:[180,570],up:720,life:[.25,.65]}); Cn.shake(.18); sfx('boom',1,.5); SFX.roar&&SFX.roar(1.1,.6); GFX.ambient(.86,.77,.70,3);
+    Cn.move({x:x0,y:y0-BODY*1.3,zoom:1.04,tilt:.05},.6,'io'); });
   // ---- climb: the camera goes with it; its heat sets light to what is under it
-  after(TU,()=>{ Cn.move({x:mix(x0,ix,.4),y:y0-440,zoom:.72,tilt:.2,roll:.015},TH-TU,'io'); SFX.whoosh&&SFX.whoosh(1.1,.7); Cn.shake(.3);
-    K.dust(bx,by,{n:12,r:120,sp:[300,1000],a:.4,c:'#2a1a12',c3:'#8a5a3a',life:1.2});
-    for(const e of onScreen(300)) if(!e.dead){ burn(e,3,1,.9); dmg(e,e.d.boss?Dm*.08:Math.min(Dm*.08,e.hp*.2),{sx:bx,sy:by}); } });
-  // it leaves through the top of the picture faster and faster: the air it tears through streams down past it
-  [.12,.26,.4].forEach(d=>after(TU+d,()=>{ sfx('whoosh',.5+d,.8); Cn.shake(.2+d*.8); const px=posX(TU+d), py=posY(TU+d), pz=zOf(TU+d);
-    for(let i=0;i<(F.low?6:12);i++) streak(px+rand(-380,380),py,pz+rand(-200,300),0,0,-rand(2400,3600),rand(.18,.32),{g:0,s:rand(4,8),len:.12}); }));
-  // ---- hang: the cry, the held breath, the floor heating where it will land
-  after(TH,()=>{ SFX.roar&&SFX.roar(1.5,1); Cn.SND.shing&&Cn.SND.shing(.8,.4); Cn.hush(TD-TH,{a:.5}); K.flare(posX(TH),posY(TH),ZT,{pal:PG,s:760,sx:1.8,sy:.7,dur:.26,gain:2.2}); Cn.move({x:mix(x0,ix,.7),y:iy-360,zoom:.7,tilt:.24,roll:0},TD-TH,'io');
-    K.cool(ix,iy,{kind:'scorch',r:520,pal:PF,life:TC-TH+.3,hot:1,grow:TC-TH,light:0}); const Lw=GFX.light(ix,iy,500,PG.l,.2,TC-TH,{z:80}); GFX.add(TC-TH,k=>{ Lw.a=.2+1*k*k; Lw.r=500+700*k; }); });
-  // ---- stoop
-  after(TD,()=>{ SFX.whoosh&&SFX.whoosh(1.8,1); Cn.shake(.5); Cn.move({x:mix(x0,ix,.85),y:iy-240,zoom:.72,tilt:.14},TC-TD,'in');
-    // a lance of light down the line of its fall, and the air rushing down with it
-    K.flare(ix,iy,700,{pal:PG,s:560,sx:.26,sy:4.6,dur:TC-TD+.05,gain:2});
-    for(let i=0;i<(F.low?10:22);i++) streak(ix+rand(-420,420),iy,rand(500,1700),0,0,-rand(3600,5600),rand(.16,.3),{g:0,s:rand(4,9),len:.14}); });
+  after(TU,()=>{ frameStrike(.40,1.7,.90,.08,TH-TU,'io',.008);
+    for(const e of onScreen(300)) if(!e.dead){ burn(e,TC-TU,1,.24); dmg(e,e.d.boss?Dm*.08:Math.min(Dm*.08,e.hp*.2),{sx:bx,sy:by}); } });
+  // Lock the shared ground point after the upstroke has pushed enemies, just as the telegraph appears.
+  after(TH,()=>{
+    if(tg&&!tg.dead){ ix=tg.x; iy=tg.y; }
+    SFX.roar&&SFX.roar(1.5,1); Cn.SND.shing&&Cn.SND.shing(.8,.4); Cn.hush(TD-TH,{a:.78}); frameStrike(.55,1.45,.89,.07,TD-TH,'io');
+    K.cool(ix,iy,{kind:'scorch',r:230,pal:PF,life:TC-TH+.3,hot:.55,grow:TC-TH,light:0}); const Lw=GFX.light(ix,iy,190,PG.l,.15,TC-TH,{z:25}); GFX.add(TC-TH,k=>{ Lw.a=.12+.46*k*k; Lw.r=190+200*k; }); });
+  after(TD,()=>{ SFX.whoosh&&SFX.whoosh(1.8,1); frameStrike(.62,1.12,.91,.05,TC-TD,'in'); });
   // ---- the blow
-  after(TC,()=>{ st.hit=1; if(jet) jet.dead=true; if(chest) chest.dead=true; Lh.t=Lh.life;
-    Cn.peak(ix,iy-60,{ca:.03,blur:.15,tint:'#ff7a20',hold:.05,out:.28}); hitstop=Math.max(hitstop,.1); Cn.shake(1.7); after(.08,()=>Cn.shake(1.2)); after(.2,()=>Cn.shake(.8)); Cn.SND.hit(1.2); sfx('boom',2.4,1); SFX.sub&&SFX.sub(1);
-    GFX.light(ix,iy,hw*1.6,PF.l,1.2,.6,{z:300}); GFX.light(ix,iy,900,'#fff2d0',1.1,.16,{z:90}); GFX.ambient(.95,.6,.42,9); after(.15,()=>GFX.ambient(.62,.44,.38,2.5));
-    Cn.move({x:mix(x0,ix,.6),y:mix(y0,iy,.6)-240,zoom:.58,tilt:.18,roll:0},.35,'out');
-    K.flare(ix,iy,80,{pal:PG,s:900,dur:.12,gain:2.6});
-    K.vblast(ix,iy,{s:780,z:80,rise:420,dur:1.7,heat:1.4,fire:.7,smoke:.4,pal:PF,band:.7,lit:.5,flow:.7,c:'#1c120e',c2:'#6a4632'});
-    K.vring(ix,iy,{r:hw*1.5,r0:260,dur:.6,tube:.06,heat:1.2,pal:PF,lump:2.2,freq:6,lit:.5,a:.42,c:'#1c120e',c2:'#6a4632'});
-    K.shock(ix,iy,{r:hw*1.5,pal:PF,dur:.65,gain:1}); GFX.ripple(ix,iy,hw*1.6,{life:.6,s:.8});
+  after(TC,()=>{ st.hit=1; Lh.a=0; wind.end();
+    Cn.peak(ix,iy,{ca:.012,blur:.055,tint:'#ff7a20',a:.16,hold:.035,out:.18}); hitstop=Math.max(hitstop,.1); Cn.shake(1.05); after(.08,()=>Cn.shake(.72)); after(.2,()=>Cn.shake(.46)); Cn.SND.hit(1.2); sfx('boom',2.4,1); SFX.sub&&SFX.sub(1);
+    GFX.light(ix,iy,790,PF.l,.9,.5,{z:120}); GFX.light(ix,iy,370,'#fff2d0',.85,.13,{z:50}); GFX.ambient(.95,.79,.67,8); after(.15,()=>GFX.ambient(.85,.76,.7,2.5));
+    frameStrike(.58,1.15,.78,.08,.35,'out');
+    K.flare(ix,iy,45,{pal:PG,s:360,dur:.10,gain:1.75});
+    K.vblast(ix,iy,{s:350,z:68,rise:420,dur:1.25,heat:1.12,fire:.48,smoke:.25,pal:PF,band:.74,lit:.62,flow:1.1,c:'#1c120e',c2:'#754938'});
+    K.vring(ix,iy,{r:Math.min(hw*1.25,BODY*5.9),r0:95,dur:.50,tube:.048,heat:.92,pal:PF,lump:1.5,freq:5,lit:.56,a:.30,c:'#251713',c2:'#805941'});
+    GFX.ripple(ix,iy,Math.min(hw*1.45,BODY*8),{life:.54,s:.62});
     K.cool(ix,iy,{kind:'crater',r:520,pal:PF,life:TE-TC+1.5,hot:.6,start:.1,light:0}); K.cool(ix,iy,{kind:'lava',r:330,pal:PF,life:TE-TC+.8,hot:.75,light:0});
     K.cool(ix,iy,{kind:'crack2',r:hw*1.05,pal:PF,life:TE-TC+1,hot:.85,grow:.2,light:0});
     K.sparks(ix,iy,60,{pal:PG,n:44,sp:[900,3200],up:2400,life:[.4,1.1],s:3,len:.09});
     if(K.chunks) K.chunks(ix,iy,{n:4,r:240,sp:[400,1200],up:1600,kind:'stone',s:[20,48],rock:'#3a302a',pal:PF,life:1.2});
     // what it leaves is one fire: it catches where it struck and runs out, joined at the foot, then breaks up and burns down
-    K.firefield(ix,iy,{n:F.low?7:12,r:hw*.95,s:[260,820],from:[ix,iy],speed:3800,dur:2.5,out:1.25,pal:PF,keep:[x0,y0,260],delay:.05});
+    phoenixGroundFire(ix,iy,dir,x0,y0);
     // every body is thrown as the front reaches it; the killing blow waits until they have flown
     for(const e of onScreen(300)){ if(e.dead) continue; const d=dist2(e,ix,iy), dl=Math.min(.45,d/3800);
       after(dl,()=>{ if(e.dead) return; K.knock(e,{from:[ix,iy],dist:460,up:2500,stun:1.4}); burn(e,2.6,1,1); }); }
@@ -1432,10 +1517,11 @@ function ultPhoenix(id){ timers.length=0; ultStart(id); const Cn=X.cine, {hw,hh}
   // ---- after: burning feathers drift down over the whole field; the light dies; home
   after(TC+.3,()=>{ let n=0; GFX.add(2.2,(k,t)=>{ const want=Math.floor(t*(50-34*k)*(GFX.QK||1)); while(n<want){ n++; const px=ix+(h01(n*1.9)-.5)*hw*2.6, py=iy+(h01(n*4.3)-.5)*hh*2.2;
       GFX.pt({x:px,y:py,z:500+h01(n*6.1)*700,vx:-70+(h01(n*2.7)-.5)*120,vy:-10,vz:-(120+h01(n*8.3)*160),g:0,drag:.25,life:1.5+h01(n*3.1)*.8,s:5+h01(n*9.7)*7,rot:h01(n*5.3)*TAU,vr:(h01(n*7.9)-.5)*7,m:8,c:GFX.rgb(n%3?PF.m:PG.m),fade:'in',L:3}); } }); });
-  after(TC+1.6,()=>GFX.ambient(.78,.62,.56,1));
+  after(TC+1.6,()=>GFX.ambient(.91,.85,.79,1));
   let fin=false; const end=()=>{ if(fin) return; fin=true; ultStop(); };
   after(TE-1.1,()=>{ Cn.back(1); GFX.ambient(1,1,1,1.6); });
   after(TE,end); }
 
-X.reg('pyro',{sk,order,basic:{fn:basic,cd:()=>.9*(1-.05*(L('py_basic')-1))},skills:SKILL,ults:{py_ult1:ultStorm,py_ult2:ultPhoenix,py_ult3:ultErupt}});
+X.reg('pyro',{sk,order,preload:PhoenixFlight.preload,basic:{fn:basic,cd:()=>.9*(1-.05*(L('py_basic')-1))},skills:SKILL,ults:{py_ult1:ultStorm,py_ult2:ultPhoenix,py_ult3:ultErupt}});
+if(pl.cls==='pyro') PhoenixFlight.preload();
 })();

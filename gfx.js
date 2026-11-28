@@ -217,7 +217,7 @@ function setState(st,G){ const t=st.t?texOf(st.t,st.live):white; if(st.t&&!t) re
   if(B.mode!==st.m){ gl.uniform1f(U.mode,st.m); B.mode=st.m; }
   if(B.c2!==st.c2){ gl.uniform3fv(U.c2,st.c2); B.c2=st.c2; } if(B.c3!==st.c3){ gl.uniform3fv(U.c3,st.c3); B.c3=st.c3; }
   return true; }
-X.resize=G=>{ for(const k of ['gVfx','gDist']) if(G[k]){ gl.deleteTexture(G[k].t); gl.deleteFramebuffer(G[k].f); } G.gVfx=window.FX3&&FX3.on?FX3.mkRT(W,H,true):mkRT(W,H); G.gDist=mkRT(Math.max(1,W>>2),Math.max(1,H>>2)); };
+X.resize=G=>{ for(const k of ['gVfx','gDist']) if(G[k]){ if(G[k].db) gl.deleteRenderbuffer(G[k].db); gl.deleteTexture(G[k].t); gl.deleteFramebuffer(G[k].f); } G.gVfx=window.FX3&&FX3.on?FX3.mkRT(W,H,true):mkRT(W,H); G.gDist=mkRT(Math.max(1,W>>2),Math.max(1,H>>2)); };
 X.active=()=>X.on&&(X.fx.length||X.pts.length||X.q.length||X.lights.length||Math.abs(X.amb[0]-1)+Math.abs(X.amb[1]-1)+Math.abs(X.amb[2]-1)>.01);
 // called from glFrame before the bloom chain; returns true when the layer has something in it this frame
 // run the timed effects and particles for this frame (once): they submit to GFX and FX3. Called at the top of glFrame so floor-layer meshes reach the ground pass.

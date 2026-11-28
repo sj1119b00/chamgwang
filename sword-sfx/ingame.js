@@ -44,10 +44,14 @@ const until=f=>new Promise(r=>{ const h=setInterval(()=>{ if(f()){ clearInterval
       buffers.forEach((buffer,i)=>{ if(!buffer) E.buf.delete(ids[i]); });
     }finally{ fistLoading=false; retryFistAt=Math.max(retryFistAt,performance.now()+10000); }
   }
-  // ranged classes: decode the class's clips when it is picked, so the first shot is on time. Not a gate: until a clip is
-  // decoded (or if it is missing) that layer is simply skipped and the game's own sound plays alone.
+  // Decode timing-sensitive movement cues when choosing a class, ahead of its first shot or wingbeat.
   let warmCls=null;
-  function warmRanged(cls){ if(warmCls===cls||!E.ctx) return; warmCls=cls; for(const id of ClassFX.rangedClips(cls)) if(E.clips[id]) E.load(id); }
+  function warmMovement(cls){
+    if(warmCls===cls||!E.ctx)return;
+    warmCls=cls;
+    const ids=cls==='pyro'?ClassFX.ULT.py_ult2.whoosh([1,.7]).map(layer=>layer.clip):ClassFX.rangedClips(cls);
+    for(const id of ids)if(E.clips[id])E.load(id);
+  }
   // sound ends with the picture: effect activity (draw calls + particles + running effects) drives the tail gate
   let bedCls=null;
   let packCls=null;
@@ -57,7 +61,7 @@ const until=f=>new Promise(r=>{ const h=setInterval(()=>{ if(f()){ clearInterval
     if(!E.ctx&&typeof AC!=='undefined'&&AC) E.graph();
     if(inSurv()||pl.cls!=='sword') frameMix()?.select(E,pl.cls,SWC);
     if(pl.cls==='fist'||RPG.sv.A.SV.cls==='fist') warmFist();
-    if(ClassFX.RANGED[pl.cls]&&(!E.pack||E.pack.packs[pl.cls])) warmRanged(pl.cls); else warmCls=null;
+    if((pl.cls==='pyro'||ClassFX.RANGED[pl.cls])&&(!E.pack||E.pack.packs[pl.cls])) warmMovement(pl.cls); else warmCls=null;
     if(!inSurv()||!E.ctx){
       if(bedCls==='fist'){ E.stopAll(); E.setBed(null); bedCls=null; }
       return;
