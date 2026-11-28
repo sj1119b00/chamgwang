@@ -126,12 +126,16 @@ function hurtPlayer(d,src){
 function floatTxt(x,y,txt,c,size=30){ G.ftx.push({x,y,txt,c,size,t:0,life:1.2}); }
 
 function gainExp(n,x,y){
+  const previousLevel=SV.lv, showLevelUp=G.mode==='surv'&&G.frame?.onLevelUp;
   SV.exp+=n; G.stats.exp+=n; if(x!=null) floatTxt(x,y-60,'+'+n+' EXP','#bfe6ff',22);
   while(SV.exp>=needExp(SV.lv)){ SV.exp-=needExp(SV.lv); SV.lv++; SV.sp++; G.hp=Math.min(maxHp(),G.hp+maxHp()*.3);
-    const J=pl.j||joints(pl); add({k:'pillar',x:pl.x,w:120,life:.9,c:'#ffcf4a'}); ring(pl.x,GROUND,1200,'#ffcf4a',.6,{w:6,sy:.16});
-    stamp('LEVEL UP',{x:.5,y:.3,size:.1,life:1.3,c:'#ffcf4a'}); SFX.rise(.5,.4);
-    floatTxt(pl.x,J.hd[1]-80,'Lv '+SV.lv,'#ffcf4a',44);
+    if(!showLevelUp){
+      const J=pl.j||joints(pl); add({k:'pillar',x:pl.x,w:120,life:.9,c:'#ffcf4a'}); ring(pl.x,GROUND,1200,'#ffcf4a',.6,{w:6,sy:.16});
+      stamp('LEVEL UP',{x:.5,y:.3,size:.1,life:1.3,c:'#ffcf4a'}); SFX.rise(.5,.4);
+      floatTxt(pl.x,J.hd[1]-80,'Lv '+SV.lv,'#ffcf4a',44);
+    }
     for(const id of ORDER[SV.cls]) if(SK[id].lv===SV.lv){ toast('새 스킬 해금 · '+SK[id].name); autoEquip(id); } }
+  if(showLevelUp&&SV.lv>previousLevel) showLevelUp(SV.lv);
   save();
 }
 function autoEquip(id){ const s=SK[id]; if(s.type==='skill'){ const i=SV.slots.indexOf(null); if(i>=0&&!SV.slots.includes(id)) SV.slots[i]=id; }
@@ -724,7 +728,7 @@ if(linkedClass==='assassin'||rangedClass(linkedClass)){
   history.replaceState(history.state,'',location.pathname+location.search);
 }
 started=true; setClass(SV.cls||'sword',true); E.dead=true; E.respawn=1e9; pl.x=pl.home=VW*.62;
-{ const s=document.createElement('script'); s.src='surv.js?v=49';
+{ const s=document.createElement('script'); s.src='surv.js?v=50';
   s.onload=()=>menuEl.classList.add('on');
   s.onerror=()=>{ menuRender(); menuEl.classList.add('on'); };
   document.body.appendChild(s); }

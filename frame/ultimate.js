@@ -45,4 +45,11 @@ Object.defineProperty(V,'ug',{enumerable:true,configurable:true,
   get(){const id=G.api.SV.ult;if(id)return U.percent(id);for(const key in X.CLS[pl.cls]?.ults)return U.percent(key);return 0;},
   set(v){if(V.practice)return;const m=amounts();for(const id in X.CLS[pl.cls]?.ults)m[id]=bounded(v);}
 });
+// 궁극기 컷인과 GPU 후처리가 끝난 뒤 실제 적중 숫자를 맨 위 캔버스에 그린다.
+const renderBattle=render;
+render=function(){
+  const result=renderBattle.apply(this,arguments);
+  if(G.mode==='surv'&&V.nums.some(n=>n.ultHit)) X.drawNumbers(tctx,true);
+  return result;
+};
 })();

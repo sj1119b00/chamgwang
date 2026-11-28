@@ -122,7 +122,7 @@ body.pf-secret #shud .tm{font:700 19px ${KR}!important;letter-spacing:.03em}`;
   // 모아 둔 경험치(surv.js가 0.5초마다 담는 V.acc)를 담는다. 제압이면 바닥에 남은 젬도
   function bank(sweep){ if(sweep){ for(const g of V.gems) V.acc+=g.v; V.gems.length=0; } if(V.acc>0){ A.gainExp(V.acc); V.run+=V.acc; V.acc=0; } }
   // 나가기: clear는 보상(처음은 다, 다음부터 repeat 몫)과 발견 기록, quit(돌아가기 포탈·일시정지 창)과 down(쓰러짐)은 보상 없이.
-  // 모두 들어간 구역의 들어간 자리로(resume: 같은 판을 이어 간다, 못 가면 마을로). 진행(story.cleared, SV.chClear)은 건드리지 않는다. 궁극기 중이면 끝난 뒤에
+  // 들어간 자리로 돌아가 판을 이어가거나, 쓰러짐 선택창에서 마을로 귀환한다. 궁극기 중이면 끝날 때까지 기다린다.
   S.exit=function(how){ const c=cur; if(!c) return false;
     if(busy()){ c.want=how; return false; }
     const s=c.s, b=c.back, f=found();
@@ -130,7 +130,7 @@ body.pf-secret #shud .tm{font:700 19px ${KR}!important;letter-spacing:.03em}`;
     note=how==='down'?{t:'쓰러짐 · 숨은 곳에서 돌아왔습니다',c:RD}:null;
     if(how==='clear'){ const g=reward(s,!f[s.id]); G.hub.H.gold+=g; if(!f[s.id]){ f[s.id]=1; ver++; } note={t:`${LABEL[s.kind]} · 크레딧 +${g}`,c:AM}; }
     PF.save.commit();
-    if(PF.field.enter(b.zone,{at:b.at,resume:true})) return true;
+    if(how!=='town'&&PF.field.enter(b.zone,{at:b.at,resume:true})) return true;
     note=null; G.survEnd(); PF.place.go('town'); return true; };
   // 방 안의 쓰러짐은 결과 창 대신 나가기(field.js의 갈고리를 감싼다). 나가기는 갱신이 끝난 뒤에 한다
   const of0=G.frame.onFinish;
@@ -143,7 +143,10 @@ body.pf-secret #shud .tm{font:700 19px ${KR}!important;letter-spacing:.03em}`;
     if(bbName&&V.boss) bbName.textContent='중간 보스 (임시)';
     if(c.done) G.inv=Math.max(G.inv,.1);
     if(!c.want){ if(c.done&&RT-c.doneT>=CLEAR_T) c.want='clear'; else if(!c.done&&G.hp<=0) c.want='down'; }
-    if(c.want&&!busy()) S.exit(c.want); }
+    if(c.want&&!busy()){
+      if(c.want==='down') PF.defeat.begin({checkpoint:'사냥터에서 부활',choose:action=>S.exit(action==='town'?'town':'down')});
+      else S.exit(c.want);
+    } }
   const u0=update; update=function(rdt){ u0(rdt); if(cur) roomTick(); else fieldTick(); };
 
   // ---- 닫힌 통로: 바닥의 어두운 고리와 붉은 빗장(구역 지도 바닥 위, 영웅·적 아래). 그 위에 표식 지점이 떠 있다

@@ -121,9 +121,21 @@ body.surv #shud .hpb,body.surv #shud .xb{box-sizing:border-box;margin:0;height:8
   border-radius:2px!important;background:#0a151bed!important;box-shadow:0 1px 4px #0009}
 body.surv #shud .hpb i{background:linear-gradient(90deg,#c35459,#ff9a88)!important}
 body.surv #shud .me .rw:has(.xb){position:fixed;inset:auto 0 0;visibility:visible;pointer-events:none}
-body.surv #shud .xb{visibility:visible;height:4px;max-width:none;border:0!important;border-top:1px solid #85adb66b!important;
+body.surv #shud .xb{visibility:visible;height:6px;max-width:none;border:0!important;border-top:1px solid #85adb66b!important;
   border-radius:0!important;box-shadow:none}
 body.surv #shud .xb i{background:#82dfdf!important;box-shadow:none}
+@media(max-height:500px){body.surv #rtoast{top:12%}}
+#pfdefeat{padding:0;border:0;background:transparent;color:#f0f3f1;font:inherit;max-width:calc(100vw - 24px)}
+#pfdefeat::backdrop{background:transparent}
+#pfdefeat:has(section:not([hidden]))::backdrop{background:rgba(5,10,14,.56)}
+#pfdefeat section{box-sizing:border-box;min-width:min(340px,calc(100vw - 24px));padding:22px;
+  background:linear-gradient(160deg,#1c2a2c,#101819);border:1px solid #77918e;border-top:3px solid #de8d79}
+#pfdefeat h2{margin:0 0 18px;text-align:center;font-size:23px}
+#pfdefeat section>div{display:grid;gap:8px}
+#pfdefeat button{min-height:42px;padding:8px 14px;color:#e2efed;font-family:inherit;font-size:15px;font-weight:700;
+  background:#1c2a2c;border:1px solid #607a7a;cursor:pointer}
+#pfdefeat button:first-child{color:#ffedc7;background:#463726;border-color:#b6935d}
+#pfdefeat button:focus-visible{outline:2px solid #ffe6a6;outline-offset:2px}
 /* 일반 기술은 자동 발동 상태를 작은 칸으로 표시한다. 좁은 화면에서는 읽을 수 있는 크기로 줄을 바꾼다. */
 body.surv #shud .sk{width:max-content;max-width:calc(100% - 178px);flex-wrap:wrap;align-items:flex-end;justify-content:flex-start;gap:3px;zoom:1!important}
 body.surv #shud .sk .c{flex:none;width:43px;height:44px;padding:1px 1px 2px}

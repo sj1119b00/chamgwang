@@ -1,5 +1,5 @@
 // 사냥터 (설계 6.1, 17.1, 17.9): dun.js의 구역 지도를 끝나지 않는 사냥터로 쓴다. 입구에 안전지대와 빠른 이동 관문. 앞 장소·다음 구역으로는 지도 가장자리의 길(road.js)로 넘어간다.
-// 결과 창 없이 이어 가고, 쓰러지면 가장 가까운 안전지대에서 일어난다. 깬 구역은 다시 들어가면 자유롭게 둘러보는 곳(dun.js M.free)이다.
+// 쓰러지면 가장 가까운 안전지대에서 부활하거나 마을로 돌아간다. 깬 구역은 다시 들어가면 자유롭게 둘러보는 곳(dun.js M.free)이다.
 // 순수 부분(COUNT, chOf, state, inSafe, respawn)은 node 시험(frame/test/field.test.js)에서도 불러 쓴다. 브라우저에서는 boot.js가 town 다음에 붙인다
 (function(){
 'use strict';
@@ -124,7 +124,14 @@ body.pf-field #shud .mid{margin-right:162px}`;
 
   // ---- surv.js finish()의 갈고리: 사냥터에서는 판이 끝나지 않는다. 쓰러짐은 부활, 승리(시간 끝)는 무시(dun.js가 이어 간다)
   G.frame.onFinish=function(win){ const r=G.frame.run; if(!(r&&r.kind==='field')) return false; if(!win&&cur&&!lock) down(); return true; };
-  function down(){ const c=cur, M=c.M, k=M&&M.king;
+  function down(){ const c=cur;
+    const began=PF.defeat.begin({checkpoint:'가까운 안전지대에서 부활',choose(action){
+      if(action==='town'){F.leave();return;}
+      returnToSafety(c);
+    }});
+    if(began) emit('down',c);
+  }
+  function returnToSafety(c){ const M=c.M, k=M&&M.king;
     // 왕과 싸우던 중이면 왕과 왕의 방 무리를 지우고 문이 열린 상태로 되돌린다. 다시 들어가면 dun.js가 새 왕을 낸다
     if(k&&!k.dead){ const a=M.arena;
       for(const e of V.en) if(!e.dead&&!e.d.node&&(e===k||Math.hypot(e.x-a.x,(e.y-a.y)/FSY)<a.r+60)) e.dead=true;
@@ -132,9 +139,9 @@ body.pf-field #shud .mid{margin-right:162px}`;
       for(let i=V.pj.length-1;i>=0;i--) if(V.pj[i].orb) V.pj.splice(i,1); }
     const p=respawn(F.safeZones,pl.x,pl.gy)||{x:pl.x,y:pl.gy};
     pl.x=pl.home=p.x; pl.gy=p.y; pl.air=pl.airT=0; V.dash=null; anim.seq=null; cloth(); snap();
-    G.hp=A.maxHp(); G.inv=DOWN_INV;
+    G.hp=A.maxHp(); G.inv=DOWN_INV; PF.place.safe=true;
     if(M) M.msg={t:'쓰러짐 · 안전지대에서 다시 일어났습니다',sub:'',c:RD,t0:RT};
-    emit('down',c); }
+  }
 
   // ---- 매 화면. 안쪽 갱신 전: 안전지대 안이면 피해를 받지 않고(surv.js의 무적 시간 G.inv) 자동 공격·스킬이 나가지 않는다(기본·스킬 대기 V.bcd·V.gcd)
   const u0=update; update=function(rdt){
@@ -189,7 +196,7 @@ body.pf-field #shud .mid{margin-right:162px}`;
           e.x=z.x+(d?dx:1)*k; e.y=z.y+(d?dy:0)*k; } } }
     for(let i=V.pj.length-1;i>=0;i--){ const p=V.pj[i]; if(p.orb&&inSafe(Z,p.x,p.y)) V.pj.splice(i,1); }
     // 체력이 0이 된 길이 hurt가 아니어도(직접 넣은 값 등) 쓰러짐으로 받는다
-    if(G.hp<=0&&!lock) down();
+    if(G.hp<=0&&!lock){down();return;}
     const safe=inSafe(Z,pl.x,pl.gy); PF.place.safe=safe;
     if(safe&&!lock){ const mx=A.maxHp(); G.hp=Math.max(G.hp,Math.min(mx,G.hp+mx*REGEN*rdt)); } }
 

@@ -24,7 +24,7 @@ if(typeof window!=='undefined'&&window.RPG&&window.PF){
   const AM='#EBA74E', RD='#E2513F', HC='#7FF3FF';
   const NAME={hard:'높은 난이도',rematch:'왕 재대결',endless:'끝없이 버티기'}, EN={hard:'HARD MODE',rematch:'KING REMATCH',endless:'ENDLESS'};
   // 부활 뒤 무적(초), 끝없이 버티기에서 왕이 쓰러진 뒤 다시 나오기까지(초), 판이 끝나고 창이 뜨기까지(밀리초, hub.js 결과 창과 같다)
-  const REV_INV=2, BOSS_GAP=240, SHOW={win:1400,lose:900};
+  const REV_INV=2, BOSS_GAP=240, SHOW={win:1400};
   const resEl=document.getElementById('sres'), joy=document.getElementById('sjoy'), tm=document.querySelector('#shud .tm');
   const quit=document.querySelector('#rpause [data-p=quit]'), quitH=quit&&quit.innerHTML, q0=quit&&quit.onclick;
   const story=()=>PF.save.data.story, best2=()=>PF.save.data.best2;
@@ -40,7 +40,7 @@ if(typeof window!=='undefined'&&window.RPG&&window.PF){
   const banner=t=>{ for(const p of parts) if(p.k==='banner') p.en=t; };
   // 그 구역의 표(balance.js)가 도전 판에도 머문다
   B.kinds.push(...KINDS);
-  // 지금 도전 {kind,zone,ch,run,state:'run'|'offer'|'result',revived,doubled,pay,stale,M,bossT,t,el,win}. 도전이 아니면 null
+  // 지금 도전 {kind,zone,ch,run,state:'run'|'fall'|'offer'|'result',revived,doubled,pay,stale,M,bossT,t,el,win}. 도전이 아니면 null
   let cur=null, entering=false;
 
   // ---- 시작: 깬 구역만, 마을에서만. 표를 먼저 건다(전투가 처음 뿌리는 적도 표 값). 깬 구역이라 경험치 25%, 끝없이 버티기는 시간에 따른 증가를 켠 채로
@@ -80,15 +80,15 @@ if(typeof window!=='undefined'&&window.RPG&&window.PF){
     if(r.kind==='endless'&&win) return true;
     if(cur.state==='run') over(win);
     return true; };
-  // surv.js finish()의 첫 부분(V.over=true; joyHide(); G.keys={}; V.acc 담기; stamp CLEAR / slow + stamp 다운)과 같은 일. 그 뒤(best·chClear·첫 클리어 경험치·hubResult 정산)는 하지 않는다.
-  // 판이 끝남: finish가 하던 화면 일(멈춤, 조이스틱·키, 모아 둔 경험치, 글자)만 한다. 시간은 지도(dun.js M.el, 멈춘 동안 늘지 않음), 끝없이 버티기는 V.t.
-  // 쓰러졌고 이 판에서 아직 부활하지 않았고 광고 스위치가 켜져 있으면 부활 제안, 아니면 결과 창
+  // 도전이 끝난 시각과 획득 경험치를 확정한다. 첫 패배에는 쓰러지는 연출 뒤에 한 번 부활할 기회를 준다.
   function over(win){ const c=cur, M=c.M;
     V.over=true; V.joy=null; if(joy) joy.classList.remove('act'); G.keys={};
     if(V.acc>0){ A.gainExp(V.acc); V.run+=V.acc; V.acc=0; }
     c.win=!!win; c.el=M?M.el:null; c.t=M?M.el:V.t;
-    if(win) stamp('CLEAR',{x:.5,y:.4,size:.14,life:1.6,c:'#ffcf4a'}); else { slow(.25,.8); stamp('다운',{x:.5,y:.4,size:.14,life:1.4,c:'#ff4a5a'}); }
-    if(!win&&!c.revived&&PF.ads.enabled) offer(c); else result(c,win?SHOW.win:SHOW.lose); }
+    if(win){stamp('CLEAR',{x:.5,y:.4,size:.14,life:1.6,c:'#ffcf4a'});result(c,SHOW.win);return;}
+    c.state='fall';
+    PF.defeat.begin({afterFall(){if(c.revived) result(c,0); else offer(c);}});
+  }
   // 창을 ms 뒤에 보인다. 그사이 판이 바뀌었으면(부활, 결과 창으로 넘어감, 마을로) 보이지 않는다
   function later(c,ms){ const st=c.state;
     if(!ms) resEl.classList.add('on');
@@ -102,16 +102,20 @@ if(typeof window!=='undefined'&&window.RPG&&window.PF){
 
   // ---- 광고 자리 1: 부활 제안. 받으면 그 자리에서 다시, 그만하기·광고를 끝까지 안 봄·실패면 결과 창
   function offer(c){ c.state='offer'; resEl.classList.add('hubr');
+    const ad=PF.ads.enabled;
     resEl.innerHTML=`<div class="hub"><div class="hres panel pf-rev"><span class="hk" style="color:${RD}">${EN[c.kind]} · SIGNAL LOST</span><h2 class="l">쓰러짐</h2>
-      <div class="sub">${zname(c.zone)} · ${NAME[c.kind]} · ${mmss(Math.round(c.t))}</div><div class="sub">광고를 끝까지 보면 이 자리에서 체력이 가득 찬 채 다시 일어납니다 (이 판에 한 번)</div>
-      <div class="bt"><button class="btn pri" type="button" data-r="revive">광고 보고 한 번 부활<small>REWARDED AD</small></button><button class="btn" type="button" data-r="stop">그만하기<small>결과 보기</small></button></div></div></div>`;
-    later(c,SHOW.lose);
+      <div class="sub">${zname(c.zone)} · ${NAME[c.kind]} · ${mmss(Math.round(c.t))}</div><div class="sub">${ad?'광고를 끝까지 보면 이 자리에서':'이 자리에서'} 최대 체력으로 부활합니다. 도전당 1회.</div>
+      <div class="bt"><button class="btn pri" type="button" data-r="revive">${ad?'광고 보고 한 번 부활':'이 자리에서 부활'}</button><button class="btn" type="button" data-r="stop">그만하기<small>결과 보기</small></button></div></div></div>`;
+    later(c,0);
     const bs=[...resEl.querySelectorAll('[data-r]')];
+    bs[0].focus({preventScroll:true});
     for(const b of bs) b.onclick=e=>{ e.stopPropagation(); if(cur!==c||c.state!=='offer'||b.disabled) return; for(const x of bs) x.disabled=true;
       if(b.dataset.r==='stop') return result(c,0);
+      if(!ad) return revive(c);
       ask('revive').then(ok=>{ if(cur!==c||c.state!=='offer') return; if(ok) revive(c); else result(c,0); }); }; }
   // 부활: over가 바꾼 것(멈춤, 느려진 시간, 창)을 되돌리고, 광고를 보는 동안 흐른 지도 시간도 되돌린다. 쓰러진 자리에서 체력 가득, 무적 REV_INV초
   function revive(c){ c.revived=true; c.state='run';
+    PF.defeat.clear();
     resEl.classList.remove('on','hubr'); resEl.innerHTML='';
     V.over=false; timeScale=1; slowHold=0; if(c.M&&c.el!=null) c.M.el=c.el;
     G.hp=A.maxHp(); G.inv=REV_INV; }
