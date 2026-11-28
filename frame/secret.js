@@ -23,14 +23,14 @@ const S={usable,builtinId,count,reward};
 if(typeof window!=='undefined'&&window.RPG){
   const G=RPG, A=G.api, V=G.sv.V, FSY=G.sv.FSY, PF=window.PF;
   const AM='#EBA74E', RD='#E2513F', KR='"Noto Sans KR","Malgun Gothic",sans-serif';
-  // 지점 이름(임시), 지점 반경(흔적, 포탈·닫힌 통로), 숨은 던전의 보스가 쓰러진 뒤 돌아가기까지(초)
-  const LABEL={trace:'임시 흔적',dungeon:'임시 숨은 던전',zone:'임시 숨은 구역'}, LOCKED='잠긴 통로', R_TRACE=120, R_GATE=200, CLEAR_T=1.2;
+  // 발견 지점의 이름과 반경, 배급 지하로 문지기 제압 후 귀환 대기 시간(초).
+  const LABEL={trace:'퇴색한 표식',dungeon:'폐쇄된 배급 지하로',zone:'옛 대피소'}, LOCKED='잠긴 통로', R_TRACE=120, R_GATE=200, CLEAR_T=1.2;
   const LOCK_BARK={text:'구역을 제압한 뒤 다시 올 수 있습니다'};
   const story=()=>PF.save.data.story;
   const found=()=>{ const s=story(); return s.found||(s.found={}); };
   const byId=id=>PF.SECRETS.find(s=>s.id===id);
   const busy=()=>PF.story.busy();
-  // 숨은 구역의 임시 장면: story.js는 장면을 화 자료(PF.EP)에서만 찾으므로 자료의 장면 화를 붙인다.
+  // 발견한 대피소의 독립 장면도 회상 목록과 같은 장면 자료를 사용한다.
   // 화 번호 100 이상만 붙인다: 1~8은 사냥터의 화(story.js가 구역+1로 찾아 도입·대면·마무리를 사냥터 사건에 쓴다)라 숨은 곳의 장면이 섞이면 안 된다
   for(const e of PF.SECRET_EP||[]) if(e.ep>=100&&!PF.EP.some(x=>x.ep===e.ep)) PF.EP.push(e);
 
@@ -140,7 +140,7 @@ body.pf-secret #shud .tm{font:700 19px ${KR}!important;letter-spacing:.03em}`;
   // 매 화면(안쪽 갱신 뒤): 방이면 HUD 이름, 보스가 쓰러지고 CLEAR_T 뒤 제압(그동안 무적), 체력 0이면 쓰러짐. 사냥터면 자리와 발견 기록
   function roomTick(){ const c=cur; if(G.mode!=='surv'||G.paused) return;
     if(tm) tm.textContent=LABEL[c.s.kind];
-    if(bbName&&V.boss) bbName.textContent='중간 보스 (임시)';
+    if(bbName&&V.boss) bbName.textContent=V.boss.displayName||'배급로의 파수꾼';
     if(c.done) G.inv=Math.max(G.inv,.1);
     if(!c.want){ if(c.done&&RT-c.doneT>=CLEAR_T) c.want='clear'; else if(!c.done&&G.hp<=0) c.want='down'; }
     if(c.want&&!busy()){

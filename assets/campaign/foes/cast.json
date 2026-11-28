@@ -1,0 +1,233 @@
+{
+  "columns": 8,
+  "cell": 320,
+  "foot": 0.94,
+  "clips": {
+    "idle": {
+      "start": 0,
+      "count": 8,
+      "seconds": 2.15
+    },
+    "walk": {
+      "start": 8,
+      "count": 20,
+      "seconds": 1.04
+    },
+    "attack": {
+      "start": 28,
+      "count": 14,
+      "seconds": 0.79
+    },
+    "hurt": {
+      "start": 42,
+      "count": 5,
+      "seconds": 0.27
+    },
+    "fall": {
+      "start": 47,
+      "count": 9,
+      "seconds": 0.73
+    }
+  },
+  "entries": {
+    "z0_shard": {
+      "weapon": "주파수 조율포크",
+      "style": "fork"
+    },
+    "z0_archer": {
+      "weapon": "관측 광자총",
+      "style": "emitter"
+    },
+    "z0_brute": {
+      "weapon": "격리 집행창",
+      "style": "seal"
+    },
+    "z0_boss": {
+      "weapon": "관제 명령 투사기",
+      "style": "grid"
+    },
+    "z1_shard": {
+      "weapon": "검투 곡도",
+      "style": "sabre"
+    },
+    "z1_archer": {
+      "weapon": "철편 투척날",
+      "style": "knives"
+    },
+    "z1_brute": {
+      "weapon": "용접 철권",
+      "style": "fists"
+    },
+    "z1_boss": {
+      "weapon": "투기장 대검",
+      "style": "cleaver"
+    },
+    "z2_shard": {
+      "weapon": "황동 계량봉",
+      "style": "cudgel"
+    },
+    "z2_archer": {
+      "weapon": "정산 레일총",
+      "style": "rail"
+    },
+    "z2_brute": {
+      "weapon": "금고 곡괭이",
+      "style": "pick"
+    },
+    "z2_boss": {
+      "weapon": "왕실 양팔저울",
+      "style": "balance"
+    },
+    "z3_shard": {
+      "weapon": "갈대 수확낫",
+      "style": "harvest"
+    },
+    "z3_archer": {
+      "weapon": "접목 장궁",
+      "style": "longbow"
+    },
+    "z3_brute": {
+      "weapon": "뿌리 쐐기망치",
+      "style": "hammer"
+    },
+    "z3_boss": {
+      "weapon": "발아 지팡이",
+      "style": "branches"
+    },
+    "z4_shard": {
+      "weapon": "의회 호위창",
+      "style": "pole"
+    },
+    "z4_archer": {
+      "weapon": "의장 쇠뇌",
+      "style": "bow"
+    },
+    "z4_brute": {
+      "weapon": "의장 문장 방패",
+      "style": "ward"
+    },
+    "z4_boss": {
+      "weapon": "의결 권장",
+      "style": "crown"
+    },
+    "z5_shard": {
+      "weapon": "접지 단검",
+      "style": "knife"
+    },
+    "z5_archer": {
+      "weapon": "암호침 투사기",
+      "style": "cipher"
+    },
+    "z5_brute": {
+      "weapon": "폐회로 감금기",
+      "style": "coil"
+    },
+    "z5_boss": {
+      "weapon": "분할 암호날",
+      "style": "shards"
+    },
+    "z6_shard": {
+      "weapon": "양구 증기 렌치",
+      "style": "wrench"
+    },
+    "z6_archer": {
+      "weapon": "압력 리벳건",
+      "style": "rivet"
+    },
+    "z6_brute": {
+      "weapon": "피스톤 충격추",
+      "style": "ram"
+    },
+    "z6_boss": {
+      "weapon": "쌍발 유도 코일",
+      "style": "orbit"
+    },
+    "z7_shard": {
+      "weapon": "대피 유도봉",
+      "style": "baton"
+    },
+    "z7_archer": {
+      "weapon": "비상 조명탄 발사기",
+      "style": "flare"
+    },
+    "z7_brute": {
+      "weapon": "대피소 방벽과 제압봉",
+      "style": "shield"
+    },
+    "z7_boss": {
+      "weapon": "공명 손종",
+      "style": "bell"
+    },
+    "z0_signal": {
+      "weapon": "분리 신호 고리",
+      "style": "signal"
+    }
+  },
+  "actionSheet": {
+    "suffix": "-actions.webp",
+    "columns": 8,
+    "cell": 224,
+    "clips": {
+      "run": {
+        "start": 0,
+        "count": 10,
+        "seconds": 0.72
+      },
+      "turn": {
+        "start": 10,
+        "count": 4,
+        "seconds": 0.32
+      },
+      "prepare": {
+        "start": 14,
+        "count": 5,
+        "seconds": 0.35
+      },
+      "heavy": {
+        "start": 19,
+        "count": 7,
+        "seconds": 1.08
+      },
+      "charge": {
+        "start": 26,
+        "count": 6,
+        "seconds": 0.66
+      },
+      "stagger": {
+        "start": 32,
+        "count": 5,
+        "seconds": 0.52
+      },
+      "knockdown": {
+        "start": 37,
+        "count": 8,
+        "seconds": 1.04
+      },
+      "death": {
+        "start": 45,
+        "count": 6,
+        "seconds": 0.86
+      },
+      "entrance": {
+        "start": 51,
+        "count": 7,
+        "seconds": 1.22
+      },
+      "roar": {
+        "start": 58,
+        "count": 6,
+        "seconds": 0.94
+      },
+      "phase": {
+        "start": 64,
+        "count": 7,
+        "seconds": 0.82
+      },
+      "special": {
+        "start": 71,
+        "count": 8,
+        "seconds": 1.1
+      }
+    }
+  }
+}

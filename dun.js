@@ -49,22 +49,29 @@ const rng=seed=>{ let s=seed>>>0||1; return ()=>((s=(s*16807)%2147483647)/214748
 const fd=(ax,ay,bx,by)=>Math.hypot(ax-bx,(ay-by)/FSY);   // distance on the floor (y is foreshortened)
 function segDist(px,py,x0,y0,x1,y1){ const dx=x1-x0, dy=(y1-y0)/FSY, qx=px-x0, qy=(py-y0)/FSY, L=dx*dx+dy*dy||1, t=Math.max(0,Math.min(1,(qx*dx+qy*dy)/L)); return Math.hypot(qx-dx*t,qy-dy*t); }
 function build(ch){
-  const zk=ZK[ch], Z=ZONES[ch], R=rng(9173+ch*7919), X0=pl.x, Y0=pl.gy, mir=ch%2?-1:1;
-  const B={l:X0-6000,r:X0+6000,t:Y0-7800,b:Y0+650};
-  const RA=1300, arena={x:X0,y:B.t+RA*FSY+380,r:RA};
+  const run=G.frame?.run, maps=window.PF?.regionMaps;
+  const authored=maps&&['field','rematch','hard'].includes(run?.kind);
+  const no=authored?maps.number(run.zone):ZONES[ch].no;
+  const X0=pl.x,Y0=pl.gy, regional=authored?maps.field(no,X0,Y0):null;
+  const zk=regional?'z'+(no||6):ZK[ch];
+  const Z=regional&&!no?{...ZONES[ch],no:0,name:'남부 관제시설',king:'아르카디아',kingEn:'ARCADIA',acc:'#a9e1e2'}:ZONES[ch];
+  const R=rng(9173+(regional?no:ch)*7919),mir=ch%2?-1:1;
+  const B=regional?.B||{l:X0-6000,r:X0+6000,t:Y0-7800,b:Y0+650};
+  const RA=regional?.arena.r||1300, arena=regional?.arena||{x:X0,y:B.t+RA*FSY+380,r:RA};
   const jit=v=>v+(R()-.5)*500;
-  const nodes=[[X0-3700*mir,Y0-2100],[X0+3600*mir,Y0-3900],[X0-2500*mir,Y0-5500]].map(([x,y])=>({x:jit(x),y:y+(R()-.5)*300,e:null,done:false,awake:false,wave:2}));
-  const roads=[[X0,Y0+200,X0,arena.y+RA*FSY*.6,720]];
-  for(const n of nodes) roads.push([X0,n.y,n.x,n.y,560]);
-  roads.push([B.l+700,Y0-1000,B.r-700,Y0-1000,480],[X0+2300*mir,Y0-1000,X0+2300*mir,Y0-5600,480]);
+  const nodes=regional?.nodes||[[X0-3700*mir,Y0-2100],[X0+3600*mir,Y0-3900],[X0-2500*mir,Y0-5500]].map(([x,y])=>({x:jit(x),y:y+(R()-.5)*300,e:null,done:false,awake:false,wave:2}));
+  const roads=regional?.roads||[[X0,Y0+200,X0,arena.y+RA*FSY*.6,720]];
+  if(!regional){for(const n of nodes) roads.push([X0,n.y,n.x,n.y,560]);
+  roads.push([B.l+700,Y0-1000,B.r-700,Y0-1000,480],[X0+2300*mir,Y0-1000,X0+2300*mir,Y0-5600,480]);}
   const plazas=[{x:X0,y:Y0,r:900,k:'start'},...nodes.map(n=>({x:n.x,y:n.y,r:760,k:'node'}))];
-  const free=(x,y,m)=>x>B.l+260&&x<B.r-260&&y>B.t+260&&y<B.b-200&&fd(x,y,arena.x,arena.y)>RA+m&&!plazas.some(p=>fd(x,y,p.x,p.y)<p.r+m);
+  if(regional) for(const z of regional.shelters) plazas.push({...z,r:z.r+220,k:'rest'});
+  const free=(x,y,m)=>!regional?.terrain.some(t=>Math.hypot((x-t.x)/(t.rx+m),(y-t.y)/(t.ry+m*FSY))<1)&&x>B.l+260&&x<B.r-260&&y>B.t+260&&y<B.b-200&&fd(x,y,arena.x,arena.y)>(regional?maps.radius(arena,Math.atan2((y-arena.y)/FSY,x-arena.x)):RA)+m&&!plazas.some(p=>fd(x,y,p.x,p.y)<p.r+m);
   // supply caches and record terminals sit off the main road, inside the blocks
   const chests=[], logs=[];
-  for(let k=0;k<80&&chests.length<6;k++){ const x=B.l+600+R()*(B.r-B.l-1200), y=B.t+800+R()*(B.b-B.t-1500);
+  for(let k=0;k<(regional?850:80)&&chests.length<6;k++){ const x=B.l+600+R()*(B.r-B.l-1200), y=B.t+800+R()*(B.b-B.t-1500);
     if(!free(x,y,420)||roads.some(r=>segDist(x,y,...r)<r[4]/2+250)||chests.some(c=>fd(x,y,c.x,c.y)<2200)) continue; chests.push({x,y,open:false,guard:false}); }
-  for(let k=0;k<80&&logs.length<2;k++){ const r=roads[1+(R()*(roads.length-1)|0)], t=.3+R()*.5, x=r[0]+(r[2]-r[0])*t, y=r[1]+(r[3]-r[1])*t+(R()<.5?-1:1)*(r[4]/2+170)*FSY;
-    if(!free(x,y,250)||chests.some(c=>fd(x,y,c.x,c.y)<700)||logs.some(l=>fd(x,y,l.x,l.y)<2500)) continue; logs.push({x,y,read:false,txt:LOGS[zk][logs.length]}); }
+  for(let k=0;k<(regional?400:80)&&logs.length<2;k++){ const r=roads[1+(R()*(roads.length-1)|0)], t=.3+R()*.5, x=r[0]+(r[2]-r[0])*t, y=r[1]+(r[3]-r[1])*t+(R()<.5?-1:1)*(r[4]/2+170)*FSY;
+    if(!free(x,y,250)||chests.some(c=>fd(x,y,c.x,c.y)<700)||logs.some(l=>fd(x,y,l.x,l.y)<2500)) continue; logs.push({x,y,read:false,txt:(regional?.design.logs||LOGS[zk])[logs.length]}); }
   for(const c of chests) plazas.push({x:c.x,y:c.y,r:360,k:'chest'}); for(const l of logs) plazas.push({x:l.x,y:l.y,r:260,k:'log'});
   // props: a jittered grid, kept off roads and plazas, with open ground left for the fights
   const kinds=PK[zk], props=[], pick=list=>{ let t=list.reduce((s,p)=>s+p.w,0)*R(); for(const p of list){ t-=p.w; if(t<=0) return p; } return list[0]; };
@@ -77,33 +84,43 @@ function build(ch){
     for(let i=1;i<n;i++){ const t=i/n, x=r[0]+(r[2]-r[0])*t, y=r[1]+(r[3]-r[1])*t, hz=Math.abs(r[3]-r[1])<1, side=(i%2?1:-1);
       const px=hz?x:x+side*(r[4]/2+110), py=hz?y+side*(r[4]/2+110)*FSY:y; if(!free(px,py,140)) continue; props.push(mkProp(zk,st,px,py,.95+R()*.1,R)); } }
   // the king's arena: the zone's tallest landmark ringed outside the wall (the gap to the city kept clear) and one behind the throne
-  { const big=kinds.filter(k=>k.big).sort((p,q)=>q.h-p.h), lm=big[0]||kinds[0], side=big[1]||lm, N=9;
+  { const big=kinds.filter(k=>k.big).sort((p,q)=>q.h-p.h), lm=big[0]||kinds[0], side=big[1]||lm, N=regional?arena.design.posts.length:9;
     for(let i=0;i<N;i++){ const ang=-Math.PI/2+(i-(N-1)/2)*(Math.PI*1.45/(N-1)); if(Math.abs(Math.atan2(Math.sin(ang-Math.PI/2),Math.cos(ang-Math.PI/2)))<.6) continue;
-      const k=i%2?side:lm, x=arena.x+Math.cos(ang)*(RA+380), y=arena.y+Math.sin(ang)*(RA+380)*FSY; props.push(mkProp(zk,k,x,y,i%2?.8:.95,R)); }
-    const th=mkProp(zk,lm,arena.x,arena.y-RA*FSY*.82,1.35,R); th.throne=1; props.push(th); }
+      const k=regional?kinds[arena.design.posts[i]]:i%2?side:lm;
+      const wall=regional?maps.radius(arena,ang):RA;
+      const x=arena.x+Math.cos(ang)*(wall+500), y=arena.y+Math.sin(ang)*(wall+500)*FSY; props.push(mkProp(zk,k,x,y,i%2?.8:.95,R)); }
+    const th=mkProp(zk,regional?kinds[arena.design.throne]:lm,arena.x,arena.y-(regional?maps.radius(arena,-Math.PI/2):RA)*FSY*.94,regional?.95:1.35,R); th.throne=1; props.push(th); }
   // drop props whose footprint lands on another's
   props.sort((a,b)=>b.rx-a.rx); const kept=props.filter(p=>p.throne||fd(p.x,p.y,arena.x,arena.y)<RA+500); props.splice(0,props.length,...props.filter(p=>!kept.includes(p))); for(const p of props){ if(kept.some(q=>Math.hypot((p.x-q.x)/(p.rx+q.rx),(p.y-q.y)/(p.ry+q.ry+40))<1)) continue; kept.push(p); }
   kept.sort((a,b)=>a.y-b.y);
   const grid=new Map(), C=1000, key=(i,j)=>i*100003+j;
-  for(const p of kept){ if(!p.solid) continue; for(let i=Math.floor((p.x-p.rx)/C);i<=Math.floor((p.x+p.rx)/C);i++) for(let j=Math.floor((p.y-p.ry)/C);j<=Math.floor((p.y+p.ry)/C);j++){ const k=key(i,j); let L=grid.get(k); if(!L) grid.set(k,L=[]); L.push(p); } }
+  for(const p of kept){ if(!p.solid) continue;
+    const pad=regional?120:0,rx=p.rx+pad,ry=p.ry+pad*FSY;
+    for(let i=Math.floor((p.x-rx)/C);i<=Math.floor((p.x+rx)/C);i++) for(let j=Math.floor((p.y-ry)/C);j<=Math.floor((p.y+ry)/C);j++){ const k=key(i,j); let L=grid.get(k); if(!L) grid.set(k,L=[]); L.push(p); } }
   const holos=[]; for(const r of roads){ const L=fd(r[0],r[1],r[2],r[3]), n=Math.floor(L/1700); for(let i=0;i<n;i++){ const t=(i+.5)/n, hz=Math.abs(r[3]-r[1])<1, side=R()<.5?-1:1, x=r[0]+(r[2]-r[0])*t+(hz?0:side*(r[4]/2+260)), y=r[1]+(r[3]-r[1])*t+(hz?side*(r[4]/2+260)*FSY:0);
     if(fd(x,y,arena.x,arena.y)<RA+300) continue; holos.push({x,y,w:260+R()*140,h:150+R()*60,z:520+R()*260,ph:R()*TAU,kind:R()*3|0}); } }
-  return {holos,ch,zk,Z,B,arena,nodes,roads,plazas,chests,logs,props:kept,grid,C,key,t0:RT,el:0,gold:0,loot:[],done:0,gate:false,king:null,kingDown:false,won:false,amb:[],ambT:0,packT:2,msg:null,objT:0,seed:R()}; }
+  return {regional,holos,ch,zk,Z,B,arena,nodes,roads,plazas,chests,logs,props:kept,grid,C,key,t0:RT,el:0,gold:0,loot:[],done:0,gate:false,king:null,kingDown:false,won:false,amb:[],ambT:0,packT:2,msg:null,objT:0,seed:R()}; }
 function mkProp(zk,k,x,y,s,R){ const im=IMG[zk][k.i], h=k.h*s; const o={k,zk,im,x,y,h,s,ph:R()*TAU,solid:!k.float,rx:0,ry:0,fix(){ const w=this.w(); this.rx=w*(k.fp||(k.wide?.44:.34)); this.ry=this.rx*FSY*.62; },w(){ return im.naturalWidth?im.naturalWidth*this.h/im.naturalHeight:this.h*.8; }}; o.fix(); return o; }
 
 // ============================================================ collision: footprints, the map's edge, the arena wall
 function pushOut(o,xk,yk,rad=0){ if(!M) return; const x=o[xk], y=o[yk];
   const L=M.grid.get(M.key(Math.floor(x/M.C),Math.floor(y/M.C))); if(L) for(const p of L){ const rx=p.rx+rad, ry=p.ry+rad*FSY, u=(o[xk]-p.x)/rx, v=(o[yk]-p.y)/ry, d=Math.hypot(u,v); if(d<1){ const k=d<1e-3?1:1/d; o[xk]=p.x+(d<1e-3?1:u)*k*rx; o[yk]=p.y+(d<1e-3?0:v)*k*ry; } }
   const B=M.B; o[xk]=Math.max(B.l+80,Math.min(B.r-80,o[xk])); o[yk]=Math.max(B.t+80,Math.min(B.b-60,o[yk]));
+  if(M.regional) for(const t of M.regional.terrain){
+    const rx=t.rx+rad,ry=t.ry+rad*FSY,u=(o[xk]-t.x)/rx,v=(o[yk]-t.y)/ry,d=Math.hypot(u,v);
+    if(d<1){o[xk]=t.x+(d?u/d:1)*rx;o[yk]=t.y+(d?v/d:0)*ry;}
+  }
   const a=M.arena, dx=o[xk]-a.x, dy=(o[yk]-a.y)/FSY, d=Math.hypot(dx,dy), ang=Math.atan2(dy,dx), inGap=(M.gate||M.free)&&!M.king&&Math.abs(ang-Math.PI/2)<.32;
-  if(!inGap&&Math.abs(d-a.r)<70){ const k=(d<a.r?a.r-70:a.r+70)/(d||1); o[xk]=a.x+dx*k; o[yk]=a.y+dy*k*FSY; } }
+  const wall=M.regional?window.PF.regionMaps.radius(a,ang):a.r;
+  const thickness=a.design?112:70;
+  if(!inGap&&Math.abs(d-wall)<thickness){ const k=(d<wall?wall-thickness:wall+thickness)/(d||1); o[xk]=a.x+dx*k; o[yk]=a.y+dy*k*FSY; } }
 function solidAt(x,y,m=0){ const o={x,y}; pushOut(o,'x','y',m); return Math.abs(o.x-x)>1||Math.abs(o.y-y)>1; }
 function spot(cx,cy,r0,r1,tries=10){ for(let i=0;i<tries;i++){ const a=rand(0,TAU), r=rand(r0,r1), x=cx+Math.cos(a)*r, y=cy+Math.sin(a)*r*FSY; if(!solidAt(x,y,60)) return [x,y]; } return null; }
 
 // ============================================================ the run: objectives, waves, rewards
 const CAPA=150;
 function alive(){ let n=0; for(const e of V.en) if(!e.dead&&!e.d.node) n++; return n; }
-function pack(x,y,n,heavy){ for(let i=0;i<n&&alive()<CAPA;i++){ const p=spot(x,y,0,260); if(!p) continue; const r=Math.random(); S.spawn(heavy&&i===0?'brute':(V.t>30||M.free)&&r<.22?'archer':'shard',p[0],p[1]); } }
+function pack(x,y,n,heavy){ if(M.duel||M.regional?.no===1&&M.king&&!M.king.dead) return; for(let i=0;i<n&&alive()<CAPA;i++){ const p=spot(x,y,0,260); if(!p) continue; const r=Math.random(); S.spawn(heavy&&i===0?'brute':(V.t>30||M.free)&&r<.22?'archer':'shard',p[0],p[1]); } }
 function offscreen(){ const {hw,hh}=S.view(); for(let i=0;i<12;i++){ const a=rand(0,TAU), x=cam.x+Math.cos(a)*(hw+220), y=cam.y+Math.sin(a)*(hh+260); if(!solidAt(x,y,80)) return [x,y]; } return null; }
 function say(t,sub,c){ M.msg={t,sub,c:c||M.Z.acc,t0:RT}; }
 function tick(rdt){ const ch=M.ch, Z=M.Z; M.el+=rdt;
@@ -115,23 +132,29 @@ function tick(rdt){ const ch=M.ch, Z=M.Z; M.el+=rdt;
   if(V.over||lock) return;
   // nodes: pinned in place; the closer the hero, the more they call
   for(const n of M.nodes){ if(n.done) continue; const e=n.e; if(e){ e.x=n.x; e.y=n.y; e.kx=e.ky=0; e.stun=1e9; e.z=0; }
-    if(e&&e.dead){ n.done=true; M.done++; M.gold+=Math.round(70*(ch+1)); for(let i=0;i<10;i++) V.gems.push({x:n.x+rand(-120,120),y:n.y+rand(-80,80),v:6+ch*2,s:0,mag:false,ph:rand(0,TAU)});
-      stamp('노드 파괴',{x:.5,y:.3,size:.1,life:1.3,c:Z.acc,keep:1}); V.items.push({k:'heal',x:n.x,y:n.y+200,t:0}); S.sfx('shatter',1); S.sfx('boom',1,.6); if(window.GFX) GFX.light(n.x,n.y,900,Z.acc,1.4,1.2,{z:200});
+    const d=fd(pl.x,pl.gy,n.x,n.y);
+    const stationComplete=M.regional&&window.PF.regionMaps.fieldTick(M,n,rdt,d,S.spawn);
+    if(e&&e.dead||stationComplete){ n.done=true; M.done++; M.gold+=Math.round(70*(ch+1)); for(let i=0;i<10;i++) V.gems.push({x:n.x+rand(-120,120),y:n.y+rand(-80,80),v:6+ch*2,s:0,mag:false,ph:rand(0,TAU)});
+      stamp(M.regional?n.label+' 완료':'노드 파괴',{x:.5,y:.3,size:.1,life:1.3,c:Z.acc,keep:1}); V.items.push({k:'heal',x:n.x,y:n.y+200,t:0}); S.sfx('shatter',1); S.sfx('boom',1,.6); if(window.GFX) GFX.light(n.x,n.y,900,Z.acc,1.4,1.2,{z:200});
       explode(n.x,n.y-380,1.5,Z.acc,'#ffffff'); S.burst(n.x,n.y,26,{s0:300,s1:1300,vz:1600,size:22,c:Z.acc}); for(let i=0;i<3;i++) after(i*.12,()=>S.fring(n.x,n.y,1600+i*700,Z.acc,.7,8)); trauma=Math.min(1,trauma+.45); n.boomT=RT;
       const questField=G.frame?.run?.kind==='field';
       if(M.done===M.nodes.length){
         M.gate=true; say('왕의 문이 열렸다',Z.king+'이(가) 기다린다',Z.acc);
         // 연달아 파괴한 노드의 글만 걷는다. 효과의 수명과 그릴 때 쓰는 난수는 유지한다.
-        if(questField) for(const p of parts) if(p.k==='stamp'&&p.txt==='노드 파괴') p.txt='';
+        if(questField){
+          const notices=new Set(['노드 파괴',...M.nodes.map(q=>q.label+' 완료')]);
+          for(const p of parts) if(p.k==='stamp'&&notices.has(p.txt)) p.txt='';
+        }
       }else if(!questField) say(`신호 노드 ${M.done} / ${M.nodes.length}`,'남은 노드를 찾아 파괴하라');
       else if(M.msg?.t==='신호 노드 감지') M.msg.t0=-Infinity;
       continue; }
-    const d=fd(pl.x,pl.gy,n.x,n.y);
-    if(!n.awake&&d<1700){ n.awake=true; n.wt=0; say('신호 노드 감지','노드가 방어 병력을 부른다'); }
-    if(n.awake&&d<2200){ n.wt-=rdt; if(n.wt<=0){ n.wt=Math.max(3.2,5-ch*.2); n.wave++; const k=4+ch+Math.min(6,n.wave); for(let i=0;i<3;i++){ const p=spot(n.x,n.y,500,900); if(p) pack(p[0],p[1],Math.ceil(k/3),n.wave%3===0&&i===0); } } } }
+    if(M.regional&&!window.PF.regionMaps.activeNodes(M).includes(n)) continue;
+    if(!n.awake&&d<1700){ n.awake=true; n.wt=0; say(M.regional?n.label:'신호 노드 감지',M.regional?window.PF.regionMaps.fieldObjective(M,pl.x,pl.gy)?.text:'노드가 방어 병력을 부른다'); }
+    if(n.awake&&d<2200&&n.mode!=='duel'){ n.wt-=rdt; if(n.wt<=0){ n.wt=Math.max(3.2,5-ch*.2); n.wave++; const k=4+ch+Math.min(6,n.wave); for(let i=0;i<3;i++){ const p=spot(n.x,n.y,500,900); if(p) pack(p[0],p[1],Math.ceil(k/3),n.wave%3===0&&i===0); } } } }
+  if(M.regional?.no===1) window.PF.regionMaps.clearDuelSpectators(M,V);
   // caches: a squad wakes when the hero comes near; opening one pays out
   for(const c of M.chests){ if(c.open) continue; const d=fd(pl.x,pl.gy,c.x,c.y);
-    if(!c.guard&&d<1500){ c.guard=true; for(let i=0;i<2;i++){ const p=spot(c.x,c.y,300,600); if(p) pack(p[0],p[1],3+ch,i===0); } }
+    if(!M.duel&&!c.guard&&d<1500){ c.guard=true; for(let i=0;i<2;i++){ const p=spot(c.x,c.y,300,600); if(p) pack(p[0],p[1],3+ch,i===0); } }
     if(d<130){ c.open=true; c.t=RT; const g=Math.round((35+Math.random()*30)*(ch+1)); M.gold+=g; V.nums.push({x:c.x,y:c.y-260,t:-.2,txt:'+'+g+' 크레딧',heal:true});
       for(let i=0;i<6;i++) V.gems.push({x:c.x+rand(-80,80),y:c.y+rand(-50,50),v:3+ch,s:0,mag:false,ph:rand(0,TAU)});
       if(Math.random()<.45&&G.hub.newItem){ const rar=G.hub.rollRar?G.hub.rollRar(ch,false):0, R=G.hub.RAR&&G.hub.RAR[rar]; M.loot.push(rar); M.lootT=RT;
@@ -142,13 +165,48 @@ function tick(rdt){ const ch=M.ch, Z=M.Z; M.el+=rdt;
   for(const l of M.logs){ if(l.read) continue; if(fd(pl.x,pl.gy,l.x,l.y)<170){ l.read=true; say('레온의 기록',l.txt,'#EBA74E'); V.acc+=20*(ch+1); S.sfx('rise',.5,.3); } }
   // the arena: once inside with the gate open, it seals and the king comes
   const a=M.arena, da=fd(pl.x,pl.gy,a.x,a.y);
-  if(M.gate&&!M.king&&!M.free&&da<a.r-260){ const k=S.spawn('boss',a.x,a.y-a.r*FSY*.35); M.king=k; V.boss=k; M.ht=8; clearOutside(true); stamp(Z.king,{x:.5,y:.3,size:.12,life:1.6,c:Z.acc,keep:1}); if(window.SFX&&SFX.siren) SFX.siren(1.6); say(Z.king,Z.kingEn,Z.acc); }
+  const run=G.frame?.run, finale=run?.zone===7;
+  const roomRadius=M.regional?window.PF.regionMaps.radius(a,Math.atan2((pl.gy-a.y)/FSY,pl.x-a.x)):a.r;
+  if(M.gate&&!M.king&&!M.free&&da<roomRadius-260){
+    const resumed=run?.kind==='field'&&run.first&&window.PF?.save.data.story.finalStage==='signal';
+    enterBoss(finale?(M.finalStage||(resumed?'signal':'arcadia')):null);
+    if(finale&&resumed&&!PF.save.data.story.seen['ep8.interlude']) PF.story.play('ep8.interlude');
+  }
+  if(finale&&M.king?.dead&&M.finalStage==='arcadia'){
+    if(!M.interlude){
+      M.interlude=true;
+      const firstClear=run.kind==='field'&&run.first;
+      if(firstClear){ PF.save.data.story.finalStage='signal'; PF.save.commit(); }
+      const arenaMap=M;
+      const nextStage=()=>{
+        if(M!==arenaMap||G.frame?.run!==run) return;
+        M.interlude=false;
+        enterBoss('signal');
+      };
+      if(firstClear&&!PF.save.data.story.seen['ep8.interlude']) PF.story.play('ep8.interlude').then(nextStage);
+      else nextStage();
+    }
+    return;
+  }
   if(M.king&&!M.king.dead) clearOutside(false);
-  if(M.king){ if(M.king.dead){ if(!M.won){ M.won=true; M.wonT=RT; V.mag=3; for(const e of V.en) if(!e.dead&&!e.d.node) S.dmg(e,e.hp*1.3+10,{kb:2}); say(Z.king+' 제압','경험치를 회수하는 중…',Z.acc); } } else { M.ht-=rdt; if(M.ht<=0){ M.ht=Math.max(8,13-ch); for(let i=0;i<3;i++){ const p=spot(a.x,a.y,a.r*.5,a.r*.85); if(p) pack(p[0],p[1],3+ch,i===0&&Math.random()<.5); } } } }
+  if(M.king){ if(M.king.dead){ if(!M.won){ M.won=true; M.wonT=RT; V.mag=3; for(const e of V.en) if(!e.dead&&!e.d.node) S.dmg(e,e.hp*1.3+10,{kb:2}); say(finale?'신호 분리 · 레온 생존':(M.king.displayName||Z.king)+' 제압','경험치를 회수하는 중…',Z.acc); } } else { M.ht-=rdt; if(M.ht<=0&&M.regional?.no!==1){ M.ht=Math.max(8,13-ch); for(let i=0;i<3;i++){ const p=spot(a.x,a.y,a.r*.5,a.r*.85); if(p) pack(p[0],p[1],3+ch,i===0&&Math.random()<.5); } } } }
   // the thin ambient horde: small packs from off screen, more as the run goes on
-  M.packT-=rdt; if(M.packT<=0&&!M.king){ const dn=M.free?0:M.done; M.packT=Math.max(1.6,3.4-ch*.15-dn*.3); if(alive()<26+ch*4+dn*8){ const p=offscreen(); if(p) pack(p[0],p[1],3+(Math.random()*3|0)+dn,(M.free||M.el>60)&&Math.random()<.12); } }
+  M.packT-=rdt; if(M.packT<=0&&!M.king&&!M.duel){ const dn=M.free?0:M.done; M.packT=Math.max(1.6,3.4-ch*.15-dn*.3); if(alive()<26+ch*4+dn*8){ const p=offscreen(); if(p) pack(p[0],p[1],3+(Math.random()*3|0)+dn,(M.free||M.el>60)&&Math.random()<.12); } }
 }
-function clearOutside(puff){ const a=M.arena; for(const e of V.en){ if(e.dead||e.d.node||e.d.boss||fd(e.x,e.y,a.x,a.y)<a.r+60) continue; e.dead=true; if(puff) smoke(e.x,e.y-60,rand(30,50),{a:.35,life:.6,grow:60}); } }
+function enterBoss(stage){
+  const a=M.arena, Z=M.Z, k=S.spawn('boss',a.x,a.y-a.r*FSY*.35,stage);
+  if(stage){
+    M.finalStage=stage; k.finalStage=stage;
+    k.displayName=k.displayName||(stage==='arcadia'?'아르카디아':'레온 · 신호체');
+    k.hp=k.max=Math.max(1,Math.round(k.max*(stage==='arcadia'?.44:.56)));
+  }
+  M.king=V.boss=k; M.ht=8; clearOutside(true);
+  if(M.regional?.no===1) window.PF.regionMaps.clearDuelSpectators(M,V);
+  stamp(k.displayName||Z.king,{x:.5,y:.3,size:.12,life:1.6,c:Z.acc,keep:1});
+  if(window.SFX&&SFX.siren) SFX.siren(1.6);
+  say(k.displayName||Z.king,stage==='signal'?'일곱 기억을 잇고 신호체를 분리하라':stage==='arcadia'?'관제시설의 마지막 수호자':k.d.base?'왕의 방':Z.kingEn,Z.acc);
+}
+function clearOutside(puff){ const a=M.arena; for(const e of V.en){ if(e.dead||e.d.node||e.d.boss||fd(e.x,e.y,a.x,a.y)<(a.design?window.PF.regionMaps.radius(a,Math.atan2((e.y-a.y)/FSY,e.x-a.x)):a.r)+60) continue; e.dead=true; if(puff) smoke(e.x,e.y-60,rand(30,50),{a:.35,life:.6,grow:60}); } }
 // after the engine moved everything: keep it out of the props and inside the map
 function collide(){ pushOut(pl,'x','gy',34);
   for(const n of M.nodes){ if(n.done||!n.e) continue; n.e.x=n.x; n.e.y=n.y; const dx=pl.x-n.x, dy=(pl.gy-n.y)/FSY, d=Math.hypot(dx,dy); if(d<170){ const k=170/(d||1); pl.x=n.x+(d?dx:1)*k; pl.gy=n.y+(d?dy:0)*k*FSY; } }
@@ -199,6 +257,7 @@ function drawLog(l){ const x=l.x, y=l.y, c=l.read?'#556677':'#EBA74E';
     ctx.fillStyle='#EBA74E'; for(let i=0;i<4;i++) ctx.fillRect(x-52,b-30+i*18,80+((i*37)%30),5); ctx.restore(); glow(fx,x,b,140,'#EBA74E',.3); } }
 // floor: roads, plazas, the arena, the void past the edge
 function drawFloor(){ const Z=M.Z, c=Z.acc;
+  if(M.regional){ window.PF.atlasTerrain?.field(ctx,M); window.PF.regionScenery.land(ctx,M); }
   ctx.lineCap='butt';
   for(const r of M.roads){ const [x0,y0,x1,y1,w]=r, hz=Math.abs(y1-y0)<Math.abs(x1-x0), ww=hz?w*FSY:w;
     ctx.strokeStyle='rgba(0,0,0,.34)'; ctx.lineWidth=ww; ctx.beginPath(); ctx.moveTo(x0,y0); ctx.lineTo(x1,y1); ctx.stroke();
@@ -209,7 +268,8 @@ function drawFloor(){ const Z=M.Z, c=Z.acc;
     ctx.strokeStyle=hexA(p.k==='chest'?'#EBA74E':c,.28); ctx.lineWidth=5; ctx.beginPath(); ctx.ellipse(p.x,p.y,r*.92,r*.92*FSY,0,0,TAU); ctx.stroke();
     if(p.k!=='chest'){ ctx.setLineDash([30,40]); ctx.lineDashOffset=RT*(p.k==='start'?30:-50); ctx.beginPath(); ctx.ellipse(p.x,p.y,r*.7,r*.7*FSY,0,0,TAU); ctx.stroke(); ctx.setLineDash([]); } }
   const a=M.arena, open=(M.gate||M.free)&&!M.king;
-  ctx.fillStyle='rgba(0,0,0,.4)'; ctx.beginPath(); ctx.ellipse(a.x,a.y,a.r,a.r*FSY,0,0,TAU); ctx.fill();
+  if(M.regional) window.PF.regionScenery.arena(ctx,fx,M,open,RT,FSY);
+  else {ctx.fillStyle='rgba(0,0,0,.4)'; ctx.beginPath(); ctx.ellipse(a.x,a.y,a.r,a.r*FSY,0,0,TAU); ctx.fill();
   ctx.strokeStyle=hexA(c,.35); for(let i=1;i<=4;i++){ ctx.lineWidth=i===4?8:3; ctx.beginPath(); ctx.ellipse(a.x,a.y,a.r*i/4.2,a.r*i/4.2*FSY,0,0,TAU); ctx.stroke(); }
   ctx.lineWidth=3; for(let i=0;i<12;i++){ const ang=i/12*TAU+RT*.05; ctx.beginPath(); ctx.moveTo(a.x+Math.cos(ang)*a.r*.25,a.y+Math.sin(ang)*a.r*.25*FSY); ctx.lineTo(a.x+Math.cos(ang)*a.r*.95,a.y+Math.sin(ang)*a.r*.95*FSY); ctx.stroke(); }
   /* the wall of light around the arena; a gap faces the city once the nodes are down */
@@ -219,10 +279,15 @@ function drawFloor(){ const Z=M.Z, c=Z.acc;
   fx.strokeStyle=hexA(wc,.7); fx.lineWidth=5; fx.beginPath(); fx.ellipse(a.x,a.y,a.r,a.r*FSY,0,0,TAU); fx.stroke();
   if(M.gate||M.king){ for(let i=0;i<6;i++){ const ang=i/6*TAU+RT*.15, x=a.x+Math.cos(ang)*a.r*.62, y=a.y+Math.sin(ang)*a.r*.62*FSY, g=fx.createLinearGradient(0,y-1600,0,y); g.addColorStop(0,hexA(c,0)); g.addColorStop(1,hexA(c,.22+.1*Math.sin(RT*4+i))); fx.fillStyle=g; fx.fillRect(x-18,y-1600,36,1600); }
     ctx.strokeStyle=hexA(c,.5); ctx.lineWidth=4; for(const o of [0,Math.PI/3]){ ctx.beginPath(); for(let i=0;i<=3;i++){ const ang=o+i/3*TAU-RT*.1, x=a.x+Math.cos(ang)*a.r*.62, y=a.y+Math.sin(ang)*a.r*.62*FSY; i?ctx.lineTo(x,y):ctx.moveTo(x,y); } ctx.stroke(); } }
+  }
+  if(M.regional){
+    window.PF.regionScenery.stations(ctx,M,FSY);
+    window.PF.atlasTerrain?.tunnel(ctx,'z'+(7-M.regional.no),window.PF.road?.surveyDoors(M)?.out);
+  }
   /* outside the map: dark, with a fence of light along the edge */
   const B=M.B, {hw,hh}=S.view(), X0=cam.x-hw-400, X1=cam.x+hw+400, Y0=cam.y-hh-400, Y1=cam.y+hh+400;
-  ctx.fillStyle='rgba(2,7,9,.86)'; if(X0<B.l) ctx.fillRect(X0,Y0,B.l-X0,Y1-Y0); if(X1>B.r) ctx.fillRect(B.r,Y0,X1-B.r,Y1-Y0); if(Y0<B.t) ctx.fillRect(Math.max(X0,B.l),Y0,Math.min(X1,B.r)-Math.max(X0,B.l),B.t-Y0); if(Y1>B.b) ctx.fillRect(Math.max(X0,B.l),B.b,Math.min(X1,B.r)-Math.max(X0,B.l),Y1-B.b);
-  fx.strokeStyle=hexA('#7FF3FF',.45); fx.lineWidth=4; fx.setLineDash([60,40]); fx.lineDashOffset=RT*40; fx.strokeRect(B.l,B.t,B.r-B.l,B.b-B.t); fx.setLineDash([]);
+  if(!M.regional||!window.PF.atlasTerrain){ ctx.fillStyle='rgba(2,7,9,.86)'; if(X0<B.l) ctx.fillRect(X0,Y0,B.l-X0,Y1-Y0); if(X1>B.r) ctx.fillRect(B.r,Y0,X1-B.r,Y1-Y0); if(Y0<B.t) ctx.fillRect(Math.max(X0,B.l),Y0,Math.min(X1,B.r)-Math.max(X0,B.l),B.t-Y0); if(Y1>B.b) ctx.fillRect(Math.max(X0,B.l),B.b,Math.min(X1,B.r)-Math.max(X0,B.l),Y1-B.b);
+  fx.strokeStyle=hexA('#7FF3FF',.45); fx.lineWidth=4; fx.setLineDash([60,40]); fx.lineDashOffset=RT*40; fx.strokeRect(B.l,B.t,B.r-B.l,B.b-B.t); fx.setLineDash([]); }
   for(const ch of M.chests) drawChest(ch); for(const l of M.logs) drawLog(l);
   ambient(); }
 // what moves in the air of each zone
@@ -270,7 +335,7 @@ const msg=document.createElement('div'); msg.className='dmsg'; hud.appendChild(m
 let lastMini=0;
 function hudTick(){ const $=s=>hud.querySelector(s), Z=M.Z, tm=$('.tm'), kc=$('.kc');
   // frame/quest.js: in a frame hunting field the main quest panel gives the objective; this line keeps only the node count until the zone is subdued
-  const obj=G.frame&&G.frame.run&&G.frame.run.kind==='field'&&!M.free?`신호 노드 ${M.done} / ${M.nodes.length}`:M.king?(M.won?'왕 제압':'왕을 쓰러뜨려라'):M.free?'제압한 구역':M.gate?'왕의 문으로':`신호 노드 ${M.done} / ${M.nodes.length}`;
+  const obj=G.frame&&G.frame.run&&G.frame.run.kind==='field'&&!M.free?`현장 목표 ${M.done} / ${M.nodes.length}`:M.king?(M.won?'왕 제압':'왕을 쓰러뜨려라'):M.free?'제압한 구역':M.gate?'왕의 문으로':`신호 노드 ${M.done} / ${M.nodes.length}`;
   if(tm) tm.textContent=obj; if(kc) kc.innerHTML=`<span>${Z.no}구역 · ${Z.name}</span><b>처치 ${V.kills} · 보급 ${M.chests.filter(c=>c.open).length}/${M.chests.length}${M.loot.length?` · <span style="color:#EBA74E${RT-(M.lootT||-9)<3?';text-shadow:0 0 8px #EBA74E':''}">장비 ${M.loot.length}</span>`:''}</b>`;
   if(M.msg){ const age=RT-M.msg.t0; msg.innerHTML=`<b style="color:${M.msg.c}">${M.msg.t}</b>${M.msg.sub||''}`; msg.classList.toggle('on',age<(M.msg.sub&&M.msg.sub.length>30?5.5:2.8)); }
   if(RT-lastMini<.1) return; lastMini=RT;
@@ -289,23 +354,41 @@ function hudTick(){ const $=s=>hud.querySelector(s), Z=M.Z, tm=$('.tm'), kc=$('.
 // ============================================================ engine hooks (globals the engine calls; surv.js wrapped them first)
 let runStats=null;
 const upd0=update; update=function(rdt){
-  if(G.mode==='surv'&&G.stats!==runStats){ runStats=G.stats; if(!V.practice&&!V.over&&!(G.frame&&G.frame.run&&/^(town|village|secret|endless)$/.test(G.frame.run.kind))) start(); else stop(); }
+  if(G.mode==='surv'&&G.stats!==runStats){ runStats=G.stats; if(!V.practice&&!V.over&&!(G.frame&&G.frame.run&&/^(town|village|secret|endless|raid)$/.test(G.frame.run.kind))) start(); else stop(); }
   if(G.mode!=='surv'&&M) stop();
+  const map=M,oldX=pl.x,oldY=pl.gy;
   if(M&&!G.paused) tick(rdt);
   upd0(rdt);
-  if(M&&G.mode==='surv'&&!G.paused){ collide(); hudTick(); } };
+  if(M&&G.mode==='surv'&&!G.paused){
+    if(M===map&&M.regional){
+      const a=M.arena,maps=window.PF.regionMaps,open=(M.gate||M.free)&&!M.king;
+      if(maps.blockedCrossing(a,oldX-a.x,(oldY-a.y)/FSY,pl.x-a.x,(pl.gy-a.y)/FSY,open)){
+        pl.x=oldX;pl.gy=oldY;V.dash=null;
+      }
+    }
+    collide();
+    // A skill or prop collision can displace the hero without following a normal walking segment.
+    if(M.regional&&!M.gate&&!M.free){
+      const a=M.arena,maps=window.PF.regionMaps,dx=pl.x-a.x,dy=(pl.gy-a.y)/FSY;
+      if(maps.insideArena(a,dx,dy)){
+        const angle=Math.atan2(dy,dx),outside=maps.radius(a,angle)+120;
+        pl.x=a.x+Math.cos(angle)*outside;pl.gy=a.y+Math.sin(angle)*outside*FSY;V.dash=null;
+      }
+    }
+    hudTick();
+  } };
 function start(){ const ch=V.ch; M=build(ch);
   if(SPR.crystal) SPR.crystal.ok=false;
   /* frame/field.js: a zone already subdued is open ground — its nodes are down from the start, no king, the arena door open */
-  if(G.frame&&G.frame.run&&G.frame.run.kind==='field'&&!G.frame.run.first){ M.free=true; for(const n of M.nodes) n.done=true; }
+  if(G.frame&&G.frame.run&&G.frame.run.kind==='field'&&!G.frame.run.first){ M.free=true; M.gate=true; M.done=M.nodes.length; for(const n of M.nodes) n.done=true; }
   /* frame/challenge.js: a king rematch skips to the arena — the nodes are down, the door open, the hero (cloth and camera with him) just outside its mouth */
   if(G.frame&&G.frame.run&&G.frame.run.kind==='rematch'){ for(const n of M.nodes) n.done=true; M.done=M.nodes.length; M.gate=true; const a=M.arena; pl.x=pl.home=a.x; pl.gy=a.y+(a.r+260)*FSY; for(const q of [...pl.scarf,...pl.coat]) q.init=false; cam.x=cam.fx=pl.x; cam.y=cam.fy=pl.gy-BODY*.6; }
-  for(const n of M.nodes){ if(n.done) continue; const e=S.spawn('node',n.x,n.y); e.stun=1e9; n.e=e; }
+  for(const n of M.nodes){ if(n.done||M.regional&&window.PF.regionMaps.modeOf(n)!=='assault') continue; const e=S.spawn('node',n.x,n.y); e.stun=1e9; n.e=e; }
   /* the run opened with a scatter of crystals around the hero: thin it to a handful */
   V.en=V.en.filter(e=>e.d.node); pack(pl.x,pl.gy-900,4,false);
-  for(const p of parts) if(p.k==='banner'){ p.en=`ZONE ${String(M.Z.no).padStart(2,'0')} · ${M.free?'제압한 구역':'신호 노드 3개를 파괴하고 왕을 쓰러뜨려라'}`; }
+  for(const p of parts) if(p.k==='banner'){ p.en=`ZONE ${String(M.Z.no).padStart(2,'0')} · ${M.free?'제압한 구역':M.regional?M.regional.design.name:'신호 노드 3개를 파괴하고 왕을 쓰러뜨려라'}`; }
   // frame/quest.js: in a frame hunting field the main quest says what to do first, so the zone banner keeps only the zone's name
-  hud.classList.add('dun'); if(M.free) say('제압한 구역 · 자유롭게 둘러보세요',''); else say(`${M.Z.no}구역 · ${M.Z.name}`,G.frame&&G.frame.run&&G.frame.run.kind==='field'?'':'신호 노드 3개를 찾아 파괴하라. 노드의 빛기둥을 따라가면 된다.'); }
+  hud.classList.add('dun'); if(M.free) say('제압한 구역 · 자유롭게 둘러보세요',''); else if(M.regional) say(M.regional.design.name,''); else say(`${M.Z.no}구역 · ${M.Z.name}`,G.frame&&G.frame.run&&G.frame.run.kind==='field'?'':'신호 노드 3개를 찾아 파괴하라. 노드의 빛기둥을 따라가면 된다.'); }
 function stop(){ if(!M) return; M=null; if(SPR.crystal) SPR.crystal.ok=true; hud.classList.remove('dun'); msg.classList.remove('on'); }
 const prep0=drawBackground_prep; drawBackground_prep=function(){ prep0(); if(!M||G.mode!=='surv') return; applyCam(ctx); applyCam(fx); drawFloor(); ctx.setTransform(1,0,0,1,0,0); };
 const de0=drawEnemy; drawEnemy=function(){ if(M&&G.mode==='surv') visible(); de0(); if(M&&G.mode==='surv') drawUpTo(pl.gy??0); };
@@ -313,5 +396,8 @@ const dp0=drawPlayer; drawPlayer=function(){ dp0(); if(M&&G.mode==='surv'){ draw
 const fd0=G.foeDraw; G.foeDraw=function(e){ if(M&&G.mode==='surv'){ drawUpTo(e.y); if(e.d.node) return drawNode(e); } return fd0?fd0(e):false; };
 const fy0=G.foeDying; G.foeDying=function(q){ if(q.e.d.node){ const k=q.t/q.life; glow(fx,q.e.x,q.e.y-400,300*(1+k),M?M.Z.acc:'#7FF3FF',(1-k)*.8); return true; } return fy0?fy0(q):false; };
 // the result screen reads the run from here
-G.dun={get on(){ return !!M; },result(){ if(!M) return null; return {gold:M.gold,loot:M.loot.length,lootR:M.loot.slice(),nodes:M.done,total:M.nodes.length,chests:M.chests.filter(c=>c.open).length,chestsN:M.chests.length,el:M.el,won:M.won}; },get M(){ return M; }};
+G.dun={propImage(src){
+  const match=/^assets\/dun\/(z[1-7])_([0-5])\.webp$/.exec(src);
+  return match?IMG[match[1]][Number(match[2])]:null;
+},get on(){ return !!M; },result(){ if(!M) return null; return {gold:M.gold,loot:M.loot.length,lootR:M.loot.slice(),nodes:M.done,total:M.nodes.length,chests:M.chests.filter(c=>c.open).length,chestsN:M.chests.length,el:M.el,won:M.won}; },get M(){ return M; }};
 })();

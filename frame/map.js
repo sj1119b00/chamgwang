@@ -19,7 +19,7 @@ if(typeof module!=='undefined') module.exports=map;
 if(typeof window==='undefined') return;
 const PF=window.PF, G=window.RPG, fsY=G.sv.FSY;
 const story=()=>PF.save.data.story;
-const zoneName=z=>G.hub.ZONES[z]?.name||'마지막 화 (임시)';
+const zoneName=z=>G.hub.ZONES[z]?.name||'남부 관제시설';
 const locationName=id=>id==='town'?'마을':zoneName(Number(id.slice(1)));
 const district=z=>G.hub.ZONES[z];
 const tone=z=>district(z)?.acc||'#87c6bc';
@@ -55,15 +55,15 @@ function area(){
   const B=room?{l:0,t:0,r:room.w,b:room.h}:M?M.B:{l:pl.x-1800,t:pl.gy-1800,r:pl.x+1800,b:pl.gy+1800};
   const start=room?room.start:M?.plazas.find(p=>p.k==='start');
   const hidden=place==='secret'&&PF.SECRETS.find(s=>s.id===run.id);
-  const name=place==='town'?'마을':hidden?(hidden.kind==='zone'?'숨은 구역 (임시)':'숨은 던전 (임시)'):challengeName[place]||regionName(run.zone);
+  const name=place==='town'?'마을':hidden?(hidden.kind==='zone'?'옛 대피소':'폐쇄된 배급 지하로'):challengeName[place]||regionName(run.zone);
   cached={key,run,place,B,room,M,start,name,field:place==='field',zone:place==='town'?'town':run.zone};
   return cached;
 }
 function section(a){
-  if(a.place==='village') return '마을';
+  if(a.place==='village') return a.room.name;
   if(!a.field) return '';
   const kind=PF.continent?.place()?.kind;
-  return PF.continent?.rests().find(r=>r.kind===kind)?.label||({outer:SUB.outer,core:SUB.core,boss:'왕의 방'})[kind]||SUB[sub(a.start,a.M.arena,a.B.b-a.B.t,pl.x,pl.gy)];
+  return PF.continent?.rests().find(r=>r.kind===kind)?.label||({outer:SUB.outer,core:SUB.core,boss:a.M.arena.design?.name||'왕의 방'})[kind]||SUB[sub(a.start,a.M.arena,a.B.b-a.B.t,pl.x,pl.gy)];
 }
 // 미니맵·큰 지도 모두 같은 월드 그림을 투영한다. 마을 건물은 방의 충돌 다각형과 같은 변환을 쓴다.
 function terrain(a){
@@ -81,6 +81,11 @@ function terrain(a){
   g.fillStyle=color+'12'; g.fillRect(B.l,B.t,w,h);
   const floor=picture(a.room?.floor||(a.M?.Z?'assets/menu/f_z'+a.M.Z.no+'.webp':null));
   if(floor){ g.globalAlpha=.43; g.drawImage(floor,B.l,B.t,w,h); g.globalAlpha=1; }
+  const key=a.place==='town'?'town':a.room?.no??a.M?.regional?.no;
+  if(key!=null&&PF.atlasTerrain&&(picture(PF.atlasTerrain.source(key))||PF.atlasTerrain.texture(key))){
+    if(a.room)PF.atlasTerrain.room(g,a.room,B.l,B.t,B.r,B.b);
+    else PF.atlasTerrain.field(g,a.M,B);
+  }
   function oval(x,y,rx,ry,fill,line){
     g.beginPath(); g.ellipse(x,y,rx,ry,0,0,Math.PI*2);
     if(fill){ g.fillStyle=fill; g.fill(); }
@@ -113,6 +118,7 @@ function terrain(a){
   }else if(a.M){
     const m=a.M;
     if(a.field){
+      for(const t of m.regional?.terrain||[]) oval(t.x,t.y,t.rx,t.ry,'#122024','#638481');
       for(const p of m.props){
         if(!p.solid||!p.rx||!p.ry) continue;
         g.fillStyle=p.k.big?'#577174':'#3c5154';
@@ -124,7 +130,10 @@ function terrain(a){
       for(const p of m.plazas) if(p.k==='start'||p.k==='node') oval(p.x,p.y,p.r,p.r*fsY,'#416366');
       for(const z of PF.continent?.rests()||[]) oval(z.x,z.y,z.r,z.r,'#295e4d','#76c5a5');
     }
-    oval(m.arena.x,m.arena.y,m.arena.r,m.arena.r*fsY,'#302f39','#a18887');
+    if(m.arena.design){
+      PF.regionScenery.boundary(g,m.arena,fsY);
+      g.fillStyle='#302f39';g.fill();g.strokeStyle='#a18887';g.lineWidth=2/scale;g.stroke();
+    }else oval(m.arena.x,m.arena.y,m.arena.r,m.arena.r*fsY,'#302f39','#a18887');
     if(a.field){
       for(const p of m.props) if(p.k.big) building(picture(p.im),p,p.h*.66,.7);
       for(const s of PF.continent?.rests()||[]){
@@ -140,6 +149,7 @@ function points(a){
   const list=[], add=(kind,x,y,label,more={})=>list.push({kind,x,y,label,...more});
   if(a.field||a.place==='town'||a.place==='village'){
     for(const s of PF.spots.list){
+      if(s.act?.startsWith('regional:')) add('log',s.x,s.y,s.label);
       if(s.kind==='npc') add('npc',s.x,s.y,s.label);
       if(s.act==='portal:warp') add('portal',s.x,s.y,s.label);
     }
@@ -149,7 +159,7 @@ function points(a){
       add('secret',origin.x+s.x,origin.y+s.y,'찾은 숨은 곳');
     if(a.field){
       for(const z of PF.continent?.rests()||[]) add('rest',z.x,z.y,z.label);
-      for(const n of a.M.nodes) add('node',n.x,n.y,'신호 노드',{done:!!n.done});
+      for(const n of a.M.nodes) add('node',n.x,n.y,n.label||'현장 목표',{done:!!n.done});
       for(const [kind,set] of [['chest',a.M.chests],['log',a.M.logs]]) set.forEach((p,i)=>{
         if(found[PF.secret.builtinId(a.zone,kind,i)]) add(kind,p.x,p.y,kind==='chest'?'찾은 상자':'찾은 단말');
       });
@@ -224,7 +234,7 @@ function zoneBoard(a){
     note(SUB.keep,...at(x,m.arena.y),'section'); note('중심 · 전투',...at(x,(m.arena.y+a.start.y)/2),'section');
     note('외곽 · 전투',...at(x,a.start.y),'section');
     const [ax,ay]=at(m.arena.x,m.arena.y);
-    const label=note('왕의 방',ax,ay,'arena');
+    const label=note(m.arena.design?.name||'왕의 방',ax,ay,'arena');
     occupied.push({l:ax-label.offsetWidth/2,r:ax+label.offsetWidth/2,t:ay-label.offsetHeight/2,b:ay+label.offsetHeight/2});
   }
   const POI=points(a), occupy=(x,y,r)=>occupied.push({l:x-r,t:y-r,r:x+r,b:y+r});
@@ -242,7 +252,7 @@ function zoneBoard(a){
   occupy(...at(pl.x,pl.gy),9);
   for(const p of POI) if(p.kind==='exit'||p.kind==='rest') exitNote(p,...at(p.x,p.y),w,h,occupied);
 }
-const legend=[['player','내 위치'],['target','메인 목표'],['side','서브 목표'],['npc','대화 상대'],['node','신호 노드'],['portal','관문'],['exit','출구'],
+const legend=[['player','내 위치'],['target','메인 목표'],['side','서브 목표'],['npc','대화 상대'],['node','현장 목표'],['portal','관문'],['exit','출구'],
   ['rest','쉼터'],['chest','찾은 상자'],['log','기록 단말'],['secret','숨은 곳']];
 function zoneInfo(a){
   info.appendChild(el('h3','',a.name));
@@ -286,6 +296,9 @@ function worldInfo(){
   info.replaceChildren();
   const id=selection, state=worldState(id), zone=id==='town'?'town':Number(id.slice(1));
   info.appendChild(el('h3','',[prefix(zone),state==='locked'?'???':locationName(id)].filter(Boolean).join(' · ')));
+  const geo=PF.WORLD.anchors.find(p=>p.id===id);
+  if(geo){info.append(el('p','pf-map-geography',geo.geo+' · '+geo.en),el('p','pf-map-landform',geo.land));}
+  const atlas=el('button','btn pf-atlas-open','대륙 지형도 확대');atlas.type='button';atlas.onclick=atlasViewer;info.appendChild(atlas);
   const visited=zone==='town'||state==='cleared'||!!story().visited?.[id];
   const status={cleared:'제압한 곳',locked:'진입 불가',open:visited?'들른 곳':'갈 수 있는 곳'};
   info.appendChild(el('p','pf-map-status',status[state]+(id===currentId()?' · 현재 위치':'')));
@@ -306,30 +319,94 @@ function worldInfo(){
     row('도전 기록',completed+' / 3').dataset.record='challenge';
   }
   if(zone!=='town'&&state==='cleared') PF.challenge.mapRow(info,zone);
+  if(zone!=='town'&&visited&&state!=='locked') PF.bestiary?.catalog?.(info,G.hub.ZONES[zone]?.no??0);
+}
+let atlasDialog=null;
+const previousKey=G.survKey;
+let atlasEscape=false;
+G.survKey=function(e,down){
+  if(e.code==='Escape'&&atlasEscape){if(!down)atlasEscape=false;e.preventDefault();return;}
+  if(atlasDialog?.open){
+    if(down&&e.code==='Escape'){atlasEscape=true;e.preventDefault();atlasDialog.close();}
+    return;
+  }
+  return previousKey.apply(this,arguments);
+};
+function atlasViewer(){
+  if(!atlasDialog){
+    const d=el('dialog','pf-atlas-view');atlasDialog=d;d.setAttribute('aria-label','호주 대륙 원정 지도');
+    const plate=PF.WORLD.plate,bar=el('header'),title=el('b','','호주 대륙 원정 지도'),view=el('div','pf-atlas-scroll');
+    const sheet=el('div','pf-atlas-sheet'),img=el('img'),pin=el('i','pf-atlas-current');
+    img.width=plate.width;img.height=plate.height;img.src=PF.WORLD.atlas;img.alt='호주 대륙 노선과 여덟 구역의 마을, 사냥터, 왕의 방을 연결한 지형도';
+    img.draggable=false;sheet.append(img,pin);view.appendChild(sheet);bar.appendChild(title);
+    let zoom=1,last=null;
+    function resize(next,fx=.5,fy=.5){
+      const w=view.clientWidth,h=view.clientHeight,box=view.getBoundingClientRect(),old=img.getBoundingClientRect();
+      const px=(box.left+w*fx-old.left)/(old.width||w),py=(box.top+h*fy-old.top)/(old.height||h);
+      const fit=Math.min(w/plate.width,h/plate.height);zoom=Math.max(1,Math.min(8,next));
+      sheet.style.width=Math.round(plate.width*fit*zoom)+'px';
+      const fresh=img.getBoundingClientRect();
+      view.scrollBy(fresh.left+px*fresh.width-box.left-w*fx,fresh.top+py*fresh.height-box.top-h*fy);
+    }
+    function locate(){
+      const place=PF.WORLD.anchors.find(p=>p.id===currentId()),p=PF.WORLD.project(place.lon,place.lat);
+      pin.style.left=(plate.x+p.x*plate.geoWidth)/plate.width*100+'%';
+      pin.style.top=(plate.y+p.y*plate.geoHeight)/plate.height*100+'%';
+      pin.setAttribute('aria-label','현재 위치 · '+place.geo);pin.title=pin.getAttribute('aria-label');
+    }
+    function centerPlayer(){
+      resize(Math.max(zoom,3));const target=pin.getBoundingClientRect(),box=view.getBoundingClientRect();
+      view.scrollBy(target.left+target.width/2-box.left-view.clientWidth/2,target.top+target.height/2-box.top-view.clientHeight/2);
+    }
+    for(const [txt,label,fn] of [['−','축소',()=>resize(zoom/1.65)],['+','확대',()=>resize(zoom*1.65)],['내 위치','현재 위치 보기',centerPlayer],['전체','전체 보기',()=>resize(1)],['닫기','지도 닫기',()=>d.close()]]){
+      const b=el('button','',txt);b.type='button';b.setAttribute('aria-label',label);b.onclick=fn;bar.appendChild(b);
+    }
+    view.onwheel=e=>{e.preventDefault();const r=view.getBoundingClientRect();resize(zoom*(e.deltaY<0?1.25:.8),(e.clientX-r.left)/r.width,(e.clientY-r.top)/r.height);};
+    view.onpointerdown=e=>{if(e.pointerType==='mouse'){view.setPointerCapture(e.pointerId);last=[e.clientX,e.clientY];}};
+    view.onpointermove=e=>{if(last){view.scrollBy(last[0]-e.clientX,last[1]-e.clientY);last=[e.clientX,e.clientY];}};
+    view.onpointerup=view.onpointercancel=()=>{last=null;};
+    view.ondblclick=()=>resize(zoom===1?3:1);d.onkeydown=e=>{e.stopPropagation();if(e.key==='Escape'){e.preventDefault();d.close();}};
+    d.append(bar,view);document.body.appendChild(d);d.reset=()=>{locate();resize(1);};
+    new ResizeObserver(()=>{if(d.open)resize(zoom);}).observe(view);
+  }
+  atlasDialog.showModal();atlasDialog.reset();
 }
 function worldBoard(a){
-  const w=board.clientWidth,h=board.clientHeight; if(!w||!h) return;
-  const L=PF.WORLD.layout(PF.field.COUNT), positions=new Map(L.nodes.map(n=>[n.id,n]));
-  const g=canvasFor(w,h), goal=goalId(a);
-  for(const [from,to] of L.links){
-    const p=positions.get(from), q=positions.get(to), shut=worldState(to)==='locked';
-    g.strokeStyle=shut?'#49606a':'#75c6c3'; g.lineWidth=shut?1.5:2; g.setLineDash(shut?[3,5]:[]);
-    g.beginPath(); g.moveTo(p.x*w,p.y*h); g.lineTo(q.x*w,q.y*h); g.stroke();
-  }
+  const w=board.clientWidth,h=board.clientHeight;if(!w||!h)return;
+  const L=PF.WORLD.layout(PF.field.COUNT),ratio=2560/2136,gw=Math.min(w-10,(h-10)*ratio),gh=gw/ratio;
+  const offx=(w-gw)/2,offy=(h-gh)/2,at=n=>[offx+n.x*gw,offy+n.y*gh];
+  const img=el('img','pf-world-base');img.src=PF.WORLD.base;img.alt='';img.style.cssText='left:'+offx+'px;top:'+offy+'px;width:'+gw+'px;height:'+gh+'px';board.appendChild(img);
+  const g=canvasFor(w,h),goal=goalId(a),occupied=[];
+  g.lineJoin='round';g.lineCap='round';
+  PF.WORLD.routes.forEach((route,i)=>{
+    const shut=worldState(L.links[i][1])==='locked';
+    g.beginPath();route.forEach((n,j)=>{const [x,y]=at(n);if(j)g.lineTo(x,y);else g.moveTo(x,y);});
+    g.setLineDash([]);g.strokeStyle='#233c39';g.lineWidth=3.7;g.stroke();
+    g.strokeStyle=shut?'#dbcca5':'#ffce77';g.lineWidth=1.65;g.setLineDash(shut?[2,3]:[]);g.stroke();
+  });
+  g.setLineDash([]);
   for(const n of L.nodes){
-    const id=n.id, state=worldState(id), current=id===currentId(), goalHere=id===goal;
-    const b=el('button','pf-world-node'); b.type='button';
-    const z=id==='town'?'town':Number(id.slice(1)), region=district(z);
+    const id=n.id,state=worldState(id),current=id===currentId(),goalHere=id===goal;
+    const b=el('button','pf-world-node');b.type='button';
+    const z=id==='town'?'town':Number(id.slice(1)),region=district(z);
     Object.assign(b.dataset,{place:id,state,current,visited:id==='town'||state==='cleared'||!!story().visited?.[id],goal:goalHere});
-    b.style.setProperty('--region',tone(z));
-    b.setAttribute('aria-pressed',String(selection===id));
-    b.style.left=n.x*100+'%'; b.style.top=n.y*100+'%';
-    const dot=el('i','pf-world-dot'), caption=el('b','pf-world-label');
+    b.style.setProperty('--region',tone(z));b.setAttribute('aria-pressed',String(selection===id));
+    b.setAttribute('aria-label',n.geo+' · '+(current?'현재 위치 · ':'')+(region?prefix(z):id==='town'?'중앙 기지':'남부 관제시설'));
+    const [x,y]=at(n),tw=52,th=23;
+    const dx=Math.sign(n.label[0]),dy=Math.sign(n.label[1]);
+    const opts=[[dx*19,dy*13],[dx*28,dy*23],[-dx*20,dy*14],[0,-21],[0,21],[-27,0],[27,0],[dx*35,-dy*26],[-dx*36,-dy*27]];
+    let tx=x,ty=y;
+    for(const [ox,oy] of opts){
+      tx=Math.min(w-tw/2-1,Math.max(tw/2+1,x+ox));ty=Math.min(h-th/2-1,Math.max(th/2+1,y+oy));
+      if(!occupied.some(([a,b])=>Math.abs(tx-a)<tw+2&&Math.abs(ty-b)<th+1))break;
+    }
+    occupied.push([tx,ty]);g.strokeStyle='#cbd0b9';g.lineWidth=.9;g.beginPath();g.moveTo(x,y);g.lineTo(tx,ty);g.stroke();
+    g.fillStyle=goalHere?'#ffd180':current?'#b4ffdc':'#e3ddc4';g.beginPath();g.arc(x,y,current?3.7:2.5,0,Math.PI*2);g.fill();
+    b.style.left=tx+'px';b.style.top=ty+'px';
+    const dot=el('i','pf-world-dot'),cap=el('b','pf-world-label',region?prefix(z):id==='town'?'기지':'관제');
     dot.style.backgroundImage='url("assets/menu/'+(region?'v_z'+region.no:id==='town'?'m_base':'m_arcadia')+'.webp")';
-    if(region) caption.appendChild(el('span','pf-district-no',prefix(z)));
-    caption.append(document.createTextNode(state==='locked'?'???':locationName(id))); b.append(dot,caption);
-    if(current||goalHere) b.appendChild(el('small','',current&&goalHere?'현재 위치 · 목표':current?'현재 위치':'메인 목표'));
-    b.onclick=()=>{ selection=id; board.querySelectorAll('[data-place]').forEach(btn=>btn.setAttribute('aria-pressed',String(btn===b))); worldInfo(); };
+    b.append(dot,cap);b.append(el('span','pf-world-sr',(state==='locked'?'???':n.geo)+(current?' 현재 위치':'')+(goalHere?' 메인 목표':'')));
+    b.onclick=()=>{selection=id;board.querySelectorAll('[data-place]').forEach(btn=>btn.setAttribute('aria-pressed',String(btn===b)));worldInfo();};
     board.appendChild(b);
   }
 }
@@ -358,7 +435,7 @@ map.mount=function(menu,initial){
   content.append(board,info); panel.append(bar,content); menu.replaceChildren(panel);
   redraw(); layoutWatch=new ResizeObserver(()=>{ if(board&&(boardWidth!==board.clientWidth||boardHeight!==board.clientHeight)) redraw(); }); layoutWatch.observe(board);
 };
-map.unmount=function(){ layoutWatch?.disconnect(); layoutWatch=null; paintTerrain=null; panel?.remove(); panel=board=info=null; };
+map.unmount=function(){ if(atlasDialog?.open)atlasDialog.close(); layoutWatch?.disconnect(); layoutWatch=null; paintTerrain=null; panel?.remove(); panel=board=info=null; };
 map.open=function(tab){ return PF.win.open('map',tab); };
 PF.map=map;
 })();

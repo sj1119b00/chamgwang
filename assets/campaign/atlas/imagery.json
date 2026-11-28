@@ -1,0 +1,83 @@
+[
+  {
+    "sector": "town",
+    "site": "Albany",
+    "lon": 117.89,
+    "lat": -35.023,
+    "product": "S2A_50HNG_20240328_0_L2A",
+    "date": "2024-03-28T02:17:21.488000Z",
+    "image": "https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/50/H/NG/2024/3/S2A_50HNG_20240328_0_L2A/TCI.tif"
+  },
+  {
+    "sector": "7",
+    "site": "Avon Valley",
+    "lon": 116.655,
+    "lat": -31.651,
+    "product": "S2A_50JML_20240507_0_L2A",
+    "date": "2024-05-07T02:16:28.965000Z",
+    "image": "https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/50/J/ML/2024/5/S2A_50JML_20240507_0_L2A/TCI.tif"
+  },
+  {
+    "sector": "6",
+    "site": "Hamersley Range",
+    "lon": 118.015,
+    "lat": -22.257,
+    "product": "S2A_50KNA_20240828_0_L2A",
+    "date": "2024-08-28T02:23:52.130000Z",
+    "image": "https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/50/K/NA/2024/8/S2A_50KNA_20240828_0_L2A/TCI.tif"
+  },
+  {
+    "sector": "5",
+    "site": "East Kimberley",
+    "lon": 128.586,
+    "lat": -15.956,
+    "product": "S2B_52LDH_20240831_0_L2A",
+    "date": "2024-08-31T01:41:54.666000Z",
+    "image": "https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/52/L/DH/2024/8/S2B_52LDH_20240831_0_L2A/TCI.tif"
+  },
+  {
+    "sector": "4",
+    "site": "MacDonnell Ranges",
+    "lon": 132.642,
+    "lat": -23.695,
+    "product": "S2A_52KHU_20240830_0_L2A",
+    "date": "2024-08-30T01:23:56.245000Z",
+    "image": "https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/52/K/HU/2024/8/S2A_52KHU_20240830_0_L2A/TCI.tif"
+  },
+  {
+    "sector": "3",
+    "site": "Daintree Lowlands",
+    "lon": 145.34,
+    "lat": -16.166,
+    "product": "S2A_55LCC_20240818_1_L2A",
+    "date": "2024-08-18T00:41:20.244000Z",
+    "image": "https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/55/L/CC/2024/8/S2A_55LCC_20240818_1_L2A/TCI.tif"
+  },
+  {
+    "sector": "2",
+    "site": "Brisbane River",
+    "lon": 153.141,
+    "lat": -27.385,
+    "product": "S2B_56JNQ_20240409_0_L2A",
+    "date": "2024-04-09T23:54:23.742000Z",
+    "image": "https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/56/J/NQ/2024/4/S2B_56JNQ_20240409_0_L2A/TCI.tif"
+  },
+  {
+    "sector": "1",
+    "site": "Broken Hill",
+    "lon": 141.475,
+    "lat": -31.959,
+    "product": "S2B_54HWK_20240326_0_L2A",
+    "date": "2024-03-26T00:45:55.816000Z",
+    "image": "https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/54/H/WK/2024/3/S2B_54HWK_20240326_0_L2A/TCI.tif"
+  },
+  {
+    "sector": "0",
+    "site": "Fleurieu Peninsula",
+    "lon": 138.524,
+    "lat": -35.527,
+    "product": "S2A_54HTF_20240331_0_L2A",
+    "date": "2024-03-31T00:47:03.126000Z",
+    "image": "https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/54/H/TF/2024/3/S2A_54HTF_20240331_0_L2A/TCI.tif"
+  }
+]

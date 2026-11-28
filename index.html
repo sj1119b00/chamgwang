@@ -1,9 +1,10 @@
 <!doctype html>
-<html lang="ko">
+<html lang="ko" data-game-audio="pack">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>프로메테우스 · PROMETHEUS</title>
+<link rel="icon" type="image/webp" href="assets/fx_circle_seal.webp">
 <style>
   html,body{margin:0;height:100%;background:#000;overflow:hidden;color:#fff;touch-action:none;-webkit-touch-callout:none;overscroll-behavior:none;-webkit-tap-highlight-color:transparent;
     font-family:"Pretendard","Malgun Gothic","Apple SD Gothic Neo",sans-serif;user-select:none;-webkit-user-select:none}
@@ -66,15 +67,23 @@
   }
   @keyframes ultp{50%{box-shadow:0 0 36px var(--uc,#ff3355),inset 0 0 20px var(--uc,#ff3355)}}
   @keyframes pulse{0%,100%{box-shadow:0 0 0 rgba(255,50,80,0)}50%{box-shadow:0 0 28px rgba(255,50,80,.7)}}
+  #content-error{position:fixed;inset:0;z-index:2147483647;display:grid;align-content:center;justify-items:center;gap:16px;padding:20px;background:#11131a;color:#fff;text-align:center}
+  #content-error button{padding:8px 16px;cursor:pointer}
 </style>
 </head>
 <body>
 <canvas id="out"></canvas>
 <canvas id="top" style="pointer-events:none"></canvas>
-<script src="engine/core.js?v=2"></script>
-<script src="rpg.js?v=69"></script>
-<script>if(/[?&]frame(=|&|$)/.test(location.search)){ if(window.RPG) RPG.noSave=true; document.write('<script src="frame/boot.js?v=5" onerror="if(window.RPG)RPG.noSave=false"><\/script>'); }</script>
+<script src="engine/characters.js"></script>
+<script src="engine/foes.js"></script>
+<script src="engine/enemy-skin.js"></script>
+<script src="engine/field-enemies.js"></script>
+<script src="engine/constructs.js"></script>
+<script src="engine/packs/manifest.js"></script>
+<script src="engine/core.js?v=3"></script>
+<script src="rpg.js?v=71"></script>
+<script>if(/[?&]frame(=|&|$)/.test(location.search)){ if(window.RPG) RPG.noSave=true; document.write('<script src="frame/boot.js?v=6" onerror="if(window.RPG)RPG.noSave=false"><\/script>'); }</script>
 <script>if(/[?&](heat|frame)(=|&|$)/.test(location.search)) document.write('<script src="frame/heat.js"><\/script>');</script>
-<script>document.write('<script src="sword-sfx/ingame.js?v='+(/[?&]frame(=|&|$)/.test(location.search)?9:8)+'"><\/script>');</script>
+<script>document.write('<script src="sword-sfx/ingame.js?v='+(/[?&]frame(=|&|$)/.test(location.search)?11:10)+'"><\/script>');</script>
 </body>
 </html>

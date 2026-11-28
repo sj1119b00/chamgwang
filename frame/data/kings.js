@@ -42,8 +42,31 @@ const KINGS=[
     {id:'ring',from:1,dmg:.26,r0:400,r1:1050},
     {id:'fan',from:2,dmg:.28,n:7,w:120,len:1600,step:.34},
     {id:'slam',from:3,dmg:.30,r:280}]}];
-// 구역 7(마지막 화)은 아직 자리만 있다: 구역 6의 왕을 그대로 빌린다
-KINGS.push({...KINGS[6],zone:7,note:'(임시) 구역 6의 패턴을 빌려 씀',patterns:KINGS[6].patterns.map(p=>({...p}))});
+KINGS.push({zone:7,gap:[1.6,2.2],patterns:[
+  {id:'sweep',from:1,dmg:.22,r:850,half:.92},
+  {id:'slam',from:1,dmg:.24,r:295},
+  {id:'charge',from:2,dmg:.26,len:1600,w:285}],
+  signal:{gap:[1.3,2.0],patterns:[
+    {id:'fan',from:1,dmg:.22,n:7,w:105,len:1680,step:.34},
+    {id:'ring',from:1,dmg:.24,r0:410,r1:990},
+    {id:'summon',from:2,dmg:0,n:3,r:110,d:540,k:2},
+    {id:'slam',from:3,dmg:.27,r:280}]}});
+const signatures=[
+  ['bell','#67e5d2','#ffce79',{slam:'마지막 대피 종',sweep:'종루의 반향',summon:'야간 당번 소집',charge:'광장 비상 돌파'}],
+  ['turbine','#ff9949','#6eeaf2',{slam:'과열 압력추',charge:'시험선 터빈',summon:'보조 동력 점화',ring:'삼축 과부하'}],
+  ['mirror','#d562fc','#9dceff',{sweep:'거울면 절삭',ring:'폐쇄망 반전',slam:'검열 조각',fan:'분기된 암호'}],
+  ['senate','#c8a8ff','#ffdf84',{fan:'의회의 일곱 창',charge:'의장 행차',summon:'호위 의결',slam:'철회된 표결'}],
+  ['banksia','#92dc77','#ffd98e',{ring:'첫 숲의 물결',slam:'뿌리의 역류',fan:'종자 일제 방출',charge:'범람원의 쇄도'}],
+  ['bullion','#f4c563','#e8fff1',{sweep:'금고 저울의 진자',fan:'금화 압인',summon:'채권 회수',ring:'중앙 금고 봉쇄'}],
+  ['iron','#ff6044','#ffe2a3',{charge:'철권 돌파',ring:'잿빛 투기장',fan:'쇄도하는 철편',slam:'왕좌 분쇄'}],
+  ['root','#26e3df','#529aff',{sweep:'접근 권한 회수',slam:'좌표 덮어쓰기',charge:'루트 경로 재지정'}],
+  ['signal','#b69aff','#fff29d',{fan:'일곱 광맥',ring:'신호 탈동기화',summon:'잔향 복원',slam:'백색 공명'}]
+];
+for(const [index,[key,color,light,names]] of signatures.entries()){
+  const owner=index===8?KINGS[7].signal:KINGS[index];
+  owner.art={key,color,light};
+  for(const pattern of owner.patterns) pattern.name=names[pattern.id];
+}
 if(typeof module!=='undefined') module.exports=KINGS;
 if(typeof window!=='undefined') (window.PF=window.PF||{}).KINGS=KINGS;
 })();

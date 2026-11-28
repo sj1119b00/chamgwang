@@ -13,7 +13,7 @@ let fallen=null;
 
 function begin(options){
   if(fallen) return false;
-  // Capture just the hero. All classes, including the mesh and sprite renderers, share this drawing entry point.
+  // Freeze the visible skeleton, weapon and pose at the fatal hit.
   const portrait=document.createElement('canvas');
   portrait.width=900; portrait.height=640;
   const g=portrait.getContext('2d'), foot=pl.gy-pl.air;

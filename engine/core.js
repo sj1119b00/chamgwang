@@ -13,7 +13,11 @@ const fxc=document.createElement('canvas'), fx=fxc.getContext('2d');
 const blc=document.createElement('canvas'), bl=blc.getContext('2d');
 const blc2=document.createElement('canvas'), bl2=blc2.getContext('2d');
 let W=0,H=0,S=1,VW=1600,CY=450,PORTRAIT=false,lastVW=0; const VH=900; let GROUND=770;
-const COARSE=matchMedia('(pointer:coarse)').matches||(navigator.maxTouchPoints>0&&Math.min(screen.width,screen.height)<900); if(COARSE) document.documentElement.classList.add('touch'); let RS=COARSE?1.5:2;   // phones start at 1.5x render scale (their screens are 3x): same effects, fewer pixels
+// A laptop can report touch points while its mouse or trackpad is the primary pointer.
+const COARSE=!matchMedia('(pointer:fine)').matches && (matchMedia('(pointer:coarse)').matches ||
+  (navigator.maxTouchPoints>0 && Math.min(screen.width,screen.height)<900));
+if(COARSE) document.documentElement.classList.add('touch');
+let RS=COARSE?1.5:2;
 let lastBuzz=0; function buzz(v){ if(!navigator.vibrate||(navigator.userActivation&&!navigator.userActivation.hasBeenActive)) return; if(!Array.isArray(v)){ if(RT-lastBuzz<.06) return; lastBuzz=RT; } try{navigator.vibrate(v);}catch(e){} }
 function skyTop(){ return Math.min(-260, cam.y-H/S/2/cam.z-80); }
 let gl=null, ctxOut=null;
@@ -542,7 +546,7 @@ function fireBurst(x,y,s=1,pal=0){ const sq=Math.sqrt(s);
 
 // ============================================================ image assets — painted sprites replace the procedural shapes; anything whose file is missing keeps its procedural fallback
 const SPR={}, ASSET_V='g11';   // bump when sprite files are regenerated, so a cached old image is never drawn with new frame numbers
-function loadSpr(name,o){ const im=new Image(), s=SPR[name]=Object.assign({im,ok:false},o); im.onload=()=>{ s.ok=true; s.w=im.naturalWidth; s.h=im.naturalHeight; }; im.src='assets/'+name+'.webp?v='+(s.version||ASSET_V); return s; }
+function loadSpr(name,o){ const im=new Image(), s=SPR[name]=Object.assign({im,ok:false},o); im.onload=()=>{ s.ok=true; s.w=im.naturalWidth; s.h=im.naturalHeight; }; im.src=s.src||'assets/'+name+'.webp?v='+(s.version||ASSET_V); return s; }
 const spr=n=>SPR[n]&&SPR[n].ok?SPR[n]:null;
 // grey stone variant of the meteor painting, used for the falling boulders
 function rockSpr(){ const m=spr('meteor'); if(!m) return null; if(!SPR.rock){ const cv=document.createElement('canvas'); cv.width=m.w; cv.height=m.h; const g=cv.getContext('2d'); g.filter='grayscale(1) brightness(.62) contrast(1.15)'; g.drawImage(m.im,0,0); SPR.rock={im:cv,ok:true,w:m.w,h:m.h}; } return SPR.rock; }
@@ -2002,7 +2006,9 @@ const CLASSES={
     ults:[{name:'영점 붕괴'},{name:'황혼 편대'},{name:'사건의 지평선'}]},
 };
 function setClass(c,quiet){
-  if(lock&&!quiet) return; const C=CLASSES[c]; pl.cls=c; pl.target=C.idle; pl.auraC=C.aura; pl.eyeC=C.eye; chain=0; chainT=0; resetChains();
+  if(lock&&!quiet) return;
+  if(!Object.hasOwn(CLASSES,c)) throw new Error('Unknown character: '+c);
+  const C=CLASSES[c]; pl.cls=c; pl.target=C.idle; pl.auraC=C.aura; pl.eyeC=C.eye; chain=0; chainT=0; resetChains();
   if(window.RangedHero) RangedHero.prepare(c);
   if(Math.abs(pl.x-pl.home)>30) pl.x=pl.home;
   if(quiet) return;
@@ -2327,16 +2333,19 @@ function plMesh(s){ const key=s.im.src+RT; if(key===plCkey) return; plCkey=key; 
   const cw=w/PL_GX, chh=h/PL_GY, at=(i,j)=>(j*(PL_GX+1)+i)*2;
   for(let j=0;j<PL_GY;j++) for(let i=0;i<PL_GX;i++){ const p0=at(i,j), p1=at(i+1,j), p2=at(i,j+1), p3=at(i+1,j+1), x=i*cw, y=j*chh;
     triMap(plX,s.im,x,y,x+cw,y,x,y+chh,P[p0],P[p0+1],P[p1],P[p1+1],P[p2],P[p2+1]); triMap(plX,s.im,x+cw,y,x+cw,y+chh,x,y+chh,P[p1],P[p1+1],P[p3],P[p3+1],P[p2],P[p2+1]); } }
-function plSprBox(s){ const J=pl.j, h=s.wh||330, q=anim.seq, so=q&&q.steps[q.i][2], ox=so&&so.ox!=null?so.ox:s.ox||0; return {h,w:h*s.w/s.h,cx:J.hip[0]+ox*pl.f,base:Math.max(J.rf[1],J.lf[1])+(s.oy??6)}; }
+function plSprBox(s){ 
+  const J=pl.j, h=s.wh||330, q=anim.seq, so=q&&q.steps[q.i][2], ox=so&&so.ox!=null?so.ox:s.ox||0; return {h,w:h*s.w/s.h,cx:J.hip[0]+ox*pl.f,base:Math.max(J.rf[1],J.lf[1])+(s.oy??6)}; }
 function drawPlSpr(g,mul=1){ const s=plFrame(), b=plSprBox(s);
-  if(s.rigid){ // The animation and cloth motion are already rendered in Blender.
+  if(s.rigid){
     g.save(); g.translate(b.cx,b.base); g.scale(pl.f,1); g.globalAlpha=mul;
-    g.drawImage(s.im,-b.w*s.ax,-b.h*s.ay,b.w,b.h); g.restore(); return;
+    g.drawImage(s.im,-b.w*s.ax,-b.h*s.ay,b.w,b.h);
+    g.restore(); return;
   }
   plMesh(s);
   g.save(); g.translate(b.cx,b.base); g.scale(pl.f,1); g.globalAlpha=mul; g.drawImage(plC,-b.w*(s.ax??.5)-b.w*PL_PAD,-b.h*(1+PL_PAD),b.w*(1+PL_PAD*2),b.h*(1+PL_PAD)); g.restore(); g.globalAlpha=1; }
 // an idle-loop frame with its own anchors uses them; otherwise the class's a/b sprite, or the sequence frame
-function plSprAnchors(){ if(!plSprites()) return; const f0=plFrame(), s=(anim.seq||(anim.fr==='a'&&f0.anch)?null:spr(pl.cls+(anim.fr==='b'||anim.fr==='d'?'_b':'_a')))||f0, A=s.anch; if(!A){ delete pl.j.st; return; } const b=plSprBox(s), J=pl.j;   // no anch (no painted blade position): drop the skeleton blade so its glow does not float over the sprite
+function plSprAnchors(){ if(!plSprites()) return; const f0=plFrame(), s=(anim.seq||(anim.fr==='a'&&f0.anch)?null:spr(pl.cls+(anim.fr==='b'||anim.fr==='d'?'_b':'_a')))||f0, A=s.anch; if(!A){ delete pl.j.st; return; } const b=plSprBox(s), J=pl.j;
+
   for(const k in A) J[k]=[b.cx+(A[k][0]-(s.ax??.5))*b.w*pl.f,b.base-(1-A[k][1])*b.h]; }
 // painted blade of a frame drawn standing at x (hip) / base (ground) facing f - for afterimages placed away from the player
 function frameBlade(fr,x,base,f){ const s=spr(pl.cls+'_'+fr), A=s&&s.anch; if(!A||!A.st) return null; const h=s.wh||330, w=h*s.w/s.h, ax=s.ax??.5, P=k=>[x+(A[k][0]-ax)*w*f,base-(1-A[k][1])*h]; return {b:P('sb'),t:P('st')}; }

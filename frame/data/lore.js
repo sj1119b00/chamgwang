@@ -1,5 +1,5 @@
 // 세계관 배경 문구 (Task 17 추가, 사용자 지시 2026-11-27): 메인 퀘스트 NPC의 첫 줄로 조금씩 흘려 준다. 문구는 과제 브리프의 표 그대로다(고쳐 쓰지 않는다).
-// 구역은 hub.js ZONES[i].no(구역 번호 1~7)로 찾는다. 번호가 없는 마지막 장소는 final. 그 밖의 문구(목표 줄, 장면, 임시 대사)는 frame/data/quests.js에 임시로 있다
+// 구역은 hub.js ZONES[i].no(구역 번호 1~7)로 찾는다. 마지막 장소는 final. 화별 사건과 대사는 data/campaign.js와 data/continent-*.js에 있다.
 (function(){
 'use strict';
 const LORE={
@@ -23,8 +23,8 @@ const LORE={
     6:{camp:'발명가와 천재들이 모였던 구역입니다. 일곱 구역 가운데 가장 먼저 새 기술이 나왔습니다.',
       scout:'정해진 때마다 발명을 겨뤄, 가장 뛰어난 것을 만든 사람이 왕이 됩니다.'}},
   gate:'왕은 자기 안에 무엇이 들어 있는지 모릅니다. 쓰러뜨리되 죽이지는 마십시오.',
-  memory:'왕이 쓰러지자 누군가의 기억 한 토막이 흘러들어 왔다. (내용 미정)',
-  final:'이 실험을 시작한 사람이 쓰던 관제 시설입니다. (이후 내용 미정)'};
+  memory:'왕의 자리에서 풀려난 빛이 손등에 닿았다. 그 안에는 이백 년 전 레온의 기억이 남아 있었다.',
+  final:'이 실험을 시작한 아르카디아의 관제 시설입니다. 이백 년 동안 그는 레온이 닫은 문 앞을 떠나지 않았습니다.'};
 if(typeof module!=='undefined') module.exports=LORE;
 if(typeof window!=='undefined') (window.PF=window.PF||{}).LORE=LORE;
 })();

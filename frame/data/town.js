@@ -51,11 +51,11 @@ const TOWN={id:'town',w:14200,h:3600,floor:'assets/menu/f_z7.webp',accent:'#7FF3
     B('b_sim',12000,1450,880,{flip:1,dim:.2}),B('p_kiosk',11230,1765,460),B('b_map',13600,1250,860,{dim:.35}),
     L(8480,2250),L(9380,1820),L(10380,2240),L(11500,1805),L(12440,2250),L(13600,1820)],
   spots:[
-    {id:'npc_map',kind:'npc',art:'npc_map',x:6985,y:1765,r:170,label:'지도 담당 (임시)',act:'win:map',light:'warm'},
-    {id:'npc_skills',kind:'npc',art:'npc_sim',x:1600,y:1795,r:170,label:'시뮬레이터 담당 (임시)',act:'win:skills',light:'cool'},
-    {id:'npc_gear',kind:'npc',art:'npc_forge',x:5952,y:1790,r:170,label:'제작 담당 (임시)',act:'win:gear',light:'warm'},
-    {id:'npc_records',kind:'npc',art:'npc_archive',x:1980,y:3450,r:170,label:'기록 담당 (임시)',act:'win:records',light:'warm'},
-    {id:'npc_talk',kind:'npc',art:'npc_resident',x:4640,y:1845,r:170,label:'주민 (임시)',act:'talk:town_1',light:'warm'},
+    {id:'npc_map',kind:'npc',art:'npc_map',x:6985,y:1765,r:170,label:'지도 담당',act:'win:map',light:'warm'},
+    {id:'npc_skills',kind:'npc',art:'npc_sim',x:1600,y:1795,r:170,label:'시뮬레이터 담당',act:'win:skills',light:'cool'},
+    {id:'npc_gear',kind:'npc',art:'npc_forge',x:5952,y:1790,r:170,label:'제작 담당',act:'win:gear',light:'warm'},
+    {id:'npc_records',kind:'npc',art:'npc_archive',x:1980,y:3450,r:170,label:'기록 담당',act:'win:records',light:'warm'},
+    {id:'npc_talk',kind:'npc',art:'npc_resident',x:4640,y:1845,r:170,label:'전차길 주민',act:'talk:town_1',light:'warm'},
     // 빠른 이동 관문(id는 예전 구역 포탈 그대로). 고리 문은 앞의 둥근 받침과 레일 위까지 걸어 올라갈 수 있다(r은 고리 앞까지 닿게)
     {id:'portal_map',kind:'portal',art:'b_portal_base',x:7550,y:1765,r:300,label:'관문 · 빠른 이동',act:'portal:warp'},
     // 숨은 흔적 자리(Task 7이 연결한다). 이름이 없어 누를 수 없다

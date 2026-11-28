@@ -5,14 +5,19 @@
 (()=>{
 const hit0=hit, kill0=kill, respawn0=respawn, update0=update, drawEnemy0=drawEnemy, drawHUD0=drawHUD, dashTo0=dashTo, enemyPt0=enemyPt;
 const G={mode:'menu',keys:{},en:[],proj:[],mk:[],ftx:[],cd:{},wave:-1,waveT:0,spawnQ:[],si:0,ug:0,hp:100,inv:0,jz:0,jv:0,
-  dodgeCd:0,allowDash:false,pose:null,landT:0,runT:0,counter:0,boss:false,mul:1,hurtF:0,lastX:0,paused:false,stats:null};
+  dodgeCd:0,allowDash:false,pose:null,landT:0,runT:0,counter:0,boss:false,mul:1,hurtF:0,lastX:0,paused:false,stats:null,contentPending:true};
 window.RPG=G;
 
 // ============================================================ save
 const SAVE_KEY='chamgwang_rpg_v1';
 function freshSave(){ return {v:1,cls:'sword',lv:1,exp:0,sp:0,sl:{},slots:['sw_dash','sw_rise',null,null],ult:null,clear:0}; }
 let SV=(()=>{ try{ const s=JSON.parse(localStorage.getItem(SAVE_KEY)); if(s&&s.v===1) return s; }catch(e){} return freshSave(); })();
-function save(){ if(G.noSave) return; try{ localStorage.setItem(SAVE_KEY,JSON.stringify(SV)); }catch(e){} }
+let pendingSave=false;
+function save(){
+  if(G.noSave) return;
+  if(G.contentPending){ pendingSave=true; return; }
+  try{ localStorage.setItem(SAVE_KEY,JSON.stringify(SV)); }catch(e){}
+}
 G.save=()=>SV;
 const CH_KEYS=['lv','exp','sp','sl','slots','ult'];
 function swapClass(c){ if(SV.cls===c) return; SV.chars=SV.chars||{}; const o={}; for(const k of CH_KEYS) o[k]=SV[k]; SV.chars[SV.cls]=o;
@@ -259,6 +264,11 @@ window.RangedHero={
     impactBeat=null;
     warmCues(c);
     G.sv?.CLS[c]?.preload?.();
+    const sprites=GameCharacters.profiles[c]?.sprites;
+    if(sprites) for(const [frame,src] of Object.entries(sprites)){
+      const key=c+'_'+frame;
+      if(!SPR[key]) loadSpr(key,{src,rigid:true});
+    }
     if(!rangedClass(c)||SPR[c+'_a']) return;
     for(const frame of rangedFrames) loadSpr(c+'_'+frame,rangedSprite);
   },
@@ -314,9 +324,11 @@ function locoPose(rdt,moving){
 }
 // ============================================================ stickman mode (the showcase's original skeleton figure instead of the painted frames)
 // The painted sequences still run (same timing, hits and effects); each step maps its frame to a skeleton pose: wind-up, strike (trail/forward kick steps), recovery.
-const STK=()=>{ if(rangedClass(pl.cls)) return false; if(G.mode!=='surv') return SV.stick!==false; if(!SV.opt) SV.opt={}; if(SV.opt.stick===undefined) SV.opt.stick=true; return !!SV.opt.stick; };
+const STK=()=>{ if(G.frame)return true; if(rangedClass(pl.cls)||GameCharacters.profiles[pl.cls]?.sprites) return false; if(G.mode!=='surv') return SV.stick!==false; if(!SV.opt) SV.opt={}; if(SV.opt.stick===undefined) SV.opt.stick=true; return !!SV.opt.stick; };
 const STICK={gs:'slash1',gm:'slash2',gw:'slash3',gu:'slash3',gt:'slashU',gp:'slash2',gk:'slash3',gc:'iaiDone'};
-const plSprites0=plSprites; plSprites=function(){ return STK()?null:plSprites0(); };
+const plSprites0=plSprites; plSprites=function(){
+  return STK()?null:plSprites0();
+};
 const plSeqNext0=plSeqNext; plSeqNext=function(){ plSeqNext0(); if(!STK()) return; const q=anim.seq;
   if(!q){ pl.target=IDLE(); pl.ps=12; return; }
   const st=q.steps[q.i], o=st[2]||{}, k=String(st[0]).replace(/\d+$/,''), p=q.i/Math.max(1,q.steps.length-1);
@@ -608,7 +620,7 @@ hudR.innerHTML='<div class="nm"></div><div class="hb"><b></b><i></i></div><div c
 pauseEl.innerHTML='<div class="box"><h2 style="margin:0 0 16px;font:900 36px '+FONT_K+'">일시정지</h2><div class="row"><button data-p="go">계속</button><button data-p="quit">포기하고 메뉴로</button></div></div>';
 pauseEl.querySelector('[data-p=go]').onclick=()=>setPause(false);
 pauseEl.querySelector('[data-p=quit]').onclick=()=>toMenu();
-function toast(t){ const d=document.createElement('div'); d.textContent=t; toastEl.appendChild(d); setTimeout(()=>d.remove(),2700); }
+function toast(t,host=toastEl){ const d=document.createElement(host===toastEl?'div':'span'); d.textContent=t; host.appendChild(d); setTimeout(()=>d.remove(),2700); }
 
 let tab='stage';
 function menuRender(){ if(G.menuOverride) return G.menuOverride(menuEl);
@@ -713,7 +725,7 @@ menuEl.addEventListener('click',e=>{ if(!isTouch()||!e.target.closest('[data-s]'
   if(!document.fullscreenElement&&d.requestFullscreen) d.requestFullscreen().then(()=>screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(()=>{})).catch(()=>{}); },true);
 // iOS Safari ignores user-scalable=no: rapid taps zoom and pinches zoom, so swallow those gestures (menu scrolling still works)
 let lastTap=0;
-document.addEventListener('touchend',e=>{ const n=performance.now(); if(n-lastTap<350&&!e.target.closest('#rmenu')) e.preventDefault(); lastTap=n; },{passive:false});
+document.addEventListener('touchend',e=>{ const n=performance.now(); if(n-lastTap<350&&!e.target.closest('#rmenu,dialog[open]')) e.preventDefault(); lastTap=n; },{passive:false});
 document.addEventListener('touchstart',e=>{ if(e.touches.length>1&&!e.target.closest('[data-a],#rpad')) e.preventDefault(); },{passive:false});
 ['gesturestart','gesturechange','dblclick'].forEach(t=>document.addEventListener(t,e=>e.preventDefault(),{passive:false}));
 if(matchMedia('(pointer:coarse)').matches) enableTouch();
@@ -727,9 +739,34 @@ if(linkedClass==='assassin'||rangedClass(linkedClass)){
   swapClass(linkedClass);
   history.replaceState(history.state,'',location.pathname+location.search);
 }
-started=true; setClass(SV.cls||'sword',true); E.dead=true; E.respawn=1e9; pl.x=pl.home=VW*.62;
-{ const s=document.createElement('script'); s.src='surv.js?v=50';
-  s.onload=()=>menuEl.classList.add('on');
-  s.onerror=()=>{ menuRender(); menuEl.classList.add('on'); };
+// Content packs register after the combat modules. Keep their saved class intact until then.
+started=true; setClass(Object.hasOwn(CLASSES,SV.cls)?SV.cls:'sword',true); E.dead=true; E.respawn=1e9; pl.x=pl.home=VW*.62;
+function openMenu(){
+  G.contentPending=false;
+  const route=new URLSearchParams(location.search);
+  if(route.has('sim')&&!route.has('frame')&&G.hub&&G.survStart){
+    pendingSave=false;
+    const chapter=Math.min(G.hub.ZONES.length-1,SV.chClear||0);
+    G.survStart(chapter,{practice:true,linked:true});
+    return;
+  }
+  if(pendingSave){ pendingSave=false; save(); }
+  menuEl.classList.add('on');
+}
+function contentError(error){
+  console.error('콘텐츠를 불러오지 못했습니다.',error);
+  const notice=document.createElement('div');
+  notice.id='content-error'; notice.setAttribute('role','alert');
+  notice.textContent='콘텐츠를 불러오지 못했습니다. '+error.message;
+  const retry=document.createElement('button');
+  retry.textContent='다시 불러오기'; retry.onclick=()=>location.reload();
+  notice.append(retry); document.body.append(notice);
+}
+{ const s=document.createElement('script'); s.src='surv.js?v=52';
+  s.onload=()=>G.contentReady?G.contentReady.then(openMenu,contentError):contentError(new Error('surv.js'));
+  s.onerror=()=>{
+    if(typeof GAME_CONTENT_PACKS==='undefined'||GAME_CONTENT_PACKS.length) return contentError(new Error('surv.js'));
+    menuRender(); openMenu();
+  };
   document.body.appendChild(s); }
 })();

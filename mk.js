@@ -108,15 +108,16 @@ function sample(c,t,from){ if(c.fn) return c.fn(t); const P={};
 
 // ---- locomotion (procedural)
 const st={phase:0,spd:0};
-CLIPS.idle={fn(){ const b=sin(RT*2.1), P=clone(BASE), w=ST.w;
+function restingPose(time){ const b=sin(time*2.1), P=clone(BASE), w=ST.w;
   if(w==='katana') return Object.assign(P,{hip:[0,0,.5+.005*b],lean:.07+.012*b,hr:[.1,.13,-.27+.006*b]});
   if(w==='daggers'){ P.hip[2]+=.004*b; P.hl[2]+=.008*b; return P; }
-  if(w==='fists'){ const q=sin(RT*5.2), q2=sin(RT*2.6); P.hip=[.012*q2,0,.455+.012*q]; P.hr=[.17+.012*q2,.09,-.04+.01*q]; P.hl=[.27-.012*q2,-.07,-.09+.01*q]; P.fr=[.15,.11,.012*Math.max(0,q)]; P.fl=[-.17,-.1,.012*Math.max(0,-q)]; return P; }
-  if(w==='orb'){ P.hip=[0,0,.5+.005*b]; P.lean=.09+.012*b; P.hr=[.14,.14,-.17+.012*sin(RT*3.1)]; return P; }
+  if(w==='fists'){ const q=sin(time*5.2), q2=sin(time*2.6); P.hip=[.012*q2,0,.455+.012*q]; P.hr=[.17+.012*q2,.09,-.04+.01*q]; P.hl=[.27-.012*q2,-.07,-.09+.01*q]; P.fr=[.15,.11,.012*Math.max(0,q)]; P.fl=[-.17,-.1,.012*Math.max(0,-q)]; return P; }
+  if(w==='orb'){ P.hip=[0,0,.5+.005*b]; P.lean=.09+.012*b; P.hr=[.14,.14,-.17+.012*sin(time*3.1)]; return P; }
   if(w==='axe'){ P.hip=[0,0,.47+.004*b]; P.lean=BASE.lean+.012*b; P.hr=[.12,.17,-.12+.006*b]; return P; }
-  if(w==='bow'){ P.hip=[0,0,.485+.004*b]; P.lean=BASE.lean+.01*b; P.hr=[.2,.13,-.1+.006*b]; P.sw=[.12+.03*sin(RT*.9),0,.99]; return P; }
+  if(w==='bow'){ P.hip=[0,0,.485+.004*b]; P.lean=BASE.lean+.01*b; P.hr=[.2,.13,-.1+.006*b]; P.sw=[.12+.03*sin(time*.9),0,.99]; return P; }
   if(w==='rifle'){ P.hip=[0,0,.47+.004*b]; P.lean=BASE.lean+.01*b; P.hr=[.1,.13,-.15+.006*b]; return P; }
-  P.hip=[0,0,.5+.004*b]; P.lean=BASE.lean+.01*b; if(ST.hat==='cone'){ P.hl=[.17,-.03,-.07+.006*b]; P.sw=[-.08+.02*sin(RT*.9),.1,1]; } else P.hr=[.17,.17,-.12+.005*b]; return P; }};
+  P.hip=[0,0,.5+.004*b]; P.lean=BASE.lean+.01*b; if(ST.hat==='cone'){ P.hl=[.17,-.03,-.07+.006*b]; P.sw=[-.08+.02*sin(time*.9),.1,1]; } else P.hr=[.17,.17,-.12+.005*b]; return P; }
+CLIPS.idle={fn:()=>restingPose(RT)};
 CLIPS.run={fn(){ const p=st.phase, k=Math.min(1,st.spd/380), foot=(q,y)=>{ q=((q%1)+1)%1; if(q<.42){ const s=q/.42; return [.25-.57*s,y,0]; } const s=(q-.42)/.58, e=s*s*(3-2*s); return [-.32+.57*e,y,.05+.2*Math.pow(sin(PI*Math.pow(s,.75)),1.2)]; };
   const a=sin(2*PI*p), P=clone(BASE); P.hip=[.02,0,.435+.022*cos(4*PI*p+.5)]; P.fr=[0,0,0]; P.fl=[0,0,0]; P.hy=.14*a; P.cy=-.3*a; P.lean=.2+.22*k; P.hd=.16*a; P.hp=-.18; P.fr=foot(p,.06); P.fl=foot(p+.5,-.06);
   P.kr=.1; P.kl=.1; const w=ST.w;
@@ -370,7 +371,12 @@ function cur(t){ let P=sample(M.clip,t,M.from); if(M.blend>0&&M.bt<M.blend&&M.fr
 function reyaw(P,d){ const o=clone(P); o.hip=rotZ(o.hip,d); o.fr=rotZ(o.fr,d); o.fl=rotZ(o.fl,d); o.hy=wrap(o.hy+d); return o; }
 function play(name,o={}){ const c=CLIPS[name]; if(!c) return; const yaw=o.yaw!=null?o.yaw:M.yaw; M.from=reyaw(M.P,wrap(M.yaw-yaw)); M.clip=c; M.name=name; M.t=0; M.yaw=yaw; M.blend=o.blend??(c.fn?.18:0); M.bt=0; M.speed=o.speed||1; M.loco=!!o.loco;
   M.slide=o.from?{x:o.from[0],y:o.from[1],x1:pl.x,y1:pl.gy,t:0,dur:o.slide||.05}:null; if(M.slide){ pl.x=M.slide.x; pl.gy=M.slide.y; M.px=pl.x; M.py=pl.gy; } M.P=cur(0); M.J=solve(M.P); }
-function tick(dt,rdt){ watchAim(); if(!on()){ M.px=null; return; } if(M.cls!==pl.cls){ M.cls=pl.cls; setCls(pl.cls); M.clip=CLIPS.idle; M.name='idle'; M.from=null; M.P=clone(BASE); M.loco=true; M.scarf=null; }
+function tick(dt,rdt){ watchAim(); if(!on()){ M.px=null; return; }
+  if(M.cls!==pl.cls){
+    M.cls=pl.cls;setCls(pl.cls);M.clip=CLIPS.idle;M.name='idle';M.P=clone(BASE);M.loco=true;
+    M.t=M.bt=M.blend=0;M.speed=1;M.from=M.slide=M.scarf=M.hair=null;
+    M.px=M.py=null;M.ghosts.length=M.shades.length=0;M.hideW=false;st.spd=0;
+  }
   // movement drives the run cycle and the facing while no clip holds him
   let vx=0, vy=0; if(M.px!=null&&rdt>0){ vx=(pl.x-M.px)/rdt; vy=(pl.gy-M.py)/rdt/FSY; if(Math.hypot(vx,vy)>2500){ const dx=pl.x-M.px, dy=pl.gy-M.py; for(const n of [...(M.scarf||[]),...(M.hair||[])]){ n.x+=dx; n.y+=dy; n.px+=dx; n.py+=dy; } vx=vy=0; } }
   M.px=pl.x; M.py=pl.gy; const sp=Math.hypot(vx,vy);
@@ -385,7 +391,10 @@ function tick(dt,rdt){ watchAim(); if(!on()){ M.px=null; return; } if(M.cls!==pl
 function origin(){ return [pl.x,pl.gy]; }
 function proj(p,ox,oy,yaw){ const c=cos(yaw), s=sin(yaw), x=p[0]*c-p[1]*s, y=p[0]*s+p[1]*c; return [ox+x*SC,oy+y*SC*FSY-p[2]*SC,y,p[2]*SC,oy+y*SC*FSY]; }
 // world point (x, floor y, height) of a joint: for effects that must sit on the blade
-function wpt(name){ if(!M.J) return [pl.x,pl.gy,0]; const [ox,oy]=origin(), q=proj(M.J[name],ox,oy,M.yaw); return [q[0],q[4],q[3]]; }
+function wpt(name){
+  if(!M.J?.[name])return [pl.x,pl.gy,0];
+  const [ox,oy]=origin(),q=proj(M.J[name],ox,oy,M.yaw);return [q[0],q[4],q[3]];
+}
 
 // ------------------------------------------------------------------ cloth: a scarf and a tail of hair, verlet chains in world space
 function chain(n){ const a=[]; for(let i=0;i<n;i++) a.push({x:pl.x,y:pl.gy,z:150,px:pl.x,py:pl.gy,pz:150}); return a; }
@@ -535,7 +544,7 @@ function figure(g,J,ox,oy,yaw,o={}){ const S={}; for(const k in J) if(Array.isAr
     if(it.kd==='mantle'){ mantle(g,S.nk,it.shoulder,it.elbow,it.hem,flat); continue; }
     if(it.kd==='dagger'){ dagger(g,it.grip,it.guard,it.tip,flat); continue; }
     if(it.kd==='h'&&ST.hat==='cowl'){ cowl(g,it.a,J.hf,yaw,it.r*1.09,flat); continue; }
-    if(it.kd==='axe'){ if(!M.hideW) axeDraw(g,S,flat); continue; }
+    if(it.kd==='axe'){ if(o.preview||!M.hideW) axeDraw(g,S,flat); continue; }
     if(it.kd==='rifle'){ rifleDraw(g,S,flat); continue; }
     if(it.kd==='bow'){ bowDraw(g,S,it.tr,flat); continue; }
     if(it.kd==='quiver'){ quiverDraw(g,it.a,it.b,flat); continue; }
@@ -610,7 +619,7 @@ function trail(ox,oy){ const N=22, step=.0034, pts=[]; for(let i=0;i<=N;i++){ co
     quad(p.m,p.t,q.t,q.m,`rgba(255,${Math.round(90+165*k*k)},${Math.round(90+165*k*k)},${(a*.45).toFixed(3)})`);
     fx.strokeStyle=`rgba(255,255,255,${a.toFixed(3)})`; fx.lineWidth=2.6*k+.6; fx.lineCap='round'; fx.beginPath(); fx.moveTo(p.t[0],p.t[1]); fx.lineTo(q.t[0],q.t[1]); fx.stroke(); }
   fx.restore(); }
-function draw(g){ if(!M.J) tick(0,0); if(!M.J) return; const [ox,oy]=origin(), J=M.J, main=g===ctx;
+function draw(g){ if(!M.J||M.cls!==pl.cls)tick(0,0); if(!M.J) return; const [ox,oy]=origin(), J=M.J, main=g===ctx;
   if(main){ const L=lightOf(ox,oy); shadow(g,J,ox,oy,M.yaw,L);
     // where he was: the dash leaves his shape behind in the blade's colour
     fx.save(); fx.globalCompositeOperation='lighter';
@@ -625,7 +634,8 @@ function draw(g){ if(!M.J) tick(0,0); if(!M.J) return; const [ox,oy]=origin(), J
 // afterimages that act on their own: each waits in the draw stance where it was put, crosses to its mark in one cut, and fades
 M.shades=[]; let READY=null; const SH=1.7;
 function shade(o){ M.shades.push(Object.assign({t:0,wait:0,dur:.1,clip:'cutA',c:'#bcd0ff'},o)); }
-function drawShades(){ if(!M.shades.length) return; if(!READY) READY=sample(CLIPS.iaiReady,.86,null); fx.save(); fx.globalCompositeOperation='lighter';
+function drawShades(){ if(!M.shades.length) return;
+  if(!READY) READY=sample(CLIPS.iaiReady,.86,null); fx.save(); fx.globalCompositeOperation='lighter';
   for(const s of M.shades){ const t=s.t; if(t<s.wait){ fx.globalAlpha=Math.min(1,t/.14)*.7; fx.save(); fx.translate(s.x0,s.y0); fx.scale(SH,SH); figure(fx,solve(READY),0,0,s.yaw,{flat:s.c}); fx.restore(); continue; }
     const u=t-s.wait, k=Math.min(1,u/s.dur), e=EASE.out3(k), x=s.x0+(s.x1-s.x0)*e, y=s.y0+(s.y1-s.y0)*e, J=solve(sample(CLIPS[s.clip],u,null)), a=u<s.dur?.95:.95*Math.max(0,1-(u-s.dur)/.3);
     if(k<1) for(let i=1;i<=3;i++){ const b=Math.max(0,e-i*.14); fx.globalAlpha=a*.3*(1-i/4); fx.save(); fx.translate(s.x0+(s.x1-s.x0)*b,s.y0+(s.y1-s.y0)*b); fx.scale(SH,SH); figure(fx,J,0,0,s.yaw,{flat:s.c}); fx.restore(); }
@@ -635,7 +645,7 @@ function ghost(o={}){ if(!M.J) return; const [ox,oy]=origin(); M.ghosts.push({J:
 
 // ------------------------------------------------------------------ hooks
 const upd0=update; update=function(rdt){ const dt=hitstop>0?0:rdt*timeScale; upd0(rdt); tick(dt,rdt); };
-const dpb0=drawPlayerBody; drawPlayerBody=function(g){ if(on()){ draw(g); return; } dpb0(g); };
+const dpb0=drawPlayerBody; drawPlayerBody=function(g){ if(on()){draw(g);return;} dpb0(g); };
 // the hero over every effect, edged in his colour (the effect layer is composited by now)
 function over(){ if(!M.J) return; const [ox,oy]=origin(), J=M.J, o=2.2/(S*cam.z); ctx.save();
   if(lock){ /* under the brightest effects he keeps a dark ground of his own */ const cy=oy-.3*SC, gr=ctx.createRadialGradient(ox,cy,SC*.1,ox,cy,SC*.62); gr.addColorStop(0,'rgba(6,3,10,.5)'); gr.addColorStop(1,'rgba(6,3,10,0)'); ctx.fillStyle=gr; ctx.beginPath(); ctx.ellipse(ox,cy,SC*.62,SC*.62,0,0,7); ctx.fill(); }
@@ -643,7 +653,10 @@ function over(){ if(!M.J) return; const [ox,oy]=origin(), J=M.J, o=2.2/(S*cam.z)
   for(const [dx,dy] of [[o,0],[-o,0],[0,o],[0,-o],[o*.7,o*.7],[-o*.7,o*.7],[o*.7,-o*.7],[-o*.7,-o*.7]]) figure(ctx,J,ox+dx,oy+dy,M.yaw,{flat:'#0c0612'});
   ctx.globalAlpha=1; if(M.scarf) ribbon(ctx,M.scarf,ST.scarf[0],ST.scarf[1],ST.acc); figure(ctx,J,ox,oy,M.yaw,{L:lightOf(ox,oy),P:M.P,eye:false}); if(M.hair) ribbon(ctx,M.hair,4.5,1.2,'#14121c'); ctx.restore(); }
 // the old skeleton's own drawing (body, scarf, weapon light) is skipped: he is hidden for that call and drawn here instead
-const dp0=drawPlayer; drawPlayer=function(){ if(!on()) return dp0(); const v=pl.visible; pl.visible=false; dp0(); pl.visible=v; drawShades(); if(v&&pl.gy!=null) draw(ctx); };
+const dp0=drawPlayer; drawPlayer=function(){
+  if(!on())return dp0();
+  const v=pl.visible;pl.visible=false;dp0();pl.visible=v;drawShades();if(v&&pl.gy!=null)draw(ctx);
+};
 // outside the ultimates the painted sequences still drive the timing; each one becomes a cut of the mannequin toward the nearest enemy
 const ATK={gs:'cutA',gm:'cutC',gu:'cutD',gk:'cutA',gt:'cutB',gp:'cutC',gc:'cutA',gw:'raise'}; let atkN=0;
 const ATKC={mage:{gb:['mCast1','mCast3','mCast2'],gx:'mChanA',gy:'mChanB'},fist:{gb:['fJab','fCross','fUpper'],gx:'fChanA',gy:'fChanB'},shaman:{gb:['sSeal','sRing','sSweep'],gx:'sChanA',gy:'sChanB'},pyro:{gb:['pThrow','pPush','pSweep'],gx:'pChanA',gy:'pChanB'}};
@@ -679,7 +692,8 @@ function paintEcho(e,t,exposure){
   const poseT=u<.76?.025+.105*u/.76:.13+.09*(u-.76)/.24;
   const pose=sample(CLIPS.assassinCut,poseT,BASE);
   pose.hip[2]-=.07; pose.lean+=.24; pose.fr=[.28,.12,.015]; pose.fl=[-.40,-.12,.065];
-  pose.hd-=.12; const J=solve(pose), [cx,cy]=echoOrigin, joint=k=>proj(J[k],cx,cy,e.yaw);
+  pose.hd-=.12; const J=solve(pose), [cx,cy]=echoOrigin;
+  const joint=k=>proj(J[k],cx,cy,e.yaw);
   const [tipX,tipY]=joint('st'), [gx,gy]=joint('sb'), [lx,ly]=joint('lt');
   g.clearRect(0,0,echoCanvas.width,echoCanvas.height);
   figure(g,J,cx,cy,e.yaw,{P:pose,eye:false,L:{dx:-.56,dy:-.82,c:[181,194,232],s:e.heroBeat?.70:.32}});
@@ -778,5 +792,30 @@ function ranged(name){ if(!on()||(ST.w!=='bow'&&ST.w!=='rifle')) return;
   const bow=ST.w==='bow', clip=name==='dash'?'rangedDash':name==='draw'?(bow?'bowDraw':'gunAim'):(bow?'bowLoose':'gunFire');
   play(clip,{yaw:Math.atan2(sin(aimA)/FSY,cos(aimA)),blend:.05}); }
 function watchAim(){ const X=G.sv; if(!X||!X.face||X.face.mk) return; const f0=X.face; X.face=function(a){ aimA=a; return f0.apply(this,arguments); }; X.face.mk=true; }
-window.MK={ranged,STY,setCls,on,play,ghost,shade,assassinEcho,wpt,M,CLIPS,compile,dir,SC,sample,solve,figure,DEF,free(){ M.loco=true; }};
+// The selection screen shares the live skeleton and weapons. Previewing a
+// different class must leave the active actor and its current clip intact.
+const portraitBounds=new Map();
+function portrait(g,cls,time,size){
+  if(!STY[cls])return;
+  const savedStyle=ST,savedBase=BASE,yaw=-.52;
+  g.save();
+  try{
+    ST=STY[cls];BASE=BASES[cls];
+    if(!portraitBounds.has(cls)){
+      const joints=solve(restingPose(0));
+      const points=['hd','kr','kl','tr','tl','hr','hl','er','el','sp','st','lt','xc','xd']
+        .filter(name=>joints[name]).map(name=>proj(joints[name],0,0,yaw));
+      if(ST.w==='katana')points.push(proj(joints.se,0,0,yaw));
+      const xs=points.map(p=>p[0]),ys=points.map(p=>p[1]);
+      const left=Math.min(...xs)-24,right=Math.max(...xs)+24,top=Math.min(...ys)-(ST.hat?45:24),bottom=Math.max(...ys)+12;
+      portraitBounds.set(cls,{x:(left+right)/2,y:(top+bottom)/2,span:Math.max(right-left,bottom-top)});
+    }
+    const bounds=portraitBounds.get(cls),scale=size*.94/bounds.span,pose=restingPose(time);
+    g.translate(size*.5,size*.5);g.scale(scale,scale);g.translate(-bounds.x,-bounds.y);
+    figure(g,solve(pose),0,0,yaw,{P:pose,preview:true,L:{dx:-.48,dy:-.87,c:[207,222,248],s:.75}});
+  }finally{
+    ST=savedStyle;BASE=savedBase;g.restore();
+  }
+}
+window.MK={ranged,STY,setCls,on,play,ghost,shade,assassinEcho,wpt,M,CLIPS,compile,dir,SC,sample,solve,figure,portrait,DEF,free(){ M.loco=true; }};
 })();

@@ -3,11 +3,16 @@
 (function(){
 'use strict';
 window.PF=window.PF||{};
+// Child modules must use the same release as their loader when a returning player has cached the previous game.
+const version=new URL(document.currentScript?.src||location.href).searchParams.get('v');
+const frameAsset=file=>'frame/'+file+(version?'?v='+encodeURIComponent(version):'');
 // 붙일 파일과 차례(뒤 파일은 앞 파일이 만든 PF.*와 앞 파일이 감싼 전역 위에 다시 감싼다):
 // save → ultimate → combat-sound → place → win → art → spots → room → data/town → town → field → data/kings → king → data/episodes → story → data/secrets → secret
 // → data/dps → data/classes → data/clscal → balance → ads → challenge → road → data/lore → data/quests → quest → data/world → map → minimap → combat-hud → admin.
 // 스타일은 save보다 먼저 넣고, heat.js는 index.html이 이 파일 다음 줄에서 붙인다.
-const FILES=['save','ultimate','combat-sound','place','win','art','spots','room','data/town','town','field','data/kings','king','data/continent-7','data/continent-1','data/episodes','story','data/secrets','secret','data/dps','data/classes','data/clscal','balance','ads','challenge','village','continent','road','data/lore','data/quests','quest','side','data/world','map','minimap','combat-hud','defeat','admin'];
+const FILES=['save','economy','bestiary','ultimate','combat-sound','place','win','art','spots','room','data/town','town','field','data/kings','royal-effects','king','data/continent-7','data/continent-1','data/campaign','data/episodes','story','data/secrets','secret','data/dps','data/classes','data/clscal','balance','ads','challenge','maps/regions',...Array.from({length:8},(_,no)=>['village','field','boss'].map(kind=>'maps/'+no+'-'+kind)).flat(),'maps/scenery','village','continent','road','data/lore','data/quests','quest','side','data/world','maps/australia','map','minimap','combat-hud','defeat','admin'];
+FILES.splice(FILES.indexOf('bestiary')+1,0,'figures');
+FILES.push('raid-encounter','raid-art','raid');
 // frame 파일들이 쓰는 게임 쪽 값: rpg.js(RPG.api)·surv.js(RPG.sv)·hub.js(RPG.hub)·dun.js(RPG.dun)의 내보내기 줄과 RPG의 갈고리.
 // 이 줄들은 다른 작업이 고치므로 하나라도 빠지면 frame을 켜지 않는다(켜 두면 사냥터를 떠날 때·파일을 붙일 때 오류가 난다).
 // dun.result는 frame이 직접 부르지 않지만 hub.js settle이 정산 몫을 따로 받지 않을 때 부른다.
@@ -28,7 +33,9 @@ wall.id='pfwait'; wall.style.cssText='position:fixed;inset:0;z-index:2147483647;
 document.body.appendChild(wall);
 if(menu) menu.inert=true;
 // 게임 파일이 끝내 다 뜨지 않으면(dun.js 실패 등) 이 시간 뒤 막기를 풀고 옛 저장 방식으로 둔다. 시험에서는 주소의 pfwait=밀리초로 줄인다
-const T0=performance.now(), LIMIT=+new URLSearchParams(location.search).get('pfwait')||20000;
+const T0=performance.now(), requestedWait=+new URLSearchParams(location.search).get('pfwait'), LIMIT=requestedWait||20000;
+let loadedAt=document.readyState==='complete'?T0:null;
+addEventListener('load',()=>{loadedAt=performance.now();},{once:true});
 // 막기를 풀고, frame을 켜지 못했으면(cause: 까닭) 저장을 정한다. 새 저장(prometheus_save_v1)이 이미 있으면 옛 두 키의 멈춘 진행에 저장을 돌리지 않는다:
 // 저장을 끈 채 두고 화면에 새로 고침을 알린다. 새 저장이 없으면 옛 저장 방식으로 둔다
 function ready(cause){
@@ -50,9 +57,15 @@ function notice(){ const n=document.createElement('div'); n.id='pfnotice'; n.set
   document.body.appendChild(n); }
 (function boot(){
   if(!(RPG.sv&&RPG.hub&&RPG.dun)){
-    if(performance.now()-T0<LIMIT) return setTimeout(boot,120);
+    const now=performance.now();
+    const waiting=requestedWait?now-T0<LIMIT:loadedAt==null?now-T0<120000:now-loadedAt<LIMIT;
+    if(waiting) return setTimeout(boot,120);
     return ready('게임 파일이 '+LIMIT+'ms 안에 다 뜨지 않았다');
   }
+  // A saved character can belong to an authored pack. Restore only once all packs are installed.
+  RPG.contentReady.then(startFrame,()=>wall.remove());
+})();
+function startFrame(){
   const miss=missing();
   if(miss.length) return ready('게임 쪽 값이 없다('+miss.join(', ')+')');
   RPG.noSave=true;
@@ -65,6 +78,14 @@ function notice(){ const n=document.createElement('div'); n.id='pfnotice'; n.set
   }
   measureView(); addEventListener('resize',measureView);
   RPG.frame={run:null,worldView(zoom){return {hw:viewWidth/(2*viewScale*zoom),hh:viewHeight/(2*viewScale*zoom)};}};
+  // Keep chapter difficulty by journey position while moving sector identities into story order.
+  const sectors=RPG.hub.ZONES;
+  const difficulty=sectors.map(({hp,dmg,rec})=>({hp,dmg,rec}));
+  sectors.sort((a,b)=>b.no-a.no);
+  sectors.forEach((z,i)=>{
+    Object.assign(z,difficulty[i]);
+    Object.assign(RPG.sv.CHAP[i],difficulty[i],{name:z.name,en:'ZONE '+String(z.no).padStart(2,'0'),boss:z.king,acc:z.acc,floor:z.floor});
+  });
   // 크기가 바뀌어 새로 할당한 굴절 버퍼는 검은색이다. 다음 합성 전에 GFX의 기존 중성색 초기화를 한 번 수행한다.
   if(gl){
     function attachEffects(){
@@ -82,16 +103,16 @@ function notice(){ const n=document.createElement('div'); n.id='pfnotice'; n.set
     document.addEventListener('load',attachEffects,true);
     attachEffects();
   }
-  for(const sheet of ['frame','map']){
-    const css=document.createElement('link'); css.rel='stylesheet'; css.href='frame/'+sheet+'.css'; document.head.appendChild(css);
+  for(const sheet of ['frame','map','raid']){
+    const css=document.createElement('link'); css.rel='stylesheet'; css.href=frameAsset(sheet+'.css'); document.head.appendChild(css);
   }
-  const add=(f,done)=>{ const s=document.createElement('script'); s.src='frame/'+f+'.js'; s.async=false;
+  const add=(f,done)=>{ const s=document.createElement('script'); s.src=frameAsset(f+'.js'); s.async=false;
     if(done) s.onload=s.onerror=done;
     document.head.appendChild(s); };
   // FILES[0]은 save. 나머지는 PF.save.data(story 등)를 쓰므로 저장을 불러오지 못했으면 붙이지 않는다
   add(FILES[0],()=>{ const rest=FILES.slice(1);
     if(!(PF.save&&PF.save.data)) return ready(PF.save?'저장을 불러오지 못했다(frame/save.js 오류)':'frame/save.js를 받지 못했다');
     if(!rest.length) return ready();
-    rest.forEach((f,i)=>add(f,i===rest.length-1?ready:null)); });
-})();
+    rest.forEach((f,i)=>add(f,i===rest.length-1?()=>Promise.resolve(PF.atlasTerrain?.ready).then(ready):null)); });
+}
 })();

@@ -1,20 +1,14 @@
 // 프로메테우스 (PROMETHEUS) — base hub. Replaces the survival menu with a cinematic sci-fi flow set 200 years after the Prometheus Project (story/PROMETHEUS_GAME_STORY.md):
 //   title -> descendant select -> Borderline (base at the zone wall) -> zone map (hologram of the continent) -> battle -> zone result -> base
 // Base: zone map, simulator (skills, practice), fabricator (gear made, found, upgraded, recycled), lineage (heroes, records, system).
-// Also draws every enemy as a synced-suit stickman, swaps the battle floor for a ruined-future surface, and restyles HUD, pause and result.
+// Draws the regional cast on the battle floor and styles the HUD, pause and result.
 // Loaded first by surv.js; its hooks into surv.js / rpg.js / index.html are listed in _gen/hub_patches.py.
 'use strict';
 (()=>{
 const G=RPG, A=G.api, S=G.sv, SV=()=>A.SV;
 const ORDER=S.CLS_ORDER;
 const NAMES=S.NAMES, CHAP=S.CHAP||[];
-const EN_N={sword:'BLADE',mage:'ARCANIST',fist:'STRIKER',shaman:'SPIRIT LINK',pyro:'PYROMANCER',assassin:'PHANTOM',axe:'AXE',archer:'ARCHER',gunner:'GUNNER'};
-const ROLE={sword:'근접',mage:'원거리',fist:'근접',shaman:'정령',pyro:'원거리',assassin:'근접',axe:'근접',archer:'원거리 · 관통',gunner:'원거리 · 정밀 사격'};
-const LORE={sword:'검을 익힌 후손. 빛의 칼날 하나로 구역의 질서를 가른다.',mage:'피가 짙게 발현된 후손. 공간을 접어 무리를 한꺼번에 지운다.',fist:'맨몸으로 싸우는 법을 익힌 후손. 연타와 충격파로 밀어붙인다.',
-  shaman:'정령과 동기화하는 후손. 보이지 않는 것들을 불러 싸운다.',pyro:'플라즈마를 다루는 후손. 닿는 모든 것을 태운다.',assassin:'그림자처럼 움직이는 후손. 보이기 전에 끝낸다.',axe:'불타는 거대 도끼를 휘두르는 후손. 내려치는 곳마다 땅이 탄다.',
-  archer:'경계 장벽 밖에서 길을 찾던 추적자. 화살 한 발에 자신의 동기화 신호를 실어, 시야 너머의 표적까지 궤적을 꺾는다.',
-  gunner:'보더라인 관측소의 마지막 사수. 오래된 황동 조준경을 들여다보면 지면 위에 푸른 십자선이 맺힌다.'};
-const HER={sword:'#ff5a7a',mage:'#a98bff',fist:'#56d8ff',shaman:'#4fffb8',pyro:'#ff9a4a',assassin:'#b9c0ff',axe:'#ff7a3a',archer:'#9ce4ad',gunner:'#77e5e4'};
+const profiles=GameCharacters.profiles;
 
 // ============================================================ the seven experiment zones (story: each has grown a king; the player subdues them)
 // play order, king titles and colours are provisional: the story has not fixed them yet
@@ -32,30 +26,33 @@ while(CHAP.length<ZONES.length) CHAP.push({...CHAP[CHAP.length-1]});
 CHAP.length=Math.min(CHAP.length,ZONES.length);
 CHAP.forEach((c,i)=>{ const z=ZONES[i]; Object.assign(c,{name:z.name,en:'ZONE '+String(z.no).padStart(2,'0'),boss:z.king,acc:z.acc,floor:z.floor,hp:z.hp,dmg:z.dmg,rec:z.rec}); });
 // the engine's boss warning line (index.html) reads this
-Object.defineProperty(window,'BOSS_WARN',{configurable:true,get:()=>{ if(G.mode!=='surv') return undefined; const z=ZONES[S.V.ch]; return z?z.king+' 출현 · '+z.kingEn+' APPROACHES':undefined; }});
+Object.defineProperty(window,'BOSS_WARN',{configurable:true,get:()=>{
+  if(G.mode!=='surv') return undefined;
+  if(S.V.boss?.displayName) return S.V.boss.displayName+' 출현';
+  const z=ZONES[S.V.ch]; return z?z.king+' 출현 · '+z.kingEn+' APPROACHES':undefined;
+}});
 
 // ============================================================ save (credits, stash, gear) — its own key, the RPG save is untouched
 const HK='chamgwang_hub_v1';
 const freshH=()=>({v:1,gold:0,stash:[],gear:{},stock:[],uid:1,fresh:0});
 let H=(()=>{ try{ const h=JSON.parse(localStorage.getItem(HK)); if(h&&h.v===1) return h; }catch(e){} return freshH(); })();
-function hsave(){ if(G.noSave) return; try{ localStorage.setItem(HK,JSON.stringify(H)); }catch(e){} }
+function hsave(){ if(G.frame&&window.PF?.save?.data){ PF.save.commit(); return; } if(G.noSave||G.contentPending) return; try{ localStorage.setItem(HK,JSON.stringify(H)); }catch(e){} }
 
 // ============================================================ gear
 const SLOTS=[['w','무기','WEAPON'],['a','수트','SUIT'],['t','모듈','MODULE']];
 const RAR=[['표준','STANDARD','#c9d6e6'],['강화','ENHANCED','#5ad1ff'],['프로토타입','PROTOTYPE','#c77dff'],['특이점','SINGULAR','#ffb547']];
 const RM=[1,1.35,1.75,2.3], MAXP=5, BAG=16;
-const WBASE={sword:'포톤 블레이드',mage:'위상 포커스',fist:'키네틱 너클',shaman:'스피릿 링크',pyro:'플라즈마 이미터',assassin:'모노 대거',axe:'헤비 액스',archer:'공명 장궁',gunner:'위상 저격총'};
 const WT=['시제','표준','개량','퀀텀','싱귤러','오리진'];
 const AT=['패브릭 수트','나노 수트','하드라이트 베스트','위상 장갑복','퀀텀 쉘','오리진 수트'];
 const TT=['데이터 칩','신경 링크','동기화 코어','신호 증폭기','퀀텀 코어','시그널 프래그먼트'];
 const ti=it=>Math.max(0,Math.min(5,it.tier-1));
-function itName(it,cls=pl.cls){ const n=it.slot==='w'?WT[ti(it)]+' '+WBASE[cls]:it.slot==='a'?AT[ti(it)]:TT[ti(it)]; return n+(it.plus?' +'+it.plus:''); }
-function itVal(it){ const r=RM[it.rar], p=it.plus||0;
+function itName(it,cls=pl.cls){ const n=it.slot==='w'?WT[ti(it)]+' '+profiles[cls].weapon:it.slot==='a'?AT[ti(it)]:TT[ti(it)]; return n+(it.plus?' +'+it.plus:''); }
+function itVal(it){ if(G.frame&&window.PF?.economy) return PF.economy.value(it); const r=RM[it.rar], p=it.plus||0;
   return it.slot==='w'?Math.round((6+it.tier*6)*r)+p*4:it.slot==='a'?Math.round((10+it.tier*14)*r)+p*8:Math.round((4+it.tier*3)*r)+p*2; }
 const itStat=it=>it.slot==='w'?`피해 +${itVal(it)}%`:it.slot==='a'?`최대 HP +${itVal(it)}`:`경험치·크레딧 +${itVal(it)}%`;
-const sellOf=it=>Math.round((20+it.tier*30)*Math.pow(RM[it.rar],1.5)*(1+(it.plus||0)*.3));
-const buyOf=it=>sellOf(it)*3;
-const upOf=it=>Math.round((40+it.tier*40)*((it.plus||0)+1)*RM[it.rar]);
+const sellOf=it=>G.frame&&window.PF?.economy?PF.economy.salvage(it):Math.round((20+it.tier*30)*Math.pow(RM[it.rar],1.5)*(1+(it.plus||0)*.3));
+const buyOf=it=>G.frame&&window.PF?.economy?PF.economy.price(it):sellOf(it)*3;
+const upOf=it=>G.frame&&window.PF?.economy?PF.economy.refit(it):Math.round((40+it.tier*40)*((it.plus||0)+1)*RM[it.rar]);
 function newItem(tier,rar,slot){ return {id:H.uid++,slot:slot||'wat'[Math.random()*3|0],tier:Math.max(1,Math.min(6,tier)),rar,plus:0}; }
 function rollRar(ch,first){ const r=Math.random(); if(first) return r<.12+ch*.03?3:2; return r<.04+ch*.015?3:r<.17+ch*.02?2:r<.52?1:0; }
 const gearOf=c=>H.gear[c]||(H.gear[c]={});
@@ -63,7 +60,9 @@ const byId=id=>H.stash.find(i=>i.id===id);
 const equippedBy=id=>{ for(const c in H.gear) for(const s in H.gear[c]) if(H.gear[c][s]===id) return c; return null; };
 function stat(slot,c=pl.cls){ const id=gearOf(c)[slot], it=id&&byId(id); return it?itVal(it):0; }
 const tierOf=ch=>Math.min(6,1+Math.floor(ch*5/6));
-function restock(){ const top=tierOf(Math.min(ZONES.length-1,SV().chClear||0)); H.stock=[0,1,2].map(i=>newItem(top-(i===0?1:0),i===2?2:1,'wat'[i])); }
+function restock(){ const top=tierOf(Math.min(ZONES.length-1,SV().chClear||0));
+  if(G.frame&&window.PF?.economy){ H.stock=['w','a','t'].map((slot,i)=>newItem(top,i===2?1:0,slot)); return; }
+  H.stock=[0,1,2].map(i=>newItem(top-(i===0?1:0),i===2?2:1,'wat'[i])); }
 if(!H.stock||!H.stock.length) restock();
 // gear feeds the numbers the battle already reads: skill damage, max health, experience gained
 { const mul0=A.mul; A.mul=id=>mul0(id)*(1+stat('w')/100);
@@ -372,7 +371,8 @@ function foeFigure(g,H,kind,o){ const heavy=kind==='brute'||kind==='king', R=rig
     const hx=R.head[0], hy=R.head[1]-R.hr*1.7; g.strokeStyle=INK; g.lineWidth=R.hr*.42; g.beginPath(); g.ellipse(hx,hy,R.hr*1.35,R.hr*.42,0,0,TAU); g.stroke(); g.strokeStyle=ac; g.lineWidth=R.hr*.2; g.stroke(); }
   return R; }
 // in battle: replaces the painted enemy frames (drawE in surv.js calls this through G.foeDraw)
-function drawResident(g,e){ const D=e.d, kind=KIND[e.type]||'soldier', H=e.h*(e.sv||1), ac=S.CH().acc;
+function drawResident(g,e){ const D=e.d, kind=KIND[D.base||e.type]||'soldier', H=e.h*(e.sv||1), ac=S.CH().acc;
+  if(drawDistrict(g,e))return;
   g.save(); g.translate(e.x,e.y-e.z+4);
   const hp=Math.max(0,1-(RT-(e.hitT??-9))/.16); if(hp>0){ const q=hp*hp; g.rotate((e.hdx||0)*.3*q); g.scale(1+.18*q,1+.12*q); g.translate((Math.random()-.5)*H*.08*q,0); }
   if(e.z>0){ g.translate(0,-H*.5); g.rotate(-(.3+(e.sp||0))*e.f); g.translate(0,H*.5); }
@@ -382,20 +382,40 @@ function drawResident(g,e){ const D=e.d, kind=KIND[e.type]||'soldier', H=e.h*(e.
   const col=e.flash>.35?'#ffffff':(e.mkC&&e.mkT>RT)?e.mkC:SUIT;
   foeFigure(g,H,kind,{ph:(e.walkT||0)/(D.heavy?.55:.38)*TAU,atk,hurt,col,eye:ac});
   g.restore(); }
+function drawDistrict(g,e,death){
+  if(S.V.practice){
+    const target=e.practiceTarget;
+    if(target?.construct){
+      const state=GameFieldEnemies.pose(e,death,RT),height=e.h*(e.sv||1);
+      let x=e.x,y=e.y-(e.z||0)+3;
+      g.save();
+      if(death){
+        g.globalAlpha*=1-Math.pow(death.t/death.life,2);
+        if(death.vx!=null){x+=death.vx*death.t;y+=(death.vy-death.vz)*death.t+1400*death.t*death.t;}
+      }
+      GameConstructs.paint(g,'constructs',target.key,state.name,state.progress,x,y,height,e.f||1,false,e);
+      g.restore();return true;
+    }
+    return GameFieldEnemies.draw(target?.sector??ZONES[S.V.ch]?.no,g,e,death);
+  }
+  if(G.frame)return window.PF?.bestiary?.draw(g,e,death);
+  return GameFieldEnemies.draw(ZONES[S.V.ch]?.no,g,e,death);
+}
 G.foeDraw=e=>{
   e.sp=e.z>0?(e.sp||0)+(e.z>30?.13:0):0;
   drawResident(ctx,e);
   if(e.d.heavy){ const h=e.h*(e.sv||1); glow(fx,e.x+e.f*h*.04,e.y-e.z-h*.86,h*.1,S.CH().acc,.6); }
   return true; };
 // a downed resident derezzes: thrown by an ultimate, or squashing into a line of light where he stood
-G.foeDying=q=>{ const E=q.e, D=E.d, kind=KIND[Object.keys(S.EN||{}).find(k=>S.EN[k]===D)]||'soldier', H=D.h*D.sc, k=q.t/q.life, t=q.t, g=ctx, ac=S.CH().acc;
+G.foeDying=q=>{ const E=q.e, D=E.d, kind=KIND[D.base||E.type]||'soldier', H=D.h*D.sc, k=q.t/q.life, t=q.t, g=ctx, ac=S.CH().acc;
+  if(drawDistrict(g,E,q))return true;
   g.save(); g.globalAlpha=q.vx!=null?Math.min(1,(1-k)*2.5):Math.max(0,1-k*k);
   if(q.vx!=null){ g.translate(E.x+q.vx*t,E.y+q.vy*t-(q.vz*t-1400*t*t)); g.translate(0,-H*.5); g.rotate(q.spin*t); g.translate(0,H*.5); }
   else { g.translate(E.x+(Math.random()-.5)*H*.06*k,E.y-E.z+4); g.scale(1+k*.35,Math.max(.02,1-k)); }
   g.scale(E.f,1); foeFigure(g,H,kind,{ph:0,atk:-1,hurt:1,col:k<.3?'#ffffff':ac,eye:ac}); g.restore(); return true; };
 
 // descendant portrait: a stickman with his discipline's weapon of light (menus only)
-function heroFigure(g,H,cls,t,col){ const R=rig(H,{ph:Math.sin(t*1.6)*.12,stride:.25,lean:-.02}), s=R.sh, up=H*.17, fo=H*.16, ac=HER[cls];
+function heroFigure(g,H,cls,t,col){ const R=rig(H,{ph:Math.sin(t*1.6)*.12,stride:.25,lean:-.02}), s=R.sh, up=H*.17, fo=H*.16, ac=profiles[cls].accent;
   const arm=(a,b)=>{ const e=P(s,a,up); return [e,P(e,a+b,fo)]; }, br=Math.sin(t*2)*.04;
   let A1=arm(.35+br,.9), A2=arm(-.25-br,.5);
   if(cls==='mage'||cls==='shaman'||cls==='pyro') A1=arm(1.05+br,.5);
@@ -435,7 +455,7 @@ const scrim=document.createElement('div'); scrim.className='scrim'; bgBox.append
 const fxc=document.createElement('canvas'); fxc.className='fxc'; bgBox.appendChild(fxc); const fg=fxc.getContext('2d');
 const grain=document.createElement('div'); grain.className='grain'; bgBox.appendChild(grain);
 let shown='', front=0, drops=[];
-function setShot(scr){ const n=scr==='quest'&&qSel!=null&&qSel!=='seal'?'v_'+ZK[qSel]:SHOT[scr]||'m_base'; scrim.style.background=SCRIM[scr]||SCRIM.train;
+function setShot(scr){ const n=scr==='quest'&&qSel!=null&&qSel!=='seal'?'v_z'+ZONES[qSel].no:SHOT[scr]||'m_base'; scrim.style.background=SCRIM[scr]||SCRIM.train;
   const blur=scr==='train'||scr==='guild'; if(n!==shown){ shown=n; front^=1; ph[front].style.backgroundImage=`url(${MENU}${n}.webp)`; ph[front].classList.remove('b'); ph[front^1].classList.add('b'); }
   ph[front].style.filter=blur?'blur(6px) saturate(.8)':'none'; }
 // rain on the title and base (the stills are rainy nights), slow dust elsewhere
@@ -448,22 +468,20 @@ function drawFx(t,scr){ const w=fxc.clientWidth|0, h=fxc.clientHeight|0; if(!w||
       fg.strokeStyle=`rgba(200,225,220,${.12+.16*p.v})`; fg.lineWidth=d*.8; fg.beginPath(); fg.moveTo(p.x,p.y); fg.lineTo(p.x+H*.008*p.v,p.y-H*.05*p.v); fg.stroke(); }
     else { p.y-=H*.0016*p.v; p.x+=Math.sin(t*.6+p.l*9)*d*.3; if(p.y<-4){ p.y=H+4; p.x=Math.random()*W; }
       fg.fillStyle=`rgba(235,190,120,${.18+.25*Math.sin(t*1.3+p.l*7)**2})`; fg.fillRect(p.x,p.y,d*1.6,d*1.6); } } }
-const modelPortraits={};
-for(const cls of ['archer','gunner']){
-  const im=new Image(); im.src=MENU+cls+'_portrait.webp?v=stick1'; modelPortraits[cls]=im;
-}
 function drawPortrait(c,cls,t){ const w=c.clientWidth|0; if(!w) return; const dpr=Math.min(2,window.devicePixelRatio||1), s=Math.round(w*dpr); if(c.width!==s){ c.width=s; c.height=s; }
-  const g=c.getContext('2d'); g.setTransform(1,0,0,1,0,0); g.clearRect(0,0,s,s); const ok=!!S.CLS[cls]&&((cls!=='assassin'&&cls!=='axe')||!!window.MK);
-  if(modelPortraits[cls]){
-    const im=modelPortraits[cls]; if(im.complete&&im.naturalWidth) g.drawImage(im,0,0,s,s); return;
-  }
-  glow(g,s*.5,s*.62,s*.42,HER[cls],ok?.3:.1); g.save(); g.translate(s*.5,s*.96); heroFigure(g,s*.9,cls,t+ORDER.indexOf(cls),ok?'#EDEAE4':'#3a4644'); g.restore(); }
+  const g=c.getContext('2d'); g.setTransform(1,0,0,1,0,0); g.clearRect(0,0,s,s); const ok=S.classReady(cls);
+  glow(g,s*.5,s*.62,s*.42,profiles[cls].accent,ok?.3:.1);
+  if(window.MK){MK.portrait(g,cls,t+ORDER.indexOf(cls),s);return;}
+  g.save();
+  // Leave room above the raised axe head in its square roster portrait.
+  const axe=cls==='axe';
+  g.translate(s*(axe ? .38 : .5),s*(axe ? .92 : .96)); heroFigure(g,s*(axe ? .67 : .9),cls,t+ORDER.indexOf(cls),ok?'#EDEAE4':'#3a4644'); g.restore(); }
 // a generated GIF as a live feed; it disappears if the file is missing
 const feed=(n,label,cls='')=>`<div class="feed ${cls}"><img src="${MENU}${n}.gif" alt="" onerror="this.parentNode.style.display='none'"><span class="tag"><i></i>${label}</span></div>`;
 
 // ============================================================ battle floor: hologram ground per zone (replaces the stone texture v3_gnd / v3_gnd_n of fx3.js's lit floor)
 // each zone has its own generated hologram ground (assets/menu/f_<zone>.webp, made seamless offline); the lighting map is derived here from its brightness
-const ZK=['z7','z1','z2','z3','z4','z5','z6'];
+const ZK=['z7','z1','z2','z3','z4','z5','z6','z0'];
 const FIMG=ZK.map(k=>{ const im=new Image(); im.src=MENU+'f_'+k+'.webp'; return im; });
 const NRM={};
 function normalOf(i){ if(NRM[i]) return NRM[i]; const im=FIMG[i], N=im.naturalWidth||1024, c=document.createElement('canvas'); c.width=c.height=N; const g=c.getContext('2d'); g.drawImage(im,0,0,N,N);
@@ -473,11 +491,12 @@ function normalOf(i){ if(NRM[i]) return NRM[i]; const im=FIMG[i], N=im.naturalWi
     px[k]=(-dx/l*.5+.5)*255; px[k+1]=(dy/l*.5+.5)*255; px[k+2]=(1/l*.5+.5)*255; px[k+3]=255; }
   g.putImageData(d,0,0); return NRM[i]=c; }
 let floorZone=-1;
-function floorSwap(){ const F=window.FX3; if(!F||!F.gAlb) return; const i=Math.max(0,Math.min(6,S.V.ch|0)), im=FIMG[i];
+function floorIndex(){ const i=Math.max(0,Math.min(6,S.V.ch|0)); if(G.frame?.run?.zone===7) return ZK.indexOf('z0'); return G.frame?ZK.indexOf('z'+ZONES[i].no):i; }
+function floorSwap(){ const F=window.FX3; if(!F||!F.gAlb) return; const i=floorIndex(), im=FIMG[i];
   if(floorZone===i&&F.gAlb.hub) return; if(!im.complete||!im.naturalWidth) return;
   const T=(img,name)=>({im:img,ok:true,t:null,o:{repeat:true,raw:true,mip:true},name,hub:true}); F.gAlb=T(im,'hub_f_'+ZK[i]); F.gNrm=T(normalOf(i),'hub_n_'+ZK[i]); floorZone=i; }
 // the canvas floor (no WebGL, or before it is ready) uses the same picture, through G.floorTile in surv.js
-G.floorTile=()=>{ const i=Math.max(0,Math.min(6,S.V.ch|0)), c=document.createElement('canvas'); c.width=c.height=640; const g=c.getContext('2d'); g.fillStyle='#0b1012'; g.fillRect(0,0,640,640);
+G.floorTile=()=>{ const i=floorIndex(), c=document.createElement('canvas'); c.width=c.height=640; const g=c.getContext('2d'); g.fillStyle='#0b1012'; g.fillRect(0,0,640,640);
   if(FIMG[i].naturalWidth) g.drawImage(FIMG[i],0,0,640,640); return c; };
 
 // ============================================================ icons (line drawings)
@@ -495,7 +514,7 @@ const ICO={
 let scr='title', qSel=null, hSel=null, smTab='bag', booted=false;
 const ui=document.createElement('div'); ui.className='ui';
 const mmss=s=>Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0');
-const ready=c=>!!S.CLS[c]&&((c!=='assassin'&&c!=='axe')||!!window.MK);
+const ready=S.classReady;
 const openCh=()=>Math.min(CHAP.length-1,SV().chClear||0);
 const zno=i=>String(ZONES[i].no).padStart(2,'0');
 const seg=n=>`<div class="seg">${[0,1,2,3,4,5,6].map(i=>`<i class="${i<n?'on':''}"></i>`).join('')}</div>`;
@@ -506,11 +525,12 @@ function go(s){ scr=s; A.menuRender(); }
 function topBar(back,title,en){ const sv=SV(), need=A.needExp(sv.lv);
   return `<div class="top">${back?`<button class="btn back" data-go="town">← 기지<small>BASE</small></button>`:''}
     ${title?`<div style="display:flex;flex-direction:column;margin-right:4px"><b style="font:700 17px ${KR}">${title}</b><span class="hk">${en}</span></div>`:''}
-    <div class="crest panel"><canvas data-hero="${pl.cls}"></canvas><div><b>${NAMES[pl.cls]} <span class="mut" style="font:600 11px ${MONO}">LV ${sv.lv}</span></b><small>${EN_N[pl.cls]}</small><div class="xp"><i style="width:${Math.min(100,sv.exp/need*100)}%"></i></div></div></div>
+    <div class="crest panel"><canvas data-hero="${pl.cls}"></canvas><div><b>${NAMES[pl.cls]} <span class="mut" style="font:600 11px ${MONO}">LV ${sv.lv}</span></b><small>${profiles[pl.cls].en}</small><div class="xp"><i style="width:${Math.min(100,sv.exp/need*100)}%"></i></div></div></div>
     <div class="purse"><span class="panel">크레딧<b class="cr">${H.gold.toLocaleString()}</b></span><span class="panel">SP<b style="color:${TL}">${sv.sp}</b></span></div></div>`; }
 function viewTitle(){ const sv=SV(), has=sv.lv>1||sv.exp>0||(sv.chClear||0)>0||H.gold>0||!!sv.chars||(G.frame&&window.PF?.save?.data?.story?.visited?.town);
   return `<div class="title"><div class="pre">2248 · AUSTRALIA CONTROL ZONE</div><h1>프로메테우스</h1><div class="en">PROMETHEUS</div>
     <div class="tag">프로젝트로부터 200년. 봉인된 일곱 구역의 왕을 제압하고, 레온이 남긴 기록을 모아라.</div><div class="menu">
+    ${!G.frame&&!new URLSearchParams(location.search).has('frame')?'<button class="btn" data-act="campaign">스토리 캠페인<small>일곱 왕과 남부 관제시설</small></button>':''}
     ${has?`<button class="btn pri" data-act="cont">작전 재개<small>RESUME · ${NAMES[pl.cls]} LV ${sv.lv}</small></button>`:`<button class="btn pri" data-act="new">새 작전 시작<small>BEGIN</small></button>`}
     ${has?`<button class="btn" data-go="hero">후손 선택<small>SELECT DESCENDANT</small></button>`:''}
     <button class="btn" data-go="guild">시스템<small>SYSTEM</small></button></div></div>
@@ -520,9 +540,9 @@ function viewHero(){ const sv=SV(); if(!hSel) hSel=pl.cls; const c=hSel, ids=A.O
   const sig=ready(c)?[ids.find(i=>sk(i)&&sk(i).type==='basic'),...ids.filter(i=>sk(i)&&sk(i).type==='ult')].filter(Boolean).map(i=>sk(i).name):[];
   const nSk=ids.filter(i=>sk(i)&&sk(i).type==='skill').length;
   return `<div class="top"><button class="btn back" data-go="${booted?'town':'title'}">← 뒤로<small>BACK</small></button><div style="display:flex;flex-direction:column"><b style="font:700 17px ${KR}">후손 선택</b><span class="hk">Bloodline of the man</span></div></div>
-  <div class="sheet"><div class="roster panel scroll">${ORDER.map(k=>`<div class="hc ${k===c?'on':''}" data-h="${k}"><i>LV ${lvOf(k)}</i><canvas data-hero="${k}"></canvas><b>${NAMES[k]}</b><small>${EN_N[k]}</small></div>`).join('')}</div>
-  <div class="hdet panel col"><div class="scroll" style="flex:1">${modelPortraits[c]?`<img class="hero-model" src="${modelPortraits[c].src}" alt="">`:''}<span class="hk">${EN_N[c]}</span><div class="big">${NAMES[c]}</div><div><span class="tagl">${ROLE[c]}</span> <span class="tagl">LV ${lvOf(c)}</span></div>
-    <div class="lore">${LORE[c]}</div><div class="rule"></div>
+  <div class="sheet"><div class="roster panel scroll">${ORDER.map(k=>`<div class="hc ${k===c?'on':''}" data-h="${k}"><i>LV ${lvOf(k)}</i><canvas data-hero="${k}"></canvas><b>${NAMES[k]}</b><small>${profiles[k].en}</small></div>`).join('')}</div>
+  <div class="hdet panel col"><div class="scroll" style="flex:1"><canvas class="hero-model" data-hero="${c}" role="img" aria-label="${NAMES[c]} 스틱맨"></canvas><span class="hk">${profiles[c].en}</span><div class="big">${NAMES[c]}</div><div><span class="tagl">${profiles[c].roleLabel}</span> <span class="tagl">LV ${lvOf(c)}</span></div>
+    <div class="lore">${profiles[c].lore}</div><div class="rule"></div>
     ${ready(c)?`<div class="kv"><span>기본 공격</span><b>${sig[0]||'-'}</b></div><div class="kv"><span>스킬</span><b>${nSk}개</b></div><div class="kv"><span>궁극기</span><b>${sig.slice(1).join(' · ')||'-'}</b></div>`:`<div class="mut">전투 데이터 동기화 중…</div>`}</div>
     <div style="padding-top:10px"><button class="btn pri" style="width:100%" data-act="pick" ${ready(c)?'':'disabled'}>${c===pl.cls?'이 후손으로 진입':'이 후손으로 교체'}<small>${c===pl.cls?'DEPLOY':'SWITCH'}</small></button></div></div></div>`; }
 function viewTown(){ const sv=SV(), open=openCh(), done=(sv.chClear||0)>=CHAP.length, nxt=ZONES[open], fresh=H.fresh||0, synced=Math.min(7,sv.chClear||0);
@@ -544,7 +564,7 @@ function viewQuest(){ const sv=SV(), open=openCh(); if(qSel==null||(qSel!=='seal
   const det=seal?`<div class="feed zfeed" style="border-color:rgba(226,81,63,.45)"><img src="${MENU}m_arcadia.webp" alt=""><span class="tag"><i></i>SOUTHERN CONTROL · SIGNAL SEALED</span></div>
     <div class="zinfo panel"><div class="big"><b style="color:${RD}">??</b><span>남부 관제실</span></div><div class="lore">1903년 이후 봉인된 곳. 일곱 왕의 기록이 모두 모이면 이 문이 열린다.</div>
     <div class="btn" style="margin-top:6px;display:flex;align-items:center;border-style:dashed;color:${MU}">신호 봉인 — 레온의 기록 ${Math.min(7,sv.chClear||0)} / 7</div></div>`
-   :`<div class="feed zfeed"><img src="${MENU}v_${ZK[i]}.webp" alt=""><span class="tag"><i></i>ZONE ${zno(i)} · ${Z.en}</span><div class="feed zmini zmap"><canvas width="640" height="360" data-zmap></canvas><span class="tag"><i></i>HOLO MAP · SECTOR ${zno(i)}</span></div></div>
+   :`<div class="feed zfeed"><img src="${MENU}v_z${ZONES[i].no}.webp" alt=""><span class="tag"><i></i>ZONE ${zno(i)} · ${Z.en}</span><div class="feed zmini zmap"><canvas width="640" height="360" data-zmap></canvas><span class="tag"><i></i>HOLO MAP · SECTOR ${zno(i)}</span></div></div>
     <div class="zinfo panel"><div class="big"><b>${zno(i)}</b><span>${Z.no}구역 · ${Z.name}</span></div><div class="lore">${Z.lore}</div>
     <div class="zgrid"><div><small>구역의 왕</small><b style="color:${Z.acc}">${Z.king}</b></div><div><small>권장 레벨</small><b style="color:${lvc}">LV ${c.rec}</b></div><div><small>${clr?'최고 기록':'첫 제압 보상'}</small><b>${clr?(best?mmss(best):'-'):'레온의 기록'}</b></div></div>
     <button class="btn pri" data-act="embark" style="margin-top:8px;display:flex;align-items:center;justify-content:space-between"><span>구역 진입 · 신호 노드 3개 파괴 후 왕 제압</span>${arrow}</button></div>`;
@@ -559,8 +579,8 @@ function viewTrain(){ const sv=SV(), ids=A.ORDER[pl.cls]||[];
     const act=un&&s.type!=='ult'?`<button class="btn sbtn ${sv.sp>0&&!ev?'pri':''}" data-up="${id}" ${sv.sp<1||ev?'disabled':''}>${ev?'진화 완료':lv===4?'진화':'강화'}</button>`:'';
     /* what a level does, in numbers: damage now, and what the next point buys (each level +15% damage, -5% wait; the fifth evolves it) */
     const k=1+.15*(lv-1), nk=(1+.15*lv)/k, cur=s.dmg?s.dmg*A.mul(id):0;
-    const now=s.type==='ult'?'':s.dmg?`현재 피해 <b>${S.fmtN(Math.round(cur))}</b> · 재사용 ${A.cdOf(id).toFixed(1)}초`:`현재 피해 배율 <b>×${k.toFixed(2)}</b>`;
-    const nxt=s.type==='ult'||ev?'':`강화 → LV ${lv+1}: 피해 ${s.dmg?S.fmtN(Math.round(cur*nk))+' (+15%)':'+15%'}${s.cd?` · 재사용 ${(s.cd*(1-.05*lv)).toFixed(1)}초 (-5%)`:''}${lv===4?' · <b>진화</b>: 효과 모양이 바뀝니다':''}`;
+    const now=s.type==='ult'?'':s.dmg?`기준 피해 <b>${S.fmtN(Math.round(cur))}</b>${s.cd?' · 재사용 '+A.cdOf(id).toFixed(1)+'초':''}`:`현재 피해 배율 <b>×${A.mul(id).toFixed(2)}</b>`;
+    const nxt=s.type==='ult'||ev?'':`LV ${lv+1} 강화 · ${s.dmg?'기준 피해 '+S.fmtN(Math.round(cur*nk)):'피해 배율 ×'+(A.mul(id)*nk).toFixed(2)}${s.cd?` · 재사용 ${(s.cd*(1-.05*lv)).toFixed(1)}초`:''}${lv===4?' · <b>진화</b>':''}`;
     const up=un&&s.type!=='ult'?`<div class="sup" style="margin-top:4px;font-size:11.5px;line-height:1.5;color:${TL}">${now}${nxt?`<br><span style="color:${AM}">${nxt}</span>`:'<br><span style="color:'+AM+'">강화 완료 · 진화 효과 적용 중</span>'}</div>`:'';
     return `<div class="row ${un?'':'lock'}">${iconOf(id)}<div class="tx"><b>${s.name}</b><span class="tg">${tag}</span><p>${un?s.desc+(s.evo&&s.type!=='ult'?` <span class="cr">진화: ${s.evo}</span>`:''):'LV '+s.lv+'에 해제'}</p>${up}${un?chromaRow(id):''}</div><div class="lvl">${s.type==='ult'?'':ev?'★ EVO':'LV '+lv+'/5'}</div>${act}</div>`; }).join('');
   return topBar(true,'시뮬레이터','Skill matrix')+`<div class="sheet"><div class="panel col" style="flex:2;min-width:0"><div class="scroll" style="flex:1">${ready(pl.cls)?rows:'<div class="mut">전투 데이터 동기화 중…</div>'}</div></div>
@@ -575,7 +595,7 @@ function viewSmith(){ const g=gearOf(pl.cls);
   const list=smTab==='bag'?(bag.length?bag.map(it=>{ const who=equippedBy(it.id); const cur=g[it.slot]&&byId(g[it.slot]), d=cur?itVal(it)-itVal(cur):itVal(it);
       return `<div class="row">${itemCard(it,`<span style="color:${d>0?'#9BD9A4':d<0?'#E88A7A':MU};font-size:10.5px">${d>0?'▲'+d:d<0?'▼'+(-d):'='}</span>${who?` <span class="mut" style="font-size:10.5px">(${NAMES[who]} 장착)</span>`:''}`)}<button class="btn sbtn pri" data-eq="${it.id}">장착</button><button class="btn sbtn" data-sell="${it.id}" ${who?'disabled':''}>분해 ${sellOf(it)}</button></div>`; }).join(''):'<div class="mut" style="padding:12px 4px">보관함이 비었습니다. 구역에서 장비를 회수해 오세요.</div>')
     :H.stock.map((it,k)=>`<div class="row">${itemCard(it)}<button class="btn sbtn pri" data-buy="${k}" ${H.gold<buyOf(it)||H.stash.length>=BAG?'disabled':''}>${buyOf(it)} CR</button></div>`).join('')+'<div class="mut" style="padding:10px 4px;font-size:11.5px">구역에 다녀오면 제작 목록이 갱신됩니다.</div>';
-  return topBar(true,'패브리케이터','Fabrication bay')+`<div class="sheet"><div class="panel col scroll" style="width:min(300px,36vw)"><h3><small>LOADOUT · ${EN_N[pl.cls]}</small>장착 장비</h3><div class="rule"></div><div class="slots">${slots}</div>
+  return topBar(true,'패브리케이터','Fabrication bay')+`<div class="sheet"><div class="panel col scroll" style="width:min(300px,36vw)"><h3><small>LOADOUT · ${profiles[pl.cls].en}</small>장착 장비</h3><div class="rule"></div><div class="slots">${slots}</div>
     <div class="rule"></div><div class="kv"><span>피해</span><b>+${stat('w')}%</b></div><div class="kv"><span>최대 HP</span><b>${A.maxHp()}</b></div><div class="kv"><span>경험치·크레딧</span><b>+${stat('t')}%</b></div></div>
     <div style="flex:1"></div>
     <div class="panel col" style="width:min(360px,42vw);min-width:0"><div class="tabs"><button class="${smTab==='bag'?'on':''}" data-tab="bag">보관함 ${H.stash.length}/${BAG}</button><button class="${smTab==='shop'?'on':''}" data-tab="shop">제작</button></div><div class="scroll" style="flex:1">${list}</div></div></div><div class="toast panel"></div>`; }
@@ -584,7 +604,7 @@ function viewGuild(){ const sv=SV(), o=sv.opt||{};
   const T=(k,kr,en)=>`<div class="opt"><div><b style="font:700 14px ${KR}">${kr}</b><div class="hk" style="font-size:9px">${en}</div></div><button class="tog ${o[k]?'on':''}" data-opt="${k}" aria-label="${kr}"></button></div>`;
   const rec=CHAP.map((c,i)=>{ const b=(sv.best||{})[pl.cls+i], z=ZONES[i]; return `<div class="kv"><span>${z.no}구역 · ${z.name}</span><b>${i<(sv.chClear||0)?'<span style="color:'+AM+'">제압</span> · ':''}${b?mmss(b):'-'}</b></div>`; }).join('');
   return `<div class="top"><button class="btn back" data-go="${booted?'town':'title'}">← ${booted?'기지':'뒤로'}<small>${booted?'BASE':'BACK'}</small></button><div style="display:flex;flex-direction:column"><b style="font:700 17px ${KR}">${booted?'후손 기록':'시스템'}</b><span class="hk">${booted?'Lineage · system':'System'}</span></div></div>
-  <div class="sheet">${booted?`<div class="panel col scroll" style="flex:1;min-width:0"><div style="display:flex;align-items:center;gap:12px"><canvas data-hero="${pl.cls}" style="width:76px;height:76px"></canvas><div><b style="font:900 20px ${KR}">${NAMES[pl.cls]}</b><div class="mut">LV ${sv.lv} · ${ROLE[pl.cls]} · 레온의 기록 ${Math.min(7,sv.chClear||0)}/7</div></div></div>
+  <div class="sheet">${booted?`<div class="panel col scroll" style="flex:1;min-width:0"><div style="display:flex;align-items:center;gap:12px"><canvas data-hero="${pl.cls}" style="width:76px;height:76px"></canvas><div><b style="font:900 20px ${KR}">${NAMES[pl.cls]}</b><div class="mut">LV ${sv.lv} · ${profiles[pl.cls].roleLabel} · 레온의 기록 ${Math.min(7,sv.chClear||0)}/7</div></div></div>
     <button class="btn" style="margin-top:10px" data-go="hero">후손 교체<small>SWITCH DESCENDANT</small></button><div class="rule"></div><span class="hk" style="margin-bottom:4px">ZONE RECORDS</span>${rec}</div>`:''}
     <div class="panel col" style="flex:1;min-width:0"><h3><small>SYSTEM</small>시스템</h3><div class="rule"></div>${T('calm','섬광·흔들림 줄이기','Reduce flash & shake')}${T('lowfx','이펙트 품질 낮춤','Low effect quality')}
     <div class="opt"><div><b style="font:700 14px ${KR}">이동 속도</b><div class="hk" style="font-size:9px">Move speed</div></div><button class="btn sbtn" data-spd="1">${SPDS.find(x=>x[0]===(o.spd||1))[1]}</button></div>
@@ -601,6 +621,7 @@ G.menuOverride=el=>{ const sv=SV(); sv.opt=sv.opt||{}; sv.opt.stick=true;
   if(scr==='smith'&&H.fresh){ H.fresh=0; hsave(); }
   const R=()=>A.menuRender(), on=(q,f)=>ui.querySelectorAll(q).forEach(b=>b.onclick=e=>{ e.stopPropagation(); f(b); });
   on('[data-go]',b=>go(b.dataset.go));
+  on('[data-act=campaign]',()=>location.assign('?frame'));
   on('[data-act=cont]',()=>{ booted=true; go('town'); });
   on('[data-act=new]',()=>{ hSel=pl.cls; go('hero'); });
   on('[data-h]',b=>{ hSel=b.dataset.h; R(); });
@@ -670,7 +691,8 @@ function paintMenu(t){ drawFx(t/1000,scr);
 // ============================================================ zone result: credits, gear, Leon's record (surv.js finish() hands over through G.hubResult)
 // the payment alone, no screen (frame/field.js settles a hunting field with it). D: what the zone map's caches hold, G.dun.result() unless given
 function settle(o,D=G.dun&&G.dun.result()){ const tb=1+stat('t')/100; let gold, item=null, sold=0;
-  if(o.win){ gold=Math.round((60*(o.ch+1)+o.kills*.6)*tb); item=newItem(tierOf(o.ch),rollRar(o.ch,o.first)); }
+  if(o.win){ const base=G.frame&&window.PF?.economy?PF.economy.victory(o.ch,o.kills,o.first):60*(o.ch+1)+o.kills*.6;
+    gold=Math.round(base*tb); item=newItem(tierOf(o.ch),rollRar(o.ch,o.first)); }
   else { gold=Math.round(30*(o.ch+1)*Math.min(1,(D?D.nodes/3:o.t/300))*tb+o.kills*.2); if((D?D.nodes>0:o.t>90)&&Math.random()<.35) item=newItem(tierOf(o.ch),0); }
   /* the zone map's caches: their credits, and gear found on the way */
   if(D){ gold+=Math.round(D.gold*tb); for(let i=0;i<D.loot&&H.stash.length<BAG;i++){ H.stash.push(newItem(tierOf(o.ch),D.lootR?D.lootR[i]:rollRar(o.ch,false))); H.fresh=(H.fresh||0)+1; } }
@@ -695,7 +717,7 @@ G.hubResult=o=>{ const {gold,item,sold,D}=settle(o);
 
 // after a run the menu opens on the base
 { const tm=A.toMenu; A.toMenu=G.api.toMenu=function(){ if(booted) scr='town'; return tm.apply(this,arguments); }; }
-G.hub={get H(){ return H; },get scr(){ return scr; },get qSel(){ return qSel; },go,newItem,rollRar,RAR,stat,settle,ZONES,drawOpticTarget:drawResident,save:hsave,reset(){ H=freshH(); restock(); hsave(); }};
+G.hub={get H(){ return H; },get scr(){ return scr; },get qSel(){ return qSel; },go,newItem,rollRar,RAR,stat,settle,restock,ZONES,drawOpticTarget:drawResident,save:hsave,reset(){ H=freshH(); restock(); hsave(); }};
 // zone maps (dun.js) and skill colours (chroma.js) build on surv.js, which this file loads before
 for(const f of ['dun','chroma']){ const sc=document.createElement('script'); sc.src=f+'.js?v=2'; document.head.appendChild(sc); }
 if(G.mode==='menu') A.menuRender();

@@ -17,6 +17,7 @@ const swordFoley=(()=>{
   const clips=new Map(), live=new Set(); let started=false;
   function prepare(){
     if(started) return; started=true;
+    if((document.documentElement.dataset.gameAudio||'auto')!=='auto') return;
     const Decoder=window.OfflineAudioContext||window.webkitOfflineAudioContext;
     if(!Decoder) return;
     let decoder; try{ decoder=new Decoder(1,1,48000); }catch(_){ return; }

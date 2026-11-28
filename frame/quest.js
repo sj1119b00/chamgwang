@@ -56,7 +56,7 @@ if(typeof window!=='undefined'&&window.RPG&&window.PF){
   memo.clear();
   const story=()=>PF.save.data.story;
   const here=()=>{ const P=PF.place.cur, r=G.frame.run; return P==='town'?'town':P==='village'&&Number.isInteger(PF.village.zone)?'z'+PF.village.zone:P==='field'&&r&&r.kind==='field'?'z'+r.zone:null; };
-  const name=p=>p==='town'?'마을':zoneOf(p)<Zs().length?Zs()[zoneOf(p)].name:'마지막 화 (임시)';
+  const name=p=>p==='town'?'마을':zoneOf(p)<Zs().length?Zs()[zoneOf(p)].name:'남부 관제시설';
   const cleared=z=>F.state(story().cleared,z)==='cleared';
   // 누를 반경(마을 NPC와 같다), 도착(reach)으로 보는 남은 노드까지의 바닥 거리, 1m(월드 단위, 어림: 영웅 키 약 260)
   const NPC_R=170, REACH=700, UNIT=100;
@@ -109,9 +109,9 @@ if(typeof window!=='undefined'&&window.RPG&&window.PF){
     const w=s.scene==='intro'&&zoneOf(p)>=0&&scene(p,'intro',!cleared(zoneOf(p)));
     if(w) w.then(go,go); else go(); }
   const townNpc=id=>Object.keys(D.NPC).find(k=>D.NPC[k].spot===id);
-  // 지금 단계와 상관없는 사냥터 NPC의 임시 한 줄(NPC마다 같은 객체: 말하는 중에 또 누르면 쌓이지 않는다)
+  // 현재 의뢰와 관계없는 주민은 일상 대사를 건넨다. 같은 주민의 대화를 중복 예약하지 않는다.
   const IDLE={}, idle=k=>IDLE[k]||(IDLE[k]=[D.idle(k)]);
-  // 누른 지점: 사냥터 NPC(act 'quest:<npc>')는 여기서 다 받는다. 마을 주민은 지금 단계면 그 대사를(예전 임시 대사 대신),
+  // 사냥터 NPC와 현재 의뢰에 참여하는 마을 주민의 상호작용을 처리한다.
   // 지도 담당은 처음 누를 때 지도 창을 그대로 먼저 열고(원래 받는 쪽) 그 뒤에 말을 건다: 대사는 창을 닫은 뒤에 뜬다(story.js가 창 동안 미룬다).
   // 말하는 중에 또 누르면 창 없이 다음 줄. 그 밖은 원래 받는 쪽으로
   const scripts=new Map();
@@ -161,7 +161,8 @@ if(typeof window!=='undefined'&&window.RPG&&window.PF){
   function finishEnding(p){
     const pending=story().pendingEndings;
     if(!pending||!pending[p]||endings.has(p)) return;
-    const memory={...D.MEMORY,shown:()=>{
+    const no=Zs()[zoneOf(p)]?.no, chapter=D.content(no);
+    const memory={...chapter.memory[0],lore:no?'memory':undefined,shown:()=>{
       delete pending[p]; endings.delete(p); PF.save.commit();
     }};
     endings.set(p,memory);
@@ -212,24 +213,26 @@ if(typeof window!=='undefined'&&window.RPG&&window.PF){
     if(q){ aim(q.x,q.y,0,q.label); VM.note=go?'마을 관문에서 빠른 이동':'동쪽 길로'; } }
   function regionalCount(s,p,c){ const nodes=s.nodeMilestones?.[p]||0, n=finished(s,p,nodes);
     VM.count=n>c.i?n+'/'+c.total+' 완료':(c.i+1)+'/'+c.total;
-    if(n>c.i) VM.finishedNodes='노드 '+nodes+'개 완료';
+    if(n>c.i) VM.finishedNodes='현장 목표 '+nodes+'개 완료';
   }
   function aimSpot(q,h=0){ if(q) aim(q.x,q.y,h,q.label); }
   function villageView(s,p){ const c=cur(s,p); VM.head=name(p);
     const z=zoneOf(p);
     if(!c){ const road=z<F.COUNT-1&&mouth('next'); VM.text=road?'다음 구역 마을로 이동':D.FREE; aimSpot(road); return; }
     regionalCount(s,p,c); const st=c.step;
-    if(c.i===0||st.type==='travel'){ VM.text=st.type==='travel'?'돌아온 마을에서 주민과 대화':st.text;
+    if(c.i===0||st.type==='travel'){ VM.text=st.text;
       aimSpot(PF.spots.list.find(q=>q.id==='q_camp'),340); return; }
-    VM.text=st.text; VM.note=VM.note||'외곽으로 가는 길'; aimSpot(mouth('field'));
+    const assignment=PF.regionMaps?.villageObjective?.(z);
+    if(assignment){ VM.text=assignment.text; aimSpot(assignment,130); return; }
+    VM.text=st.text; VM.note=VM.note||'사냥터로 가는 길'; aimSpot(mouth('field'));
   }
   function fieldView(s,p,M){ const c=cur(s,p); VM.head=name(p);
     if(!c){ VM.text=D.FREE; return; }
-    const st=c.step, rd=redo(s,p,{nodes:M.done,king:!!M.won,cleared:cleared(zoneOf(p))}), n=nearNode(M);
+    const st=c.step, rd=redo(s,p,{nodes:M.done,king:!!M.won,cleared:cleared(zoneOf(p))}), n=nearNode(M), target=PF.regionMaps?.fieldObjective?.(M,pl.x,pl.gy);
     regionalCount(s,p,c);
     VM.text=rd&&rd!==D.REDO.king?rd:st.type==='node'?st.text+` (${M.done}/${M.nodes.length})`:st.text;
     if(st.npc==='camp'&&st.type==='talk'){ VM.text='입구로 돌아가 마을 주민과 대화'; aimSpot(mouth('in')); }
-    else if(rd&&rd!==D.REDO.king||st.type==='reach'||st.type==='node'){ if(n) aim(n.x,n.y,640,'신호 노드'); }
+    else if(rd&&rd!==D.REDO.king||st.type==='reach'||st.type==='node'){ if(target){ VM.text=target.text; aimSpot(target,240); } else if(n) aim(n.x,n.y,640,'현장 목표'); }
     else if(st.type==='talk'){ const q=spots&&spots[st.npc]; if(q) aim(q.x,q.y,340,q.label); else if(n) aim(n.x,n.y,640,'신호 노드'); }
     else if(st.type==='king'){ const a=M.arena; if(M.gate||M.free||M.king) aim(a.x,a.y,0,'왕의 방'); else if(n) aim(n.x,n.y,640,'신호 노드'); }
     else if(st.type==='travel'){ const m=mouth(st.exit); if(m) aim(m.x,m.y,0,m.label); } }
@@ -271,9 +274,9 @@ if(typeof window!=='undefined'&&window.RPG&&window.PF){
     if(p&&p!=='town'&&G.mode==='surv') resumeTalk(p);
     if(PF.place.cur==='field'&&p&&M&&G.mode==='surv'){ npcTick();
       const c=cur(story(),p), st=c&&c.step;
-      if(st&&st.type==='reach'){ const n=nearNode(M); if(n&&Math.hypot(n.x-pl.x,(n.y-pl.gy)/FSY)<REACH) step(p,{type:'reach',at:st.at}); }
+      if(st&&st.type==='reach'){ const n=PF.regionMaps?.fieldObjective?.(M,pl.x,pl.gy)||nearNode(M); if(n&&Math.hypot(n.x-pl.x,(n.y-pl.gy)/FSY)<REACH) step(p,{type:'reach',at:st.at}); }
       // 새 왕이 나왔다(왕의 방에 들어섬): 왕의 문 대화(⑦)까지 끝냈으면 대면 장면
-      if(M.king&&!M.king.dead&&M.king!==lastKing&&st&&st.type==='king'){
+      if(M.king&&!M.king.dead&&M.king!==lastKing&&M.finalStage!=='signal'){
         const a=M.arena;
         if(Math.hypot(pl.x-a.x,(pl.gy-a.y)/FSY)<a.r){ lastKing=M.king; scene(p,'confront',first()); }
       } }
@@ -301,7 +304,7 @@ if(typeof window!=='undefined'&&window.RPG&&window.PF){
 
   // ---- 기록 창(records, hub.js guild 화면의 후손 기록 판) 맨 아래: 들은 배경 문구("기록 조각")를 놀이 차례대로. 제목을 누르면 펼쳐 다시 읽는다
   const nos=()=>Zs().map(z=>z.no);
-  const TITLE={'town.resident':'마을 · 주민','town.map':'마을 · 지도 담당','town.road':'마을 · 동쪽 길',gate:'왕의 문 앞',memory:'왕을 쓰러뜨린 뒤',final:'마지막 화 (임시) · 마을'};
+  const TITLE={'town.resident':'마을 · 주민','town.map':'마을 · 지도 담당','town.road':'마을 · 동쪽 길',gate:'왕의 문 앞',memory:'왕을 쓰러뜨린 뒤',final:'남부 관제시설 · 마을'};
   function title(id){ if(TITLE[id]) return TITLE[id]; const m=/^z(\d+)\.(camp|scout)$/.exec(id), Z=Zs().find(q=>q.no===+m[1]); return Z.no+'구역 '+Z.name+' · '+(m[2]==='camp'?'마을':'정찰'); }
   function text(id){ const L=PF.LORE, m=/^town\.(\w+)$/.exec(id), z=/^z(\d+)\.(camp|scout)$/.exec(id); return m?L.town[m[1]]:z?L.zone[z[1]][z[2]]:L[id]; }
   Q.loreList=()=>loreIds(nos(),story().lore||{}).map(id=>({id,title:title(id),text:text(id)}));

@@ -25,7 +25,7 @@ G.frame.runMenuAnimation=function(visible,paint,swapFloor){
   changed();
 };
 // map은 frame/map.js가 그린다. 나머지는 hub 화면이고, 기록과 설정은 같은 guild 화면을 나눠 보인다.
-const WINDOWS={map:'map',skills:'train',gear:'smith',records:'guild',settings:'guild'};
+const WINDOWS={map:'map',raid:'raid',skills:'train',gear:'smith',records:'guild',settings:'guild'};
 // 보기 전용에서 누를 수 없는 버튼: hub.js menuOverride의 on('[data-…]') 가운데 상태를 바꾸는 것
 // (스킬 강화, 장비 장착·분해·제작·강화, 스킬 색 선택·구매, 후손 교체, 구역 진입, 모의 전투 시작).
 // 화면 이동(data-go), 탭(data-tab), 구역 고르기(data-q, 지도), 후손 보기(data-h), 설정(data-opt, data-spd)은 그대로 된다
@@ -38,6 +38,7 @@ const cls=()=>['pf-win','pf-w-'+W.cur].concat(W.readOnly?['pf-ro']:[]);
 W.open=function(id,tab){
   const P=PF.place;
   if(!WINDOWS[id]||P.cur==='title'||P.cur==='hero') return false;
+  if(id==='raid'&&(P.cur!=='town'||!PF.raid)) return false;
   if(id==='map'&&(!PF.map||!PF.map.area())) return false;
   if(W.cur) W.close();
   if(PF.story?PF.story.busy()||PF.story.cur:lock) return false;
@@ -51,6 +52,7 @@ W.open=function(id,tab){
     PF.heat.hold=true;
     el.classList.add('on',...cls());
     if(id==='map') PF.map.mount(el,tab||'zone');
+    else if(id==='raid') PF.raid.mount(el);
     else G.hub.go(WINDOWS[id]);
   }catch(err){
     console.error('frame/win.js: 창('+id+')을 열지 못해 닫았다',err);
@@ -62,6 +64,7 @@ W.open=function(id,tab){
 W.close=function(){
   if(!W.cur) return;
   if(W.cur==='map') PF.map.unmount();
+  if(W.cur==='raid') PF.raid.unmount(el);
   el.classList.remove('on','pf-win','pf-w-'+W.cur,'pf-ro');
   W.cur=null; W.readOnly=false; x0=c0=null;
   PF.heat.hold=false;
@@ -76,7 +79,7 @@ W.close=function(){
 // 기존 화면의 "← 기지"(data-go=town)와 "타이틀 화면"(data-go=title)은 창을 닫는다. 보기 전용이면 그린 뒤 RO 버튼을 끈다
 const mo=G.menuOverride;
 G.menuOverride=function(e){
-  if(W.cur==='map') return;
+  if(W.cur==='map'||W.cur==='raid') return;
   if(W.cur&&(G.hub.scr==='town'||G.hub.scr==='title')){ W.close(); return; }
   const r=mo.apply(this,arguments);
   if(W.cur&&W.readOnly) e.querySelectorAll(RO).forEach(b=>{ b.disabled=true; });

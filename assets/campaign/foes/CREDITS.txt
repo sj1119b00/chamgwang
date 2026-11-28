@@ -1,0 +1,55 @@
+Prometheus regional enemies and rulers
+
+The human surfaces, skin weights, garment fits, hairstyles, skin maps and
+fabric maps are adaptations of the MakeHuman community's HM08 base mesh and
+MakeHuman system assets. These art assets are available under CC0 1.0.
+
+MakeHuman asset license
+https://github.com/makehumancommunity/makehuman/blob/a8bc2d54ff0ac92e78ff71431b1023eda42bf482/LICENSE.ASSETS.md
+
+MakeHuman core mesh and rig
+https://github.com/makehumancommunity/makehuman/tree/a8bc2d54ff0ac92e78ff71431b1023eda42bf482/makehuman/data
+
+MakeHuman system asset pack and individual credits
+https://static.makehumancommunity.org/assets/assetpacks/makehuman_system_assets.html
+
+Regional weapons, wearable equipment, character casting, color treatments,
+skeletal performance, sprite baking and integration were authored for this game.
+The rotating codex uses Three.js r174 and GLTFLoader. Its MIT license is in
+frame/vendor/three-LICENSE.txt.
+
+Garment movement incorporates five pinned cloth solves in Blender 4.2 LTS.
+Every regional human is imported into Blender's mesh/shape-key authoring
+pipeline to sculpt the fitted sleeves, knees and facial relief. Regional
+fabric studies and their editable Blender scene are in _gen/character-studio.
+Close-up face normals, articulated combat equipment and regional court regalia
+were authored for Prometheus. An original eight-district embroidery sheet
+created with OpenAI image generation is mapped to the fitted costumes, with
+matching thread normals and roughness. Its source and prompt are kept in
+_gen/character-studio/regional-embroidery.png and regional-embroidery.txt.
+
+Each regional outfit has a dense Blender source with twice-subdivided face
+patches, once-subdivided body and garments, and sculpted skin and cloth
+relief. Its tangent-space projection is combined with the woven and skin
+microdetail. Ambient visibility is sampled against the dressed sculpt with
+12 deterministic directions and packed with roughness and metallic response.
+The models also carry their regional lamp or transponder emission map.
+The original high surfaces and all six PBR channels are reproducible with
+_gen/build_campaign_foes.py, cast_geometry_bake.py and cast_baked_maps.py.
+
+The mandibular hinge, lip influences, individual upper and lower teeth,
+tongue and finger-joint influences are fitted from the same HM08 rig and
+CC0 system assets. The performed jaw, upper lip, nostril and brow shapes,
+individual hand spread and grip compression were authored for the regional
+combat actions. The original buccal wall and palate link the lips to the
+throat. A hair-only tangent-direction chart shares an atlas with the
+electrical hardware's separate emissive UV island.
+
+The regional enemies and rulers use retargeted idle and walk performances
+from Adobe Mixamo's X Bot, as published in the three.js r174 animation example.
+The character rigs, adapted joint curves, cloth response and work/combat
+gestures are fitted for Prometheus. The source and its verified digest are
+recorded in _gen/mixamo_locomotion.py.
+https://github.com/mrdoob/three.js/blob/r174/examples/webgl_animation_skinning_additive_blending.html
+https://helpx.adobe.com/creative-cloud/faq/mixamo-faq.html
+

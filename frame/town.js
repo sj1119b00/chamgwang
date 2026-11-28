@@ -8,12 +8,13 @@ const KR='"Noto Sans KR","Malgun Gothic",sans-serif';
 // 구석 아이콘: 창 id → [이름, 선 그림]
 const SVG=d=>`<svg viewBox="0 0 32 32" aria-hidden="true">${d}</svg>`;
 const ICON={
+  raid:['레이드',SVG('<path d="M15 3 5 14l6 14 5-8 5 8 6-14-8-9-4 8 4 2-5 6 1-8-4-1z"/>')],
   map:['지도',SVG('<path d="M4 8l7-3 10 3 7-3v19l-7 3-10-3-7 3z"/><path d="M11 5v19M21 8v19"/>')],
   skills:['스킬',SVG('<path d="M18 3L7 18h8l-2 11 12-16h-8z"/>')],
   gear:['가방',SVG('<path d="M6 12h20l-2 16H8z"/><path d="M12 12V9a4 4 0 0 1 8 0v3"/>')],
   records:['기록',SVG('<rect x="7" y="4" width="18" height="24"/><path d="M11 10h10M11 15h10M11 20h6"/>')],
   settings:['설정',SVG('<circle cx="16" cy="16" r="4.5"/><path d="M16 4v5M16 23v5M4 16h5M23 16h5M7.5 7.5l3.5 3.5M21 21l3.5 3.5M7.5 24.5l3.5-3.5M21 11l3.5-3.5"/>')]};
-const TOWN_ICONS=['map','skills','gear','records','settings'];
+const TOWN_ICONS=['map','raid','skills','gear','records','settings'];
 
 // 마을에서는 체력·경험치와 이동 조작(조이스틱·대시)을 표시한다.
 const css=document.createElement('style'); css.id='pftown'; css.textContent=`
@@ -50,6 +51,7 @@ addEventListener('click',e=>{ if(performance.now()<eatClick){ eatClick=0; e.stop
 // 마을에 들어올 때의 직업(기록 창에서 후손을 바꾸면 다시 들어온다)
 let cls0=null, pending=false;
 function enter(){ G.frame.run={kind:'town',zone:0,ch:0}; cls0=pl.cls;
+  PF.bestiary?.preload(Math.min(PF.save.data.story.cleared||0,7));
   PF.room.enter(PF.TOWN,{ch:0,onSpot,onLeave(){ icons([]); entryEnd(); }});
   icons(TOWN_ICONS); A.menuEl.classList.remove('on'); }
 PF.place.on((to,from)=>{ if(to!=='town') return; enter(); if(from==='title'||from==='hero') entry(); });

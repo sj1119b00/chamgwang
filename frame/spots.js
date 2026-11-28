@@ -159,7 +159,7 @@ body:not(.surv) #pfui,#rmenu.on~#pfui{display:none}
     else ctx.drawImage(PF.art.fit(s.art,w*k,ART_H*k)||im,x-w/2,y-H,w,H);
     if(s!==act&&s.label) tag(s,x,y-ART_H-24); }
   // 홀로그램으로 서 있는 사람(임시 모습): 바닥의 투사기, 빛기둥, 긴 옷의 실루엣, 주사선
-  function npc(s){ const im=art(s); if(im) return npcArt(s,im);
+  function npc(s){ const im=art(s); if(im)return npcArt(s,im);
     const x=s.x, y=s.y, H=NPC_H, t=y-H, ph=(s.x*.013+s.y*.007)%TAU;
     ctx.fillStyle='rgba(0,0,0,.45)'; ctx.beginPath(); ctx.ellipse(x,y,92,92*FSY,0,0,TAU); ctx.fill();
     ctx.fillStyle='#0b1418'; ctx.beginPath(); ctx.ellipse(x,y,62,62*FSY,0,0,TAU); ctx.fill(); ctx.strokeStyle=hexA(HC,.7); ctx.lineWidth=4; ctx.stroke();
@@ -271,7 +271,7 @@ body:not(.surv) #pfui,#rmenu.on~#pfui{display:none}
     dp0();
     for(const s of L) if(ky(s)>gy) draw(s); };
 
-  P.set=function(l,fn){ list=l.slice(); onUse=fn||null; act=null; tipKey=''; tip.classList.remove('on'); };
+  P.set=function(l,fn){list=l.slice();onUse=fn||null;act=null;tipKey='';tip.classList.remove('on');};
   P.clear=function(){ P.set([],null); };
   P.add=function(s){ list=list.filter(o=>o.id!==s.id); list.push(s); };
   P.remove=function(id){ list=list.filter(o=>o.id!==id); if(act&&act.id===id){ act=null; tip.classList.remove('on'); } };

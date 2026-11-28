@@ -173,6 +173,7 @@ if(typeof window!=='undefined'&&window.RPG&&window.PF){
   B.input=inputOf({EN,DPS:PF.DPS,DPS1:PF.DPS1,zones:F.COUNT,chOf:F.chOf,maxHp:maxHpAt,needExp:A.needExp});
   B.dpsAvg=B.input.dps; B.dps1Avg=B.input.dps1;
   B.rows=table(B.input);
+  G.hub.ZONES.forEach((sector,i)=>{sector.rec=X.CHAP[i].rec=B.rows[i].lvIn;});
   // B.at: 직업 cls(기본은 지금 직업 pl.cls)가 구역 zone에서 레벨 lv일 때 나오는 몹의 값(직업 평균 표의 값 × 직업 배율 clsHp, 공격력 × takenK). 직업마다의 입력은 한 번 만들어 둔다
   const CI={}, inp=c=>CI[c]||(CI[c]=clsInput(B.input,c));
   B.at=(zone,lv,cls=pl.cls)=>valuesAt(inp(cls),B.rows[zone],lv);
@@ -195,12 +196,12 @@ if(typeof window!=='undefined'&&window.RPG&&window.PF){
   const live=()=>{ const r=G.frame.run; return !!r&&B.kinds.includes(r.kind)&&r.zone===cur.zone; };
   // R1: 하나짜리는 종류별 체력(그 직업의 값, cur.v). 큰 몹·노드는 surv.js hm()이 곱한 배율(끝없이 버티기의 시간 증가. frame에서는 검사의 옛 DIF가 1이다: surv.js dif)을
   // 나올 때 재어 e.pfK에 두고 그대로 곱한다. 왕은 그 배율 없이
-  function single(e,hp){ const k=e.pfK??(e.pfK=e.max/(e.d.hp*X.CHAP[cur.ch].hp)); e.hp=e.max=Math.round(hp*B.scale.hp*k); }
+  function single(e,hp){ const k=e.pfK??(e.pfK=e.max/(e.d.hp*X.CHAP[cur.ch].hp)); e.hp=e.max=Math.max(1,Math.round(hp*B.scale.hp*k)); }
   const sp0=X.spawn;
   X.spawn=function(){ if(cur) sync(); const e=sp0.apply(this,arguments); if(!(cur&&e)) return e;
-    if(e.d.boss) e.hp=e.max=Math.round(cur.v.bossHp*B.scale.hp);
+    if(e.d.boss) e.hp=e.max=Math.max(1,Math.round(cur.v.bossHp*B.scale.hp*(e.d.hp/EN.boss.hp)));
     else if(e.d.node) single(e,cur.v.nodeHp);
-    else if(e.type==='brute') single(e,cur.v.bruteHp);
+    else if((e.d.base||e.type)==='brute') single(e,cur.v.bruteHp*(e.d.hp/EN.brute.hp));
     return e; };
   // 노드 우선(설계 17.8: 궁수·거너는 가장 가까운 물결만 쏘아 Lv1에서 신호 노드를 못 깼다). surv.js nearest(R)가 고른 가장 가까운 적 b(거리² bd, 세로는 hy로 늘린 그 셈) 대신
   // 지도(dun.js)의 깨어난 노드가 NODE.far와 그 스킬의 거리 R 안에 있으면 가장 가까운 그 노드. 모든 직업에 같은 규칙. 브리프의 "영웅 곁의 몹 먼저"는 넣지 않았다
@@ -220,6 +221,9 @@ if(typeof window!=='undefined'&&window.RPG&&window.PF){
   const liveNodes=M=>M.nodes.filter(q=>!q.done&&q.awake&&q.e&&!q.e.dead), d2=e=>(e.x-pl.x)**2+((e.y-pl.gy)/HY)**2;
   const nodeFight=()=>{ const M=G.dun.M; return !!M&&liveNodes(M).some(q=>d2(q.e)<NODE.far*NODE.far&&q.e.hitT!=null&&RT-q.e.hitT<NODE.hit); };
   G.frame.nearest=function(b,bd,R,hy){ const M=G.dun.M; HY=hy; if(!M) return b;
+    // A precision shot keeps its target in a boss arena. Otherwise EACH new
+    // wave can take every bullet at Lv1, even while the boss is in range.
+    if((pl.cls==='gunner'||pl.cls==='archer')&&M.king&&!M.king.dead&&d2(M.king)<R*R) return M.king;
     const far=Math.min(R,NODE.far); let n=null, nd=far*far;
     for(const q of liveNodes(M)){ const d=d2(q.e); if(d<nd){ nd=d; n=q.e; } }
     return n||b; };

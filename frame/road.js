@@ -13,7 +13,7 @@ function next(place,exit,count){
     if(exit==='in') return z?{place:'v'+(z-1),arrive:'next'}:{place:'town',arrive:'east'};
     if(exit==='field') return {place:'z'+z,arrive:'in'};
     if(exit==='next'&&z+1<count) return {place:'v'+(z+1),arrive:'in'};
-  }else if(exit==='in'||exit==='out') return {place:'v'+z,arrive:'field'};
+  }else if(exit==='in'||exit==='out') return {place:'v'+z,arrive:exit==='out'?'return':'field'};
   return null; }
 // 나가는 길(out)은 그 구역을 제압했을 때만 열린다
 const open=(story,place,exit)=>exit!=='out'||(story.cleared||0)>zoneOf(place);
@@ -32,12 +32,14 @@ const HERO=34, STEP=50;
 // 그 자리에 선 영웅을 dun.js가 밀어내는가(pushOut, collide와 같은 규칙): 지도 경계(안쪽 80, 아래 60), 그 칸(M.grid)의 소품 발자리(반지름을 더한 타원),
 // 남은 신호 노드(바닥 거리 170), 왕의 방 벽(둘레 ±70. gap: 문이 열려 남쪽 틈 ±.32rad가 비었다)
 function solid(M,x,y,fsy,gap){ const B=M.B;
+  if(M.roomBlocked) return M.roomBlocked(x,y);
   if(x<B.l+80||x>B.r-80||y<B.t+80||y>B.b-60) return true;
+  if(M.regional?.terrain.some(t=>Math.hypot((x-t.x)/(t.rx+HERO),(y-t.y)/(t.ry+HERO*fsy))<1)) return true;
   const L=M.grid.get(M.key(Math.floor(x/M.C),Math.floor(y/M.C)));
   if(L) for(const p of L) if(Math.hypot((x-p.x)/(p.rx+HERO),(y-p.y)/(p.ry+HERO*fsy))<1) return true;
   for(const n of M.nodes||[]) if(!n.done&&n.e&&Math.hypot(x-n.x,(y-n.y)/fsy)<170) return true;
   const a=M.arena, dx=x-a.x, dy=(y-a.y)/fsy;
-  return Math.abs(Math.hypot(dx,dy)-a.r)<70&&!(gap&&Math.abs(Math.atan2(dy,dx)-Math.PI/2)<.32); }
+  return Math.abs(Math.hypot(dx,dy)-(a.design?globalThis.PF.regionMaps.radius(a,Math.atan2(dy,dx)):a.r))<(a.design?112:70)&&!(gap&&Math.abs(Math.atan2(dy,dx)-Math.PI/2)<.32); }
 // (x0,y0)에서 걸어 닿는 칸(STEP 격자, 네 방향). 칸 k의 자리 px(k),py(k), 온 칸 prev[k](-1: 출발 칸, -2: 닿지 않음)
 function reach(M,x0,y0,fsy,gap){ const B=M.B, X=B.l+80, Y=B.t+80, nx=Math.floor((B.r-80-X)/STEP)+1, ny=Math.floor((B.b-60-Y)/STEP)+1, N=nx*ny;
   const px=k=>X+k%nx*STEP, py=k=>Y+Math.floor(k/nx)*STEP, free=new Int8Array(N).fill(-1), prev=new Int32Array(N).fill(-2), q=new Int32Array(N);
@@ -52,7 +54,7 @@ function reach(M,x0,y0,fsy,gap){ const B=M.B, X=B.l+80, Y=B.t+80, nx=Math.floor(
 // (x0,y0)에서 (x1,y1)까지 걸어가는 꺾임점들(첫 점은 출발 칸, 끝 점은 도착 칸). 도착 자리 둘레(STEP 안)에 닿는 칸이 없으면 null
 function route(M,x0,y0,x1,y1,fsy,gap){ const G=reach(M,x0,y0,fsy,gap); let e=-1, ed=Infinity;
   for(let k=0;k<G.N;k++){ if(G.prev[k]===-2) continue; const d=Math.hypot(G.px(k)-x1,G.py(k)-y1); if(d<ed){ ed=d; e=k; } }
-  if(e<0||ed>STEP) return null;
+  if(e<0||ed>(M.roomBlocked?240:STEP)) return null;
   const L=[]; for(let k=e;k>=0;k=G.prev[k]) L.push({x:G.px(k),y:G.py(k)});
   L.reverse();
   return L.filter((p,i)=>i===0||i===L.length-1||(L[i-1].x-p.x)*(L[i+1].y-p.y)!==(L[i-1].y-p.y)*(L[i+1].x-p.x)); }
@@ -78,14 +80,22 @@ function ends(M,fsy,o){ const st=M.plazas.find(p=>p.k==='start'), a=M.arena, B=M
   // 그런 칸이 없으면(입구 길이 없는 구역은 만들지 않는다) 틈 없이 안전지대 밖의 가장 가까운 닿는 칸, 경고 한 번(지도마다 한 번 불린다)
   const approach=st.x+side*Math.min(3500,(B.r-B.l)*.36);
   let c=pick(approach,B.b-70,(x,y)=>y>=B.b-160&&safe(x,y));
+  // Share the exact surveyed junction with the village, including the coordinates used on the printed atlas.
+  if(M.regional&&!solid(M,approach,B.b-100,fsy,true)&&got(approach,B.b-100)&&safe(approach,B.b-100)) c={x:approach,y:B.b-100};
   if(!c){ c=pick(approach,B.b-70,(x,y)=>Math.hypot(x-st.x,y-st.y)>=o.safe+r+40);
     console.warn('frame/road.js: 입구 길 자리를 안전지대에서 '+SAFE_GAP+' 떨어진 아래 가장자리에 두지 못해 안전지대 바로 밖에 둔다',c); }
   const inM=c&&{x:c.x,y:c.y,dir:[0,1],ue:(B.b-c.y)/fsy,posts:c.y>=B.b-160?[[c.x-GW,B.b],[c.x+GW,B.b]]:null};
   // 벽 위의 자리(왕의 방 가운데에서 바닥 거리 rr, 북쪽에서 각 t)
   const th=(M.props||[]).find(p=>p.throne), half=th?th.w()/2:0, rr=a.r-DOOR, wall=(d,t)=>[a.x+d*Math.sin(t),a.y-d*Math.cos(t)*fsy];
-  for(const s of [1,-1]){ const t=s*Math.asin(Math.min(.9,(half+GW+60)/rr)), [x,y]=wall(rr,t);
+  // Find the rear opening on the authored wall, outside the throne's footprint.
+  const radius=t=>a.design?globalThis.PF.regionMaps.radius(a,t-Math.PI/2):a.r;
+  const t0=Math.asin(Math.min(.9,(half+GW+60)/rr));
+  for(const angle of [t0,.67,.83,1.02,1.18]) for(const side of [1,-1]){
+    const t=side*angle,radiusHere=radius(t),[x,y]=wall(radiusHere-DOOR,t);
     if(solid(M,x,y,fsy,true)||!got(x,y)) continue;
-    return {in:inM,out:{x,y,dir:[Math.sin(t),-Math.cos(t)],ue:DOOR,posts:[wall(a.r,t-s*GW/a.r),wall(a.r,t+s*GW/a.r)]}}; }
+    const left=t-GW/radiusHere,right=t+GW/radiusHere;
+    return {in:inM,out:{x,y,dir:[Math.sin(t),-Math.cos(t)],ue:DOOR,posts:[wall(radius(left),left),wall(radius(right),right)]}};
+  }
   return {in:inM,out:null}; }
 const R={next,open,arm,portals,solid,route,ends};
 
@@ -97,28 +107,28 @@ if(typeof window!=='undefined'&&window.RPG&&window.PF){
   // 닫힌 길 대사 사이의 가장 짧은 시간(초, secret.js 닫힌 통로와 같다), 길 끝 안에 머물러야 발동하는 시간(게임 초: 가장자리를 스치면 발동하지 않고,
   // 걸음 430/초로 반경 200 길 끝 가운데를 지나가는 데는 이보다 오래 걸린다)
   const ZR=200, IN=.5, FREEZE=.4, SHUT_GAP=3.5, DWELL=.35;
-  const SHUT={text:'왕을 제압해야 지날 수 있습니다 (임시)'};
+  const SHUT={text:'왕의 방 너머 통로는 제압 후에 열립니다.'};
   const story=()=>PF.save.data.story;
   const seen=()=>{ const s=story(); return s.visited||(s.visited={}); };
   // 지금 장소 id(마을·사냥터가 아니면 null)
   const here=()=>{ const P=PF.place.cur,r=G.frame.run; return P==='town'?'town':P==='village'&&r?'v'+r.zone:P==='field'&&r&&r.kind==='field'?'z'+r.zone:null; };
-  // 장소 이름: 마을, 구역은 hub.js ZONES의 이름(구역 7은 장 6을 빌려 이름이 없어 임시). title은 도착 표시·빠른 이동 목록(challenge.js 결과 창과 같은 모양)
+  // 장소 이름: 마을, 구역은 hub.js ZONES의 이름(마지막 구역은 남부 관제시설). title은 도착 표시·빠른 이동 목록(challenge.js 결과 창과 같은 모양)
   const Zs=()=>G.hub.ZONES, named=p=>p!=='town'&&zoneOf(p)<Zs().length;
-  const name=p=>p==='town'?'마을':(named(p)?Zs()[zoneOf(p)].name:'마지막 화')+(p[0]==='v'?' 마을':'');
-  const tmp=p=>p==='town'||named(p)?'':' (임시)';
-  const title=p=>named(p)?Zs()[zoneOf(p)].no+'구역 · '+name(p):name(p)+tmp(p);
+  const name=p=>p==='town'?'마을':(named(p)?Zs()[zoneOf(p)].name:'남부 관제시설')+(p[0]==='v'?' 마을':'');
+  const title=p=>named(p)?Zs()[zoneOf(p)].no+'구역 · '+name(p):name(p);
   // 받침 없는 끝 글자와 ㄹ 받침은 '로', 그 밖의 받침은 '으로'
   const ro=s=>{ const c=s.charCodeAt(s.length-1)-0xAC00; return s+(c>=0&&c<11172&&c%28&&c%28!==8?'으로':'로'); };
 
   // ---- 지금 장소의 길 끝. 구역 지도의 자리는 지도마다 한 번(ends)
   const ENDS=new WeakMap();
   const endsOf=M=>{ let E=ENDS.get(M); if(!E){ E=ends(M,FSY,{safe:F.safeZones[0].r,r:ZR}); ENDS.set(M,E); } return E; };
+  R.surveyDoors=M=>F.M===M&&F.safeZones[0]?endsOf(M):null;
   // 길 끝 하나: 나가면 닿는 곳(to), 이름표(그곳 이름 + 로), 열렸는지, 그리고 그리기 값(c: ends의 dir·ue·posts. 마을 길은 동쪽, 관문 기둥 없음)
   function mouth(p,exit,r,c){ const n=next(p,exit,F.COUNT);
     // 앱을 숨기면 제압 기록이 경험치 회수보다 먼저 저장된다. 현재 판의 뒷문은 회수가 끝난 뒤 열린다.
-    const pass=exit==='next'?(PF.quest?.canDepart?.(zoneOf(p))??story().cleared>zoneOf(p)):open(story(),p,exit)&&(exit!=='out'||!settling()&&!kingUp());
-    const dest=p[0]==='v'&&exit==='field'?'외곽 사냥터':name(n.place);
-    return {exit,x:c.x,y:c.y,r,to:n.place,label:ro(dest)+tmp(n.place),open:pass,dir:c.dir,ue:c.ue,posts:c.posts}; }
+    const pass=exit==='field'?!PF.regionMaps.villageObjective(zoneOf(p)):exit==='next'?(PF.quest?.canDepart?.(zoneOf(p))??story().cleared>zoneOf(p)):open(story(),p,exit)&&(exit!=='out'||!settling()&&!kingUp());
+    const dest=p[0]==='v'&&exit==='field'?PF.regionMaps.read(PF.regionMaps.number(zoneOf(p)),'field').name:name(n.place);
+    return {exit,x:c.x,y:c.y,r,to:n.place,label:ro(dest),open:pass,dir:c.dir,ue:c.ue,posts:c.posts}; }
   function list(){ const p=here(); if(!p) return [];
     if(p==='town'||p[0]==='v') return (PF.room.cur?.roads||[]).filter(m=>next(p,m.exit,F.COUNT)).map(m=>mouth(p,m.exit,m.r,{x:m.x,y:m.y,dir:m.dir||[1,0],ue:m.r,posts:null}));
     const M=F.M; if(!M) return [];
@@ -134,12 +144,25 @@ if(typeof window!=='undefined'&&window.RPG&&window.PF){
   R.walk=(x0,y0,x1,y1)=>{ const M=F.M;
     if(M) return route(M,x0,y0,x1,y1,FSY,!!((M.gate||M.free)&&!M.king));
     if(PF.place.cur==='village'&&PF.room.cur){
-      const y=PF.room.cur.streets[0][1]; return [{x:x0,y},{x:x1,y},{x:x1,y:y1}];
+      const room=PF.room.cur;
+      const footprints=PF.room.feet().map(poly=>{
+        const xs=poly.map(p=>p[0]),ys=poly.map(p=>p[1]);
+        return {poly,l:Math.min(...xs)-50,r:Math.max(...xs)+50,t:Math.min(...ys)-50,b:Math.max(...ys)+50};
+      });
+      const surface={B:{l:0,r:room.w,t:0,b:room.h},roomBlocked(x,y){
+        const near=footprints.filter(f=>x>=f.l&&x<=f.r&&y>=f.t&&y<=f.b).map(f=>f.poly);
+        const corrected=PF.room.push(near,x,y,46,FSY);
+        return Math.hypot(x-corrected.x,y-corrected.y)>1;
+      }};
+      return route(surface,x0,y0,x1,y1,FSY,false);
     }
     return null; };
   const lanes=new WeakMap();
   R.approach=function(){ const M=F.M; if(!M) return [];
     if(!lanes.has(M)){ const m=endsOf(M).in, st=F.safeZones[0], cross=M.roads.find(r=>r[1]===r[3]&&r[0]<st.x&&r[2]>st.x);
+      if(M.regional){
+        lanes.set(M,[{x:st.x,y:st.y},{x:m.x,y:m.y}]);return lanes.get(M);
+      }
       const y=cross?cross[1]:st.y, path=route(M,m.x,y,m.x,m.y,FSY,false)||[];
       lanes.set(M,[{x:m.x,y},...path,{x:m.x,y:m.y+100}]); }
     return lanes.get(M); };
@@ -153,14 +176,28 @@ if(typeof window!=='undefined'&&window.RPG&&window.PF){
   // 이 구역의 왕이 살아 있다(왕과 싸우는 중에는 왕의 방 뒤쪽 문을 스쳐도 닫힌 길 대사를 내지 않는다)
   const kingUp=()=>{ const M=F.M, k=M&&M.king; return !!k&&!k.dead; };
   const blocked=()=>PF.story.busy()||!!PF.story.cur||!!PF.win.cur||wOn||G.paused||V.over||frz>0||settling();
-  // 화면 전환: 화면 전체가 어두웠다가 FREEZE초에 걸쳐 밝아지고(그동안 영웅은 묶인다), 도착한 곳의 이름이 1.5초(frame.css). 누르기를 막지 않는다
-  const fade=document.createElement('div'); fade.id='pfroad'; document.body.appendChild(fade);
+  // The last view of the route gives way to the next stretch of the same track.
+  const fade=document.createElement('canvas'); fade.id='pfroad'; fade.setAttribute('aria-hidden','true');document.body.appendChild(fade);
+  function snapshot(to){
+    const source=document.getElementById('out'),top=document.getElementById('top');
+    if(!source?.width)return;
+    const fac=Math.min(1,1100/source.width);
+    fade.width=Math.round(source.width*fac);fade.height=Math.round(source.height*fac);
+    const g=fade.getContext('2d');
+    render();
+    g.drawImage(source,0,0,fade.width,fade.height);
+    if(top?.width)g.drawImage(top,0,0,fade.width,fade.height);
+    const door=list().find(m=>m.to===to);
+    fade.style.setProperty('--pf-pan-x',Math.round(-(door?.dir?.[0]||0)*23)+'px');
+    fade.style.setProperty('--pf-pan-y',Math.round(-(door?.dir?.[1]||0)*17)+'px');
+  }
   const sign=document.createElement('div'); sign.id='pfplace'; sign.setAttribute('role','status'); sign.innerHTML='<b></b><i></i>'; document.body.appendChild(sign);
   function shade(to){ sign.querySelector('b').textContent=title(to);
     for(const n of [fade,sign]){ n.classList.remove('on'); void n.offsetWidth; n.classList.add('on'); }
     frz=FREEZE; }
   // 그곳으로 옮긴다: 마을은 사냥터를 정산하고 떠난 뒤 pend 자리로(아래 PF.place.on), 구역은 field.js가 그 길 끝 안쪽·야영지에 세운다
   function go(to,arrive){
+    snapshot(to);
     if(to==='town'){ if(PF.place.cur==='town') return false; pend=arrive;
       const ok=PF.place.cur==='village'?PF.place.go('town'):F.leave(); if(!ok){ pend=null; return false; } }
     else if(to[0]==='v'){ if(!PF.village.enter(zoneOf(to),arrive)) return false; }
@@ -196,7 +233,7 @@ if(typeof window!=='undefined'&&window.RPG&&window.PF){
       if(m.open){ armed[m.exit]=false; dwell[m.exit]=0; R.travel(m.exit); return; }
       if(PF.story.busy()) continue;
       armed[m.exit]=false; dwell[m.exit]=0;
-      if(RT-shutT>SHUT_GAP){ shutT=RT; PF.story.bark(m.exit==='next'?{text:'이 구역의 왕을 제압하고 마을 주민에게 돌아오세요.'}:SHUT); } } }
+      if(RT-shutT>SHUT_GAP){ shutT=RT; PF.story.bark(m.exit==='field'?{text:PF.regionMaps.villageObjective(r.zone)?.text||'마을의 준비를 마치세요.'}:m.exit==='next'?{text:'이 구역의 왕을 제압하고 마을 주민에게 돌아오세요.'}:SHUT); } } }
   // 묶어 두는 동안은 이동 입력(키·조이스틱)·대쉬·자동 공격이 나가지 않는다. 입력은 지우지 않고 그 화면에만 비운다
   const u0=update; update=function(rdt){
     if(frz>0&&G.mode==='surv'&&!G.paused){ frz=Math.max(0,frz-rdt); const k=V.keys, j=V.joy; V.keys={}; V.joy=null; V.dash=null; V.bcd=Math.max(V.bcd,.1); V.gcd=Math.max(V.gcd,.1);

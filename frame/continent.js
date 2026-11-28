@@ -3,6 +3,7 @@
 'use strict';
 const PF=window.PF,F=PF.field,X=RPG.sv,scale=X.FSY;
 function shelters(M){
+  if(M.regional) return M.regional.shelters;
   const start=M.plazas.find(p=>p.k==='start'),a=M.arena;
   const lane=M.roads.find(r=>r[0]===r[2]&&r[0]!==start.x);
   const dir=Math.sign(lane[0]-start.x),x=lane[0]+dir*700;
@@ -30,7 +31,7 @@ function place(){
   const M=F.M;
   if(PF.place.cur!=='field'||!M) return {kind:PF.place.cur,zone:null};
   const rest=rests().find(z=>Math.hypot(pl.x-z.x,pl.gy-z.y)<z.r),a=M.arena;
-  const kind=rest?.kind||(Math.hypot(pl.x-a.x,(pl.gy-a.y)/scale)<a.r?'boss':pl.gy>M.nodes[0].y-550?'outer':'core');
+  const kind=rest?.kind||(Math.hypot(pl.x-a.x,(pl.gy-a.y)/scale)<PF.regionMaps.radius(a,Math.atan2((pl.gy-a.y)/scale,pl.x-a.x))?'boss':pl.gy>M.nodes[0].y-550?'outer':'core');
   return {kind,zone:RPG.frame.run.zone};
 }
 const campArt=[
@@ -50,7 +51,20 @@ drawBackground_prep=function(){
     if(!z.kind||Math.abs(z.x-cam.x)>X.view().hw+800||Math.abs(z.y-cam.y)>X.view().hh+800) continue;
     ctx.drawImage(light,z.x-z.r*1.36,z.y-z.r*1.08,z.r*2.72,z.r*2.16);
     ctx.drawImage(light,z.x+55,z.y-330,580,420);
+    const regional=F.M.regional,design=regional?.design;
+    if(design){
+      const index=z.kind==='middle'?0:1;
+      const [a,b]=design.campStructures[index];
+      const family=F.M.props;
+      for(const [part,dx,dy,height] of [[a,-348,-78,540],[b,355,-110,370]]){
+        const img=family.find(p=>p.k.i===part)?.im;
+        if(!img?.naturalWidth) continue;
+        const w=height*img.naturalWidth/img.naturalHeight;
+        ctx.drawImage(img,z.x+dx-w/2,z.y+dy-height,w,height);
+      }
+    }
     for(const p of campArt){
+      if(design&&(p.art==='camp_tent'||p.art==='p_lamp')) continue;
       const art=z.kind==='keepRest'&&p.art==='camp_tent'?'p_tramstop':p.art,im=PF.art.img(art);
       if(!im) continue;
       const w=p.h*im.naturalWidth/im.naturalHeight;

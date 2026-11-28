@@ -123,3 +123,24 @@
   #pf-subarea:empty{display:none}
   #pf-subarea:not(:empty)::before{content:none}
 }
+
+#pf-world-map{background:radial-gradient(ellipse at center,#214044,#101e26 80%);}
+#pfmap .pf-world-base{position:absolute;max-width:none;max-height:none;pointer-events:none}
+#pfmap .pf-map-board canvas.pf-map-surface{position:absolute;inset:0;z-index:0}
+#pfmap .pf-world-base{z-index:0}#pfmap .pf-world-node{z-index:1}
+#pfmap .pf-world-node{box-sizing:border-box;min-height:23px;max-width:none;width:auto;display:flex;flex-direction:row;align-items:center;gap:3px;transform:translate(-50%,-50%);padding:2px 4px;border:1px solid #82968a88;background:#102126ed;border-radius:3px}
+#pfmap .pf-world-node .pf-world-dot{box-sizing:border-box;width:14px;height:14px;margin:0;border:1px solid var(--region);border-radius:50%}
+#pfmap .pf-world-node[data-current=true] .pf-world-dot{box-shadow:0 0 0 1px #ccffde}
+#pfmap .pf-world-node[data-goal=true] .pf-world-dot{outline:1px solid #e4ad5c;outline-offset:1px}
+#pfmap .pf-world-node .pf-world-label{display:block;white-space:nowrap;word-break:normal;font:650 10px/13px "Noto Sans KR",sans-serif!important;padding:0;margin:0;color:#e3e7dc;background:transparent}
+.pf-world-sr{position:absolute;width:1px;height:1px;clip-path:inset(50%);overflow:hidden}
+.pf-map-geography{margin:5px 0;color:#e8d8af;font-size:12px}.pf-map-landform{margin:3px 0 8px;color:#bac9bf;font-size:11px}
+#pfmap .pf-atlas-open{margin:1px 0 6px;min-height:26px;padding:3px 7px;font-size:11px}
+.pf-atlas-view{width:min(96vw,1600px);height:min(92dvh,1100px);padding:0;border:1px solid #677c74;border-radius:6px;background:#132126;color:#e7ebdd;box-sizing:border-box}
+.pf-atlas-view[open]{display:flex;flex-direction:column}.pf-atlas-view::backdrop{background:#061115df}
+.pf-atlas-view header{display:flex;flex:none;align-items:center;gap:8px;min-height:43px;padding:0 10px;border-bottom:1px solid #557069}
+.pf-atlas-view header b{margin-right:auto;font-size:14px}.pf-atlas-view header button{color:#e4e6d8;background:#263c3d;border:1px solid #57716a;border-radius:3px;min-width:34px;height:31px;cursor:pointer}
+.pf-atlas-scroll{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;touch-action:pan-x pan-y;cursor:grab}
+.pf-atlas-sheet{margin:auto;position:relative}.pf-atlas-scroll img{display:block;width:100%;height:auto;max-width:none;max-height:none;user-select:none}
+.pf-atlas-current{position:absolute;width:16px;height:16px;transform:translate(-50%,-50%);box-sizing:border-box;border:2px solid #afffe1;border-radius:50%;box-shadow:0 0 0 2px #173c37,0 0 8px #9dffdb;pointer-events:none}
+@media(max-width:450px){.pf-atlas-view header{gap:4px;padding:0 5px}.pf-atlas-view header b{font-size:11px}.pf-atlas-view header button{min-width:29px;padding:0 5px;font-size:12px}}

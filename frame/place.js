@@ -4,10 +4,10 @@
 (function(){
 'use strict';
 // 전투가 있는 장소. 여기서 연 창은 안전지대 밖이면 보기 전용이다(win.js)
-const FIGHT=['field','secret','hard','rematch','endless'];
+const FIGHT=['field','secret','hard','rematch','endless','raid'];
 // 갈 수 있는 곳. 여기 없는 이동은 전부 막는다
-const MOVES={title:['hero','town'],hero:['town'],town:['village','field','hard','rematch','endless','title','hero'],
-  village:['town','village','field','hero','title'],field:['town','village','field','secret'],secret:['field','town'],hard:['town'],rematch:['town'],endless:['town']};
+const MOVES={title:['hero','town'],hero:['town'],town:['village','field','hard','rematch','endless','raid','title','hero'],
+  village:['town','village','field','hero','title'],field:['town','village','field','secret'],secret:['field','town'],hard:['town'],rematch:['town'],endless:['town'],raid:['town']};
 const can=(from,to)=>!!MOVES[from]&&MOVES[from].includes(to);
 const P={FIGHT,can,cur:'title',safe:false};
 

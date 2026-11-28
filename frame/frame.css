@@ -23,6 +23,8 @@
 #pfscene .pf-sc-img,#pfscene .pf-sc-vid{position:absolute;inset:0;width:100%;height:100%;background:center/cover no-repeat;object-fit:cover}
 #pfscene .pf-sc-img.go{animation:pfscpush 14s cubic-bezier(.2,.1,.3,1) forwards}
 #pfscene .pf-sc-vid{display:none}
+
+
 #pfscene .pf-sc-shade{position:absolute;inset:0;pointer-events:none;
   background:linear-gradient(180deg,rgba(2,4,5,.5) 0,rgba(2,4,5,0) 20%,rgba(2,4,5,0) 46%,rgba(2,4,5,.72) 74%,rgba(2,4,5,.95) 100%)}
 #pfscene .pf-sc-tag{position:absolute;left:max(22px,env(safe-area-inset-left));top:max(20px,env(safe-area-inset-top));font-size:11px;font-weight:500;line-height:1;letter-spacing:.2em;color:rgba(236,242,240,.66)}
@@ -94,10 +96,10 @@ body:is(.pf-conversation,.pf-talk,.pf-scene) :is(#pfplace,#rtoast){visibility:hi
 #rmenu .pf-lore summary{padding:6px 10px;cursor:pointer;font:600 12.5px "Noto Sans KR","Malgun Gothic",sans-serif;color:#DDFBFF}
 #rmenu .pf-lore details p{margin:0;padding:0 10px 8px;font:400 12.5px/1.6 "Noto Sans KR","Malgun Gothic",sans-serif;color:#E8EDEC;word-break:keep-all}
 
-/* 길로 넘어갈 때(road.js): 화면 전체가 어두웠다가 0.4초에 걸쳐 밝아지고, 도착한 곳의 이름이 1.5초 떠 있다. 게임 HUD 위, 이야기 장면 아래. 누르기를 막지 않는다 */
-#pfroad{position:fixed;inset:0;z-index:26;pointer-events:none;background:#020405;opacity:0}
+/* 출발지 풍경이 진행 방향으로 0.4초간 겹쳐지고 도착지 이름이 1.5초간 뜬다. */
+#pfroad{position:fixed;inset:0;width:100%;height:100%;z-index:26;pointer-events:none;opacity:0}
 #pfroad.on{animation:pfroad .4s ease-in forwards}
-@keyframes pfroad{from{opacity:1}to{opacity:0}}
+@keyframes pfroad{from{opacity:1;transform:translate(0,0) scale(1.025)}to{opacity:0;transform:translate(var(--pf-pan-x,0),var(--pf-pan-y,0)) scale(1.04)}}
 #pfplace{position:fixed;left:50%;top:38%;z-index:26;pointer-events:none;opacity:0;transform:translateX(-50%);text-align:center;white-space:nowrap;font-family:"Noto Sans KR","Malgun Gothic",sans-serif}
 #pfplace.on{animation:pfplace 1.5s ease-out forwards}
 #pfplace b{display:block;font-size:24px;font-weight:800;letter-spacing:.06em;color:#F4F7F6;text-shadow:0 0 14px rgba(127,243,255,.45),0 2px 4px rgba(0,0,0,.95)}
@@ -247,3 +249,42 @@ body.pf-warp #rpause{display:none!important}
   color:#EBA74E;font:800 12px "Noto Sans KR","Malgun Gothic",sans-serif;letter-spacing:.16em;text-shadow:0 0 8px rgba(235,167,78,.55)}
 #rmenu .pf-cp-note,#rmenu .pf-cp-badge+.pf-cp-msg{flex:1;min-width:0;max-width:none}
 #rmenu .pf-cp-note{font:500 12px/1.35 "Noto Sans KR","Malgun Gothic",sans-serif;color:#B5BEBA;word-break:keep-all}
+.pf-bestiary{width:min(800px,94vw);max-height:94dvh;overflow:auto;box-sizing:border-box;border:1px solid #768e92;border-radius:5px;background:#131e22;color:#e4ebea;padding:12px 17px;font:14px/1.4 "Malgun Gothic",sans-serif}
+.pf-bestiary canvas[hidden]{display:none}
+.pf-bestiary nav,.pf-bestiary footer{flex-wrap:wrap}
+.pf-bestiary::backdrop{background:#03080cce}
+.pf-bestiary header,.pf-bestiary nav,.pf-bestiary footer{display:flex;align-items:center;gap:8px}
+.pf-bestiary header{justify-content:space-between;margin-bottom:9px}
+.pf-bestiary h2{font-size:19px;margin:0}
+.pf-bestiary button{background:#25343b;color:#e3eded;border:1px solid #54666a;border-radius:3px;padding:5px 10px;cursor:pointer}
+.pf-bestiary [aria-pressed=true]{border-color:#71dcce;color:#9dffea;background:#24413e}
+.pf-bestiary canvas{position:static;display:block;width:100%;height:auto;max-height:49dvh;object-fit:contain;background:radial-gradient(ellipse at 50% 55%,#34464c,#19252a 74%);touch-action:none;cursor:grab;margin-top:9px}
+.pf-bestiary footer{justify-content:center;color:#adc1c2;margin-top:5px}
+.pf-bestiary aside:empty{display:none}
+.pf-bestiary canvas[hidden]{display:none}
+.pf-bestiary .pf-cast-weapon{display:block;margin-top:3px;color:#b4c5bb}
+.pf-bestiary select{background:#1c292f;color:#e4eeeb;border:1px solid #54666a;border-radius:3px;padding:4px 6px}
+#shud .bb .pf-royal-cast{
+  display:block;position:relative;width:max-content;max-width:100%;margin:3px auto 0;
+  padding:2px 10px 5px;border-radius:3px;color:#f7f5ef;background:rgba(9,14,21,.88);
+  font:700 clamp(10px,1.55vh,13px)/1.2 "Malgun Gothic",sans-serif;text-align:center;
+  white-space:nowrap;pointer-events:none;
+}
+#shud .bb .pf-royal-cast[hidden]{display:none}
+#shud .bb .pf-royal-phase{
+  position:absolute;right:0;top:0;color:#ffdf9a;background:#19151be8;
+  font:700 clamp(10px,1.6vh,12px)/1.3 "Malgun Gothic",sans-serif;pointer-events:none;
+}
+#shud .bb .pf-royal-phase:not(:empty){padding:0 4px}
+#shud .bb .pf-royal-cast::after{
+  content:"";position:absolute;bottom:0;left:0;right:0;height:2px;
+  background:var(--royal-color);transform:scaleX(var(--royal-progress,0));transform-origin:left;
+}
+@media (orientation:portrait){
+  #pfscene::before{content:"";position:absolute;inset:-30px;background:var(--pf-cut) center/cover no-repeat;filter:blur(20px) brightness(.28)}
+  #pfscene .pf-sc-img{inset:12% 0 auto;height:49%;background-size:contain}
+  #pfscene .pf-sc-img.go{animation:none}
+  #pfscene .pf-sc-shade{background:linear-gradient(to bottom,rgba(1,5,9,.38),transparent 14%,transparent 56%,rgba(1,5,9,.62) 78%)}
+  #pfscene .pf-sc-sub{top:65%;bottom:auto;width:calc(100% - 56px)}
+  #pfscene .pf-sc-tag{max-width:calc(100% - 150px);line-height:1.5}
+}

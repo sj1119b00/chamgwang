@@ -68,7 +68,7 @@ if(typeof window!=='undefined'&&window.RPG){
   const footArt=k=>{ const m=k&&PF.art.img(k)&&PF.art.meta(k); return m&&m.foot?m:null; };
   function solids(){ if(!R.cur||!R.cur.solid) return false;
     if(solVer!==PF.art.ver){ solVer=PF.art.ver; solList=null; solProps=[];
-      for(const p of props){ const m=p.art&&footArt(p.art); p.foot=m?polys(m.foot,p.x,p.y,pw(p),p.h,p.flip):null; if(p.foot) for(const P of p.foot) solProps.push(bx(P)); } }
+      for(const p of props){ const m=p.art&&footArt(p.art); p.foot=m?polys(m.foot,p.x,p.y,pw(p),p.h,p.flip):p.base?[ring(p.x,p.y-p.base*.36,p.base,FSY*.57,8)]:null; if(p.foot) for(const P of p.foot) solProps.push(bx(P)); } }
     const L=PF.spots.list;
     if(L!==solList){ solList=L; solSpots=[]; spotFoot.clear();
       for(const s of L){ let f=null, m=null;
@@ -121,12 +121,12 @@ if(typeof window!=='undefined'&&window.RPG){
     pl.x=pl.home=keepX=st.x; pl.gy=st.y; cloth();
     cam.x=cam.fx=pl.x; cam.y=cam.fy=pl.gy-X.BODY*.6;
     R.cur=def; o=opts; run=G.frame.run; cleared=false;
-    props=(def.props||[]).map(p=>({...p,prop:true,im:p.art?null:img(p.img)}));
+    props=(def.props||[]).map(p=>({...p,prop:true,im:p.art?null:(G.dun.propImage?.(p.img)||img(p.img))}));
     // 지도 가장자리의 어둠에 걸친 소품은 바닥과 같은 만큼 어둡게: 그림 바닥(dB)과 꼭대기(dT)의 어둡기(dim과 겹친다, 0.05 단위)
     for(const p of props){ const D=p.dim||0, q=v=>Math.round(v*20)/20; p.dB=q(1-(1-D)*(1-edgeA(def,p.x,p.y))); p.dT=q(1-(1-D)*(1-edgeA(def,p.x,p.y-p.h))); }
     shade=null; floorSrc=null; solVer=-1; solList=null; puddles=null;
     // 바닥: 이 챕터의 엔진 바닥(hub.js가 f_z<구역>.webp를 조명까지 넣어 그린다)과 같으면 그대로 두고, 다르면 지도 안에 깐다
-    floorIm=def.floor&&def.floor!=='assets/menu/f_z'+G.hub.ZONES[opts.ch].no+'.webp'?img(def.floor):null; floorPat=null; fades=null;
+    floorIm=def.floor&&(def.id==='village'||def.floor!=='assets/menu/f_z'+G.hub.ZONES[opts.ch].no+'.webp')?img(def.floor):null; floorPat=null; fades=null;
     for(const f of def.foes||[]) for(let i=0;i<(f.n||1);i++){ const p=clamp(def,f.x+rand(-140,140),f.y+rand(-90,90)); X.spawn(f.type,p.x,p.y); }
     boss=def.boss?X.spawn(def.boss.type,def.boss.x,def.boss.y):null; if(boss) V.boss=boss;
     PF.spots.set(def.spots||[],opts.onSpot);
@@ -264,7 +264,11 @@ if(typeof window!=='undefined'&&window.RPG){
   function floor(){ const d=R.cur, c=d.accent||'#7FF3FF', {hw,hh}=X.view(), F=FADE;
     const X0=cam.x-hw-400, X1=cam.x+hw+400, Y0=cam.y-hh-400, Y1=cam.y+hh+400;
     if(!(d.floorArt&&artFloor(d,X0,Y0,X1,Y1))&&floorIm&&floorIm.naturalWidth){ if(!floorPat){ floorPat=ctx.createPattern(floorIm,'repeat'); floorPat.setTransform(new DOMMatrix().scale(1,FSY)); } ctx.fillStyle=floorPat; ctx.fillRect(0,0,d.w,d.h); }
-    if(X0<0||X1>d.w||Y0<0||Y1>d.h){
+    const surveyed=(d.id==='village'||d.id==='town')&&PF.atlasTerrain;
+    if(surveyed) surveyed.room(ctx,d,X0,Y0,X1,Y1);
+    if(d.id==='village') PF.regionScenery.village(ctx,d,X0,Y0,X1,Y1);
+    if(d.returnGate)surveyed?.tunnel(ctx,'v'+d.zone,d.returnGate);
+    if(!surveyed&&(X0<0||X1>d.w||Y0<0||Y1>d.h)){
       if(!fades) fades=mkFades(d.w,d.h);
       for(const [a,b,e,f,g] of fades) if(e>X0&&a<X1&&f>Y0&&b<Y1){ ctx.fillStyle=g; ctx.fillRect(a,b,e-a,f-b); }
       ctx.fillStyle=DARK;
@@ -272,7 +276,7 @@ if(typeof window!=='undefined'&&window.RPG){
       if(X1>d.w+F) ctx.fillRect(d.w+F,Y0,X1-d.w-F,Y1-Y0);
       if(Y0<-F) ctx.fillRect(-F,Y0,d.w+2*F,-F-Y0);
       if(Y1>d.h+F) ctx.fillRect(-F,d.h+F,d.w+2*F,Y1-d.h-F); }
-    if(d.fence!==false){ fx.strokeStyle=hexA(c,.3); fx.lineWidth=4; fx.setLineDash([60,40]); fx.lineDashOffset=RT*40; fx.strokeRect(0,0,d.w,d.h); fx.setLineDash([]); } }
+    if(!surveyed&&d.fence!==false){ fx.strokeStyle=hexA(c,.3); fx.lineWidth=4; fx.setLineDash([60,40]); fx.lineDashOffset=RT*40; fx.strokeRect(0,0,d.w,d.h); fx.setLineDash([]); } }
   // 소품: 그림자, 영웅이 키 큰 소품 뒤에 가면 비쳐 보임(dun.js와 같다).
   // 그림 소품은 화면 크기로 줄인 캔버스를 그린다(flip 좌우 뒤집기, dim 어둡게). 그림이 아직 없으면 그리지 않는다. 가로등은 등불에 은은한 빛
   function drawProp(p){ const w=pw(p), h=p.h; let im=p.im;

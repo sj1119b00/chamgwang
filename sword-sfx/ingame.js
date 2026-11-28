@@ -2,7 +2,7 @@
  * forbids redistributing the files) is present, every class plays the library mix instead of the synthesized sounds:
  *   swordsman  -> the hand-timed cue sheets, candidate D (steel 45 / weight 35 / energy 20), synced to the game clock
  *   the others -> ClassFX, which re-voices the game's own sound calls per class
- * Without the library (e.g. the public build) it does nothing and the original sounds stay. Game logic is not touched. */
+ * The public build reads its processed per-class packs. A build without either uses the synthesized game sounds. */
 'use strict';
 (()=>{
 const BASE='sword-sfx/', SWC='D';
@@ -13,10 +13,11 @@ const load=src=>new Promise((ok,no)=>{ const s=document.createElement('script');
 const until=f=>new Promise(r=>{ const h=setInterval(()=>{ if(f()){ clearInterval(h); r(); } },100); });
 (async()=>{
   // not inside the comparison lab's frame (it mixes candidates itself) and not in automated capture runs
-  if(navigator.webdriver||/[?&]sfx=0/.test(location.search)) return; try{ if(window!==parent&&parent.location.pathname.includes('/sword-sfx/')) return; }catch(_){}
+  const mode=document.documentElement.dataset.gameAudio||'auto';
+  if(mode==='synth'||navigator.webdriver||/[?&]sfx=0/.test(location.search)) return; try{ if(window!==parent&&parent.location.pathname.includes('/sword-sfx/')) return; }catch(_){}
   // local: the library itself; public build: per-class sound packs (no loose files), else nothing and the original sounds stay
   let lib=false, pack=null;
-  try{ lib=(await fetch(BASE+'lib/clips/A_click.wav',{method:'HEAD'})).ok; }catch(_){}
+  if(mode==='auto') try{ lib=(await fetch(BASE+'lib/clips/A_click.wav',{method:'HEAD'})).ok; }catch(_){}
   // a busy server can refuse one request: try the pack index a few times before giving up on sound
   for(let i=0;!lib&&!pack&&i<4;i++){ try{ const r=await fetch(BASE+'pack/index.json',{cache:'no-store'}); if(r.ok) pack=await r.json(); else if(r.status===404) break; }catch(_){} if(!pack) await new Promise(r=>setTimeout(r,800*(i+1))); }
   if(!lib&&!pack) return;

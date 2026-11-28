@@ -55,7 +55,51 @@ function project(s){
   const sh=s.shared;
   return {SV,H:{...sh.extra,v:1,gold:sh.credits,stash:sh.stash,gear,stock:sh.stock,uid:sh.uid,fresh:sh.fresh,chroma:sh.chroma}};
 }
-const S={KEY,fresh,migrate,compose,project};
+// Older chapters visited sectors 7,1,2,3,4,5,6. Keep the unlocked chapter
+// count and equipment. Local errands and records follow their actual sector.
+// The old eighth encounter was a repeat fight, so its reward remains in the
+// inventory while the new guardian and signal encounter opens for play.
+function updateCampaign(s){
+  const t=s.story;
+  if(t.campaignVersion>=1) return s;
+  const mapped=[0,6,5,4,3,2,1,7];
+  const regionKey=k=>k.replace(/^([zv])([0-7])(?=$|[_.])/,(_,p,i)=>p+mapped[i]);
+  function rekey(obj,fn){
+    if(!obj) return obj;
+    return Object.fromEntries(Object.entries(obj).map(([k,v])=>[fn(k),v]));
+  }
+  for(const key of ['quest','visited','continent','side','nodeMilestones','pendingEndings','found']){
+    if(t[key]) t[key]=rekey(t[key],regionKey);
+  }
+  if(t.stats) t.stats=rekey(t.stats,k=>/^[0-7]$/.test(k)?mapped[k]:k);
+  if(t.mainDialogue){
+    t.mainDialogue=rekey(t.mainDialogue,regionKey);
+    for(const progress of Object.values(t.mainDialogue)){
+      if(progress?.id){progress.id=regionKey(progress.id); progress.read=0;}
+    }
+  }
+  if(t.seen) t.seen=rekey(t.seen,k=>k.replace(/^ep([1-7])\./,(_,ep)=>'ep'+(mapped[ep-1]+1)+'.'));
+  if(s.best) s.best=rekey(s.best,k=>k.replace(/([0-6])$/,(_,i)=>mapped[i]));
+  if(s.best2) s.best2=rekey(s.best2,k=>k.replace(/:([0-7])$/,(_,i)=>':'+mapped[i]));
+  t.cleared=Math.min(7,t.cleared||0);
+  // A formerly conquered late sector must still offer its new story on arrival.
+  // In particular a pending return there must not redirect the town objective.
+  for(let i=t.cleared;i<7;i++){
+    if(mapped[i]===i) continue;
+    for(const key of ['quest','nodeMilestones','continent','pendingEndings','mainDialogue']){
+      if(t[key]) delete t[key]['z'+i];
+    }
+  }
+  for(const key of ['quest','nodeMilestones','continent','pendingEndings','mainDialogue']){
+    if(t[key]) delete t[key].z7;
+  }
+  for(const id of Object.keys(t.seen||{})) if(id.startsWith('ep8.')) delete t.seen[id];
+  // Credits for chapters already cleared also unlock their newly written memories.
+  for(let i=0;i<t.cleared;i++) (t.seen||(t.seen={}))['ep'+(i+1)+'.ending']=1;
+  t.campaignVersion=1;
+  return s;
+}
+const S={KEY,fresh,migrate,compose,project,updateCampaign};
 
 // ---- 브라우저: boot.js가 RPG, RPG.sv, RPG.hub, RPG.dun이 생긴 뒤에 붙인다. 전역 pl, setClass(index.html)를 쓴다
 if(typeof window!=='undefined'&&window.RPG){
@@ -75,9 +119,13 @@ if(typeof window!=='undefined'&&window.RPG){
       if(raw!=null) try{ localStorage.setItem(KEY+'.bad',raw); }catch(e){}
       s=migrate(read('chamgwang_rpg_v1'),read('chamgwang_hub_v1'));
     }
+    if(raw!=null&&ok(s)&&!s.story.campaignVersion){
+      try{ if(localStorage.getItem(KEY+'.preCampaign')===null) localStorage.setItem(KEY+'.preCampaign',raw); }catch(e){}
+    }
+    updateCampaign(s);
     const p=project(s), sv=A.SV, h=G.hub.H;
     // hub.js는 제작 목록이 비어 있으면 켤 때 새로 채운다. 저장에 목록이 없으면 hub.js가 방금 채운 것을 남긴다
-    if(!p.H.stock.length&&h.stock&&h.stock.length){ p.H.stock=h.stock; p.H.uid=Math.max(p.H.uid,h.uid); }
+    if(!s.story.fabricator&&!p.H.stock.length&&h.stock&&h.stock.length){ p.H.stock=h.stock; p.H.uid=Math.max(p.H.uid,h.uid); }
     // 다른 파일들이 SV와 H 객체의 참조를 들고 있으므로 바꿔치기하지 않고 키 단위로 덮어쓴다
     put(sv,p.SV,SV_KEYS);
     put(h,p.H,H_KEYS);

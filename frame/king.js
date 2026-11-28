@@ -23,7 +23,13 @@ function pick(def,ph,last,rnd){ const all=def.patterns.filter(p=>p.from<=ph), L=
 const K={hit,windup,phase,pick};
 
 if(typeof window!=='undefined'&&window.RPG&&window.PF){
-  const G=RPG, A=G.api, X=G.sv, V=X.V, FSY=X.FSY, PF=window.PF, RED='#ff4a5a', HOT='#ffb347';
+  const G=RPG, A=G.api, X=G.sv, V=X.V, FSY=X.FSY, PF=window.PF, RED='#ff4a5a';
+  const royal=PF.royalEffects, castLabel=document.createElement('span');
+  castLabel.className='pf-royal-cast'; castLabel.hidden=true;
+  const phaseNotice=document.createElement('span');
+  phaseNotice.className='pf-royal-phase';phaseNotice.setAttribute('role','status');
+  document.querySelector('#shud .bb').append(castLabel,phaseNotice);
+  let castBucket=-1, strikeAge=0;
   // 돌진할 때 왕이 띠를 달리는 시간, 왕이 나온 뒤 첫 패턴까지, 3단계에서 이어지는 두 패턴 사이, 단계가 바뀔 때 멈춤(모두 초).
   // 돌진 끝과 부하 자리가 왕의 방 벽에서 떨어지는 거리, 돌진할 만한 가장 짧은 길(바닥 평면), 돌진 끝이 소품 발판에서 떨어지는 거리(월드, 왕 몸의 반쯤),
   // 부하를 부를 수 있는 살아 있는 적 수, 기록 길이
@@ -45,13 +51,25 @@ if(typeof window!=='undefined'&&window.RPG&&window.PF){
   // (이름은 cue: index.html의 전역 fx(효과 캔버스)를 가리지 않게)
   const cue=(name,...a)=>{ if(typeof X[name]==='function') X[name](...a); };
   const alive=()=>V.en.reduce((n,e)=>n+(!e.dead&&!e.d.node?1:0),0);
-  const stop=()=>{ tel=null; dash=null; held=false; };
-  function reset(k){ king=k; stop(); last=null; combo=false; wait=FIRST; if(!k) return;
-    const r=G.frame.run; zone=r&&r.kind==='field'?r.zone:G.dun.M.ch;
-    def=PF.KINGS.find(d=>d.zone===zone)||PF.KINGS[PF.KINGS.length-1]; ph=phase(k.hp/k.max); }
+  const stop=()=>{ tel=null; dash=null; held=false; strikeAge=0;castLabel.hidden=true;castBucket=-1;
+    if(king)king.royalMotion=null;royal.clear(); };
+  function reset(k){ stop(); phaseNotice.replaceChildren(); king=k; last=null; combo=false; wait=FIRST; if(!k) return;
+    const r=G.frame.run; zone=r?.zone??G.dun.M.ch;
+    const patternZone=k.d.patternSector==null?zone:7-k.d.patternSector;
+    const regional=PF.KINGS.find(d=>d.zone===patternZone)||PF.KINGS[PF.KINGS.length-1];
+    def=k.finalStage==='signal'?regional.signal:regional;
+    if(k.d.patterns) def={...def,patterns:k.d.patterns};
+    ph=phase(k.hp/k.max);k.royalEntranceAt=RT;royal.preload(def.art); }
   // 왕의 방(바닥 평면의 원) 안에서 (x,y)부터 ang 쪽으로 벽에서 m 앞까지의 거리, 그리고 방 안으로 당긴 점
-  function reach(x,y,ang,m){ const a=G.dun.M.arena, R=a.r-m, qx=x-a.x, qy=y-a.y/FSY, b=qx*Math.cos(ang)+qy*Math.sin(ang), d=b*b-(qx*qx+qy*qy-R*R); return d>0?Math.max(0,Math.sqrt(d)-b):0; }
-  function inRoom(x,y){ const a=G.dun.M.arena, cx=a.x, cy=a.y/FSY, R=a.r-WALL, dx=x-cx, dy=y-cy, d=Math.hypot(dx,dy); return d<=R?[x,y]:[cx+dx/d*R,cy+dy/d*R]; }
+  function reach(x,y,ang,m){
+    const a=G.dun.M.arena;
+    return PF.regionMaps.rayReach(a,x-a.x,y-a.y/FSY,ang,m);
+  }
+  function inRoom(x,y){
+    const a=G.dun.M.arena,cx=a.x,cy=a.y/FSY,dx=x-cx,dy=y-cy,d=Math.hypot(dx,dy);
+    const r=PF.regionMaps.radius(a,Math.atan2(dy,dx))-WALL;
+    return d<=r?[x,y]:[cx+dx/d*r,cy+dy/d*r];
+  }
   // 돌진할 길: 벽 앞(DASH_M)이나 소품 발판(왕좌 등) 앞에서 멈춘다. 발판 안에서 멈추면 dun.js pushOut이 왕을 밀어내다 방 벽 밖으로 넘긴다
   function runLen(x,y,ang){ const max=reach(x,y,ang,DASH_M), c=Math.cos(ang), s=Math.sin(ang), m=DASH_PAD, L=G.dun.M.props.filter(p=>p.solid&&Math.abs(p.x-x)<max+p.rx+m);
     for(let d=40;d<=max;d+=40){ const wx=x+c*d, wy=(y+s*d)*FSY; if(L.some(p=>Math.hypot((wx-p.x)/(p.rx+m),(wy-p.y)/(p.ry+m*FSY))<1)) return d-40; }
@@ -68,23 +86,18 @@ if(typeof window!=='undefined'&&window.RPG&&window.PF){
     else if(id==='fan') for(let i=0;i<p.n;i++){ const a=ang+(i-(p.n-1)/2)*p.step; sh.push({type:'line',x:kx,y:ky,ang:a,len:Math.min(p.len,reach(kx,ky,a,0)),w:p.w}); }
     else if(id==='summon'){ const a0=Math.random()*Math.PI*2; for(let i=0;i<p.n;i++){ const a=a0+i/p.n*Math.PI*2, [x,y]=inRoom(hx+Math.cos(a)*p.d,hy+Math.sin(a)*p.d); sh.push({type:'circle',x,y,r:p.r}); } }
     last=id; held=false; tel={id,p,shapes:sh,t:0,win:windup(zone),seen:false,x:k.x,y:k.y};
+    royal.prepare(tel,def.art);k.royalMotion={phase:'windup',pattern:id,progress:0};
+    castLabel.textContent=p.name;castLabel.style.setProperty('--royal-color',def.art.color);
+    castLabel.style.setProperty('--royal-progress','0');castLabel.hidden=false;castBucket=-1;
     k.castT=tel.win; cue('sfx','click'); }
-  // 발동 이펙트(기존 폭발·연기). 좌표는 바닥 평면 → 월드(y×FSY)
-  function boom(t){ const s=t.shapes[0], id=t.id;
-    if(id==='slam'){ explode(s.x,s.y*FSY,.55,HOT,RED); cue('burst',s.x,s.y*FSY,10,{s0:200,s1:600,vz:1300,size:16}); }
-    else if(id==='sweep'){ for(let i=0;i<=6;i++){ const a=s.ang-s.half+i/6*s.half*2, d=s.r*.7; smoke(s.x+Math.cos(a)*d,(s.y+Math.sin(a)*d)*FSY,rnd(40,65),{a:.45,life:.9,grow:80}); }
-      explode(s.x+Math.cos(s.ang)*s.r*.45,(s.y+Math.sin(s.ang)*s.r*.45)*FSY,.4,HOT,RED); }
-    else if(id==='ring'){ const d=(s.r0+s.r1)/2; for(let i=0;i<14;i++){ const a=i/14*Math.PI*2; smoke(s.x+Math.cos(a)*d,(s.y+Math.sin(a)*d)*FSY,rnd(45,70),{a:.45,life:.9,grow:80}); }
-      cue('fring',s.x,s.y*FSY,s.r1/.35,HOT,.35,8); cue('sfx','boom',.9,.7); }
-    else if(id==='fan'||id==='charge'){ for(const l of t.shapes) for(let i=1;i<=4;i++){ const d=l.len*i/4; smoke(l.x+Math.cos(l.ang)*d,(l.y+Math.sin(l.ang)*d)*FSY,rnd(35,55),{a:.4,life:.8,grow:60}); }
-      cue('sfx',id==='fan'?'boom':'whoosh',.8,.6); }
-    else if(id==='summon'){ for(const c of t.shapes) smoke(c.x,c.y*FSY,rnd(50,70),{a:.5,life:1,grow:90}); cue('sfx','rise',.6,.4); } }
   // 발동: 그 순간 영웅이 모양 안이면 최대 체력×dmg. 왕에게서 오는 피해는 이 길 하나뿐이다
-  function fire(k){ const t=tel, p=t.p, [hx,hy]=hero(), harm=p.id!=='summon', inside=harm&&t.shapes.some(s=>hit(s,hx,hy));
+  function fire(k){ const t=tel, p=t.p, [hx,hy]=hero(), harm=p.id!=='summon',a=G.dun.M.arena, inside=harm&&PF.regionMaps.insideArena(a,hx-a.x,hy-a.y/FSY)&&t.shapes.some(s=>hit(s,hx,hy));
     tel=null;
     K.log.push({t:RT,id:p.id,warned:t.seen&&t.t>=t.win,hit:inside}); if(K.log.length>LOG_MAX) K.log.shift();
-    boom(t);
-    if(p.id==='summon') for(const s of t.shapes) for(let i=0;i<p.k;i++) if(alive()<CAP) X.spawn('shard',s.x+rnd(-.5,.5)*s.r,(s.y+rnd(-.5,.5)*s.r)*FSY);
+    royal.release(t);k.royalMotion={phase:'strike',pattern:p.id,progress:0};strikeAge=0;
+    castLabel.style.setProperty('--royal-progress','1');
+    cue('sfx',p.id==='summon'?'rise':p.id==='sweep'||p.id==='charge'?'whoosh':'boom',.86,.6);
+    if(p.id==='summon') for(const s of t.shapes) for(let i=0;i<p.k;i++) if(alive()<CAP) X.spawn(p.foe||'shard',s.x+rnd(-.5,.5)*s.r,(s.y+rnd(-.5,.5)*s.r)*FSY);
     if(p.id==='charge'){ const s=t.shapes[0]; dash={t:0,x0:k.x,y0:k.y,x1:s.x+Math.cos(s.ang)*s.len,y1:(s.y+Math.sin(s.ang)*s.len)*FSY}; }
     if(ph===3&&!combo){ combo=true; wait=CHAIN; } else { combo=false; wait=rnd(def.gap[0],def.gap[1]); }
     // 피해는 마지막에: 이것으로 영웅이 쓰러지면 field.js가 왕을 지우고(down 사건) 여기 상태도 비운다.
@@ -101,14 +114,24 @@ if(typeof window!=='undefined'&&window.RPG&&window.PF){
     if(busy()){ stop(); wait=Math.max(wait,1); return; }
     // 창이나 장면이 열려 있으면 새로 시작하지 않고 그대로 둔다(전투 장소에서는 둘 다 일시정지라 여기까지 오지 않는다)
     if(PF.win&&PF.win.cur||PF.story&&PF.story.cur){ if(tel) held=true; return; }
+    royal.advance(dt);
+    if(k.royalMotion?.phase==='strike'){
+      strikeAge+=dt;k.royalMotion.progress=Math.min(1,strikeAge/.48);
+      if(strikeAge>=.48){k.royalMotion=null;castLabel.hidden=true;}
+    }
     const p=phase(k.hp/k.max);
-    if(p>ph){ ph=p; stop(); combo=false; wait=STOP; k.stun=Math.max(k.stun,STOP); A.toast('왕이 거세진다'); return; }
+    if(p>ph){ ph=p; stop(); combo=false; wait=STOP; k.stun=Math.max(k.stun,STOP);k.royalPhaseAt=RT;k.royalPhaseNumber=p;
+      phaseNotice.replaceChildren();A.toast('왕이 거세진다',phaseNotice);return; }
     if(dash){ const q=Math.min(1,(dash.t+=dt)/DASH_T); k.x=dash.x0+(dash.x1-dash.x0)*q; k.y=dash.y0+(dash.y1-dash.y0)*q; k.kx=k.ky=0;
       if(Math.random()<.6) smoke(k.x+rnd(-60,60),k.y,rnd(35,55),{a:.4,life:.7,grow:60});
-      if(q>=1){ explode(k.x,k.y,.45,HOT,RED); dash=null; }
+      if(q>=1){ if(window.GFX?.on) GFX.light(k.x,k.y,390,def.art.light,.75,.21,{z:75});dash=null; }
       return; }
     if(tel){ if(held){ held=false; tel.t=Math.min(tel.t,tel.win-RESUME); }
-      tel.t+=dt; k.x=tel.x; k.y=tel.y; k.kx=k.ky=0; if(tel.t>=tel.win) fire(k); return; }
+      tel.t+=dt; k.x=tel.x; k.y=tel.y; k.kx=k.ky=0;
+      const progress=Math.min(1,tel.t/tel.win),bucket=Math.floor(progress*24);
+      k.royalMotion.progress=progress;
+      if(bucket!==castBucket){castLabel.style.setProperty('--royal-progress',String(progress));castBucket=bucket;}
+      if(tel.t>=tel.win) fire(k); return; }
     if((wait-=dt)<=0) begin(k); }
   const u0=update; update=function(rdt){ const dt=hitstop>0?0:rdt*timeScale; u0(rdt);
     if(G.mode==='surv'&&!G.paused) step(dt); else if(G.mode!=='surv'&&king) reset(null); };
@@ -124,18 +147,29 @@ if(typeof window!=='undefined'&&window.RPG&&window.PF){
     else if(s.type==='ring'){ const r=s.r0+(s.r1-s.r0)*k; g.moveTo(s.x+r,s.y); g.arc(s.x,s.y,r,0,Math.PI*2); g.moveTo(s.x+s.r0,s.y); g.arc(s.x,s.y,s.r0,Math.PI*2,0,true); }
     else if(s.type==='line'){ const c=Math.cos(s.ang), n=Math.sin(s.ang), L=s.len*k, h=s.w/2; g.moveTo(s.x-n*h,s.y+c*h); g.lineTo(s.x+c*L-n*h,s.y+n*L+c*h); g.lineTo(s.x+c*L+n*h,s.y+n*L-c*h); g.lineTo(s.x+n*h,s.y-c*h); g.closePath(); }
     else if(s.type==='cone'){ g.moveTo(s.x,s.y); g.arc(s.x,s.y,s.r*k,s.ang-s.half,s.ang+s.half); g.closePath(); } }
-  function draw(){ const t=tel, k=Math.min(1,t.t/t.win), px=(W/innerWidth)/(S*cam.z), hot=k>.8&&Math.sin(t.t*42)>0;
+  function draw(){ const t=tel, k=Math.min(1,t.t/t.win), px=(W/innerWidth)/(S*cam.z), hot=k>.84;
     const shape=(g,q)=>{ g.save(); g.scale(1,FSY); g.beginPath(); for(const s of t.shapes) trace(g,s,q); g.restore(); };
     t.seen=true;
-    ctx.save(); ctx.lineJoin='round';
+    const a=G.dun.M.arena;
+    const clip=g=>{ if(a.design){PF.regionScenery.boundary(g,a,FSY);g.clip();} };
+    ctx.save();clip(ctx); ctx.lineJoin='round';
     shape(ctx,1); ctx.fillStyle=hexA(RED,.16); ctx.fill(); ctx.strokeStyle='rgba(30,0,6,.75)'; ctx.lineWidth=7*px; ctx.stroke();
     shape(ctx,k); ctx.fillStyle=hexA(RED,.24+.22*k); ctx.fill();
     shape(ctx,1); ctx.strokeStyle=hot?'#ffd6da':RED; ctx.lineWidth=(3+1.5*k)*px; ctx.stroke();
     ctx.restore();
-    fx.save(); shape(fx,1); fx.lineJoin='round'; fx.strokeStyle=hexA(RED,.3+.35*k); fx.lineWidth=8*px; fx.stroke(); fx.restore(); }
-  const de0=drawEnemy; drawEnemy=function(){ if(tel&&G.mode==='surv'&&!lock) draw(); de0(); };
+    fx.save();clip(fx); shape(fx,1); fx.lineJoin='round'; fx.strokeStyle=hexA(RED,.3+.35*k); fx.lineWidth=8*px; fx.stroke(); fx.restore(); }
+  const de0=drawEnemy; drawEnemy=function(){
+    const visible=G.mode==='surv'&&!lock;
+    if(visible&&tel)draw();
+    de0();
+    if(visible){
+      for(const effect of royal.effects)royal.drawRelease(ctx,effect);
+      if(tel)royal.prepareCast(ctx,tel);
+    }
+  };
 
   Object.defineProperty(K,'cur',{get:()=>tel});
+  Object.defineProperty(K,'effects',{get:()=>royal.effects});
   Object.defineProperty(K,'def',{get:()=>king?def:null});
   PF.king=K;
 }

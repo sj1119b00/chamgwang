@@ -191,6 +191,14 @@
     });return true;
   });
   // One heavy bronze head bores a straight glowing furrow, a wind helix wound round its wake.
+  X.effects.register('ar_drill_impact',({x,y,z})=>{
+    K.flare(x,y,z,{pal:brass,s:230,dur:.14,gain:2.2});
+    K.vring(x,y,{r:330,r0:60,dur:.5,pal:brass,heat:.6,tube:.15});
+    K.shock(x,y,{r:280,pal:brass,dur:.4});
+    K.cool(x,y,{kind:'crack2',r:290,pal:brass,life:1.6,start:.15,light:0});
+    GFX.light(x,y,760,brass.l,.8,.32,{z:140});
+    K.sparks(x,y,z,{pal:brass,n:low()?4:10,sp:[300,1100],up:520});
+  });
   skill('ar_drill','나선 관통시',1,5.8,1910,'회전하는 청동 화살촉이 일직선으로 적을 관통한다.','관통 폭이 넓어지고 종점에 압력파를 낸다.',(d,up)=>{
     const e=X.nearest(1340);if(!e)return false;nock(e,.23);const a=X.angTo(e);
     later(.23,()=>{release(brass);X.sfx('whoosh',.9,.5);const p=fromHero(),L=1450,ca=Math.cos(a),sa=Math.sin(a),end=point(p.x+ca*L,p.y+sa*L,p.z*.8),path=arcPath(p,end);
@@ -208,9 +216,7 @@
       X.inLine(p.x,p.y,end.x,end.y,wide,t=>later(.31*sat(Math.hypot(t.x-p.x,t.y-p.y)/L),()=>{if(!t.dead){struck(t,brass,shown++,1.3);X.dmg(t,d,{kb:0,push:230,sx:p.x,sy:p.y});}}));
       later(.31,()=>{
         if(!up){impactAt(end,brass,190);return;}
-        K.flare(end.x,end.y,end.z,{pal:brass,s:230,dur:.14,gain:2.2});K.vring(end.x,end.y,{r:330,r0:60,dur:.5,pal:brass,heat:.6,tube:.15});
-        K.shock(end.x,end.y,{r:280,pal:brass,dur:.4});K.cool(end.x,end.y,{kind:'crack2',r:290,pal:brass,life:1.6,start:.15,light:0});
-        GFX.light(end.x,end.y,760,brass.l,.8,.32,{z:140});K.sparks(end.x,end.y,end.z,{pal:brass,n:low()?4:10,sp:[300,1100],up:520});
+        X.effects.play('ar_drill_impact',end);
         trauma=Math.min(1,trauma+.35);X.sfx('boom',1.2,.5);
         X.inCircle(end.x,end.y,280,t=>X.dmg(t,d*.55,{kb:0,push:260,sx:end.x,sy:end.y}));
       });

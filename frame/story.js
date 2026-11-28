@@ -4,15 +4,21 @@
 // 순수 부분(sceneId, barksFor, replayList)은 node 시험(frame/test/story.test.js)에서도 불러 쓴다. 브라우저에서는 boot.js가 data/episodes 다음에 붙인다
 (function(){
 'use strict';
-const SLOTS=['intro','confront','ending'], SLOT_KR={intro:'도입',confront:'대면',ending:'마무리'};
+const SLOTS=['intro','confront','interlude','ending'], SLOT_KR={intro:'도입',confront:'대면',interlude:'마지막 문',ending:'마무리'};
 const eps=()=>typeof window!=='undefined'&&window.PF&&window.PF.EP||require('./data/episodes.js').EP;
 const sceneId=(ep,slot)=>'ep'+ep+'.'+slot;
 const barksFor=(list,ev)=>(list||[]).filter(b=>b.on===ev);
-// 본 장면만, 화 순서·장면 순서(도입 → 대면 → 마무리)대로
-// head가 있는 화 자료(숨은 곳의 임시 장면, frame/data/secrets.js)는 다시 보기 이름과 장면 꼬리표를 "N화 · 제목" 대신 head로 쓴다
-function replayList(seen){ const out=[];
-  for(const e of eps()) for(const k of SLOTS){ const id=sceneId(e.ep,k); if(seen&&seen[id]) out.push({id,title:e.head||`${e.ep}화 ${e.title} · ${SLOT_KR[k]}`}); }
-  return out; }
+// 빠른 진행으로 지나친 대면 장면도 그 지역을 마치면 기록관에서 회상할 수 있다.
+function replayList(seen,cleared=0){
+  const out=[];
+  for(const e of eps()) for(const slot of SLOTS){
+    const id=sceneId(e.ep,slot);
+    if(e.scenes[slot]?.length&&(seen?.[id]||e.ep<=cleared)){
+      out.push({id,title:e.head||`${e.ep}화 ${e.title} · ${SLOT_KR[slot]}`});
+    }
+  }
+  return out;
+}
 const S={SLOTS,sceneId,barksFor,replayList};
 
 // ---- 브라우저: 전역 lock, pl, cam(index.html)을 쓴다
@@ -23,14 +29,12 @@ if(typeof window!=='undefined'&&window.RPG&&window.PF){
   const story=()=>PF.save.data.story;
   // 궁극기 중: surv.js ultStart가 lock을 세우고 ultStop이 내린다. 직업에 따라 V.ultTick도 그동안 있다
   S.busy=()=>lock||!!V.ultTick;
-  function find(id){ const m=/^ep(\d+)\.(intro|confront|ending)$/.exec(id), e=m&&PF.EP.find(x=>x.ep===+m[1]);
-    if(!e||!e.scenes[m[2]]?.length) return null;
-    const z=G.hub.ZONES[e.ep-1], region=PF.QUESTS?.content(z?.no), slot=m[2];
-    if(!region) return {e,slot,cuts:e.scenes[slot]};
-    const img='assets/menu/v_z'+z.no+'.webp';
-    const cuts=region[slot].map(line=>({...line,img,who:line.who||(slot==='confront'?'왕':'')}));
-    return {e:{...e,title:region.title},slot,cuts}; }
-
+  function find(id){
+    const match=/^ep(\d+)\.(intro|confront|interlude|ending)$/.exec(id);
+    const e=match&&PF.EP.find(entry=>entry.ep===Number(match[1]));
+    const slot=match?.[2], cuts=e?.scenes[slot];
+    return cuts?.length?{e,slot,cuts}:null;
+  }
   // ---- 장면 층: 그림(또는 영상)이 화면 가득 천천히 다가오고, 아래 어둠 위에 말하는 사람과 자막. 오른쪽 위 건너뛰기(frame.css)
   const el=document.createElement('div'); el.id='pfscene';
   el.innerHTML='<div class="pf-sc-img"></div><video class="pf-sc-vid" muted playsinline></video><div class="pf-sc-shade"></div><div class="pf-sc-tag"></div>'+
@@ -45,6 +49,7 @@ if(typeof window!=='undefined'&&window.RPG&&window.PF){
     else { vid.pause(); vid.removeAttribute('src'); vid.style.display='none'; img.style.display='block'; img.style.backgroundImage=c.img?`url("${c.img}")`:'none';
       // 컷마다 다가가는 중심을 좌우로 바꾼다
       img.style.transformOrigin=sc.i%2?'62% 44%':'40% 56%'; }
+    el.style.setProperty('--pf-cut',c.img?`url("${new URL(c.img,document.baseURI).href}")`:'none');
     who.textContent=c.who||''; txt.textContent=c.text;
     for(const n of [img,sub]){ n.classList.remove('go'); void n.offsetWidth; n.classList.add('go'); } }
   // 도중에 실패하면(그림·DOM 단계의 오류) 반쯤 열린 채 게임이 멈춰 있지 않게, 본 것으로 적지 않고 닫는다(약속은 'skipped', 다음 장면은 이어진다)
@@ -179,8 +184,6 @@ if(typeof window!=='undefined'&&window.RPG&&window.PF){
 
   // ---- 사냥터 사건: 그 화의 대사(노드, 왕 체력 절반). 장면(도입·대면·마무리)은 메인 퀘스트의 단계(frame/quest.js)가 연다
   PF.field.onEvent((n,c)=>{
-    const region=PF.QUESTS?.content(G.hub.ZONES[c.zone]?.no);
-    if(region){ if(/^node[1-3]$/.test(n)||n==='kingHp50') for(const b of region[n]) S.bark({...b,who:b.who||'정찰 담당'}); return; }
     const e=PF.EP.find(x=>x.ep===c.zone+1);
     if(e) for(const b of barksFor(e.barks,n)) S.bark(b);
   });
@@ -189,7 +192,7 @@ if(typeof window!=='undefined'&&window.RPG&&window.PF){
   const mo=G.menuOverride;
   G.menuOverride=function(m){ const r=mo.apply(this,arguments);
     const box=PF.win.cur==='records'&&G.hub.scr==='guild'&&m.querySelector('[data-go=hero]');
-    if(box&&box.closest('.panel')){ const L=replayList(story().seen), d=document.createElement('div'); d.className='pf-replay';
+    if(box&&box.closest('.panel')){ const L=replayList(story().seen,story().cleared), d=document.createElement('div'); d.className='pf-replay';
       d.innerHTML='<div class="rule"></div><span class="hk">SCENES · 다시 보기</span>'+
         (L.length?L.map(x=>`<button class="btn" data-pfscene="${x.id}">${x.title}</button>`).join(''):'<div class="mut">아직 본 장면이 없습니다</div>');
       d.querySelectorAll('[data-pfscene]').forEach(b=>{ b.onclick=e=>{ e.stopPropagation(); S.play(b.dataset.pfscene); }; });

@@ -5,12 +5,16 @@
 // World: x/y is the floor plane (y = depth), z is height. The hero's floor position is pl.x / pl.gy (the engine draws him at pl.gy).
 'use strict';
 (()=>{
-const G=RPG, A=G.api, SV=()=>A.SV, SK=A.SK, VER=53;
+const G=RPG, A=G.api, SV=()=>A.SV, SK=A.SK, VER=55;
 const ZL=.42, ZP=.5, DUR=300, BOSS_T=240, CAP=340, SPD=430, BODY=170, FAR=1e5;
-const CLS_ORDER=['sword','mage','fist','shaman','pyro','assassin','axe','archer','gunner'];
-const NAMES={sword:'소드맨',mage:'메이지',fist:'파이터',shaman:'샤먼',pyro:'파이로',assassin:'암살자',axe:'액스',archer:'궁수',gunner:'거너'};
-const CRIM={sword:'#ffb3c0',mage:'#e6d4ff',fist:'#bff4ff',shaman:'#c8ffe8',pyro:'#ffd0a8',assassin:'#e1ddff',axe:'#ffc9a8',archer:'#daf6cb',gunner:'#c9fbff'};
-const CCOL={sword:'#ff3355',mage:'#b48cff',fist:'#55ddff',shaman:'#3dffb0',pyro:'#ff7a2a',assassin:'#a9afff',axe:'#ff5a14',archer:'#9ce4ad',gunner:'#77e5e4'};
+const profiles=GameCharacters.profiles, CLS_ORDER=Object.keys(profiles);
+const NAMES=Object.create(null), CCOL=Object.create(null), DASH_ID=Object.create(null);
+function indexProfile(id,profile){
+  NAMES[id]=profile.name;
+  CCOL[id]=profile.color;
+  if(profile.dash) DASH_ID[id]=profile.dash;
+}
+for(const id of CLS_ORDER) indexProfile(id,profiles[id]);
 // small fry are tougher since 2026-11-26 (every skill one-shot them, so the late skills had nothing to do): later skills hit harder in turn (tierK)
 const EN={
   shard:{img:'shard',hp:1260,spd:170,r:40,dmg:6,gem:1,sc:.56,h:300},
@@ -18,6 +22,13 @@ const EN={
   brute:{img:'brute',hp:7800,spd:105,r:75,dmg:14,gem:5,sc:.56,h:440,heavy:true},
   boss:{img:'brute',hp:260000,spd:135,r:150,dmg:24,gem:120,sc:1.15,h:440,heavy:true,boss:true},
 };
+const foes=window.GameFoes.create(EN);
+function encounterSector(){
+  if(!G.frame) return G.mode==='surv'&&!V.practice?G.hub?.ZONES[V.ch]?.no:null;
+  const run=G.frame?.run;
+  if(!run||!['field','hard','rematch','endless'].includes(run.kind)) return null;
+  return run.zone===7?0:G.hub?.ZONES[run.zone]?.no;
+}
 // chapters: the same crystal army recoloured (hue turns their violet), a floor tint, tougher numbers, a named boss
 const CHAP=[
   {name:'크리스탈 필드',en:'CRYSTAL FIELD',hue:62,bri:.86,sat:.6,hp:1,dmg:1,floor:[70,68,76],acc:'#b48cff',boss:'골렘 킹',rec:1},
@@ -31,7 +42,7 @@ const V={t:0,ch:0,en:[],pj:[],gems:[],items:[],nums:[],shards:[],mk:[],orbs:[],z
 G.surv=V;
 const CH=()=>CHAP[V.ch];
 const CLS={};
-const classReady=c=>!!CLS[c]&&((c!=='assassin'&&c!=='axe')||!!window.MK);
+const classReady=c=>!!CLS[c]&&(!profiles[c].needsMK||!!window.MK);
 const FSY=.58;   // vertical squash of anything lying on the floor (tiles, rings, magic circles) for this camera   // class -> {basic:{fn,cd}, skills:{id:{fn,passive}}, ults:{id:fn}, onHurt, glow}
 
 // ============================================================ small helpers
@@ -48,12 +59,20 @@ const ULTS=()=>(A.ORDER[pl.cls]||[]).filter(id=>SK[id]&&SK[id].type==='ult'&&(V.
 // the player picks: any unlocked ultimate, when the gauge is full
 function fireUlt(id){ if(G.mode!=='surv'||V.over||lock||G.paused) return false;
   if(G.frame?.ultimate?!G.frame.ultimate.ready(id):V.ug<100&&!V.practice) return false;
-  const C=CLS[pl.cls]; if(!C||!C.ults[id]||!ULTS().includes(id)) return false; SV().ult=id; C.ults[id](id); return true; }
+  const C=CLS[pl.cls]; if(!C||!C.ults[id]||!ULTS().includes(id)) return false;
+  const previous=SV().ult; SV().ult=id;
+  if(C.ults[id](id)===false){ SV().ult=previous; return false; }
+  // Cinematic casts spend through ultStart; a plain pack ability has no cut-in.
+  if(!V.practice){
+    const meter=G.frame?.ultimate;
+    if(meter){ if(meter.percent(id)>=100) meter.spend(id); }
+    else V.ug=0;
+  }
+  return true; }
 let aimAt=null;   // the manual dash: a point its skill aims at instead of the nearest enemy
 // ============================================================ manual dash (2026-11-26): the player's own button (Space / Shift on PC), aimed by the stick.
 // A class with a dash skill fires that skill (it no longer fires by itself); mage and shaman blink in their own colour
-const DASH_ID={sword:'sw_dash',fist:'fs_dash',pyro:'py_dash',assassin:'as_step',axe:'ax_trail',archer:'ar_step',gunner:'gn_slide'}, DASH_CD=2.5;
-const DASH_NAME={mage:'블링크',shaman:'영혼 걸음'};
+const DASH_CD=2.5;
 const dashSkill=()=>{ const id=DASH_ID[pl.cls], C=CLS[pl.cls]; return id&&SK[id]&&A.unlocked(id)&&C&&C.skills[id]&&C.skills[id].fn?id:null; };
 const dashCd=()=>{ const id=dashSkill(); return id?Math.min(3,A.cdOf(id)):DASH_CD; };
 function doDash(){ if(G.mode!=='surv'||V.over||lock||G.paused||V.dash||V.dcd>0||!CLS[pl.cls]) return false;
@@ -99,6 +118,8 @@ const fring=(x,y,v,c,life,w=5)=>ring(x,y,v,c,life,{w,sy:FSY});
 function dmg(e,d,o={}){
   if(e.dead) return; const crit=o.crit||Math.random()<.14; if(crit&&!o.crit) d*=1.9; d=Math.round(d*rand(.92,1.08));
   if(e.d.boss&&o.ult) d=Math.min(d,Math.round(e.max*.2));
+  // Scripted weak points accept only the damage available in the current opening.
+  if(e.acceptDamage){ d=e.acceptDamage(d); if(d<=0) return; }
   if(e===V.boss&&bossMeter?.enemy!==e) showBoss(e);
   e.hp-=d; e.flash=1; e.hurtT=.3; e.hitT=RT; combo++; comboT=2.4; comboPop=1; G.stats.dmg+=d;
   if(lock) V.ultSum=(V.ultSum||0)+d;
@@ -113,11 +134,17 @@ function dmg(e,d,o={}){
   if((o.push||o.up)&&window.K3&&K3.knock) K3.knock(e,{from:[sx,sy],dist:o.push||0,up:o.up||0});
   if(o.launch&&!e.d.heavy) e.vz=Math.max(e.vz,o.launch);
   if(!e.d.heavy||o.big) e.stun=Math.max(e.stun,o.stun??.16);
+  if(window.GameFieldEnemies){
+    const flight=e.vz>0?2*e.vz/3000:0;
+    e.contactWindup=e.contactRecovery=0;
+    e.hitMotion=flight>.19?'knockdown':e.stun>=.30||o.big?'stagger':'hurt';
+    e.hitMotionLength=e.hitMotion==='knockdown'?Math.max(.30,flight,e.stun):Math.max(.30,e.stun);
+  }
   if(o.slow) e.slowT=Math.max(e.slowT||0,o.slow);
-  if(e.hp<=0) die(e);
+  if(e.hp<=0&&!e.acceptDamage) die(e);
 }
 function die(e){
-  e.dead=true; e.hp=0; V.kills++; G.stats.kills++; if(V.dying.length<60){ const fr=G.foeDraw?{d:[1,1,0]}:eFrame(e); if(fr){ const q={fr,e:{x:e.x,y:e.y,z:e.z,f:e.f,d:e.d},t:0,life:.35}; if(lock&&V.blast){ const dx=e.x-V.blast.x, dy=e.y-V.blast.y, l=Math.hypot(dx,dy)||1, sp=rand(900,1700)*V.blast.p*(e.d.heavy?.4:1); q.vx=dx/l*sp; q.vy=dy/l*sp*.7; q.vz=rand(500,1100); q.spin=rand(-9,9); q.life=.6; } V.dying.push(q); } } const y=e.y-e.h*.4;
+  e.dead=true; e.hp=0; V.kills++; G.stats.kills++; if(V.dying.length<60){ const fr=G.foeDraw?{d:[1,1,0]}:eFrame(e); if(fr){ const q={fr,e:{x:e.x,y:e.y,z:e.z,f:e.f,d:e.d,type:e.type,h:e.h,sv:e.sv,finalStage:e.finalStage,practiceTarget:e.practiceTarget},t:0,life:.35}; if(lock&&V.blast){ const dx=e.x-V.blast.x, dy=e.y-V.blast.y, l=Math.hypot(dx,dy)||1, sp=rand(900,1700)*V.blast.p*(e.d.heavy?.4:1); q.vx=dx/l*sp; q.vy=dy/l*sp*.7; q.vz=rand(500,1100); q.spin=rand(-9,9); q.life=.6; } q.e.skinOwner=window.GameEnemySkin?.retainDeath(e,q.life); V.dying.push(q); } } const y=e.y-e.h*.4;
   for(let i=0;i<(e.d.heavy?8:2);i++){ const a=rand(0,TAU), s=rand(300,800); V.shards.push({x:e.x,y:e.y,z:e.h*.4,vx:Math.cos(a)*s,vy:Math.sin(a)*s*.6,vz:rand(300,900),s:rand(5,e.d.heavy?18:11),rot:rand(0,TAU),vr:rand(-9,9),t:0,life:rand(.7,1.2)}); }
   gl0(e.x,y,e.h*.5,lock?CCOL[pl.cls]:CH().acc,.25,{grow:200,a:gl?.35:.7}); sfx('shatter',e.d.heavy?.8:.35);
   if(lock&&V.fxK!==RT){ V.fxK=RT; vfx('impact',e.x,y,{sc:.5,rot:rand(0,TAU)}); fring(e.x,e.y,700,CCOL[pl.cls],.3,4); }
@@ -153,7 +180,7 @@ const tdV=(n,x,y,o)=>VFX[n]&&VFX[n].f[0].ok?vfx(n,x,y,o):null;
 function onScreen(m=0){ const {hw,hh}=view(); return V.en.filter(e=>!e.dead&&Math.abs(e.x-cam.x)<hw+m&&Math.abs(e.y-BODY*.5-cam.y)<hh+m); }
 // an ultimate is also the way out of a boss attack: the boss's floor markers, enemy shots and wound-up swings are wiped when it starts and
 // again when it ends (they used to wait, frozen, and land the moment it was over)
-function clearThreats(){ V.mk.length=0; V.pj=V.pj.filter(p=>!p.orb); for(const e of V.en){ e.swing=0; e.hitCd=Math.max(e.hitCd,.8); if(e.d.boss) e.atk=Math.max(e.atk,2); } }
+function clearThreats(){ V.mk.length=0; V.pj=V.pj.filter(p=>!p.orb); for(const e of V.en){ e.swing=0; e.contactWindup=e.contactRecovery=0; e.hitCd=Math.max(e.hitCd,.8); if(e.d.boss) e.atk=Math.max(e.atk,2); } }
 function ultStart(id){ if(window.K3&&K3.tune) K3.tune(); lock=true;
   if(G.frame?.ultimate) G.frame.ultimate.spend(id); else V.ug=0;
   clearThreats(); anim.seq=null; V.dash=null; pl.air=pl.airT=0; for(const o of V.orbs.splice(0)) if(o.fx) o.fx.life=0; if(window.GFX){ /* the stage is cleared: what the last skills left burning would muddy the opening */ GFX.fx.length=0; GFX.pts.length=0; GFX.lights.length=0; }   /* the stick stays held through the ultimate: he moves again the moment it ends */ ov.lbT=0; V.ultId=id; V.ultSum=0; V.nums.length=0; if(G.sv.cine) G.sv.cine.begin(); }
@@ -174,10 +201,56 @@ function dropFx(name,x,y,height,at=0,o={}){ const K=VFX[name]; if(!K||!K.f[0].ok
 function spawnPos(){ const {hw,hh}=view(), mx=hw+130, my=hh+200, p=rand(0,2*(mx+my)); let x,y;
   if(p<2*mx){ x=p-mx; y=Math.random()<.5?-my:my; } else { y=p-2*mx-my; x=Math.random()<.5?-mx:mx; }
   return [cam.x+x,cam.y+y]; }
-function spawn(type,x,y){ const d=EN[type]; if(x==null) [x,y]=spawnPos();
+function spawn(type,x,y,stage){
+  // The finale's second phase has its own story identity, art and moves.
+  if(stage!=='signal') type=foes.resolve(type,encounterSector());
+  if(!Object.hasOwn(EN,type)) throw Error('Unknown foe: '+type);
+  const d=EN[type]; if(x==null) [x,y]=spawnPos();
   const e={id:V.id++,type,d,x,y,z:0,sv:rand(.9,1.1),vz:0,kx:0,ky:0,hp:d.hp*(d.boss?hm()/dif('hp'):hm()),max:d.hp*(d.boss?hm()/dif('hp'):hm()),h:d.h*d.sc,f:1,walkT:rand(0,1),flash:0,stun:0,hitCd:0,hurtT:0,atk:rand(1,2.5),castT:0,dead:false};
+  if(d.name) e.displayName=d.name;
   V.en.push(e); return e; }
-function practiceTick(rdt){ const want=V.pmany?46:14, n=alive().length; V.spawn+=rdt*(V.pmany?14:5); while(V.spawn>=1&&n+0<want){ V.spawn--; if(alive().length>=want) break; const a=rand(0,TAU), r=rand(520,900); spawn(Math.random()<.12?'brute':'shard',pl.x+Math.cos(a)*r,pl.gy+Math.sin(a)*r*.7); } if(V.spawn>2) V.spawn=2; }
+let practiceGroups;
+function opponents(){
+  if(practiceGroups)return practiceGroups;
+  const cast=GameFieldEnemies;
+  practiceGroups=[...G.hub.ZONES,{no:0,name:'남부 관제시설'}].map(zone=>{
+    const entries=cast.roles.map((role,i)=>({key:'z'+zone.no+'_'+role,name:cast.names[zone.no][i],role,sector:zone.no}));
+    if(zone.no===0)entries.push({key:'z0_signal',name:cast.identity(0,'boss','signal').name,role:'boss',sector:0,stage:'signal'});
+    return {name:zone.no+'구역 · '+zone.name,entries};
+  });
+  practiceGroups.push({name:'균열 레이드',entries:Object.entries(GameConstructs.names).map(([key,name])=>({key,name,role:'boss',construct:true}))});
+  return practiceGroups;
+}
+function spawnPractice(x,y,role){
+  const target=V.practiceTarget,e=spawn(target?.role||role,x,y,target?.stage);
+  if(target){
+    e.practiceTarget=target;e.displayName=target.name;e.finalStage=target.stage;
+    if(e.d.boss){V.boss=e;e.royalEntranceAt=RT;}
+  }
+  return e;
+}
+function populatePractice(){
+  if(V.practiceTarget){spawnPractice(pl.x+340,pl.gy-24);return;}
+  for(let i=0;i<12;i++){
+    const a=i/12*TAU,r=rand(480,760);
+    spawnPractice(pl.x+Math.cos(a)*r,pl.gy+Math.sin(a)*r*.7,i%6===5?'brute':i%6===4?'archer':'shard');
+  }
+}
+function practiceTick(rdt){
+  const target=V.practiceTarget,want=target?(target.role==='boss'||!V.pmany?1:14):V.pmany?46:14;
+  const n=alive().length;
+  V.spawn=Math.min(2,V.spawn+rdt*(V.pmany?14:5));
+  for(let count=n;count<want&&V.spawn>=1;count++){
+    V.spawn--;
+    const a=rand(0,TAU),r=rand(520,900),roll=Math.random();
+    spawnPractice(pl.x+Math.cos(a)*r,pl.gy+Math.sin(a)*r*.7,roll<.12?'brute':roll<.26?'archer':'shard');
+  }
+}
+function clearPracticeTargets(){
+  for(const e of V.en)e.dead=true;
+  V.en.length=V.dying.length=0;V.boss=null;V.spawn=0;
+  clearThreats();hideBoss();
+}
 function spawnTick(rdt){
   const t=V.t, n=alive().length, ch=V.ch;
   // they come in packs from just off screen: more packs, and bigger ones, as time goes on
@@ -189,7 +262,7 @@ function spawnTick(rdt){
   if(V.horde<hz.length&&t>=hz[V.horde]){ V.horde++; const {hw,hh}=view(), R=Math.max(hw,hh)+150, k=Math.round(26+t/7);
     for(let i=0;i<k;i++){ const a=i/k*TAU+rand(-.09,.09), r=R*rand(.88,1.15); spawn(t>150&&i%6===0?'brute':'shard',pl.x+Math.cos(a)*r,pl.gy+Math.sin(a)*r*.75); }
     stamp('호드',{x:.5,y:.28,size:.1,life:1.1,c:'#ff4a6a'}); sfx('siren',.8); }
-  if(!V.bossDone&&t>=BOSS_T){ V.bossDone=true; V.boss=spawn('boss'); warn={t:0,dur:1.8}; SFX.siren(1.6); stamp(CH().boss,{x:.5,y:.3,size:.12,life:1.6,c:CH().acc}); }
+  if(!V.bossDone&&t>=BOSS_T){ V.bossDone=true; V.boss=spawn('boss'); warn={t:0,dur:1.8}; SFX.siren(1.6); stamp(V.boss.displayName||CH().boss,{x:.5,y:.3,size:.12,life:1.6,c:CH().acc}); }
 }
 
 // ============================================================ per-frame
@@ -218,7 +291,7 @@ function pre(rdt){
   pl.home=pl.x;
   // auto attacks: the basic, then any equipped skill that is ready and has a target
   const C=CLS[pl.cls]; if(!C) return;
-  const auto=!V.practice||V.pauto;
+  const auto=(!V.practice||V.pauto)&&!V.boss?.shielded;
   if(auto&&V.bcd<=0&&(!anim.seq||anim.seq.basic)&&C.basic.fn()) V.bcd=C.basic.cd();
   if(auto&&V.gcd<=0&&(!anim.seq||anim.seq.basic)) for(const id of ACT()){ if((V.cd[id]||0)>0||id===DASH_ID[pl.cls]) continue; const s=C.skills[id];   /* the dash is the player's own button */ if(!s||s.passive||(s.moves&&V.steer)) continue; /* a skill that carries the hero off waits while the player is steering */
     if(s.fn(id)!==false){ V.cd[id]=A.cdOf(id); V.gcd=.3; V.bcd=Math.max(V.bcd,.25); break; } }
@@ -259,23 +332,69 @@ function post(rdt){
 function stepEnemies(dt){
   if(dt<=0) return; const {hw,hh}=view(), far=Math.max(hw,hh)*2.6, mul=1+V.t/600;
   for(const e of V.en){ if(e.dead) continue; const D=e.d;
+    // Obstacles and sanctuary walls correct these positions after enemy AI.
+    // Sample the accepted step at the start of the next tick so a blocked
+    // actor rests and a partially blocked actor shortens its stride.
+    if(window.GameFieldEnemies){
+      const step=e.gaitStep||(e.gaitStep={x:e.x,y:e.y,expected:0,clock:0});
+      const travelled=Math.hypot(e.x-step.x,(e.y-step.y)/FSY);
+      e.gaitMoving=step.expected>0&&travelled>Math.max(.06,step.expected*.14)&&!(e.stun>0)&&e.z<10;
+      if(e.gaitClock==null)e.gaitClock=e.walkT;
+      if(e.gaitMoving)e.gaitClock+=step.clock*Math.min(1,travelled/step.expected);
+      step.x=e.x;step.y=e.y;step.expected=step.clock=0;
+    }
     e.flash=Math.max(0,e.flash-dt*6); e.hitCd-=dt; e.hurtT-=dt; e.castT-=dt; e.orbT=(e.orbT||0)-dt; e.slowT=(e.slowT||0)-dt;
+    if(e.d.scriptedAI) continue;
     e.x+=e.kx*dt; e.y+=e.ky*dt; const kd=Math.exp(-dt*8); e.kx*=kd; e.ky*=kd;
     if(e.pull){ const dx=e.pull.x-e.x, dy=e.pull.y-e.y, l=Math.hypot(dx,dy)||1, s=Math.min(l,e.pull.s*dt)*(D.heavy?.3:1); e.x+=dx/l*s; e.y+=dy/l*s; e.pull=null; }
     if(e.z>0||e.vz>0){ e.vz-=3000*dt; e.z+=e.vz*dt; if(e.z<=0){ e.z=0; e.vz=0; } }
-    // touching hurts: the hero's attacks keep the crowd round him stunned, so a wind-up swing alone almost never landed (2026-11-26)
-    if(!V.over&&D.dmg>0&&e.z<60&&e.hitCd<=0&&!(D.boss&&G.frame&&G.frame.kingOn)){ const cx=pl.x-e.x, cy=pl.gy-e.y; if(D.boss?Math.hypot(cx,cy)<D.r+95:Math.hypot(cx,cy/FSY)<Math.max(D.r+34,125)+30){ e.hitCd=1; hurt(D.dmg*dm()*(D.boss?1:.7),e); } }
+    // Drive the wind-up from actual closing speed, including a moving hero and wall corrections.
+    // Only the original contact check commits a strike. Animation never slows the approach or sets a cooldown.
+    const melee=!D.boss&&!D.ranged&&!D.node&&D.dmg>0;
+    if(melee){
+      e.contactWindup=0;
+      e.contactRecovery=Math.max(0,(e.contactRecovery||0)-dt/(D.heavy?.46:.34));
+    }
+    if(!V.over&&D.dmg>0&&e.z<60&&(melee||e.hitCd<=0)&&!(D.boss&&G.frame&&G.frame.kingOn)){
+      const cx=pl.x-e.x,cy=pl.gy-e.y;
+      const distance=D.boss?Math.hypot(cx,cy):Math.hypot(cx,cy/FSY);
+      const radius=D.boss?D.r+95:Math.max(D.r+34,125)+30;
+      const canPose=melee&&!(e.stun>0||e.hurtT>0);
+      if(melee){
+        if(canPose){
+          const closing=((e.contactRange??distance)-distance)/dt;
+          const arrival=distance<radius?0:closing>0?(distance-radius)/closing:Infinity;
+          const until=Math.max(0,e.hitCd,arrival),lead=D.heavy?.42:.30;
+          e.contactWindup=Math.max(0,1-until/lead);
+        }
+        e.contactRange=distance;
+      }
+      if(e.hitCd<=0&&distance<radius){
+        if(canPose)e.contactRecovery=1;
+        e.hitCd=1;hurt(D.dmg*dm()*(D.boss?1:.7),e);
+      }
+    }
     if(e.stun>0){ e.stun-=dt; e.swing=0; continue; }
-    const dx=pl.x-e.x, dy=pl.gy-e.y, l=Math.hypot(dx,dy)||1; if(Math.abs(dx)>4) e.f=dx>0?1:-1;
+    const dx=pl.x-e.x, dy=pl.gy-e.y, l=Math.hypot(dx,dy)||1;
+    if(Math.abs(dx)>4){
+      const facing=dx>0?1:-1;
+      if(e.gaitStep&&e.f!==facing&&e.gaitMoving)e.gaitTurnAt=RT;
+      e.f=facing;
+    }
     if(!D.boss&&l>far){ const [x,y]=spawnPos(); e.x=x; e.y=y; continue; }
     if(V.over) continue;
     let go=1;
     if(D.ranged){ go=l>560?1:l<380?-1:0; e.atk-=dt; if(e.atk<=0&&l<760){ e.atk=rand(2.4,3.4); e.castT=.55;
         after(.3,()=>{ if(e.dead||G.mode!=='surv') return; const a=Math.atan2(pl.gy-e.y,pl.x-e.x); V.pj.push({orb:true,x:e.x+Math.cos(a)*40,y:e.y+Math.sin(a)*40,vx:Math.cos(a)*520,vy:Math.sin(a)*520,life:3.2,dmg:D.dmg}); sfx('whoosh',1.6,.2); }); } }
-    if(D.boss&&!(G.frame&&G.frame.kingOn)){ e.atk-=dt; if(e.atk<=0){ e.atk=3; e.castT=.9; const n=V.t>270?5:3;
+    if(D.boss&&!(G.frame&&G.frame.kingOn)){ e.atk-=dt; if(e.atk<=0){ e.atk=3; e.castT=.9; e.zoneCast=!G.frame; const n=V.t>270?5:3;
         for(let i=0;i<n;i++){ const a=rand(0,TAU), r=i?rand(140,320):0; V.mk.push({x:pl.x+Math.cos(a)*r,y:pl.gy+Math.sin(a)*r,t:-i*.1,dur:1,r:170,dmg:D.dmg*1.2}); } sfx('click'); } }
     if(e.castT>0&&!D.ranged) go=.2;
     const sp=D.spd*mul*go*(e.z>0?0:1)*(e.slowT>0?.4:1); e.x+=dx/l*sp*dt; e.y+=dy/l*sp*dt; e.walkT+=Math.abs(go)*dt*(e.slowT>0?.4:1);
+    if(e.gaitStep){
+      e.gaitRunning=go>0&&l>(D.heavy?1080:800)&&e.slowT<=0;
+      e.gaitStep.clock=Math.abs(go)*dt*(e.slowT>0?.4:1);
+      e.gaitStep.expected=Math.abs(sp*dt)*Math.hypot(dx/l,dy/l/FSY);
+    }
     const lf=Math.hypot(dx,dy/FSY), reach=Math.max(50+D.r,140); if(e.hurtT>0) e.swing=0;
     if(e.swing>0){ e.swing-=dt; if(e.swing<=0&&e.z<60&&Math.hypot(pl.x-e.x,(pl.gy-e.y)/FSY)<reach+40) hurt(D.dmg*dm(),e); }
     else if(lf<reach&&e.z<60&&e.hitCd<=0&&!(D.boss&&G.frame&&G.frame.kingOn)){ if(D.ranged||D.boss){ e.hitCd=.9; hurt(D.dmg*dm(),e); } else { e.hitCd=1.2; e.swing=.32; e.castT=.55; } }
@@ -498,7 +617,7 @@ drawHUD=function(){ if(G.mode!=='surv') return drawHUD1();
 // the hero over every effect, with an outline in his colour (the effect layer is already composited by now)
 const oc=document.createElement('canvas'), og=oc.getContext('2d');
 function heroOver(){ const s=plFrame(), b=plSprBox(s); plMesh(s); if(oc.width!==plC.width||oc.height!==plC.height){ oc.width=plC.width; oc.height=plC.height; }
-  og.clearRect(0,0,oc.width,oc.height); og.drawImage(plC,0,0); og.globalCompositeOperation='source-in'; og.fillStyle=CRIM[pl.cls]; og.fillRect(0,0,oc.width,oc.height); og.globalCompositeOperation='source-over';
+  og.clearRect(0,0,oc.width,oc.height); og.drawImage(plC,0,0); og.globalCompositeOperation='source-in'; og.fillStyle=profiles[pl.cls].rim; og.fillRect(0,0,oc.width,oc.height); og.globalCompositeOperation='source-over';
   const ax=s.ax??.5, x=-b.w*ax-b.w*PL_PAD, y=-b.h*(1+PL_PAD), w=b.w*(1+PL_PAD*2), h=b.h*(1+PL_PAD), o=2/(S*cam.z);
   ctx.save(); ctx.translate(b.cx,b.base); ctx.scale(pl.f,1);
   for(const [dx,dy] of [[o,0],[-o,0],[0,o],[0,-o],[o*.7,o*.7],[-o*.7,o*.7],[o*.7,-o*.7],[-o*.7,-o*.7]]) ctx.drawImage(oc,x+dx,y+dy,w,h);
@@ -546,6 +665,7 @@ body.cine #shud .ul,body.cine #shud .pp,body.cine #shud .dsh{opacity:.0;pointer-
 #shud.prac .pp{display:flex} #shud.prac .sk{visibility:hidden} #shud.prac .mid,#shud.prac .xb,#shud.prac .rw:nth-child(3),#shud.prac .rw:nth-child(4){visibility:hidden}
 #shud .pp h4{margin:2px 0 0;font:900 11px "Malgun Gothic",sans-serif;color:#b9aacd;letter-spacing:.06em}
 #shud .pp .row{display:flex;flex-wrap:wrap;gap:4px}
+#shud .pp select{width:100%;min-height:30px;padding:4px 6px;color:#fff;background:#181322;border:1px solid #63566c;border-radius:6px;font:700 12px "Malgun Gothic",sans-serif}
 #shud .pp button{font:800 11.5px "Malgun Gothic",sans-serif;color:#fff;background:rgba(14,9,26,.78);border:1px solid rgba(255,255,255,.26);border-radius:9px;padding:7px 8px;cursor:pointer;line-height:1.1;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 #shud .pp button.on{border-color:var(--cc,#ffcf4a);box-shadow:inset 0 0 0 1px var(--cc,#ffcf4a);color:#fff} #shud .pp button.u{border-color:#ffcf4a;color:#ffe9a8} #shud .pp button.x{border-color:#ff5a6e;color:#ffb3bd}
 #shud .pp .cls button{flex:1 1 30%}
@@ -623,7 +743,7 @@ function hideBoss(){
 function showBoss(enemy){
   const hp=clamp(enemy.hp/enemy.max,0,1);
   bossMeter={enemy,hp,trail:hp,holdUntil:0,speed:0};
-  bossLabel.textContent=CH().boss; bossLabel.style.color=CH().acc; bossFill.style.background=CH().acc;
+  bossLabel.textContent=enemy.displayName||CH().boss; bossLabel.style.color=CH().acc; bossFill.style.background=CH().acc;
   bossBar.classList.add('on');
 }
 function updateBossBar(dt){
@@ -654,6 +774,7 @@ Object.assign(ICON,{
   as_crescent:'slash05|195',as_ult3:'td_circle05|188',as_ult2:'td_swordfall07|220'
 });
 const icon=id=>{
+  if(SK[id]?.icon) return `<img class="ic" src="${SK[id].icon}" alt="">`;
   if(SK[id]?.cls==='archer'||SK[id]?.cls==='gunner')
     return `<img class="ic" src="assets/ranged/${id}.webp" alt="" style="filter:none">`;
   const v=ICON[id]; if(!v) return '';
@@ -666,7 +787,7 @@ const short=n=>SHORT[n]||n;
 let cells=[];
 function buildBar(){ const L=[[A.ORDER[pl.cls][0],'basic'],...ACT().filter(id=>id!==DASH_ID[pl.cls]).map(id=>[id,'s'])]; buildUlts(); buildPractice();
   { const d=$('.dsh'), id=dashSkill(); d.style.setProperty('--cc',CCOL[pl.cls]);
-    d.querySelector('b').textContent=G.frame&&G.frame.townDash?'대시':id?short(SK[id].name):DASH_NAME[pl.cls]||'대쉬'; }
+    d.querySelector('b').textContent=G.frame&&G.frame.townDash?'대시':id?short(SK[id].name):profiles[pl.cls].dashName||'대쉬'; }
   $('.sk').innerHTML=L.map(([id,k])=>`<div class="c ${k==='u'?'u':''} ${id&&SK[id]&&A.unlocked(id)?'':'off'}" style="--cc:${CCOL[pl.cls]}"><div class="cd"></div>${id&&SK[id]&&A.unlocked(id)?icon(id)+'<span>'+short(SK[id].name)+'</span>':'<span>—</span>'}${k==='u'?'<i class="um"></i>':''}<b class="cs"></b></div>`).join('');
   $('.sk').style.zoom=Math.min(1,(Math.min(innerWidth-200,560)-16)/(L.length*61));   /* left of the dash and ultimate buttons */ cells=[...$('.sk').children].map((el,i)=>({el,cd:el.querySelector('.cd'),cs:el.querySelector('.cs'),id:L[i][0],k:L[i][1]})); V.lv=SV().lv; }
 function stopEv(e){ e.preventDefault(); e.stopPropagation(); }
@@ -676,21 +797,30 @@ function buildUlts(){ const el=$('.ul'); el.style.setProperty('--cc',CCOL[pl.cls
 // the practice room's own panel: who, which skill, and how the room behaves
 function buildPractice(){ const el=$('.pp'); hudEl.classList.toggle('prac',!!V.practice); if(!V.practice){ el.innerHTML=''; return; } el.style.setProperty('--cc',CCOL[pl.cls]);
   const ids=A.ORDER[pl.cls]||[], sk=ids.filter(id=>SK[id]&&SK[id].type==='skill'&&CLS[pl.cls]&&CLS[pl.cls].skills[id]&&CLS[pl.cls].skills[id].fn), ul=ULTS(), lv5=V.plv===5;
-  el.innerHTML=`<h4>직업</h4><div class="row cls">${CLS_ORDER.map(c=>`<button data-pc="${c}" class="${c===pl.cls?'on':''}" ${classReady(c)?'':'disabled'}>${NAMES[c]}</button>`).join('')}</div>
+  el.innerHTML=`<h4><label for="practice-opponent">훈련 상대</label></h4><select id="practice-opponent"><option value="">현재 구역 혼성 부대</option>${opponents().map(group=>`<optgroup label="${group.name}">${group.entries.map(e=>`<option value="${e.key}">${e.name}</option>`).join('')}</optgroup>`).join('')}</select>
+    <h4>직업</h4><div class="row cls">${CLS_ORDER.map(c=>`<button data-pc="${c}" class="${c===pl.cls?'on':''}" ${classReady(c)?'':'disabled'}>${NAMES[c]}</button>`).join('')}</div>
     <h4>설정</h4><div class="row"><button data-po="auto" class="${V.pauto?'on':''}">자동 시전 ${V.pauto?'켜짐':'꺼짐'}</button><button data-po="lv" class="${lv5?'on':''}">스킬 ${lv5?'진화(Lv5)':'기본(Lv1)'}</button><button data-po="many" class="${V.pmany?'on':''}">적 ${V.pmany?'많이':'보통'}</button><button data-po="clear">적 지우기</button><button class="x" data-po="exit">나가기</button></div>
     <h4>스킬 (누르면 바로 시전)</h4><div class="row"><button data-ps="__basic">${short((SK[ids[0]]||{}).name||'평타')}</button>${sk.map(id=>`<button data-ps="${id}">${short(SK[id].name)}</button>`).join('')}</div>
     <h4>궁극기</h4><div class="row">${ul.map(id=>`<button class="u" data-pu="${id}">${SK[id].name}</button>`).join('')}</div>`;
   const on=(sel,fn)=>el.querySelectorAll(sel).forEach(b=>{ b.addEventListener('pointerdown',e=>e.stopPropagation()); b.onclick=e=>{ e.stopPropagation(); fn(b); }; });
+  const select=el.querySelector('#practice-opponent');
+  select.value=V.practiceTarget?.key||'';
+  select.onpointerdown=e=>e.stopPropagation();
+  select.onchange=()=>{
+    if(lock){select.value=V.practiceTarget?.key||'';return;}
+    V.practiceTarget=opponents().flatMap(group=>group.entries).find(e=>e.key===select.value)||null;
+    clearPracticeTargets();populatePractice();
+  };
   on('[data-pc]',b=>{ const c=b.dataset.pc; if(c===pl.cls||lock) return; A.swapClass(c); setClass(c,true); practiceLevels(); start(V.ch,{practice:true,keep:true}); });
   on('[data-ps]',b=>{ if(lock||V.over) return; const C=CLS[pl.cls], id=b.dataset.ps; if(!C) return; anim.seq=null; if(id==='__basic'){ C.basic.fn(); V.bcd=C.basic.cd(); return; } const sk_=C.skills[id]; if(sk_&&sk_.fn){ V.cd[id]=0; if(sk_.fn(id)!==false) V.cd[id]=A.cdOf(id); else A.toast&&A.toast('대상이 범위 안에 없습니다'); } });
   on('[data-pu]',b=>fireUlt(b.dataset.pu));
-  on('[data-po]',b=>{ const k=b.dataset.po; if(k==='exit'){ if(!lock) A.toMenu(); return; } if(k==='clear'){ for(const e of V.en) if(!e.dead&&!e.d.boss){ e.dead=true; } V.en=V.en.filter(e=>!e.dead); return; }
+  on('[data-po]',b=>{ const k=b.dataset.po; if(k==='exit'){ if(!lock) A.toMenu(); return; } if(k==='clear'){ clearPracticeTargets();return; }
     if(k==='auto') V.pauto=!V.pauto; else if(k==='many') V.pmany=!V.pmany; else if(k==='lv'){ V.plv=V.plv===5?1:5; practiceLevels(); } buildBar(); }); }
 // practice works on a copy of the save: every skill at the chosen level, nothing written back
 function practiceLevels(){ const sv=SV(); sv.sl=sv.sl||{}; for(const id of (A.ORDER[pl.cls]||[])) if(SK[id]&&SK[id].type!=='ult') sv.sl[id]=V.plv===5?5:1; }
 let PSNAP=null;
 function practiceEnter(){ if(!PSNAP) PSNAP=JSON.stringify(SV()); G.noSave=true; V.plv=V.plv||5; practiceLevels(); }
-function practiceLeave(){ if(!PSNAP) return; const sv=SV(), o=JSON.parse(PSNAP); PSNAP=null; for(const k of Object.keys(sv)) if(!(k in o)) delete sv[k]; Object.assign(sv,o); G.noSave=false; if(pl.cls!==sv.cls) setClass(sv.cls,true); A.save(); }
+function practiceLeave(){ if(!PSNAP) return; const sv=SV(), o=JSON.parse(PSNAP); PSNAP=null; for(const k of Object.keys(sv)) if(!(k in o)) delete sv[k]; Object.assign(sv,o); G.noSave=false; if(pl.cls!==sv.cls) setClass(sv.cls,true); if(!V.practiceLink) A.save(); }
 function hud(){
   if(V.lv!==SV().lv) buildBar();
   { const u=$('.ul'); u.classList.toggle('rd',V.ug>=100); u.style.setProperty('--u',V.ug+'%'); }
@@ -722,7 +852,7 @@ G.survKey=(e,down)=>{ const k=KM[e.code]; if(k){ V.keys[k]=down; e.preventDefaul
 addEventListener('blur',()=>{ V.keys={}; joyHide(); });
 
 // ============================================================ run flow
-function start(ch,o={}){ if(window.K3&&K3.tune) K3.tune(); const prac=!!o.practice, keep=prac&&o.keep?{pauto:V.pauto,pmany:V.pmany,plv:V.plv}:{pauto:false,pmany:false,plv:5};
+function start(ch,o={}){ window.GameEnemySkin?.clear(); if(window.K3&&K3.tune) K3.tune(); const prac=!!o.practice, keep=prac&&o.keep?{pauto:V.pauto,pmany:V.pmany,plv:V.plv,practiceTarget:V.practiceTarget,practiceLink:V.practiceLink}:{pauto:false,pmany:false,plv:5,practiceTarget:null,practiceLink:!!o.linked};
   hideBoss();
   if(!AC) initAudio(); if(AC&&AC.state!=='running') AC.resume();
   RangedHero.prepare(pl.cls);
@@ -734,11 +864,12 @@ function start(ch,o={}){ if(window.K3&&K3.tune) K3.tune(); const prac=!!o.practi
   pl.target=IDLE(); pl.ps=12; pl.visible=true; pl.air=pl.airT=0; pl.f=1; pl.x=pl.home=G.frame?.worldView?G.frame.worldView(1).hw:VW/2; pl.gy=770; GROUND=FAR;
   E.dead=false; E.respawn=1e9; cam.x=cam.fx=pl.x; cam.y=cam.fy=pl.gy-BODY*.6; cam.z=cam.fz=PORTRAIT?ZP:ZL; cam.ft=99;
   A.menuEl.classList.remove('on'); resEl.classList.remove('on'); document.body.classList.add('surv'); hudEl.classList.add('on'); joyEl.classList.add('on'); buildBar(); hud();
-  if(prac){ V.ug=100; for(let i=0;i<12;i++){ const a=i/12*TAU, r=rand(480,760); spawn(i%6===5?'brute':'shard',pl.x+Math.cos(a)*r,pl.gy+Math.sin(a)*r*.7); } if(!o.keep) add({k:'banner',name:'연습장',en:'PRACTICE · 모든 스킬을 자유롭게',c:'#ffcf4a',life:2}); return; }
+  if(prac){ V.ug=100; populatePractice(); if(!o.keep) add({k:'banner',name:'연습장',en:'PRACTICE · 모든 스킬을 자유롭게',c:'#ffcf4a',life:2}); return; }
   for(let i=0;i<10;i++) spawn('shard');
   add({k:'banner',name:CH().name,en:'CHAPTER '+(V.ch+1)+' · SURVIVE 5:00',c:CH().acc,life:2.4});
 }
 function end(){ // leaving the mode: hand the engine back its ground line and camera
+  window.GameEnemySkin?.clear();
   hideBoss();
   if(V.practice){ V.practice=false; V.god=false; practiceLeave(); hudEl.classList.remove('prac'); }
   V.over=true; joyHide(); hudEl.classList.remove('on'); joyEl.classList.remove('on'); resEl.classList.remove('on'); document.body.classList.remove('surv','cine');
@@ -765,12 +896,13 @@ function goFull(){ if(!A.isTouch()) return; const d=document.documentElement; if
 G.menuOverride=el=>{
   const sv=SV(), cls=pl.cls, ids=A.ORDER[cls]||[], need=A.needExp(sv.lv), open=Math.min(CHAP.length-1,sv.chClear||0); if(sel==null||sel>open) sel=open;
   const count=type=>ids.filter(id=>SK[id]?.type===type).length;
+  const thumbnail=c=>profiles[c].thumbnail?`<img src="${profiles[c].thumbnail}" alt="">`:'';
   const summary=classReady(cls)?[SK[ids[0]]?.name,count('skill')&&count('skill')+'개 스킬','궁극기 '+count('ult')+'개'].filter(Boolean).join(' · '):'불러오는 중…';
   const wait=classReady(cls)?'':'disabled';
   el.classList.add('mob');
   let h=`<div class="mm"><div class="hd"><h1>참광</h1><small>SURVIVAL RPG</small><button class="opt ${sv.opt&&sv.opt.calm?'on':''}" data-opt="calm">섬광·흔들림 줄이기 ${sv.opt&&sv.opt.calm?'켜짐':'꺼짐'}</button><button class="opt opt2 ${sv.opt&&sv.opt.lowfx?'on':''}" data-opt="lowfx">이펙트 품질 ${sv.opt&&sv.opt.lowfx?'낮음':'높음'}</button><button class="opt opt3 ${sv.opt&&sv.opt.stick?'on':''}" data-opt="stick">스틱맨 모드 ${sv.opt&&sv.opt.stick?'켜짐':'꺼짐'}</button></div>
-    <div class="cl">${CLS_ORDER.map(c=>{ const d=c===sv.cls?sv:(sv.chars&&sv.chars[c])||{lv:1}; return `<div class="cc ${c===cls?'on':''}" data-c="${c}" style="--c:${CCOL[c]}"><img src="assets/${c}_a.webp" alt=""><b>${NAMES[c]}</b><small>Lv ${d.lv}</small></div>`; }).join('')}</div>
-    <div class="pv" style="--c:${CCOL[cls]}"><img src="assets/${cls}_a.webp" alt=""><div><b>${NAMES[cls]}</b><small>${summary}</small></div></div>
+    <div class="cl">${CLS_ORDER.map(c=>{ const d=c===sv.cls?sv:(sv.chars&&sv.chars[c])||{lv:1}; return `<div class="cc ${c===cls?'on':''}" data-c="${c}" style="--c:${CCOL[c]}">${thumbnail(c)}<b>${NAMES[c]}</b><small>Lv ${d.lv}</small></div>`; }).join('')}</div>
+    <div class="pv" style="--c:${CCOL[cls]}">${thumbnail(cls)}<div><b>${NAMES[cls]}</b><small>${summary}</small></div></div>
     <div class="st"><b>${NAMES[cls]} · Lv ${sv.lv}</b><span>스킬 포인트 <b style="color:#55ddff">${sv.sp}</b> · HP ${A.maxHp()}</span></div><div class="xp"><i style="width:${sv.exp/need*100}%"></i></div>
     <div class="tb"><button data-t="ch" class="${tab==='ch'?'on':''}">챕터</button><button data-t="sk" class="${tab==='sk'?'on':''}">스킬 강화${sv.sp?' <span class="bdg">'+sv.sp+'</span>':''}</button></div><div class="bd">`;
   if(tab==='ch') h+=CHAP.map((c,i)=>{ const b=(sv.best||{})[cls+i]; return `<button class="chp ${i===sel?'on':''}" data-ch="${i}" style="--c:${c.acc}" ${i>open?'disabled':''}><i></i><div><b>${i+1}. ${c.name}</b><small>${c.en} · 보스 ${c.boss} · 권장 Lv ${c.rec}</small></div><em>${i<(sv.chClear||0)?'클리어':i===open?'도전':'잠김'}${b?'<br>'+mmss(b):''}</em></button>`; }).join('');
@@ -800,13 +932,71 @@ G.firstSkills=c=>{ const L=(A.ORDER[c]||[]).filter(id=>SK[id]&&SK[id].type==='sk
 // ============================================================ class skill files
 // keep a point (an ultimate's impact) inside the middle of the screen
 const inView=(x,y,k=.5)=>{ const {hw,hh}=view(); return [clamp(x,cam.x-hw*k,cam.x+hw*k),clamp(y,cam.y-hh*k+BODY*.5,cam.y+hh*k+BODY*.5)]; };
-G.sv={V,A,SK,BODY,CH,DASH_ID,doDash,CHAP,EN,CLS,CLS_ORDER,CCOL,NAMES,spawn,shock1,inView,FSY,draw:(life,fn,delay=0)=>V.draws.push({t0:RT+delay,life,fn}),nearest,countIn,densest,angTo,face,seq,dmg,hitFx,inCircle,inCircleS,inSector,inLine,sfx,view,onScreen,tdV,dropFx,ultStart,ultStop,ultHit,addVfx,burst,fring,heal,hurt,drawNumbers,
-  fmtN,reg(c,def){ CLS[c]=def; if(def.sk) Object.assign(SK,def.sk); if(def.order) A.ORDER[c]=def.order; if(G.mode==='menu') A.menuRender(); if(G.mode==='surv'&&c===pl.cls) buildBar(); }};
-for(const f of ['hub','engine/quality','fx3','vol3','gfx','vfx3','vkit3','bake3_meta','bake3','cine','assassin_flow','assassin_mist','assassin_blades','assassin_cuts','assassin_ground','assassin_skills','assassin_eclipse','assassin_loom','axe_skills','axe_ult1','axe_ult2','axe_ult3','engine/phoenix_frames','engine/phoenix_mesh','engine/phoenix_renderer','engine/phoenix_flight','engine/phoenix_wind',...CLS_ORDER.map(c=>'sk_'+c),'mk','mk_sword']){
-  const s=document.createElement('script'); s.src=`${f}.js?v=${VER}`; s.async=false;
-  if(f==='mk') s.onload=()=>{ if(G.mode==='menu'&&(pl.cls==='assassin'||pl.cls==='axe')) A.menuRender(); else if(G.mode==='surv'&&V.practice) buildPractice(); };
-  document.body.appendChild(s);
+// Enemy registrations are available before campaign modules and saves load.
+function refreshClass(id){
+  if(G.mode==='menu') A.menuRender();
+  if(G.mode==='surv'&&id===pl.cls) buildBar();
 }
+function bindClass(id,def){
+  const metadata=def.sk?{...SK,...def.sk}:SK;
+  return G.sv.effects?.bindClass(id,def,metadata,def.order||A.ORDER[id])??def;
+}
+function commitClass(id,def){
+  if(def.sk) Object.assign(SK,def.sk);
+  if(def.order) A.ORDER[id]=def.order;
+  CLS[id]=def;
+}
+function registerCharacter(id,definition){
+  const {profile,combat}=GameCharacters.prepare(id,definition,SK,POSES);
+  const bound=bindClass(id,combat);
+  const cut={bg:'#11121b',box:profile.color,iris:['#ffffff',profile.eye,profile.color],subc:profile.eye};
+  CLASSES[id]={name:profile.name,en:profile.en,idle:profile.idle,aura:profile.color,eye:profile.eye,cut,
+    basic:combat.sk[combat.order[0]].name,ults:Object.keys(combat.ults).map(key=>({name:combat.sk[key].name,en:''}))};
+  SCARF[id]=profile.color;
+  profiles[id]=profile;
+  CLS_ORDER.push(id);
+  indexProfile(id,profile);
+  commitClass(id,bound);
+  refreshClass(id);
+  return CLS[id];
+}
+function restoreCharacter(){
+  const id=SV().cls;
+  if(!Object.hasOwn(CLASSES,id)) A.swapClass('sword');
+  if(pl.cls!==SV().cls) setClass(SV().cls,true);
+  if(G.mode==='menu') A.menuRender();
+}
+G.sv={V,A,SK,BODY,CH,DASH_ID,doDash,CHAP,EN,registerMonster:foes.registerMonster,registerBoss:foes.registerBoss,encounterFoes:foes.list,CLS,CLS_ORDER,CCOL,NAMES,spawn,shock1,inView,FSY,draw:(life,fn,delay=0)=>V.draws.push({t0:RT+delay,life,fn}),nearest,countIn,densest,angTo,face,seq,dmg,hitFx,inCircle,inCircleS,inSector,inLine,sfx,view,onScreen,tdV,dropFx,ultStart,ultStop,ultHit,addVfx,burst,fring,heal,hurt,drawNumbers,
+  fmtN,profiles,classReady,registerCharacter,restoreCharacter,
+  reg(c,def){ commitClass(c,bindClass(c,def)); refreshClass(c); }};
+// Classic built-in scripts run in insertion order. Packs can use their skills and effects.
+const builtins=['hub','engine/quality','fx3','vol3','gfx','vfx3','vkit3','engine/skill-effects','bake3_meta','bake3','cine','assassin_flow','assassin_mist','assassin_blades','assassin_cuts','assassin_ground','assassin_skills','assassin_eclipse','assassin_loom','axe_skills','axe_ult1','axe_ult2','axe_ult3','engine/phoenix_frames','engine/phoenix_mesh','engine/phoenix_renderer','engine/phoenix_flight','engine/phoenix_wind',...CLS_ORDER.map(c=>'sk_'+c),'mk','mk_sword'];
+const builtinsReady=new Promise((resolve,reject)=>{
+  for(const f of builtins){
+    const s=document.createElement('script'); s.src=`${f}.js?v=${VER}`; s.async=false;
+    if(f==='mk') s.onload=()=>{ if(G.mode==='menu'&&(pl.cls==='assassin'||pl.cls==='axe')) A.menuRender(); else if(G.mode==='surv'&&V.practice) buildPractice(); };
+    if(f==='engine/skill-effects') s.onerror=()=>reject(new Error(f+'.js'));
+    if(f===builtins[builtins.length-1]) s.onload=s.onerror=resolve;
+    document.body.appendChild(s);
+  }
+});
+G.contentReady=builtinsReady.then(async ()=>{
+  if(typeof GAME_CONTENT_PACKS==='undefined'||!Array.isArray(GAME_CONTENT_PACKS)) throw new Error('engine/packs/manifest.js 목록을 확인해 주세요.');
+  const seen=new Set();
+  for(const id of GAME_CONTENT_PACKS){
+    if(typeof id!=='string'||!/^[a-z][a-z0-9_-]*$/.test(id)||seen.has(id)) throw new Error('콘텐츠 팩 이름을 확인해 주세요 ('+id+').');
+    seen.add(id);
+  }
+  if(!G.sv.effects) throw new Error('engine/skill-effects.js');
+  for(const id of seen){
+    try{
+      const pack=await import('./engine/packs/'+id+'.js');
+      if(typeof pack.default!=='function') throw new Error('export default 등록 함수가 필요합니다.');
+      await pack.default(G.sv);
+    }catch(error){ throw new Error(id+' — '+(error?.message??String(error)),{cause:error}); }
+  }
+  G.sv.restoreCharacter();
+});
 if(G.mode==='menu') A.menuRender();
 G.survStart=start;
 })();

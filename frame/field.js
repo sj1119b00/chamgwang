@@ -61,12 +61,27 @@ body.pf-field #shud .mid{margin-right:162px}`;
   // 모아 둔 경험치(surv.js가 0.5초마다 담는 V.acc)를 바로 담는다. 판이 끝나는 길(surv.js finish가 하던 일)과 앱을 숨길 때
   const bank=()=>{ if(V.acc>0){ A.gainExp(V.acc); V.run+=V.acc; V.acc=0; } };
   // 왕이 쓰러졌는가(궁극기 중이라 dun.js가 아직 M.won을 처리하지 못한 때도). 쓰러짐으로 지운 왕은 M.king·c.king에서 빠져 있다
-  const kingDown=c=>{ const M=c.M, k=M&&(M.king||c.king); return !!M&&(!!M.won||!!(k&&k.dead)); };
+  const kingDown=c=>{
+    const M=c.M,k=M&&(M.king||c.king);
+    if(c.zone===7&&k?.dead&&k.finalStage==='arcadia'){
+      if(c.first) story().finalStage='signal';
+      return false;
+    }
+    return !!M&&(!!M.won||!!(k&&k.dead&&(c.zone!==7||k.finalStage==='signal')));
+  };
   // 첫 제압의 기록: 진행, 첫 클리어 경험치(surv.js finish의 150*(ch+1)), 승리 정산. 한 판에 한 번(c.won).
   // 경험치 회수(2.4초)가 끝나기 전에 불리면(떠남·앱 숨김) 날아오던 젬도 담는다
   function winBook(c){ if(c.won) return; c.won=true; const M=c.M;
     if(!M.free){ for(const g of V.gems) V.acc+=g.v; V.gems.length=0; }
-    if(c.first){ const s=story(); s.cleared=Math.max(s.cleared,c.zone+1); A.SV.chClear=Math.min(7,s.cleared); const b=150*(c.ch+1); A.gainExp(b); V.run+=b; }
+    if(c.first){
+      const s=story(); s.cleared=Math.max(s.cleared,c.zone+1);
+      if(c.zone===7) s.finalStage='separated';
+      A.SV.chClear=Math.min(7,s.cleared);
+      bank();
+      const target=PF.balance.rows[c.zone].lvOut;
+      c.memoryXP=PF.economy.memoryXP(c.ch,A.SV.lv,A.SV.exp,target,A.needExp);
+      A.gainExp(c.memoryXP); V.run+=c.memoryXP;
+    }
     c.run.first=false;
     if(c.first) emit('kingCleared',c);
     c.winPay=pay(c,'win'); }
@@ -97,6 +112,7 @@ body.pf-field #shud .mid{margin-right:162px}`;
     if(cur) end(false);
     if(PF.place.FIGHT.includes(PF.place.cur)) G.survEnd();
     const ch=chOf(zone), run={kind:'field',zone,ch,first:st==='open'};
+    PF.bestiary?.preload(zone);
     G.frame.run=run; PF.place.go('field');
     entering=true; try{ G.survStart(ch); } finally{ entering=false; }
     cloth();
@@ -132,9 +148,10 @@ body.pf-field #shud .mid{margin-right:162px}`;
     if(began) emit('down',c);
   }
   function returnToSafety(c){ const M=c.M, k=M&&M.king;
+    PF.regionMaps?.releaseDuel(M);
     // 왕과 싸우던 중이면 왕과 왕의 방 무리를 지우고 문이 열린 상태로 되돌린다. 다시 들어가면 dun.js가 새 왕을 낸다
     if(k&&!k.dead){ const a=M.arena;
-      for(const e of V.en) if(!e.dead&&!e.d.node&&(e===k||Math.hypot(e.x-a.x,(e.y-a.y)/FSY)<a.r+60)) e.dead=true;
+      for(const e of V.en) if(!e.dead&&!e.d.node&&(e===k||Math.hypot(e.x-a.x,(e.y-a.y)/FSY)<(a.design?PF.regionMaps.radius(a,Math.atan2((e.y-a.y)/FSY,e.x-a.x)):a.r)+60)) e.dead=true;
       M.king=null; V.boss=null; c.king=null; c.half=false; V.mk.length=0;
       for(let i=V.pj.length-1;i>=0;i--) if(V.pj[i].orb) V.pj.splice(i,1); }
     const p=respawn(F.safeZones,pl.x,pl.gy)||{x:pl.x,y:pl.gy};
@@ -170,17 +187,18 @@ body.pf-field #shud .mid{margin-right:162px}`;
       }
       snap(); c.at=null;
     }
-    if(c.zone===COUNT-1&&M.msg) M.msg={...M.msg,t:'마지막 화 — 자리만 있음 (임시)',sub:M.msg.sub||M.msg.t,t0:RT}; }
+    if(c.zone===COUNT-1&&M.msg) M.msg={...M.msg,t:'남부 관제시설 · 균열의 심부',sub:'일곱 기억이 관제실의 봉인을 푼다.',t0:RT}; }
   // 지도를 보고 사건을 낸다. 받는 쪽이 판을 옮기면(cur가 바뀜) 거기서 멈춘다
   function watch(M){ const c=cur;
     while(c.done<M.done){ c.done++; emit('node'+c.done,c); if(cur!==c) return; }
-    if(M.king){ c.king=M.king; if(!c.kingSeen){ c.kingSeen=true; emit('king',c); if(cur!==c) return; } }
-    const k=c.king; if(k&&!c.half&&!lock&&k.hp<k.max*.5){ c.half=true; emit('kingHp50',c); if(cur!==c) return; }
+    if(M.king&&M.king!==c.king){ c.king=M.king;c.half=false;
+      if(!c.kingSeen){ c.kingSeen=true; emit('king',c); if(cur!==c) return; } }
+    const k=c.king; if(k&&!k.dead&&!c.half&&!lock&&k.hp<k.max*.5){ c.half=true; emit(k.finalStage==='signal'?'signalHp50':'kingHp50',c); if(cur!==c) return; }
     if(M.won&&M.free&&!c.shown&&!lock) win(c,M); }
   // 왕이 쓰러지고 경험치 회수가 끝남(dun.js가 M.free로 넘어감): 기록(앱을 숨길 때 이미 했으면 그대로. 진행이 올라 나가는 길이 열린다), 알림. 결과 창은 없다
   function win(c,M){ c.shown=true; winBook(c);
     const r=c.winPay||{gold:0,gear:0};
-    M.msg={t:`구역 제압 · 크레딧 +${r.gold} · 장비 ${r.gear}`,sub:'',c:AM,t0:RT};
+    M.msg={t:`${c.zone===7?'신호체 분리':'구역 제압'} · 크레딧 +${r.gold} · 장비 ${r.gear}`,sub:c.memoryXP?'기억 동기화 · '+c.memoryXP+' EXP':'',c:AM,t0:RT};
     emit('win',c); }
   function step(rdt){ const M=G.dun.M;
     if(cur.leaveAfterUlt&&!ultimate()){ F.leave(); return; }

@@ -4,9 +4,9 @@
 (function(){
 'use strict';
 const KINDS=['hard','rematch','endless'];
-// 높은 난이도의 배율(임시값): 밸런스 표가 정한 몹 체력·공격력에 곱한다
+// 높은 난이도의 적은 구역과 직업에 맞춘 체력과 공격력에 이 배율을 추가한다.
 const HARD={hp:1.8,dmg:1.5};
-// 보상 크레딧(임시 공식). r: {win, t(초)}. 진 높은 난이도·재대결은 0, 끝없이 버티기는 버틴 시간에 비례
+// 높은 난이도와 재대결의 승리, 끝없이 버티기의 30초 생존마다 구역에 맞춰 크레딧을 지급한다.
 function reward(kind,ch,r){ const k=ch+1;
   if(kind==='endless') return Math.floor(r.t/30)*20*k;
   if(!r.win) return 0;
@@ -35,7 +35,7 @@ if(typeof window!=='undefined'&&window.RPG&&window.PF){
   // 터치 기기에서 전체 화면·가로 고정(field.js 출발 버튼과 같다)
   function goFull(){ if(!A.isTouch()) return; const d=document.documentElement; if(!document.fullscreenElement&&d.requestFullscreen) d.requestFullscreen().then(()=>screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(()=>{})).catch(()=>{}); }
   const mmss=s=>Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0');
-  const zname=z=>{ const Zs=G.hub.ZONES; return z<Zs.length?Zs[z].no+'구역 · '+Zs[z].name:'마지막 화 (임시)'; };
+  const zname=z=>{ const Zs=G.hub.ZONES; return z<Zs.length?Zs[z].no+'구역 · '+Zs[z].name:'남부 관제시설'; };
   const recText=(kind,v)=>v===undefined?'기록 없음':(kind==='endless'?'최장 ':'최단 ')+mmss(v);
   const banner=t=>{ for(const p of parts) if(p.k==='banner') p.en=t; };
   // 그 구역의 표(balance.js)가 도전 판에도 머문다
@@ -148,7 +148,7 @@ if(typeof window!=='undefined'&&window.RPG&&window.PF){
   // 끝없이 버티기: 시간 자리에 버틴 시간, 왕(surv.js 자체 보스)이 쓰러지고 BOSS_GAP초 뒤 다시(surv.js는 bossDone이 꺼져 있고 BOSS_T가 지났으면 바로 낸다)
   function begin(c,M){ c.M=M;
     for(const q of M.chests){ q.open=true; q.t=-9; }
-    M.msg={t:NAME[c.kind]+' · '+M.Z.king,sub:c.kind==='rematch'?'왕의 방으로 들어가면 왕이 나온다':`몹 체력 ×${HARD.hp} · 공격력 ×${HARD.dmg} (임시값) · 신호 노드 3개를 파괴하고 왕을 쓰러뜨려라`,c:AM,t0:RT};
+    M.msg={t:NAME[c.kind]+' · '+M.Z.king,sub:c.kind==='rematch'?'왕의 방으로 들어가면 왕이 나온다':`몹 체력 ×${HARD.hp} · 공격력 ×${HARD.dmg} · 현장의 목표를 달성하고 지휘관을 제압하라`,c:AM,t0:RT};
     banner('ZONE '+String(M.Z.no).padStart(2,'0')+' · '+NAME[c.kind]); }
   function tick(){ const c=cur;
     if(c.leaveAfterUlt&&!PF.story.busy()){ C.leave(); return; }
